@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-gray-50 text-gray-900 overflow-x-hidden;
+  }
+}
+
+@keyframes slideIn {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slideLeft {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.animate-slide-in {
+  animation: slideIn 0.3s ease-out forwards;
+}
+
+.animate-slide-left {
+  animation: slideLeft 0.3s ease-out forwards;
+}
+
+/* ─── Cart Shake Animation ───────────────────────────────── */
+@keyframes cart-shake {
+  0%   { transform: rotate(0deg) scale(1); }
+  15%  { transform: rotate(-18deg) scale(1.15); }
+  30%  { transform: rotate(14deg) scale(1.15); }
+  45%  { transform: rotate(-10deg) scale(1.1); }
+  60%  { transform: rotate(8deg)  scale(1.05); }
+  75%  { transform: rotate(-4deg) scale(1.02); }
+  90%  { transform: rotate(2deg)  scale(1.01); }
+  100% { transform: rotate(0deg) scale(1); }
+}
+
+.animate-cart-shake {
+  animation: cart-shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
