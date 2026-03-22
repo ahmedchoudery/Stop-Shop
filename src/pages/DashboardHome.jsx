@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { RefreshCcw, AlertCircle } from 'lucide-react';
+import { RefreshCcw, AlertCircle, ArrowRight, Package, ShoppingBag, Users, TrendingUp } from 'lucide-react';
+import { NavLink } from 'react-router-dom';
 import StatsGrid from '../components/StatsGrid';
 import InventoryHealthChart from '../components/InventoryHealthChart';
+import RevenueChart from '../components/RevenueChart';
 
 const DashboardHome = () => {
   const [data, setData] = useState({
@@ -16,7 +18,6 @@ const DashboardHome = () => {
     setLoading(true);
     setError(null);
     const token = localStorage.getItem('adminToken');
-    
     try {
       const headers = { 'Authorization': `Bearer ${token}` };
       const [revRes, ordRes, invRes] = await Promise.all([
@@ -24,21 +25,14 @@ const DashboardHome = () => {
         fetch('http://localhost:5000/api/stats/orders', { headers }),
         fetch('http://localhost:5000/api/stats/inventory', { headers })
       ]);
-
       if (!revRes.ok || !ordRes.ok || !invRes.ok) throw new Error('Failed to synchronize stats');
-
       const [revData, ordData, invData] = await Promise.all([
         revRes.json(), ordRes.json(), invRes.json()
       ]);
-
       setData({
         revenue: revData.totalRevenue,
         orders: { total: ordData.totalOrders, pending: ordData.pendingOrders },
-        inventory: { 
-          total: invData.totalProducts, 
-          outOfStock: invData.outOfStock, 
-          products: invData.products 
-        }
+        inventory: { total: invData.totalProducts, outOfStock: invData.outOfStock, products: invData.products }
       });
     } catch (err) {
       setError(err.message);
@@ -47,43 +41,40 @@ const DashboardHome = () => {
     }
   };
 
-  useEffect(() => {
-    fetchStats();
-  }, []);
+  useEffect(() => { fetchStats(); }, []);
 
   if (error) return (
-    <div className="p-10 flex flex-col items-center justify-center text-red-600 bg-red-50 rounded-sm border-2 border-dashed border-red-100">
+    <div className="p-10 flex flex-col items-center justify-center text-red-600 bg-red-50 rounded-2xl border-2 border-dashed border-red-100">
       <AlertCircle size={48} className="mb-4" />
       <h3 className="font-black uppercase tracking-tighter text-xl">Cloud Sync Failed</h3>
       <p className="text-xs font-bold uppercase tracking-widest mt-2">{error}</p>
-      <button onClick={fetchStats} className="mt-6 px-6 py-2 bg-red-600 text-white text-[10px] font-black uppercase tracking-widest rounded-sm hover:bg-red-700 transition-colors">
+      <button onClick={fetchStats} className="mt-6 px-6 py-2 bg-red-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-red-700 transition-colors">
         Retry Secure Sync
       </button>
     </div>
   );
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-      {/* Dashboard Top Bar */}
-      <div className="flex justify-between items-center mb-10">
+    <div className="animate-fade-up space-y-10">
+      {/* Header */}
+      <div className="flex justify-between items-center">
         <div>
           <h2 className="text-4xl font-black uppercase tracking-tighter text-gray-900 border-l-8 border-[#FACC15] pl-6">
             Dashboard
           </h2>
           <p className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400 mt-2 ml-6">
-            Live Stream Business Intelligence
+            Live Business Intelligence
           </p>
         </div>
-        
-        <div className="flex items-center space-x-6">
-          <div className="text-right hidden md:block">
-            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400">System Ready</p>
-            <p className="text-xs font-bold text-green-600 mt-1 uppercase tracking-widest">● Encrypted Connection</p>
+        <div className="flex items-center space-x-4">
+          <div className="hidden md:flex items-center space-x-2 bg-green-50 border border-green-100 rounded-xl px-4 py-2">
+            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+            <span className="text-[10px] font-black uppercase tracking-widest text-green-600">Live</span>
           </div>
-          <button 
+          <button
             onClick={fetchStats}
             disabled={loading}
-            className={`p-3 bg-white border border-gray-100 rounded-sm shadow-sm hover:shadow-md transition-all group ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
+            className={`p-3 bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-md transition-all group ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
             <RefreshCcw size={18} className={`text-gray-400 group-hover:text-red-900 ${loading ? 'animate-spin' : ''}`} />
           </button>
@@ -94,29 +85,84 @@ const DashboardHome = () => {
         <DashboardSkeleton />
       ) : (
         <>
+          {/* Stats Cards */}
           <StatsGrid totalSales={data.revenue} totalOrders={data.orders.total} />
-          
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+
+          {/* Revenue Chart + Inventory Health */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2">
+              <RevenueChart />
+            </div>
             <div className="lg:col-span-1">
               <InventoryHealthChart products={data.inventory.products} />
             </div>
-            <div className="lg:col-span-2 bg-[#8B0000] rounded-sm p-8 text-white relative overflow-hidden group">
-              <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 group-hover:scale-125 transition-transform duration-700"></div>
-              <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-red-200 mb-6">Real-Time Insights</h3>
-              <p className="text-2xl font-black italic uppercase tracking-tighter leading-tight max-w-xl">
-                Current Revenue Trend: High Volatility. {data.orders.pending} orders are awaiting immediate fulfillment to optimize cash flow.
-              </p>
-              <div className="mt-8 flex items-center space-x-6">
-                <div className="flex items-center space-x-2">
-                  <span className="w-2 h-2 bg-yellow-400 rounded-full"></span>
-                  <span className="text-[9px] font-black uppercase tracking-widest text-red-100">Pending: {data.orders.pending}</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <span className="w-2 h-2 bg-green-400 rounded-full"></span>
-                  <span className="text-[9px] font-black uppercase tracking-widest text-red-100">Total: {data.orders.total}</span>
+          </div>
+
+          {/* Insight Card */}
+          <div className="bg-[#8B0000] rounded-2xl p-8 text-white relative overflow-hidden group">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 group-hover:scale-125 transition-transform duration-700" />
+            <div className="absolute bottom-0 left-0 w-32 h-32 bg-yellow-400/10 rounded-full -ml-16 -mb-16" />
+            <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+              <div>
+                <p className="text-[11px] font-black uppercase tracking-[0.3em] text-red-200 mb-3">Real-Time Insight</p>
+                <p className="text-2xl font-black italic uppercase tracking-tighter leading-tight max-w-xl">
+                  {data.orders.pending > 0
+                    ? `${data.orders.pending} order${data.orders.pending > 1 ? 's' : ''} awaiting fulfillment. Act now to maximize cash flow.`
+                    : 'All orders fulfilled. Excellent operational efficiency!'}
+                </p>
+                <div className="flex items-center space-x-6 mt-6">
+                  <div className="flex items-center space-x-2">
+                    <span className="w-2 h-2 bg-yellow-400 rounded-full" />
+                    <span className="text-[9px] font-black uppercase tracking-widest text-red-100">Pending: {data.orders.pending}</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="w-2 h-2 bg-green-400 rounded-full" />
+                    <span className="text-[9px] font-black uppercase tracking-widest text-red-100">Total: {data.orders.total}</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <span className="w-2 h-2 bg-red-300 rounded-full" />
+                    <span className="text-[9px] font-black uppercase tracking-widest text-red-100">Out of Stock: {data.inventory.outOfStock}</span>
+                  </div>
                 </div>
               </div>
+              <NavLink
+                to="/admin/orders"
+                className="flex-shrink-0 flex items-center space-x-3 bg-white/10 hover:bg-white/20 border border-white/20 px-6 py-4 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all group/btn"
+              >
+                <span>Manage Orders</span>
+                <ArrowRight size={16} className="group-hover/btn:translate-x-1 transition-transform" />
+              </NavLink>
             </div>
+          </div>
+
+          {/* Quick Actions */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {[
+              { to: '/admin/orders', icon: ShoppingBag, label: 'Orders', count: data.orders.total, color: 'red' },
+              { to: '/admin/inventory', icon: Package, label: 'Inventory', count: data.inventory.total, color: 'blue' },
+              { to: '/admin/users', icon: Users, label: 'Team', count: null, color: 'green' },
+              { to: '/admin/settings', icon: TrendingUp, label: 'Settings', count: null, color: 'yellow' },
+            ].map(({ to, icon: Icon, label, count, color }) => (
+              <NavLink
+                key={to}
+                to={to}
+                className="bg-white border border-gray-100 rounded-2xl p-6 hover:shadow-xl hover:border-gray-200 transition-all group flex flex-col space-y-3"
+              >
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center bg-${color}-50 group-hover:scale-110 transition-transform`}>
+                  <Icon size={20} className={`text-${color}-600`} />
+                </div>
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">{label}</p>
+                  {count !== null && (
+                    <p className="text-2xl font-black text-gray-900 mt-1">{count}</p>
+                  )}
+                </div>
+                <div className="flex items-center space-x-1 text-[10px] font-bold text-gray-300 group-hover:text-red-600 transition-colors">
+                  <span>Manage</span>
+                  <ArrowRight size={12} className="group-hover:translate-x-1 transition-transform" />
+                </div>
+              </NavLink>
+            ))}
           </div>
         </>
       )}
@@ -124,16 +170,15 @@ const DashboardHome = () => {
   );
 };
 
-/* Tailwind Skeleton Component */
 const DashboardSkeleton = () => (
   <div className="space-y-8 animate-pulse">
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-      <div className="h-48 bg-gray-100 rounded-sm"></div>
-      <div className="h-48 bg-gray-100 rounded-sm"></div>
+      <div className="h-48 bg-gray-100 rounded-2xl skeleton" />
+      <div className="h-48 bg-gray-100 rounded-2xl skeleton" />
     </div>
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      <div className="lg:col-span-1 h-64 bg-gray-100 rounded-sm"></div>
-      <div className="lg:col-span-2 h-64 bg-gray-100 rounded-sm"></div>
+      <div className="lg:col-span-2 h-80 bg-gray-100 rounded-2xl skeleton" />
+      <div className="lg:col-span-1 h-80 bg-gray-100 rounded-2xl skeleton" />
     </div>
   </div>
 );

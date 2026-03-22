@@ -1,21 +1,23 @@
 import React, { useState } from 'react';
 import { useCart } from '../context/CartContext';
-import { CreditCard, Truck, CheckCircle, ArrowRight, ArrowLeft } from 'lucide-react';
+import { CreditCard, Truck, CheckCircle, ArrowRight, ArrowLeft, Tag, X } from 'lucide-react';
+
+const PROMO_CODES = {
+  'SUMMER20': { discount: 0.20, label: '20% OFF' },
+  'STOP10': { discount: 0.10, label: '10% OFF' },
+  'FIRST15': { discount: 0.15, label: '15% OFF' },
+};
 
 const CheckoutForm = ({ onComplete }) => {
   const { total, cartItems } = useCart();
   const [step, setStep] = useState(1);
+  const [promoInput, setPromoInput] = useState('');
+  const [appliedPromo, setAppliedPromo] = useState(null);
+  const [promoError, setPromoError] = useState('');
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    address: '',
-    city: '',
-    zip: '',
-    paymentMethod: 'credit-card',
-    cardNumber: '',
-    expiry: '',
-    cvv: '',
+    firstName: '', lastName: '', email: '', address: '',
+    city: '', zip: '', paymentMethod: 'credit-card',
+    cardNumber: '', expiry: '', cvv: '',
   });
 
   const handleInputChange = (e) => {
@@ -26,251 +28,270 @@ const CheckoutForm = ({ onComplete }) => {
   const nextStep = () => setStep((prev) => Math.min(prev + 1, 3));
   const prevStep = () => setStep((prev) => Math.max(prev - 1, 1));
 
+  const applyPromo = () => {
+    const code = promoInput.trim().toUpperCase();
+    if (PROMO_CODES[code]) {
+      setAppliedPromo({ code, ...PROMO_CODES[code] });
+      setPromoError('');
+    } else {
+      setPromoError('Invalid promo code. Try SUMMER20');
+      setAppliedPromo(null);
+    }
+  };
+
+  const removePromo = () => {
+    setAppliedPromo(null);
+    setPromoInput('');
+    setPromoError('');
+  };
+
+  const discount = appliedPromo ? total * appliedPromo.discount : 0;
+  const finalTotal = total - discount;
+
+  const inputClass = "w-full border-b-2 border-gray-100 focus:border-red-600 outline-none py-2.5 font-bold text-gray-900 transition-colors bg-transparent placeholder:text-gray-300";
+  const labelClass = "text-[10px] font-black uppercase tracking-widest text-gray-400";
+
   const ProgressIndicator = () => (
     <div className="mb-10">
-      <div className="relative pt-1">
-        <div className="flex mb-2 items-center justify-between">
-          <div>
-            <span className="text-xs font-black inline-block py-1 px-2 uppercase rounded-full text-red-900 bg-yellow-400">
-              Step {step} of 3
-            </span>
+      <div className="flex items-center justify-between mb-3">
+        {[{ n: 1, label: 'Shipping' }, { n: 2, label: 'Payment' }, { n: 3, label: 'Review' }].map(({ n, label }) => (
+          <div key={n} className="flex items-center">
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black transition-all ${step >= n ? 'bg-red-600 text-white shadow-lg shadow-red-100' : 'bg-gray-100 text-gray-400'
+              }`}>
+              {step > n ? <CheckCircle size={16} /> : n}
+            </div>
+            <span className={`hidden sm:block ml-2 text-[10px] font-black uppercase tracking-widest ${step >= n ? 'text-gray-900' : 'text-gray-300'
+              }`}>{label}</span>
+            {n < 3 && <div className={`w-8 sm:w-16 md:w-24 h-0.5 ml-2 mr-2 transition-all ${step > n ? 'bg-red-600' : 'bg-gray-100'}`} />}
           </div>
-          <div className="text-right">
-            <span className="text-xs font-black inline-block text-gray-400 uppercase tracking-widest">
-              {step === 1 ? 'Shipping' : step === 2 ? 'Payment' : 'Review'}
-            </span>
-          </div>
-        </div>
-        <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-gray-100">
-          <div 
-            style={{ width: `${(step / 3) * 100}%` }}
-            className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-yellow-400 transition-all duration-500"
-          ></div>
-        </div>
+        ))}
       </div>
     </div>
   );
 
   return (
-    <div className="max-w-2xl mx-auto p-6 sm:p-10 bg-white shadow-2xl border border-gray-100 min-h-[600px] flex flex-col">
+    <div className="max-w-2xl mx-auto p-6 sm:p-10 bg-white shadow-2xl border border-gray-100 min-h-[600px] flex flex-col rounded-2xl">
       <ProgressIndicator />
 
       <div className="flex-grow">
+        {/* Step 1: Shipping */}
         {step === 1 && (
-          <div className="space-y-6 animate-fade-in">
+          <div className="space-y-6 animate-fade-up">
             <div className="flex items-center space-x-3 mb-8">
-              <Truck className="text-red-600" size={24} />
+              <div className="p-2 bg-red-50 rounded-xl">
+                <Truck className="text-red-600" size={22} />
+              </div>
               <h2 className="text-2xl font-black uppercase tracking-tighter">Shipping Info</h2>
             </div>
-            
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-6">
               <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">First Name</label>
-                <input 
-                  type="text" 
-                  name="firstName"
-                  value={formData.firstName}
-                  onChange={handleInputChange}
-                  className="w-full border-b-2 border-gray-100 focus:border-red-600 outline-none py-2 font-bold text-gray-900 transition-colors"
-                  placeholder="John"
-                />
+                <label className={labelClass}>First Name</label>
+                <input type="text" name="firstName" value={formData.firstName} onChange={handleInputChange} className={inputClass} placeholder="John" />
               </div>
               <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Last Name</label>
-                <input 
-                  type="text" 
-                  name="lastName"
-                  value={formData.lastName}
-                  onChange={handleInputChange}
-                  className="w-full border-b-2 border-gray-100 focus:border-red-600 outline-none py-2 font-bold text-gray-900 transition-colors"
-                  placeholder="Doe"
-                />
+                <label className={labelClass}>Last Name</label>
+                <input type="text" name="lastName" value={formData.lastName} onChange={handleInputChange} className={inputClass} placeholder="Doe" />
               </div>
             </div>
-            
             <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Email Address</label>
-              <input 
-                type="email" 
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                className="w-full border-b-2 border-gray-100 focus:border-red-600 outline-none py-2 font-bold text-gray-900 transition-colors"
-                placeholder="john@example.com"
-              />
+              <label className={labelClass}>Email Address</label>
+              <input type="email" name="email" value={formData.email} onChange={handleInputChange} className={inputClass} placeholder="john@example.com" />
             </div>
-
             <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Street Address</label>
-              <input 
-                type="text" 
-                name="address"
-                value={formData.address}
-                onChange={handleInputChange}
-                className="w-full border-b-2 border-gray-100 focus:border-red-600 outline-none py-2 font-bold text-gray-900 transition-colors"
-                placeholder="123 Fashion Ave"
-              />
+              <label className={labelClass}>Street Address</label>
+              <input type="text" name="address" value={formData.address} onChange={handleInputChange} className={inputClass} placeholder="123 Fashion Ave" />
             </div>
-
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-6">
               <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">City</label>
-                <input 
-                  type="text" 
-                  name="city"
-                  value={formData.city}
-                  onChange={handleInputChange}
-                  className="w-full border-b-2 border-gray-100 focus:border-red-600 outline-none py-2 font-bold text-gray-900 transition-colors"
-                  placeholder="New York"
-                />
+                <label className={labelClass}>City</label>
+                <input type="text" name="city" value={formData.city} onChange={handleInputChange} className={inputClass} placeholder="Ahmedabad" />
               </div>
               <div className="space-y-1">
-                <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">ZIP Code</label>
-                <input 
-                  type="text" 
-                  name="zip"
-                  value={formData.zip}
-                  onChange={handleInputChange}
-                  className="w-full border-b-2 border-gray-100 focus:border-red-600 outline-none py-2 font-bold text-gray-900 transition-colors"
-                  placeholder="10001"
-                />
+                <label className={labelClass}>ZIP / PIN Code</label>
+                <input type="text" name="zip" value={formData.zip} onChange={handleInputChange} className={inputClass} placeholder="380054" />
               </div>
             </div>
           </div>
         )}
 
+        {/* Step 2: Payment */}
         {step === 2 && (
-          <div className="space-y-8 animate-fade-in">
+          <div className="space-y-8 animate-fade-up">
             <div className="flex items-center space-x-3 mb-8">
-              <CreditCard className="text-red-600" size={24} />
-              <h2 className="text-2xl font-black uppercase tracking-tighter">Payment Method</h2>
+              <div className="p-2 bg-red-50 rounded-xl">
+                <CreditCard className="text-red-600" size={22} />
+              </div>
+              <h2 className="text-2xl font-black uppercase tracking-tighter">Payment</h2>
             </div>
 
-            <div className="space-y-4">
-              <label className="flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all hover:bg-gray-50 border-gray-100 has-[:checked]:border-red-600 has-[:checked]:bg-red-50">
-                <input 
-                  type="radio" 
-                  name="paymentMethod" 
-                  value="credit-card"
-                  checked={formData.paymentMethod === 'credit-card'}
-                  onChange={handleInputChange}
-                  className="w-5 h-5 text-red-600 border-gray-300 focus:ring-red-500"
-                />
-                <span className="ml-4 font-black uppercase text-xs tracking-widest">Credit / Debit Card</span>
-              </label>
-
-              <label className="flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all hover:bg-gray-50 border-gray-100 has-[:checked]:border-red-600 has-[:checked]:bg-red-50">
-                <input 
-                  type="radio" 
-                  name="paymentMethod" 
-                  value="cod"
-                  checked={formData.paymentMethod === 'cod'}
-                  onChange={handleInputChange}
-                  className="w-5 h-5 text-red-600 border-gray-300 focus:ring-red-500"
-                />
-                <span className="ml-4 font-black uppercase text-xs tracking-widest">Cash on Delivery (COD)</span>
-              </label>
+            <div className="space-y-3">
+              {[
+                { value: 'credit-card', label: 'Credit / Debit Card' },
+                { value: 'upi', label: 'UPI / QR Code' },
+                { value: 'cod', label: 'Cash on Delivery' },
+              ].map(opt => (
+                <label key={opt.value} className="flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all hover:bg-gray-50 border-gray-100 has-[:checked]:border-red-600 has-[:checked]:bg-red-50">
+                  <input
+                    type="radio" name="paymentMethod" value={opt.value}
+                    checked={formData.paymentMethod === opt.value}
+                    onChange={handleInputChange}
+                    className="w-4 h-4 text-red-600"
+                  />
+                  <span className="ml-4 font-black uppercase text-xs tracking-widest">{opt.label}</span>
+                </label>
+              ))}
             </div>
 
-            {formData.paymentMethod === 'credit-card' ? (
+            {formData.paymentMethod === 'credit-card' && (
               <div className="p-6 bg-gray-50 rounded-2xl space-y-4 border border-gray-100">
                 <div className="space-y-1">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Card Number</label>
-                  <input 
-                    type="text" 
-                    name="cardNumber"
-                    value={formData.cardNumber}
-                    onChange={handleInputChange}
-                    className="w-full bg-white border border-gray-200 rounded-lg px-4 py-2 font-mono"
-                    placeholder="**** **** **** ****"
-                  />
+                  <label className={labelClass}>Card Number</label>
+                  <input type="text" name="cardNumber" value={formData.cardNumber} onChange={handleInputChange} className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 font-mono text-sm focus:border-red-600 outline-none" placeholder="•••• •••• •••• ••••" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Expiry Date</label>
-                    <input 
-                      type="text" 
-                      name="expiry"
-                      value={formData.expiry}
-                      onChange={handleInputChange}
-                      className="w-full bg-white border border-gray-200 rounded-lg px-4 py-2"
-                      placeholder="MM/YY"
-                    />
+                    <label className={labelClass}>Expiry</label>
+                    <input type="text" name="expiry" value={formData.expiry} onChange={handleInputChange} className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-red-600 outline-none" placeholder="MM/YY" />
                   </div>
                   <div className="space-y-1">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">CVV</label>
-                    <input 
-                      type="text" 
-                      name="cvv"
-                      value={formData.cvv}
-                      onChange={handleInputChange}
-                      className="w-full bg-white border border-gray-200 rounded-lg px-4 py-2"
-                      placeholder="123"
-                    />
+                    <label className={labelClass}>CVV</label>
+                    <input type="text" name="cvv" value={formData.cvv} onChange={handleInputChange} className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-red-600 outline-none" placeholder="•••" />
                   </div>
                 </div>
               </div>
-            ) : (
-              <div className="p-10 bg-red-50 rounded-2xl border-2 border-dashed border-red-200 text-center space-y-3">
-                <Truck className="mx-auto text-red-600" size={32} />
-                <p className="font-black uppercase text-xs tracking-widest text-red-900">Pay At Your Door</p>
-                <p className="text-sm text-red-700 font-medium">Please keep the exact change ready for our delivery partner.</p>
+            )}
+
+            {formData.paymentMethod === 'upi' && (
+              <div className="p-8 bg-purple-50 rounded-2xl border-2 border-dashed border-purple-200 text-center space-y-3">
+                <p className="text-4xl">📱</p>
+                <p className="font-black uppercase text-xs tracking-widest text-purple-900">UPI ID: stopshop@upi</p>
+                <p className="text-sm text-purple-700">Scan QR or pay to the above UPI ID at delivery confirmation.</p>
+              </div>
+            )}
+
+            {formData.paymentMethod === 'cod' && (
+              <div className="p-8 bg-yellow-50 rounded-2xl border-2 border-dashed border-yellow-200 text-center space-y-3">
+                <Truck className="mx-auto text-yellow-600" size={32} />
+                <p className="font-black uppercase text-xs tracking-widest text-yellow-900">Pay At Your Door</p>
+                <p className="text-sm text-yellow-700">Keep exact change ready for our delivery partner.</p>
               </div>
             )}
           </div>
         )}
 
+        {/* Step 3: Review */}
         {step === 3 && (
-          <div className="space-y-8 animate-fade-in">
+          <div className="space-y-6 animate-fade-up">
             <div className="flex items-center space-x-3 mb-8">
-              <CheckCircle className="text-red-600" size={24} />
-              <h2 className="text-2xl font-black uppercase tracking-tighter">Order Summary</h2>
+              <div className="p-2 bg-red-50 rounded-xl">
+                <CheckCircle className="text-red-600" size={22} />
+              </div>
+              <h2 className="text-2xl font-black uppercase tracking-tighter">Order Review</h2>
             </div>
 
-            <div className="space-y-4 max-h-[200px] overflow-y-auto pr-2">
+            {/* Items */}
+            <div className="space-y-3 max-h-[180px] overflow-y-auto">
               {cartItems.map((item) => (
-                <div key={item.cartId} className="flex justify-between items-center bg-gray-50 p-4 rounded-xl border border-gray-100">
-                  <div className="flex items-center space-x-4">
-                    <img src={item.image} alt={item.name} className="w-12 h-12 object-cover rounded shadow-sm" />
+                <div key={item.cartId} className="flex justify-between items-center bg-gray-50 p-3 rounded-xl border border-gray-100">
+                  <div className="flex items-center space-x-3">
+                    <img src={item.image} alt={item.name} className="w-10 h-10 object-cover rounded-lg shadow-sm" />
                     <div>
-                      <p className="text-[11px] font-black uppercase tracking-tight line-clamp-1">{item.name}</p>
-                      <p className="text-[10px] font-bold text-gray-400 uppercase">Qty: 1</p>
+                      <p className="text-[11px] font-black uppercase tracking-tight">{item.name}</p>
+                      <p className="text-[10px] text-gray-400">Qty: {item.quantity || 1}{item.selectedSize ? ` · Size: ${item.selectedSize}` : ''}</p>
                     </div>
                   </div>
-                  <p className="font-black text-sm text-red-600">${item.price.toFixed(2)}</p>
+                  <p className="font-black text-sm text-red-600">${(item.price * (item.quantity || 1)).toFixed(2)}</p>
                 </div>
               ))}
             </div>
 
-            <div className="p-6 bg-black text-white rounded-2xl space-y-4 shadow-xl">
-              <div className="flex justify-between text-xs font-bold uppercase tracking-widest text-gray-400">
-                <span>Shipping Address</span>
-                <button onClick={() => setStep(1)} className="text-yellow-400 hover:underline">Edit</button>
+            {/* Promo Code */}
+            <div className="space-y-3">
+              <label className={labelClass + " flex items-center space-x-2"}>
+                <Tag size={12} />
+                <span>Promo Code</span>
+              </label>
+
+              {appliedPromo ? (
+                <div className="flex items-center justify-between bg-green-50 border-2 border-green-200 rounded-xl p-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                      <CheckCircle size={16} className="text-green-600" />
+                    </div>
+                    <div>
+                      <p className="font-black uppercase text-xs tracking-widest text-green-800">{appliedPromo.code}</p>
+                      <p className="text-[10px] font-bold text-green-600">{appliedPromo.label} applied!</p>
+                    </div>
+                  </div>
+                  <button onClick={removePromo} className="text-gray-400 hover:text-gray-900 transition-colors">
+                    <X size={18} />
+                  </button>
+                </div>
+              ) : (
+                <div className="flex space-x-2">
+                  <input
+                    type="text"
+                    value={promoInput}
+                    onChange={e => { setPromoInput(e.target.value.toUpperCase()); setPromoError(''); }}
+                    onKeyDown={e => e.key === 'Enter' && applyPromo()}
+                    placeholder="Enter code (e.g. SUMMER20)"
+                    className={`flex-grow border-2 ${promoError ? 'border-red-400' : 'border-gray-200'} focus:border-red-600 rounded-xl px-4 py-3 text-xs font-bold uppercase tracking-widest outline-none transition-colors`}
+                  />
+                  <button
+                    onClick={applyPromo}
+                    className="px-5 py-3 bg-black text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-red-600 transition-all"
+                  >
+                    Apply
+                  </button>
+                </div>
+              )}
+              {promoError && <p className="text-[10px] font-bold text-red-500">{promoError}</p>}
+            </div>
+
+            {/* Order Summary */}
+            <div className="bg-gray-900 text-white rounded-2xl p-6 space-y-3 shadow-xl">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-400 font-bold uppercase tracking-widest text-xs">Subtotal</span>
+                <span className="font-black">${total.toFixed(2)}</span>
               </div>
-              <p className="text-sm font-medium">{formData.address}, {formData.city} {formData.zip}</p>
-              
-              <div className="border-t border-gray-800 pt-4 flex justify-between items-center">
-                <span className="text-lg font-black uppercase tracking-tighter">Order Total</span>
-                <span className="text-3xl font-black text-yellow-400">${total.toFixed(2)}</span>
+              {appliedPromo && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-green-400 font-bold uppercase tracking-widest text-xs">Discount ({appliedPromo.label})</span>
+                  <span className="font-black text-green-400">-${discount.toFixed(2)}</span>
+                </div>
+              )}
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-400 font-bold uppercase tracking-widest text-xs">Shipping</span>
+                <span className="font-black text-green-400">Free</span>
               </div>
+              <div className="border-t border-gray-700 pt-3 flex justify-between items-center">
+                <span className="font-black uppercase tracking-tighter text-lg">Total</span>
+                <span className="text-3xl font-black text-yellow-400">${finalTotal.toFixed(2)}</span>
+              </div>
+            </div>
+
+            <div className="bg-gray-50 p-4 rounded-xl text-xs font-bold text-gray-500 uppercase tracking-widest space-y-1">
+              <p>📍 {formData.address}, {formData.city} {formData.zip}</p>
+              <p>💳 {formData.paymentMethod === 'credit-card' ? 'Card ending ···· ' + (formData.cardNumber.slice(-4) || '????') : formData.paymentMethod === 'upi' ? 'UPI Payment' : 'Cash on Delivery'}</p>
             </div>
           </div>
         )}
       </div>
 
+      {/* Navigation */}
       <div className="mt-12 flex justify-between space-x-4">
         {step > 1 && (
-          <button 
+          <button
             onClick={prevStep}
-            className="flex-1 py-4 border-2 border-black text-black font-black uppercase text-[11px] tracking-[0.2em] rounded-xl hover:bg-gray-50 flex items-center justify-center space-x-2 transition-all"
+            className="flex-1 py-4 border-2 border-gray-200 text-gray-700 font-black uppercase text-[11px] tracking-[0.2em] rounded-xl hover:border-gray-900 hover:bg-gray-50 flex items-center justify-center space-x-2 transition-all"
           >
             <ArrowLeft size={16} />
             <span>Back</span>
           </button>
         )}
-        
+
         {step < 3 ? (
-          <button 
+          <button
             onClick={nextStep}
             style={{ backgroundColor: '#F63049' }}
             className="flex-[2] py-4 text-white font-black uppercase text-[11px] tracking-[0.2em] rounded-xl shadow-xl hover:brightness-110 active:scale-95 flex items-center justify-center space-x-2 transition-all"
@@ -279,12 +300,12 @@ const CheckoutForm = ({ onComplete }) => {
             <ArrowRight size={16} />
           </button>
         ) : (
-          <button 
-            onClick={() => onComplete && onComplete(formData)}
+          <button
+            onClick={() => onComplete && onComplete({ ...formData, finalTotal, appliedPromo })}
             style={{ backgroundColor: '#F63049' }}
-            className="flex-[2] py-4 text-white font-black uppercase text-[11px] tracking-[0.2em] rounded-xl shadow-2xl hover:brightness-110 active:scale-95 animate-pulse flex items-center justify-center space-x-2 transition-all"
+            className="flex-[2] py-4 text-white font-black uppercase text-[11px] tracking-[0.2em] rounded-xl shadow-2xl hover:brightness-110 active:scale-95 flex items-center justify-center space-x-2 transition-all"
           >
-            <span>Confirm Order</span>
+            <span>Confirm Order 🎉</span>
             <CheckCircle size={16} />
           </button>
         )}
