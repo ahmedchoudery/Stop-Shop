@@ -55,7 +55,7 @@ const Navbar = ({ onSearchOpen, onWishlistOpen }) => {
       name: 'Footwear', 
       href: '/#trending', 
       bucket: 'Footwear', 
-      categories: [] 
+      categories: ['Shoes', 'Slippers'] 
     },
     { 
       name: 'Accessories', 
