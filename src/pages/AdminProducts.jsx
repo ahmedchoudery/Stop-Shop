@@ -16,8 +16,8 @@ const SUBCATEGORIES = {
 
 const MEDIA_TABS = [
   { id: 'upload', label: 'Upload', icon: Upload },
-  { id: 'url', label: 'URL', icon: Link2 },
-  { id: 'embed', label: 'Embed', icon: Code2 },
+  { id: 'url', label: 'Visual Asset (URL)', icon: Link2 },
+  { id: 'embed', label: 'Embedded Code', icon: Code2 },
 ];
 
 const EMPTY_FORM = {
@@ -359,6 +359,12 @@ export default function AdminProducts() {
                         onChange={e => setForm(f => ({ ...f, image: e.target.value, mediaType: 'url' }))}
                         className="w-full border-2 border-gray-200 rounded-xl pl-11 pr-4 py-3 text-sm font-bold focus:border-red-600 outline-none transition-colors" />
                     </div>
+                    <p className="text-[10px] text-gray-400 font-black uppercase tracking-widest">
+                      Need embedded video or iframe?{' '}
+                      <button type="button" onClick={() => handleTabSwitch('embed')} className="text-red-600 underline hover:text-red-700">
+                        Switch to Embedded Code
+                      </button>
+                    </p>
                     {form.image && !form.image.startsWith('data:') && (
                       <div className="w-full aspect-video bg-gray-50 rounded-xl overflow-hidden border border-gray-200">
                         <img src={form.image} alt="" className="w-full h-full object-cover" onError={e => e.target.style.display = 'none'} />
@@ -391,6 +397,7 @@ export default function AdminProducts() {
 
                     {/* Code textarea */}
                     <div className="relative">
+                      <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Embedded Code or URL</label>
                       <textarea
                         value={form.embedCode}
                         onChange={e => setForm(f => ({ ...f, embedCode: e.target.value, mediaType: 'embed' }))}
