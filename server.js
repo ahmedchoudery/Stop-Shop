@@ -414,3 +414,12 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
+app.get('/api/setup', async (req, res) => {
+  try {
+    const existing = await Admin.findOne({ email: 'admin@stopshop.com' });
+    if (existing) return res.json({ message: 'Already exists' });
+    const hash = await bcrypt.hash('Admin@1234', 10);
+    await Admin.create({ name: 'Admin', email: 'admin@stopshop.com', password: hash, isPrimary: true });
+    res.json({ message: '✅ Admin created' });
+  } catch (err) { res.json({ error: err.message }); }
+});
