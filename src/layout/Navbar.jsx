@@ -7,7 +7,7 @@ import { useWishlist } from '../context/WishlistContext';
 import { apiUrl } from '../config/api';
 
 const Navbar = ({ onSearchOpen, onWishlistOpen }) => {
-  const { cartCount, isBouncing, openDrawer, setActiveBucket, setActiveSub, setLastViewedBucket } = useCart();
+  const { cartCount, isBouncing, openDrawer, setActiveBucket, setActiveSub, setLastViewedBucket, setSortBy } = useCart();
   const { wishlistCount } = useWishlist();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [logo, setLogo] = useState(null);
@@ -71,7 +71,7 @@ const Navbar = ({ onSearchOpen, onWishlistOpen }) => {
     setActiveBucket(bucket);
     setActiveSub(sub);
     if (bucket === 'All') {
-      useCart().setSortBy('popular');
+      setSortBy('popular');
     } else {
       setLastViewedBucket(bucket);
     }
@@ -104,7 +104,7 @@ const Navbar = ({ onSearchOpen, onWishlistOpen }) => {
               <Link
                 to="/"
                 onClick={() => handleCategoryClick('All')}
-                className="flex-shrink-0 flex items-center cursor-pointer group h-8"
+                className="flex-shrink-0 flex items-center cursor-pointer group h-12 sm:h-14"
               >
                 {logo ? (
                   <img src={logo} alt="STOP & SHOP" className="h-full w-auto object-contain transition-transform group-hover:scale-105" />

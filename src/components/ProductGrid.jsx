@@ -23,7 +23,9 @@ const ProductGrid = ({ products, activeBucket = 'All', activeSubCategory = null 
 
     return filtered.sort((a, b) => {
       if (sortBy === 'popular') return b.rating - a.rating;
-      return 0; // Featured/Default
+      if (sortBy === 'price-high') return b.price - a.price;
+      if (sortBy === 'price-low') return a.price - b.price;
+      return 0; // Newest/Featured
     });
   }, [products, activeBucket, activeSubCategory, sortBy]);
 
@@ -41,28 +43,14 @@ const ProductGrid = ({ products, activeBucket = 'All', activeSubCategory = null 
   };
 
   return (
-    <div id="product-grid" className="bg-white py-24 sm:py-32">
+    <div id="product-grid" className="bg-white py-12 sm:py-16">
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-20 space-y-6 sm:space-y-0 border-b border-gray-100 pb-10">
+        <div className="flex justify-between items-center mb-12">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#ba1f3d] mb-4">Curated Selection</p>
-            <h2 className="text-4xl md:text-5xl font-black text-gray-900 tracking-tighter uppercase leading-none">
+            <p className="text-[9px] font-black uppercase tracking-[0.4em] text-[#ba1f3d] mb-2">Curated Selection</p>
+            <h2 className="text-3xl font-black text-gray-900 tracking-tighter uppercase leading-none">
               {activeBucket !== 'All' ? activeBucket : 'Complete Catalog'}
             </h2>
-          </div>
-          
-          <div className="flex items-center space-x-10">
-            <div className="flex items-center space-x-3">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Filter By:</label>
-              <select 
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="bg-transparent text-xs font-black text-[#ba1f3d] outline-none cursor-pointer border-b-2 border-transparent hover:border-[#ba1f3d] transition-all uppercase tracking-widest pb-1"
-              >
-                <option value="featured">Newest</option>
-                <option value="popular">Popular</option>
-              </select>
-            </div>
           </div>
         </div>
         

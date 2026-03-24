@@ -44,32 +44,8 @@ const PowerOfChoiceHero = () => {
               </button>
             </div>
 
-            {/* Stats */}
-            <div className="grid grid-cols-3 gap-12 mt-20 pt-16 border-t border-gray-100">
-              {[
-                { num: '100%', label: 'Fine Sourcing' },
-                { num: '24h', label: 'Fast Delivery' },
-                { num: '15k+', label: 'Elite Clients' },
-              ].map(({ num, label }, i) => (
-                <div
-                  key={label}
-                  className={`transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
-                  style={{ transitionDelay: `${400 + i * 150}ms` }}
-                >
-                  <p className="text-3xl md:text-4xl font-black mb-2 text-gray-900">{num}</p>
-                  <p className="text-[10px] text-gray-400 uppercase tracking-widest font-black leading-tight">{label}</p>
-                </div>
-              ))}
-            </div>
           </div>
 
-          {/* Scroll indicator */}
-          <div className="absolute bottom-10 left-16 hidden lg:flex flex-col items-center space-y-4">
-            <div className="w-[1px] h-12 bg-gray-200 overflow-hidden">
-                <div className="w-full h-full bg-[#ba1f3d] animate-scroll-indicator" />
-            </div>
-            <p className="text-[9px] font-black uppercase tracking-[0.4em] text-gray-400 flex items-center vertical-text">Scroll Down</p>
-          </div>
         </div>
 
         {/* Image Column */}

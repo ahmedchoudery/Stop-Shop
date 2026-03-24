@@ -14,7 +14,7 @@ const HomePage = ({ onProductsLoaded }) => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [fetchError, setFetchError] = useState(false);
 
-  const { activeBucket, setActiveBucket, activeSub, setActiveSub, lastViewedBucket, setLastViewedBucket, shouldScrollGrid } = useCart();
+  const { activeBucket, setActiveBucket, activeSub, setActiveSub, lastViewedBucket, setLastViewedBucket, shouldScrollGrid, sortBy, setSortBy } = useCart();
 
   useEffect(() => {
     const handleOnline = () => { setIsOnline(true); setIsFetching(true); setFetchError(false); };
@@ -102,48 +102,28 @@ const HomePage = ({ onProductsLoaded }) => {
       <div id="tops" />
       <PowerOfChoiceHero />
 
-      {/* Category Filter */}
-      <div className="bg-white border-b border-gray-100 sticky top-[72px] z-40 overflow-x-auto no-scrollbar shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
-          {/* Main Buckets */}
-          <div className="flex items-center space-x-12 h-20 border-b border-gray-50">
-            {buckets.map(bucket => (
-              <button
-                key={bucket}
-                onClick={() => handleBucketClick(bucket)}
-                className={`text-[10px] font-black uppercase tracking-[0.3em] whitespace-nowrap transition-all relative group h-full flex items-center ${activeBucket === bucket
-                    ? 'text-[#ba1f3d]'
-                    : 'text-gray-400 hover:text-gray-900'
-                  }`}
-              >
-                {bucket}
-                <span className={`absolute bottom-0 left-0 w-full h-[3px] bg-[#ba1f3d] transition-all duration-500 scale-x-0 group-hover:scale-x-100 ${activeBucket === bucket ? 'scale-x-100' : ''}`} />
-              </button>
-            ))}
+      {/* Enhanced Sort Bar */}
+      <div className="bg-white border-b border-gray-100 sticky top-[72px] z-40 shadow-sm">
+        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 flex items-center justify-between h-20">
+          <div className="flex items-center space-x-3">
+            <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.4em]">View:</span>
+            <span className="text-[10px] font-black text-[#ba1f3d] uppercase tracking-[0.4em]">
+              {activeBucket} {activeSub ? `· ${activeSub}` : ''}
+            </span>
           </div>
-
-          {/* Sub-categories */}
-          <div className="flex items-center flex-wrap gap-8 py-6">
-            <button
-              onClick={() => { setActiveSub(null); if (activeBucket === 'All') setActiveBucket(lastViewedBucket); }}
-              className={`text-[9px] uppercase tracking-[0.25em] transition-all pb-1 border-b-2 ${!activeSub ? 'font-black text-gray-900 border-[#ba1f3d]' : 'text-gray-400 hover:text-gray-900 font-bold border-transparent'
-                }`}
+          
+          <div className="flex items-center space-x-4">
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Sort By:</label>
+            <select 
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value)}
+              className="bg-transparent text-[11px] font-black text-[#ba1f3d] outline-none cursor-pointer border-b border-transparent hover:border-[#ba1f3d] transition-all uppercase tracking-widest pb-1"
             >
-              All {lastViewedBucket}
-            </button>
-            {visibleSubCategories.map(sub => (
-              <button
-                key={sub}
-                onClick={() => { setActiveSub(sub); if (activeBucket === 'All') setActiveBucket(lastViewedBucket); }}
-                className={`text-[9px] uppercase tracking-[0.25em] transition-all pb-1 border-b-2 ${activeSub === sub ? 'font-black text-gray-900 border-[#ba1f3d]' : 'text-gray-400 hover:text-gray-900 font-bold border-transparent'
-                  }`}
-              >
-                {sub}
-              </button>
-            ))}
-            {activeBucket === 'All' && (
-              <span className="text-[8px] text-gray-300 font-black uppercase tracking-[0.4em] ml-auto">— Curated from {lastViewedBucket}</span>
-            )}
+              <option value="featured">Newest</option>
+              <option value="popular">Popular</option>
+              <option value="price-high">Price: High to Low</option>
+              <option value="price-low">Price: Low to High</option>
+            </select>
           </div>
         </div>
       </div>
@@ -164,9 +144,6 @@ const HomePage = ({ onProductsLoaded }) => {
 
       {/* Recently Viewed — only shows once user has browsed at least 1 product */}
       <RecentlyViewedSection />
-
-      {/* Reviews */}
-      <ReviewsSection />
 
       {/* Newsletter */}
       <Newsletter />

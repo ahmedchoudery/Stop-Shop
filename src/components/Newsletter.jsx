@@ -79,19 +79,6 @@ const Newsletter = () => {
                     Privacy first. Exclusivity guaranteed. Use code <span className="text-[#ba1f3d]">CARDINAL20</span>.
                 </p>
 
-                {/* Stats */}
-                <div className="grid grid-cols-3 gap-8 mt-32 border-t border-gray-100 pt-16 max-w-3xl mx-auto">
-                    {[
-                        { num: '50K+', label: 'Elite Members' },
-                        { num: 'PKR', label: 'Local Support' },
-                        { num: 'Top 1%', label: 'Design Tier' },
-                    ].map(stat => (
-                        <div key={stat.label} className="text-center group">
-                            <p className="text-3xl font-black text-gray-900 tracking-tighter transition-all group-hover:text-[#ba1f3d]">{stat.num}</p>
-                            <p className="text-[9px] font-black uppercase tracking-[0.3em] text-gray-400 mt-2">{stat.label}</p>
-                        </div>
-                    ))}
-                </div>
             </div>
         </section>
     );

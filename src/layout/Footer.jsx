@@ -20,11 +20,15 @@ const Footer = () => {
               The pinnacle of Pakistani craft. Dedicated to those who demand excellence in every fiber. Experience the Power of Choice.
             </p>
             <div className="flex space-x-4">
-              {[Facebook, Instagram, Twitter].map((Icon, i) => (
-                <a key={i} href="#" className="p-3 bg-gray-50 text-gray-900 hover:bg-[#ba1f3d] hover:text-white transition-all rounded-none hover:-translate-y-1">
-                  <Icon size={18} />
-                </a>
-              ))}
+              <a href="https://www.facebook.com/p/StopShop-100088444777668/" target="_blank" rel="noopener noreferrer" className="p-3 bg-gray-50 text-gray-900 hover:bg-[#ba1f3d] hover:text-white transition-all rounded-none hover:-translate-y-1">
+                <Facebook size={18} />
+              </a>
+              <a href="https://www.instagram.com/stopshop.701/" target="_blank" rel="noopener noreferrer" className="p-3 bg-gray-50 text-gray-900 hover:bg-[#ba1f3d] hover:text-white transition-all rounded-none hover:-translate-y-1">
+                <Instagram size={18} />
+              </a>
+              <a href="https://www.tiktok.com/discover/stop-shop-gujrat" target="_blank" rel="noopener noreferrer" className="p-3 bg-gray-50 text-gray-900 hover:bg-[#ba1f3d] hover:text-white transition-all rounded-none hover:-translate-y-1">
+                <span className="text-[10px] font-black tracking-tight">TikTok</span>
+              </a>
             </div>
           </div>
 
@@ -57,12 +61,12 @@ const Footer = () => {
               <div className="flex items-start space-x-4">
                 <MapPin size={20} className="text-[#ba1f3d] mt-1 shrink-0" />
                 <p className="text-xs font-black text-gray-900 leading-relaxed uppercase tracking-tighter">
-                  Plot 44-C, Lane 2, Phase 6,<br />DHA Karachi, Pakistan
+                  Zaib Market Near<br />Glorious Mall, Gujrat
                 </p>
               </div>
               <div className="flex items-center space-x-4">
                 <Phone size={20} className="text-[#ba1f3d] shrink-0" />
-                <p className="text-xs font-black text-gray-900 uppercase tracking-[0.2em]">+92 21 35384400</p>
+                <p className="text-xs font-black text-gray-900 uppercase tracking-[0.2em]">0306-84586556</p>
               </div>
               <div className="flex items-center space-x-4">
                 <Mail size={20} className="text-[#ba1f3d] shrink-0" />
