@@ -1,7 +1,7 @@
 import React from 'react';
 import { ShoppingBag, TrendingUp, ArrowUpRight } from 'lucide-react';
 
-const StatsGrid = ({ totalSales, totalOrders }) => {
+const StatsGrid = ({ totalSales, totalOrders, trend = 0, pendingOrders = 0 }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
       {/* Revenue Card */}
@@ -23,9 +23,11 @@ const StatsGrid = ({ totalSales, totalOrders }) => {
             </span>
           </div>
           
-          <div className="mt-8 flex items-center space-x-2 text-green-600">
-            <ArrowUpRight size={16} />
-            <span className="text-[10px] font-black uppercase tracking-widest">+12.5% from yesterday</span>
+          <div className={`mt-8 flex items-center space-x-2 ${trend >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+            <ArrowUpRight size={16} className={trend < 0 ? 'rotate-90' : ''} />
+            <span className="text-[10px] font-black uppercase tracking-widest">
+              {trend > 0 ? '+' : ''}{trend.toFixed(1)}% from yesterday
+            </span>
           </div>
         </div>
       </div>
@@ -46,7 +48,7 @@ const StatsGrid = ({ totalSales, totalOrders }) => {
             <span className="text-6xl font-black tracking-tighter text-gray-900 tabular-nums">
               {totalOrders}
             </span>
-            <span className="text-sm font-black uppercase tracking-widest text-gray-400">Units Executed</span>
+            <span className="text-sm font-black uppercase tracking-widest text-gray-400">Total Units</span>
           </div>
 
           <div className="mt-8 flex items-center space-x-4">
@@ -55,7 +57,9 @@ const StatsGrid = ({ totalSales, totalOrders }) => {
               <div className="w-6 h-6 rounded-full bg-gray-300 border-2 border-white"></div>
               <div className="w-6 h-6 rounded-full bg-gray-400 border-2 border-white"></div>
             </div>
-            <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 italic">Processing Now...</span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-gray-400 italic">
+              {pendingOrders > 0 ? `${pendingOrders} Pending Fulfillment...` : "All clear. No pending items."}
+            </span>
           </div>
         </div>
       </div>

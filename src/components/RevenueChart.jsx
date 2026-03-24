@@ -5,17 +5,7 @@ import {
 } from 'recharts';
 import { TrendingUp, BarChart2 } from 'lucide-react';
 
-// Generate mock weekly revenue data
-const generateData = () => {
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    return days.map((day, i) => ({
-        day,
-        revenue: Math.floor(1200 + Math.random() * 3800 + (i === 5 || i === 6 ? 2000 : 0)),
-        orders: Math.floor(8 + Math.random() * 20 + (i === 5 || i === 6 ? 8 : 0)),
-    }));
-};
-
-const data = generateData();
+// Real data injected via props
 
 const CustomTooltip = ({ active, payload, label }) => {
     if (!active || !payload?.length) return null;
@@ -31,12 +21,22 @@ const CustomTooltip = ({ active, payload, label }) => {
     );
 };
 
-const RevenueChart = () => {
+const RevenueChart = ({ chartData = [] }) => {
     const [mode, setMode] = useState('revenue'); // 'revenue' | 'orders'
 
-    const totalWeek = data.reduce((sum, d) => sum + d.revenue, 0);
-    const totalOrders = data.reduce((sum, d) => sum + d.orders, 0);
-    const peak = data.reduce((a, b) => a.revenue > b.revenue ? a : b);
+    const safeData = chartData.length > 0 ? chartData : [
+        { day: 'Mon', revenue: 0, orders: 0 },
+        { day: 'Tue', revenue: 0, orders: 0 },
+        { day: 'Wed', revenue: 0, orders: 0 },
+        { day: 'Thu', revenue: 0, orders: 0 },
+        { day: 'Fri', revenue: 0, orders: 0 },
+        { day: 'Sat', revenue: 0, orders: 0 },
+        { day: 'Sun', revenue: 0, orders: 0 }
+    ];
+
+    const totalWeek = safeData.reduce((sum, d) => sum + (d.revenue || 0), 0);
+    const totalOrders = safeData.reduce((sum, d) => sum + (d.orders || 0), 0);
+    const peak = safeData.reduce((a, b) => (a.revenue || 0) > (b.revenue || 0) ? a : b, safeData[0]);
 
     return (
         <div className="bg-white p-8 rounded-sm border border-gray-100 shadow-xl shadow-gray-100/50">
@@ -48,8 +48,8 @@ const RevenueChart = () => {
                         Rs. {totalWeek.toLocaleString()}
                     </p>
                     <div className="flex items-center space-x-2 mt-1">
-                        <TrendingUp size={14} className="text-green-500" />
-                        <p className="text-[10px] font-black uppercase tracking-widest text-green-500">+18.4% vs last week</p>
+                        <TrendingUp size={14} className="text-gray-400" />
+                        <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Current 7-Day Window</p>
                     </div>
                 </div>
 
@@ -74,7 +74,7 @@ const RevenueChart = () => {
             {/* Chart */}
             <div className="h-56">
                 <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={data} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+                    <AreaChart data={safeData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
                         <defs>
                             <linearGradient id="revenueGrad" x1="0" y1="0" x2="0" y2="1">
                                 <stop offset="5%" stopColor="#F63049" stopOpacity={0.15} />

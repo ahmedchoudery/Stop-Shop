@@ -263,8 +263,57 @@ app.get('/api/public/products', async (req, res) => {
 app.get('/api/stats/revenue', authenticateToken, async (req, res) => {
   try {
     const orders = await Order.find();
+    
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfYesterday = new Date(startOfToday);
+    startOfYesterday.setDate(startOfYesterday.getDate() - 1);
+    
+    // Total Revenue
     const totalRevenue = orders.reduce((sum, order) => sum + (order.total || 0), 0);
-    res.json({ totalRevenue });
+    
+    // Revenue Trend (Today vs Yesterday)
+    const todayRevenue = orders
+      .filter(o => new Date(o.createdAt) >= startOfToday)
+      .reduce((sum, o) => sum + (o.total || 0), 0);
+      
+    const yesterdayRevenue = orders
+      .filter(o => {
+        const d = new Date(o.createdAt);
+        return d >= startOfYesterday && d < startOfToday;
+      })
+      .reduce((sum, o) => sum + (o.total || 0), 0);
+      
+    let trend = 0;
+    if (yesterdayRevenue > 0) {
+      trend = ((todayRevenue - yesterdayRevenue) / yesterdayRevenue) * 100;
+    } else if (todayRevenue > 0) {
+      trend = 100;
+    }
+    
+    // Weekly Data for Chart (Last 7 days)
+    const weeklyData = [];
+    for (let i = 6; i >= 0; i--) {
+      const targetDate = new Date(startOfToday);
+      targetDate.setDate(targetDate.getDate() - i);
+      const nextDate = new Date(targetDate);
+      nextDate.setDate(nextDate.getDate() + 1);
+      
+      const dayOrders = orders.filter(o => {
+        const d = new Date(o.createdAt);
+        return d >= targetDate && d < nextDate;
+      });
+      
+      const dayRev = dayOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+      
+      weeklyData.push({
+        day: targetDate.toLocaleDateString('en-US', { weekday: 'short' }),
+        revenue: dayRev,
+        orders: dayOrders.length
+      });
+    }
+
+    res.json({ totalRevenue, trend, weeklyData });
   } catch (error) {
     res.status(500).json({ error: 'Failed to calculate revenue' });
   }

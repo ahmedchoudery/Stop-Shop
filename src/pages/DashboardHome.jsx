@@ -8,7 +8,7 @@ import { apiUrl } from '../config/api';
 
 const DashboardHome = () => {
   const [data, setData] = useState({
-    revenue: 0,
+    revenue: { total: 0, trend: 0, weeklyData: [] },
     orders: { total: 0, pending: 0 },
     inventory: { total: 0, outOfStock: 0, products: [] }
   });
@@ -31,7 +31,7 @@ const DashboardHome = () => {
         revRes.json(), ordRes.json(), invRes.json()
       ]);
       setData({
-        revenue: revData.totalRevenue,
+        revenue: { total: revData.totalRevenue, trend: revData.trend, weeklyData: revData.weeklyData },
         orders: { total: ordData.totalOrders, pending: ordData.pendingOrders },
         inventory: { total: invData.totalProducts, outOfStock: invData.outOfStock, products: invData.products }
       });
@@ -87,12 +87,17 @@ const DashboardHome = () => {
       ) : (
         <>
           {/* Stats Cards */}
-          <StatsGrid totalSales={data.revenue} totalOrders={data.orders.total} />
+          <StatsGrid 
+            totalSales={data.revenue.total} 
+            totalOrders={data.orders.total} 
+            trend={data.revenue.trend}
+            pendingOrders={data.orders.pending}
+          />
 
           {/* Revenue Chart + Inventory Health */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
-              <RevenueChart />
+              <RevenueChart chartData={data.revenue.weeklyData} />
             </div>
             <div className="lg:col-span-1">
               <InventoryHealthChart products={data.inventory.products} />
