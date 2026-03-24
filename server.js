@@ -397,7 +397,7 @@ app.post('/api/checkout', async (req, res) => {
 // START SERVER
 // ─────────────────────────────────────────────────────────────────
 app.use(express.static(distPath));
-app.get('*', (req, res) => {
+app.get('/{*splat}', (req, res) => {
   if (req.path.startsWith('/api/')) {
     return res.status(404).json({ error: 'Not found' });
   }
