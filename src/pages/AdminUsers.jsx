@@ -82,7 +82,7 @@ const AdminUsers = () => {
     <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
       <header className="flex justify-between items-center mb-12">
         <div>
-          <h2 className="text-4xl font-black uppercase tracking-tighter text-gray-900 border-l-8 border-red-600 pl-6">
+          <h2 className="text-4xl font-black uppercase tracking-tighter text-gray-900 border-l-8 border-[#ba1f3d] pl-6">
             Team Management
           </h2>
           <p className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400 mt-2 ml-6">
@@ -92,7 +92,7 @@ const AdminUsers = () => {
         
         <button 
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center space-x-3 bg-red-600 px-6 py-3 rounded-sm shadow-xl shadow-red-100 hover:bg-red-700 transition-all text-white group"
+          className="flex items-center space-x-3 bg-[#ba1f3d] px-6 py-3 rounded-sm shadow-xl shadow-[#ba1f3d]/10 hover:bg-black transition-all text-white group"
         >
           <UserPlus size={18} className="group-hover:scale-110 transition-transform" />
           <span className="text-[10px] font-black uppercase tracking-widest">Add New Member</span>
@@ -114,7 +114,7 @@ const AdminUsers = () => {
               <tr key={admin._id} className="hover:bg-gray-50/50 transition-colors">
                 <td className="p-6">
                   <div className="flex items-center space-x-4">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-xs ${admin.isPrimary ? 'bg-red-600 text-white' : 'bg-gray-100 text-gray-600'}`}>
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-xs ${admin.isPrimary ? 'bg-[#ba1f3d] text-white' : 'bg-gray-100 text-gray-600'}`}>
                       {admin.name.charAt(0)}
                     </div>
                     <div>
@@ -128,7 +128,7 @@ const AdminUsers = () => {
                 </td>
                 <td className="p-6">
                   {admin.isPrimary ? (
-                    <span className="flex items-center space-x-2 text-red-600">
+                    <span className="flex items-center space-x-2 text-[#ba1f3d]">
                       <Shield size={14} />
                       <span className="text-[9px] font-black uppercase tracking-widest italic">Primary Owner</span>
                     </span>
@@ -143,7 +143,7 @@ const AdminUsers = () => {
                   {!admin.isPrimary && (
                     <button 
                       onClick={() => handleDelete(admin._id)}
-                      className="p-2 text-gray-300 hover:text-red-600 transition-colors"
+                      className="p-2 text-gray-300 hover:text-[#ba1f3d] transition-colors"
                     >
                       <Trash2 size={18} />
                     </button>
@@ -159,7 +159,7 @@ const AdminUsers = () => {
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-red-950/20 backdrop-blur-sm animate-in fade-in duration-300">
           <div className="bg-white w-full max-w-md rounded-sm shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
-            <div className="bg-[#8B0000] p-6 flex justify-between items-center">
+            <div className="bg-[#ba1f3d] p-6 flex justify-between items-center">
               <h3 className="text-white text-xs font-black uppercase tracking-[0.3em]">Issue New Access</h3>
               <button onClick={() => setIsModalOpen(false)} className="text-white/60 hover:text-white transition-colors">
                 <X size={20} />
@@ -174,7 +174,7 @@ const AdminUsers = () => {
                     type="text" 
                     placeholder="FULL NAME"
                     required
-                    className="w-full bg-gray-50 border border-gray-200 rounded-sm py-3 pl-10 pr-4 text-xs font-bold focus:border-red-600 outline-none transition-all"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-sm py-3 pl-10 pr-4 text-xs font-bold focus:border-[#ba1f3d] outline-none transition-all"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   />
@@ -185,7 +185,7 @@ const AdminUsers = () => {
                     type="email" 
                     placeholder="EMAIL ADDRESS"
                     required
-                    className="w-full bg-gray-50 border border-gray-200 rounded-sm py-3 pl-10 pr-4 text-xs font-bold focus:border-red-600 outline-none transition-all"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-sm py-3 pl-10 pr-4 text-xs font-bold focus:border-[#ba1f3d] outline-none transition-all"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   />
@@ -196,7 +196,7 @@ const AdminUsers = () => {
                     type="password" 
                     placeholder="TEMPORARY PASSWORD"
                     required
-                    className="w-full bg-gray-50 border border-gray-200 rounded-sm py-3 pl-10 pr-4 text-xs font-bold focus:border-red-600 outline-none transition-all"
+                    className="w-full bg-gray-50 border border-gray-200 rounded-sm py-3 pl-10 pr-4 text-xs font-bold focus:border-[#ba1f3d] outline-none transition-all"
                     value={formData.password}
                     onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   />
@@ -206,7 +206,7 @@ const AdminUsers = () => {
               <div className="pt-4">
                 <button 
                   type="submit"
-                  className="w-full bg-red-600 text-white py-4 text-[10px] font-black uppercase tracking-[0.3em] rounded-sm hover:bg-black transition-all shadow-xl shadow-red-100"
+                  className="w-full bg-[#ba1f3d] text-white py-4 text-[10px] font-black uppercase tracking-[0.3em] rounded-sm hover:bg-black transition-all shadow-xl shadow-[#ba1f3d]/10"
                 >
                   Confirm Registration
                 </button>

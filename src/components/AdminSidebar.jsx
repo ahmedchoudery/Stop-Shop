@@ -19,7 +19,7 @@ const AdminSidebar = () => {
   const navItems = [
     { to: '/admin/dashboard', label: 'Dashboard', icon: <LayoutDashboard size={20} /> },
     { to: '/admin/orders', label: 'Orders', icon: <ShoppingBag size={20} /> },
-    { to: '/admin/inventory', label: 'Inventory', icon: <Package size={20} /> },
+    { to: '/admin/products', label: 'Products', icon: <Package size={20} /> },
     { to: '/admin/users', label: 'Team', icon: <Users size={20} /> },
     { to: '/admin/settings', label: 'Settings', icon: <Settings size={20} /> },
   ];

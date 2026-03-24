@@ -52,34 +52,34 @@ const LoginPage = () => {
         {/* Form */}
         <form onSubmit={handleLogin} className="p-8 space-y-6">
           {error && (
-            <div className="bg-red-50 border-l-4 border-red-600 p-4 flex items-center space-x-3 animate-pulse">
-              <AlertCircle className="text-red-600" size={20} />
-              <p className="text-xs font-bold text-red-600 uppercase tracking-widest">{error}</p>
+            <div className="bg-[#ba1f3d]/5 border-l-4 border-[#ba1f3d] p-4 flex items-center space-x-3 animate-pulse">
+              <AlertCircle className="text-[#ba1f3d]" size={20} />
+              <p className="text-xs font-bold text-[#ba1f3d] uppercase tracking-widest">{error}</p>
             </div>
           )}
 
           <div className="space-y-4">
             <div className="relative group">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-red-600 transition-colors" size={18} />
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#ba1f3d] transition-colors" size={18} />
               <input 
                 type="email" 
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Admin Email"
-                className="w-full bg-gray-100 border-none rounded-none py-4 pl-10 pr-4 text-xs font-black uppercase tracking-widest placeholder:text-gray-400 outline-none ring-2 ring-transparent focus:ring-red-600 transition-all"
+                className="w-full bg-gray-100 border-none rounded-none py-4 pl-10 pr-4 text-xs font-black uppercase tracking-widest placeholder:text-gray-400 outline-none ring-2 ring-transparent focus:ring-[#ba1f3d] transition-all"
               />
             </div>
 
             <div className="relative group">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-red-600 transition-colors" size={18} />
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-[#ba1f3d] transition-colors" size={18} />
               <input 
                 type="password" 
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Access Key"
-                className="w-full bg-gray-100 border-none rounded-none py-4 pl-10 pr-4 text-xs font-black uppercase tracking-widest placeholder:text-gray-400 outline-none ring-2 ring-transparent focus:ring-red-600 transition-all"
+                className="w-full bg-gray-100 border-none rounded-none py-4 pl-10 pr-4 text-xs font-black uppercase tracking-widest placeholder:text-gray-400 outline-none ring-2 ring-transparent focus:ring-[#ba1f3d] transition-all"
               />
             </div>
           </div>
@@ -87,7 +87,7 @@ const LoginPage = () => {
           <button 
             type="submit"
             disabled={loading}
-            className="w-full bg-red-600 text-white py-4 font-black uppercase tracking-[0.2em] text-xs hover:bg-red-700 shadow-xl shadow-red-200 active:scale-95 transition-all disabled:opacity-50"
+            className="w-full bg-[#ba1f3d] text-white py-4 font-black uppercase tracking-[0.2em] text-xs hover:bg-black shadow-xl shadow-[#ba1f3d]/20 active:scale-95 transition-all disabled:opacity-50"
           >
             {loading ? 'Verifying Access...' : 'Authenticate'}
           </button>

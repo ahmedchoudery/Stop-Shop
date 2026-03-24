@@ -70,7 +70,7 @@ const AdminSettings = () => {
   return (
     <div className="max-w-4xl animate-in fade-in slide-in-from-bottom-4 duration-500">
       <header className="mb-12">
-        <h2 className="text-4xl font-black uppercase tracking-tighter text-gray-900 border-l-8 border-[#8B0000] pl-6">
+        <h2 className="text-4xl font-black uppercase tracking-tighter text-gray-900 border-l-8 border-[#ba1f3d] pl-6">
           Store Identity
         </h2>
         <p className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400 mt-2 ml-6">
@@ -86,7 +86,7 @@ const AdminSettings = () => {
           </div>
           
           <h3 className="text-xs font-black uppercase tracking-[0.3em] text-gray-400 mb-8 flex items-center space-x-3">
-            <div className="w-2 h-2 bg-red-600 rounded-full"></div>
+            <div className="w-2 h-2 bg-[#ba1f3d] rounded-full"></div>
             <span>Visual Branding</span>
           </h3>
 
@@ -133,7 +133,7 @@ const AdminSettings = () => {
         {/* Messaging Section */}
         <section className="bg-white border border-gray-100 p-10 rounded-sm shadow-2xl relative overflow-hidden">
           <h3 className="text-xs font-black uppercase tracking-[0.3em] text-gray-400 mb-8 flex items-center space-x-3">
-            <div className="w-2 h-2 bg-yellow-400 rounded-full"></div>
+            <div className="w-2 h-2 bg-[#ba1f3d] rounded-full"></div>
             <span>Global Messaging</span>
           </h3>
 
@@ -146,8 +146,8 @@ const AdminSettings = () => {
                 <Megaphone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                 <input 
                   type="text" 
-                  placeholder="e.g. Free Delivery on orders over Rs. 5000!"
-                  className="w-full bg-gray-50 border border-gray-100 rounded-sm py-5 pl-12 pr-6 text-sm font-bold focus:border-red-600 outline-none transition-all shadow-inner"
+                  placeholder="e.g. Free Delivery on orders over PKR 5000!"
+                  className="w-full bg-gray-50 border border-gray-100 rounded-sm py-5 pl-12 pr-6 text-sm font-bold focus:border-[#ba1f3d] outline-none transition-all shadow-inner"
                   value={settings.announcement}
                   onChange={(e) => setSettings({ ...settings, announcement: e.target.value })}
                 />
@@ -165,7 +165,7 @@ const AdminSettings = () => {
             type="submit"
             disabled={saving}
             className={`flex items-center space-x-4 px-12 py-5 rounded-sm shadow-2xl transition-all ${
-              saving ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#8B0000] hover:bg-black text-white'
+              saving ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#ba1f3d] hover:bg-black text-white'
             }`}
           >
             {saving ? <RefreshCcw className="animate-spin" size={20} /> : <Save size={20} />}

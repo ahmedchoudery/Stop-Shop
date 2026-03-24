@@ -95,6 +95,7 @@ export const CartProvider = ({ children }) => {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [drawerMode, setDrawerMode] = useState('cart'); // 'cart' | 'product'
   const [selectedProduct, setSelectedProduct] = useState(null);
+  const [shouldScrollGrid, setShouldScrollGrid] = useState(0); // Trigger via increment
 
   const openDrawer = (mode, product = null) => {
     setDrawerMode(mode);
@@ -120,11 +121,15 @@ export const CartProvider = ({ children }) => {
     openDrawer,
     closeDrawer,
     activeBucket,
-    setActiveBucket,
+    setActiveBucket: (bucket) => {
+      setActiveBucket(bucket);
+      setShouldScrollGrid(prev => prev + 1);
+    },
     activeSub,
     setActiveSub,
     lastViewedBucket,
     setLastViewedBucket,
+    shouldScrollGrid,
   };
 
   return (

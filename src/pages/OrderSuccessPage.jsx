@@ -17,25 +17,25 @@ const OrderSuccessPage = ({ orderData }) => {
         <div className="min-h-screen bg-[#0A0A0A] flex flex-col items-center justify-center px-4 py-16">
             {/* Animated Background */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-green-900/10 rounded-full blur-[120px] animate-pulse-slow" />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-[#ba1f3d]/5 rounded-full blur-[120px] animate-pulse-slow" />
             </div>
 
             <div className="relative max-w-lg w-full text-center">
                 {/* Success Icon */}
                 <div className="relative inline-flex mb-8">
-                    <div className="w-28 h-28 bg-green-500/10 rounded-full flex items-center justify-center animate-scale-in">
-                        <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center">
-                            <CheckCircle size={48} className="text-green-400" strokeWidth={1.5} />
+                    <div className="w-28 h-28 bg-[#ba1f3d]/10 rounded-full flex items-center justify-center animate-scale-in">
+                        <div className="w-20 h-20 bg-[#ba1f3d]/20 rounded-full flex items-center justify-center">
+                            <CheckCircle size={48} className="text-[#ba1f3d]" strokeWidth={1.5} />
                         </div>
                     </div>
                     {/* Orbiting dot */}
                     <div className="absolute inset-0 animate-spin-slow">
-                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2 h-2 bg-green-400 rounded-full" />
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-2 h-2 bg-[#ba1f3d] rounded-full" />
                     </div>
                 </div>
 
                 <div className="animate-fade-up">
-                    <p className="text-[10px] font-black uppercase tracking-[0.5em] text-green-400 mb-4">
+                    <p className="text-[10px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-4">
                         Order Confirmed
                     </p>
                     <h1 className="text-4xl sm:text-5xl font-black text-white uppercase tracking-tighter mb-4">
@@ -54,7 +54,7 @@ const OrderSuccessPage = ({ orderData }) => {
                                 onClick={copyOrderId}
                                 className="p-2 text-gray-500 hover:text-white hover:bg-white/10 rounded-lg transition-all"
                             >
-                                {copied ? <CheckCircle size={18} className="text-green-400" /> : <Copy size={18} />}
+                                {copied ? <CheckCircle size={18} className="text-[#ba1f3d]" /> : <Copy size={18} />}
                             </button>
                         </div>
                     </div>
@@ -91,7 +91,7 @@ const OrderSuccessPage = ({ orderData }) => {
                     {/* CTA */}
                     <Link
                         to="/"
-                        className="inline-flex items-center space-x-3 bg-white text-black px-8 py-4 rounded-xl font-black uppercase tracking-widest text-sm hover:bg-red-600 hover:text-white transition-all shadow-2xl active:scale-95"
+                        className="inline-flex items-center space-x-3 bg-white text-black px-8 py-4 rounded-xl font-black uppercase tracking-widest text-sm hover:bg-[#ba1f3d] hover:text-white transition-all shadow-2xl active:scale-95"
                     >
                         <span>Continue Shopping</span>
                         <ArrowRight size={18} />

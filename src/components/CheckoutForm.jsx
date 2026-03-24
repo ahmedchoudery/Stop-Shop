@@ -3,8 +3,8 @@ import { useCart } from '../context/CartContext';
 import { CreditCard, Truck, CheckCircle, ArrowRight, ArrowLeft, Tag, X } from 'lucide-react';
 
 const PROMO_CODES = {
-  'SUMMER20': { discount: 0.20, label: '20% OFF' },
-  'STOP10': { discount: 0.10, label: '10% OFF' },
+  'CARDINAL20': { discount: 0.20, label: '20% OFF' },
+  'CARDINAL10': { discount: 0.10, label: '10% OFF' },
   'FIRST15': { discount: 0.15, label: '15% OFF' },
 };
 
@@ -16,7 +16,7 @@ const CheckoutForm = ({ onComplete }) => {
   const [promoError, setPromoError] = useState('');
   const [formData, setFormData] = useState({
     firstName: '', lastName: '', email: '', address: '',
-    city: '', zip: '', paymentMethod: 'credit-card',
+    city: 'Karachi', zip: '75500', paymentMethod: 'credit-card',
     cardNumber: '', expiry: '', cvv: '',
   });
 
@@ -34,7 +34,7 @@ const CheckoutForm = ({ onComplete }) => {
       setAppliedPromo({ code, ...PROMO_CODES[code] });
       setPromoError('');
     } else {
-      setPromoError('Invalid promo code. Try SUMMER20');
+      setPromoError('Invalid promo code. Try CARDINAL20');
       setAppliedPromo(null);
     }
   };
@@ -48,7 +48,7 @@ const CheckoutForm = ({ onComplete }) => {
   const discount = appliedPromo ? total * appliedPromo.discount : 0;
   const finalTotal = total - discount;
 
-  const inputClass = "w-full border-b-2 border-gray-100 focus:border-red-600 outline-none py-2.5 font-bold text-gray-900 transition-colors bg-transparent placeholder:text-gray-300";
+  const inputClass = "w-full border-b-2 border-gray-100 focus:border-[#ba1f3d] outline-none py-2.5 font-bold text-gray-900 transition-colors bg-transparent placeholder:text-gray-300";
   const labelClass = "text-[10px] font-black uppercase tracking-widest text-gray-400";
 
   const ProgressIndicator = () => (
@@ -56,13 +56,13 @@ const CheckoutForm = ({ onComplete }) => {
       <div className="flex items-center justify-between mb-3">
         {[{ n: 1, label: 'Shipping' }, { n: 2, label: 'Payment' }, { n: 3, label: 'Review' }].map(({ n, label }) => (
           <div key={n} className="flex items-center">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black transition-all ${step >= n ? 'bg-red-600 text-white shadow-lg shadow-red-100' : 'bg-gray-100 text-gray-400'
+            <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black transition-all ${step >= n ? 'bg-[#ba1f3d] text-white shadow-lg shadow-[#ba1f3d]/10' : 'bg-gray-100 text-gray-400'
               }`}>
               {step > n ? <CheckCircle size={16} /> : n}
             </div>
             <span className={`hidden sm:block ml-2 text-[10px] font-black uppercase tracking-widest ${step >= n ? 'text-gray-900' : 'text-gray-300'
               }`}>{label}</span>
-            {n < 3 && <div className={`w-8 sm:w-16 md:w-24 h-0.5 ml-2 mr-2 transition-all ${step > n ? 'bg-red-600' : 'bg-gray-100'}`} />}
+            {n < 3 && <div className={`w-8 sm:w-16 md:w-24 h-0.5 ml-2 mr-2 transition-all ${step > n ? 'bg-[#ba1f3d]' : 'bg-gray-100'}`} />}
           </div>
         ))}
       </div>
@@ -79,7 +79,7 @@ const CheckoutForm = ({ onComplete }) => {
           <div className="space-y-6 animate-fade-up">
             <div className="flex items-center space-x-3 mb-8">
               <div className="p-2 bg-red-50 rounded-xl">
-                <Truck className="text-red-600" size={22} />
+                <Truck className="text-[#ba1f3d]" size={22} />
               </div>
               <h2 className="text-2xl font-black uppercase tracking-tighter">Shipping Info</h2>
             </div>
@@ -119,7 +119,7 @@ const CheckoutForm = ({ onComplete }) => {
           <div className="space-y-8 animate-fade-up">
             <div className="flex items-center space-x-3 mb-8">
               <div className="p-2 bg-red-50 rounded-xl">
-                <CreditCard className="text-red-600" size={22} />
+                <CreditCard className="text-[#ba1f3d]" size={22} />
               </div>
               <h2 className="text-2xl font-black uppercase tracking-tighter">Payment</h2>
             </div>
@@ -130,12 +130,12 @@ const CheckoutForm = ({ onComplete }) => {
                 { value: 'upi', label: 'UPI / QR Code' },
                 { value: 'cod', label: 'Cash on Delivery' },
               ].map(opt => (
-                <label key={opt.value} className="flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all hover:bg-gray-50 border-gray-100 has-[:checked]:border-red-600 has-[:checked]:bg-red-50">
+                <label key={opt.value} className="flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all hover:bg-gray-50 border-gray-100 has-[:checked]:border-[#ba1f3d] has-[:checked]:bg-[#ba1f3d]/5">
                   <input
                     type="radio" name="paymentMethod" value={opt.value}
                     checked={formData.paymentMethod === opt.value}
                     onChange={handleInputChange}
-                    className="w-4 h-4 text-red-600"
+                    className="w-4 h-4 text-[#ba1f3d]"
                   />
                   <span className="ml-4 font-black uppercase text-xs tracking-widest">{opt.label}</span>
                 </label>
@@ -146,16 +146,16 @@ const CheckoutForm = ({ onComplete }) => {
               <div className="p-6 bg-gray-50 rounded-2xl space-y-4 border border-gray-100">
                 <div className="space-y-1">
                   <label className={labelClass}>Card Number</label>
-                  <input type="text" name="cardNumber" value={formData.cardNumber} onChange={handleInputChange} className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 font-mono text-sm focus:border-red-600 outline-none" placeholder="•••• •••• •••• ••••" />
+                  <input type="text" name="cardNumber" value={formData.cardNumber} onChange={handleInputChange} className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 font-mono text-sm focus:border-[#ba1f3d] outline-none" placeholder="•••• •••• •••• ••••" />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
                     <label className={labelClass}>Expiry</label>
-                    <input type="text" name="expiry" value={formData.expiry} onChange={handleInputChange} className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-red-600 outline-none" placeholder="MM/YY" />
+                    <input type="text" name="expiry" value={formData.expiry} onChange={handleInputChange} className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#ba1f3d] outline-none" placeholder="MM/YY" />
                   </div>
                   <div className="space-y-1">
                     <label className={labelClass}>CVV</label>
-                    <input type="text" name="cvv" value={formData.cvv} onChange={handleInputChange} className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-red-600 outline-none" placeholder="•••" />
+                    <input type="text" name="cvv" value={formData.cvv} onChange={handleInputChange} className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#ba1f3d] outline-none" placeholder="•••" />
                   </div>
                 </div>
               </div>
@@ -184,7 +184,7 @@ const CheckoutForm = ({ onComplete }) => {
           <div className="space-y-6 animate-fade-up">
             <div className="flex items-center space-x-3 mb-8">
               <div className="p-2 bg-red-50 rounded-xl">
-                <CheckCircle className="text-red-600" size={22} />
+                <CheckCircle className="text-[#ba1f3d]" size={22} />
               </div>
               <h2 className="text-2xl font-black uppercase tracking-tighter">Order Review</h2>
             </div>
@@ -200,7 +200,7 @@ const CheckoutForm = ({ onComplete }) => {
                       <p className="text-[10px] text-gray-400">Qty: {item.quantity || 1}{item.selectedSize ? ` · Size: ${item.selectedSize}` : ''}</p>
                     </div>
                   </div>
-                  <p className="font-black text-sm text-red-600">${(item.price * (item.quantity || 1)).toFixed(2)}</p>
+                  <p className="font-black text-sm text-[#ba1f3d]">PKR {(item.price * (item.quantity || 1)).toLocaleString()}</p>
                 </div>
               ))}
             </div>
@@ -234,12 +234,12 @@ const CheckoutForm = ({ onComplete }) => {
                     value={promoInput}
                     onChange={e => { setPromoInput(e.target.value.toUpperCase()); setPromoError(''); }}
                     onKeyDown={e => e.key === 'Enter' && applyPromo()}
-                    placeholder="Enter code (e.g. SUMMER20)"
-                    className={`flex-grow border-2 ${promoError ? 'border-red-400' : 'border-gray-200'} focus:border-red-600 rounded-xl px-4 py-3 text-xs font-bold uppercase tracking-widest outline-none transition-colors`}
+                    placeholder="Enter code (e.g. CARDINAL20)"
+                    className={`flex-grow border-2 ${promoError ? 'border-[#ba1f3d]/50' : 'border-gray-200'} focus:border-[#ba1f3d] rounded-xl px-4 py-3 text-xs font-bold uppercase tracking-widest outline-none transition-colors`}
                   />
                   <button
                     onClick={applyPromo}
-                    className="px-5 py-3 bg-black text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-red-600 transition-all"
+                    className="px-5 py-3 bg-black text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-[#ba1f3d] transition-all"
                   >
                     Apply
                   </button>
@@ -252,12 +252,12 @@ const CheckoutForm = ({ onComplete }) => {
             <div className="bg-gray-900 text-white rounded-2xl p-6 space-y-3 shadow-xl">
               <div className="flex justify-between text-sm">
                 <span className="text-gray-400 font-bold uppercase tracking-widest text-xs">Subtotal</span>
-                <span className="font-black">${total.toFixed(2)}</span>
+                <span className="font-black">PKR {total.toLocaleString()}</span>
               </div>
               {appliedPromo && (
                 <div className="flex justify-between text-sm">
                   <span className="text-green-400 font-bold uppercase tracking-widest text-xs">Discount ({appliedPromo.label})</span>
-                  <span className="font-black text-green-400">-${discount.toFixed(2)}</span>
+                  <span className="font-black text-green-400">-PKR {discount.toLocaleString()}</span>
                 </div>
               )}
               <div className="flex justify-between text-sm">
@@ -266,7 +266,7 @@ const CheckoutForm = ({ onComplete }) => {
               </div>
               <div className="border-t border-gray-700 pt-3 flex justify-between items-center">
                 <span className="font-black uppercase tracking-tighter text-lg">Total</span>
-                <span className="text-3xl font-black text-yellow-400">${finalTotal.toFixed(2)}</span>
+                <span className="text-3xl font-black text-[#ba1f3d]">PKR {finalTotal.toLocaleString()}</span>
               </div>
             </div>
 
@@ -291,9 +291,9 @@ const CheckoutForm = ({ onComplete }) => {
         )}
 
         {step < 3 ? (
-          <button
+            <button
             onClick={nextStep}
-            style={{ backgroundColor: '#F63049' }}
+            style={{ backgroundColor: '#ba1f3d' }}
             className="flex-[2] py-4 text-white font-black uppercase text-[11px] tracking-[0.2em] rounded-xl shadow-xl hover:brightness-110 active:scale-95 flex items-center justify-center space-x-2 transition-all"
           >
             <span>Next Step</span>

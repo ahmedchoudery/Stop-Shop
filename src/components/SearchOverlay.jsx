@@ -106,7 +106,7 @@ const SearchOverlay = ({ isOpen, onClose, products = [] }) => {
                     {!query && (
                         <div className="p-6">
                             <div className="flex items-center space-x-2 mb-4">
-                                <TrendingUp size={16} className="text-yellow-400" />
+                                <TrendingUp size={16} className="text-[#ba1f3d]" />
                                 <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/50">Trending Searches</p>
                             </div>
                             <div className="flex flex-wrap gap-2">

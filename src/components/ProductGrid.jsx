@@ -8,9 +8,8 @@ const ProductGrid = ({ products, activeBucket = 'All', activeSubCategory = null 
   const [isLoading, setIsLoading] = useState(false);
   const [imagesLoadedCount, setImagesLoadedCount] = useState(0);
 
-  // Scroll Snap and Loading Reset logic
+  // Loading Reset logic
   useEffect(() => {
-    window.scrollTo({ top: 0, behavior: 'instant' });
     setIsLoading(true);
     setImagesLoadedCount(0);
   }, [activeBucket, activeSubCategory, products]);
@@ -18,9 +17,6 @@ const ProductGrid = ({ products, activeBucket = 'All', activeSubCategory = null 
   // Flawless Filtering: Memoized two-level grid rendering 
   const sortedProducts = useMemo(() => {
     const filtered = products.filter(item => {
-      // 1. If activeBucket === "All", return all products.
-      // 2. If a bucket is selected but activeSub is null, return all products in that bucket.
-      // 3. If both are selected, return only products matching both category and subCategory.
       const bucketMatch = activeBucket === 'All' || item.bucket === activeBucket;
       const subMatch = !activeSubCategory || item.subCategory === activeSubCategory;
       return bucketMatch && subMatch;
@@ -46,44 +42,44 @@ const ProductGrid = ({ products, activeBucket = 'All', activeSubCategory = null 
   };
 
   return (
-    <div className="bg-[#F5F5F5] py-16">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-12 space-y-4 sm:space-y-0">
-          <h2 className="text-2xl font-black text-gray-900 tracking-tighter uppercase">
-            {activeBucket !== 'All' ? `${activeBucket}` : 'Trending Now'}
-          </h2>
+    <div id="product-grid" className="bg-white py-24 sm:py-32">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between mb-20 space-y-6 sm:space-y-0 border-b border-gray-100 pb-10">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#ba1f3d] mb-4">Curated Selection</p>
+            <h2 className="text-4xl md:text-5xl font-black text-gray-900 tracking-tighter uppercase leading-none">
+              {activeBucket !== 'All' ? activeBucket : 'Complete Catalog'}
+            </h2>
+          </div>
           
-          <div className="flex items-center space-x-6">
-            <div className="flex items-center space-x-2">
-              <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Sort By:</label>
+          <div className="flex items-center space-x-10">
+            <div className="flex items-center space-x-3">
+              <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Filter By:</label>
               <select 
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="bg-transparent text-xs font-black text-red-700 outline-none cursor-pointer border-b border-red-200 hover:border-red-700 transition-colors uppercase tracking-widest pb-0.5"
+                className="bg-transparent text-xs font-black text-[#ba1f3d] outline-none cursor-pointer border-b-2 border-transparent hover:border-[#ba1f3d] transition-all uppercase tracking-widest pb-1"
               >
-                <option value="featured">Featured</option>
+                <option value="featured">Newest</option>
                 <option value="popular">Popular</option>
               </select>
             </div>
-            <a href="#" className="text-xs font-black text-red-600 hover:text-red-700 transition-colors underline decoration-1 underline-offset-[6px] uppercase tracking-widest">
-              View All
-            </a>
           </div>
         </div>
         
         {/* Master Loading Spinner */}
         {isLoading && (
-          <div className="flex justify-center items-center h-64 w-full animate-pulse transition-opacity duration-1000 ease-in opacity-100">
-            <div className="animate-spin h-6 w-6 border-t-2 border-gray-400 rounded-full"></div>
+          <div className="flex justify-center items-center h-96 w-full transition-opacity duration-1000 ease-in opacity-100">
+            <div className="animate-spin h-8 w-8 border-t-2 border-[#ba1f3d] rounded-full"></div>
           </div>
         )}
 
-        {/* Structured Grid with 1px Borders */}
+        {/* Structured Grid */}
         <div className={isLoading ? 'hidden' : 'block'}>
           {sortedProducts.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-0 border-t border-l border-gray-200">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-12">
               {sortedProducts.map((product) => (
-                <div key={product.id} className="bg-transparent border-b border-r border-gray-200">
+                <div key={product.id} className="animate-fade-up">
                   <ProductCard 
                     product={product} 
                     onSelectProduct={() => openDrawer('product', product)}
@@ -93,13 +89,13 @@ const ProductGrid = ({ products, activeBucket = 'All', activeSubCategory = null 
               ))}
             </div>
           ) : (
-            // Fallback UI — shown when filtered array length is 0
-            <div className="flex flex-col justify-center items-center h-64 w-full border border-dashed border-gray-200">
-              <p className="text-gray-400 font-light tracking-widest uppercase text-sm">
-                Collection coming soon
+            // Fallback UI
+            <div className="flex flex-col justify-center items-center h-96 w-full border border-dashed border-gray-200 bg-gray-50/30 rounded-3xl">
+              <p className="text-gray-400 font-black tracking-[0.4em] uppercase text-xs">
+                Collection Dropping Soon
               </p>
-              <p className="text-gray-300 font-light tracking-[0.4em] text-[10px] mt-3 uppercase">
-                {activeSubCategory ? `${activeSubCategory} · ` : ''}{activeBucket !== 'All' ? activeBucket : ''}
+              <p className="text-gray-300 font-bold tracking-widest text-[9px] mt-4 uppercase">
+                {activeSubCategory ? `${activeSubCategory} · ` : ''}{activeBucket !== 'All' ? activeBucket : 'Bespoke Styles'}
               </p>
             </div>
           )}

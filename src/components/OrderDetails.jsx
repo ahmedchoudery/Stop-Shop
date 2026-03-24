@@ -45,7 +45,7 @@ const OrderDetails = ({ order, isOpen, onClose, onStatusUpdated }) => {
         {/* Header - Hidden on Print */}
         <div className="sticky top-0 bg-white border-b border-gray-100 p-6 flex justify-between items-center z-10 print:hidden">
           <div className="flex items-center space-x-3">
-            <Package className="text-red-600" size={24} />
+            <Package className="text-[#ba1f3d]" size={24} />
             <h2 className="text-xl font-black uppercase tracking-tighter">Order Details</h2>
           </div>
           <button 
@@ -60,21 +60,21 @@ const OrderDetails = ({ order, isOpen, onClose, onStatusUpdated }) => {
         <div className="p-8 sm:p-12 print:p-0">
           
           {/* Invoice Header (Brand Focus) */}
-          <div className="flex flex-col sm:flex-row justify-between items-start mb-12 border-b-4 border-red-600 pb-8">
+          <div className="flex flex-col sm:flex-row justify-between items-start mb-12 border-b-4 border-[#ba1f3d] pb-8">
             <div>
-              <h1 className="text-4xl font-black italic uppercase tracking-tighter text-red-600">Stop & Shop</h1>
-              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400 mt-1">International Logistics • Gujarat Business</p>
+              <h1 className="text-4xl font-black italic uppercase tracking-tighter text-[#ba1f3d]">Stop & Shop</h1>
+              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400 mt-1">International Logistics • Pakistan Edition</p>
               <div className="mt-6 space-y-1 text-xs font-bold text-gray-500 uppercase tracking-widest leading-relaxed">
-                <p>123 Business Hub, SG Highway</p>
-                <p>Ahmedabad, Gujarat 380054</p>
-                <p>contact@stop-shop.in</p>
+                <p>Building 42C, DHA Phase 6</p>
+                <p>Karachi, Pakistan 75500</p>
+                <p>order@cardinal.pk</p>
               </div>
             </div>
             <div className="mt-8 sm:mt-0 text-right">
               <h2 className="text-5xl font-black text-gray-100 uppercase tracking-tighter absolute right-12 opacity-50 print:opacity-20 translate-y-[-10px] hidden sm:block">Invoice</h2>
               <div className="relative z-10">
                 <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Order Reference</p>
-                <p className="text-2xl font-black text-red-600 font-mono mt-1">{order.orderID}</p>
+                <p className="text-2xl font-black text-[#ba1f3d] font-mono mt-1">{order.orderID}</p>
                 <div className="flex items-center justify-end space-x-2 mt-4 text-[10px] font-black uppercase tracking-widest text-gray-400 italic">
                   <Calendar size={12} />
                   <span>Issued: {new Date(order.createdAt).toLocaleDateString()}</span>
@@ -101,8 +101,8 @@ const OrderDetails = ({ order, isOpen, onClose, onStatusUpdated }) => {
                 disabled={isUpdating}
                 className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-sm transition-all shadow-md ${
                   order.status === 'Shipped' 
-                    ? 'bg-gray-200 text-gray-600 hover:bg-yellow-400 hover:text-red-950' 
-                    : 'bg-red-600 text-white hover:brightness-110'
+                    ? 'bg-gray-200 text-gray-600 hover:bg-[#ba1f3d] hover:text-white' 
+                    : 'bg-[#ba1f3d] text-white hover:brightness-110'
                 }`}
               >
                 {isUpdating ? 'Updating...' : order.status === 'Shipped' ? 'Mark Pending' : 'Mark Shipped'}
@@ -110,14 +110,14 @@ const OrderDetails = ({ order, isOpen, onClose, onStatusUpdated }) => {
             </div>
 
             {/* Print Card */}
-            <div className="bg-red-50 p-6 rounded-sm border border-red-100 flex items-center justify-between">
-              <div className="flex items-center space-x-4 text-red-600">
+            <div className="bg-[#ba1f3d]/5 p-6 rounded-sm border border-[#ba1f3d]/10 flex items-center justify-between">
+              <div className="flex items-center space-x-4 text-[#ba1f3d]">
                 <Printer size={24} />
                 <p className="text-sm font-black uppercase tracking-widest">Printer-Friendly Version</p>
               </div>
               <button
                 onClick={handlePrint}
-                className="bg-red-600 text-white px-6 py-2 text-[10px] font-black uppercase tracking-widest rounded-sm hover:brightness-110 transition-all shadow-lg"
+                className="bg-[#ba1f3d] text-white px-6 py-2 text-[10px] font-black uppercase tracking-widest rounded-sm hover:brightness-110 transition-all shadow-lg"
               >
                 Print Invoice
               </button>
@@ -138,31 +138,31 @@ const OrderDetails = ({ order, isOpen, onClose, onStatusUpdated }) => {
               </div>
               
               <div className="flex items-center space-x-2 border-b border-gray-100 pb-2 pt-4">
-                <MapPin size={16} className="text-red-600" />
+                <MapPin size={16} className="text-[#ba1f3d]" />
                 <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400">Shipping Destination</h3>
               </div>
               <div className="text-xs font-bold text-gray-600 space-y-1 uppercase tracking-wider leading-relaxed">
                 <p>{order.customer.address}</p>
                 <p>{order.customer.city}, {order.customer.zip}</p>
-                <p>Gujarat, India</p>
+                <p>Pakistan</p>
               </div>
             </div>
 
             {/* Payment & Summary Info */}
             <div className="space-y-6">
               <div className="flex items-center space-x-2 border-b border-gray-100 pb-2">
-                <CreditCard size={16} className="text-red-600" />
+                <CreditCard size={16} className="text-[#ba1f3d]" />
                 <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400">Transaction Details</h3>
               </div>
-              <div className="bg-gray-50 p-4 border-l-4 border-red-600">
+              <div className="bg-gray-50 p-4 border-l-4 border-[#ba1f3d]">
                 <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Payment Method</p>
                 <p className="text-sm font-black uppercase tracking-tight mt-1">{order.paymentMethod || 'Credit Card (Stripe)'}</p>
               </div>
               
-              <div className="bg-red-900 text-white p-6 rounded-sm shadow-xl relative overflow-hidden group">
+              <div className="bg-[#ba1f3d] text-white p-6 rounded-sm shadow-xl relative overflow-hidden group">
                 <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -mr-10 -mt-10 group-hover:scale-150 transition-transform duration-700"></div>
                 <p className="text-[10px] font-black uppercase tracking-[0.3em] text-red-200 mb-2 relative z-10">Total Amount Paid</p>
-                <p className="text-4xl font-black relative z-10 font-mono">${order.total.toFixed(2)}</p>
+                <p className="text-4xl font-black relative z-10 font-mono">PKR {order.total.toLocaleString()}</p>
               </div>
             </div>
           </div>
@@ -186,10 +186,10 @@ const OrderDetails = ({ order, isOpen, onClose, onStatusUpdated }) => {
                 <tbody className="divide-y divide-gray-100">
                   {order.items.map((item) => (
                     <tr key={item.id} className="text-sm">
-                      <td className="p-4 font-mono text-[10px] font-bold text-red-600">{item.id}</td>
+                      <td className="p-4 font-mono text-[10px] font-bold text-[#ba1f3d]">{item.id}</td>
                       <td className="p-4 font-black uppercase tracking-tight text-gray-900">{item.name}</td>
                       <td className="p-4 text-center font-bold text-gray-400">{item.quantity || 1}</td>
-                      <td className="p-4 text-right font-black text-gray-900">${item.price.toFixed(2)}</td>
+                      <td className="p-4 text-right font-black text-gray-900">PKR {item.price.toLocaleString()}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -200,9 +200,9 @@ const OrderDetails = ({ order, isOpen, onClose, onStatusUpdated }) => {
           {/* Footer Branding - Visible on Print */}
           <div className="mt-20 pt-12 border-t border-gray-100 text-center space-y-4">
             <div className="flex items-center justify-center space-x-2">
-              <div className="h-1 w-12 bg-red-600"></div>
-              <p className="text-[10px] font-black uppercase tracking-[0.5em] text-red-600">Authentic Supply Chain</p>
-              <div className="h-1 w-12 bg-red-600"></div>
+              <div className="h-1 w-12 bg-[#ba1f3d]"></div>
+              <p className="text-[10px] font-black uppercase tracking-[0.5em] text-[#ba1f3d]">Authentic Supply Chain</p>
+              <div className="h-1 w-12 bg-[#ba1f3d]"></div>
             </div>
             <p className="text-[12px] font-bold text-gray-400 uppercase tracking-widest">
               Thank you for choosing Stop & Shop. This is a computer-generated invoice.

@@ -76,9 +76,29 @@ const productSchema = new mongoose.Schema({
   id: { type: String, unique: true },
   name: String,
   price: Number,
-  quantity: { type: Number, default: 0 },
-  image: String
+  quantity: { type: Number, default: 0 }, // Used for internal logic/inventory table
+  stock: { type: Number, default: 0 },    // Used for frontend display/matching static data
+  image: String,
+  rating: { type: Number, default: 5 },
+  bucket: { type: String, default: 'Tops' },
+  subCategory: { type: String, default: 'General' },
+  specs: [{ type: String }],
+  colors: [{ type: String }],
+  lifestyleImage: { type: String, default: '' },
+  variantImages: { type: Map, of: String, default: {} },
+  createdAt: { type: Date, default: Date.now }
 });
+
+// Keep stock and quantity in sync
+productSchema.pre('save', function(next) {
+  if (this.isModified('quantity')) {
+    this.stock = this.quantity;
+  } else if (this.isModified('stock')) {
+    this.quantity = this.stock;
+  }
+  next();
+});
+
 const Product = mongoose.model('Product', productSchema);
 
 const adminSchema = new mongoose.Schema({
@@ -171,25 +191,57 @@ app.patch('/api/orders/:id', authenticateToken, async (req, res) => {
 // ─────────────────────────────────────────────────────────────────
 app.get('/api/admin/products', authenticateToken, async (req, res) => {
   try {
-    const products = await Product.find();
+    const products = await Product.find().sort({ createdAt: -1 });
     res.json(products);
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch products' });
   }
 });
 
+app.post('/api/admin/products', authenticateToken, async (req, res) => {
+  try {
+    const productData = req.body;
+    if (!productData.id) {
+      productData.id = 'PRD-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+    }
+    const product = new Product(productData);
+    await product.save();
+    res.status(201).json(product);
+  } catch (error) {
+    console.error('Create product error:', error);
+    res.status(500).json({ error: 'Failed to create product' });
+  }
+});
+
 app.patch('/api/admin/products/:id', authenticateToken, async (req, res) => {
   try {
-    const { quantity, price } = req.body;
+    // Sync quantity/stock if one is provided
+    const updateData = { ...req.body };
+    if (updateData.quantity !== undefined && updateData.stock === undefined) {
+      updateData.stock = updateData.quantity;
+    } else if (updateData.stock !== undefined && updateData.quantity === undefined) {
+      updateData.quantity = updateData.stock;
+    }
+
     const product = await Product.findOneAndUpdate(
       { id: req.params.id },
-      { quantity, price },
+      updateData,
       { new: true }
     );
     if (!product) return res.status(404).json({ error: 'Product not found' });
     res.json(product);
   } catch (error) {
     res.status(500).json({ error: 'Failed to update product' });
+  }
+});
+
+app.delete('/api/admin/products/:id', authenticateToken, async (req, res) => {
+  try {
+    const product = await Product.findOneAndDelete({ id: req.params.id });
+    if (!product) return res.status(404).json({ error: 'Product not found' });
+    res.json({ message: 'Product removed from system' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete product' });
   }
 });
 
@@ -411,15 +463,7 @@ app.get('/{*splat}', (req, res) => {
 });
 
 const PORT = process.env.PORT || 5000;
-app.get('/api/setup', async (req, res) => {
-  try {
-    const existing = await Admin.findOne({ email: 'admin@stopshop.com' });
-    if (existing) return res.json({ message: 'Already exists' });
-    const hash = await bcrypt.hash('Admin@1234', 10);
-    await Admin.create({ name: 'Admin', email: 'admin@stopshop.com', password: hash, isPrimary: true });
-    res.json({ message: '✅ Admin created' });
-  } catch (err) { res.json({ error: err.message }); }
-});
+
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });

@@ -86,7 +86,7 @@ const InventoryTable = () => {
   });
 
   if (loading) return <div className="p-10 text-center font-black uppercase tracking-widest text-gray-400">Syncing Inventory...</div>;
-  if (error) return <div className="p-10 text-center text-red-600 font-bold uppercase tracking-widest border-2 border-dashed border-red-50">{error}</div>;
+  if (error) return <div className="p-10 text-center text-[#ba1f3d] font-bold uppercase tracking-widest border-2 border-dashed border-gray-50">{error}</div>;
 
   return (
     <div className="w-full">
@@ -99,7 +99,7 @@ const InventoryTable = () => {
             placeholder="Search by name or SKU..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full bg-gray-50 border border-gray-200 rounded-sm py-3 pl-10 pr-4 text-xs font-bold focus:bg-white focus:border-red-600 outline-none transition-all placeholder:text-gray-400"
+            className="w-full bg-gray-50 border border-gray-200 rounded-sm py-3 pl-10 pr-4 text-xs font-bold focus:bg-white focus:border-[#ba1f3d] outline-none transition-all placeholder:text-gray-400"
           />
         </div>
 
@@ -112,10 +112,10 @@ const InventoryTable = () => {
                 checked={showOutOfStockOnly}
                 onChange={() => setShowOutOfStockOnly(!showOutOfStockOnly)}
               />
-              <div className={`w-10 h-5 bg-gray-200 rounded-full transition-colors ${showOutOfStockOnly ? 'bg-red-600' : ''}`}></div>
+              <div className={`w-10 h-5 bg-gray-200 rounded-full transition-colors ${showOutOfStockOnly ? 'bg-[#ba1f3d]' : ''}`}></div>
               <div className={`absolute left-1 top-1 w-3 h-3 bg-white rounded-full transition-transform ${showOutOfStockOnly ? 'translate-x-5' : ''}`}></div>
             </div>
-            <span className="ml-3 text-[10px] font-black uppercase tracking-widest text-gray-400 group-hover:text-red-900 transition-colors italic">Out of Stock Only</span>
+            <span className="ml-3 text-[10px] font-black uppercase tracking-widest text-gray-400 group-hover:text-[#ba1f3d] transition-colors italic">Out of Stock Only</span>
           </label>
         </div>
       </div>
@@ -127,7 +127,7 @@ const InventoryTable = () => {
               <tr className="bg-gray-50 border-b border-gray-100">
                 <th className="p-4 text-[10px] font-black uppercase tracking-widest text-gray-400">SKU / ID</th>
                 <th className="p-4 text-[10px] font-black uppercase tracking-widest text-gray-400">Description</th>
-                <th className="p-4 text-[10px] font-black uppercase tracking-widest text-gray-400">Unit Price ($)</th>
+                <th className="p-4 text-[10px] font-black uppercase tracking-widest text-gray-400">Unit Price (PKR)</th>
                 <th className="p-4 text-[10px] font-black uppercase tracking-widest text-gray-400">Stock Count</th>
                 <th className="p-4 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center">Status Badge</th>
               </tr>

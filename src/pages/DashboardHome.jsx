@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { RefreshCcw, AlertCircle, ArrowRight, Package, ShoppingBag, Users, TrendingUp } from 'lucide-react';
+import { RefreshCcw, AlertCircle, ArrowRight, Package, ShoppingBag, Users, TrendingUp, Settings } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import StatsGrid from '../components/StatsGrid';
 import InventoryHealthChart from '../components/InventoryHealthChart';
@@ -45,12 +45,12 @@ const DashboardHome = () => {
   useEffect(() => { fetchStats(); }, []);
 
   if (error) return (
-    <div className="p-10 flex flex-col items-center justify-center text-red-600 bg-red-50 rounded-2xl border-2 border-dashed border-red-100">
+    <div className="p-10 flex flex-col items-center justify-center text-[#ba1f3d] bg-[#ba1f3d]/5 rounded-none border-2 border-dashed border-[#ba1f3d]/10">
       <AlertCircle size={48} className="mb-4" />
-      <h3 className="font-black uppercase tracking-tighter text-xl">Cloud Sync Failed</h3>
+      <h3 className="font-black uppercase tracking-tighter text-xl text-gray-900">Cloud Sync Failed</h3>
       <p className="text-xs font-bold uppercase tracking-widest mt-2">{error}</p>
-      <button onClick={fetchStats} className="mt-6 px-6 py-2 bg-red-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-red-700 transition-colors">
-        Retry Secure Sync
+      <button onClick={fetchStats} className="mt-6 px-10 py-4 bg-[#ba1f3d] text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-none hover:bg-black transition-all shadow-2xl">
+        Attempt Reconnection
       </button>
     </div>
   );
@@ -60,7 +60,7 @@ const DashboardHome = () => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-4xl font-black uppercase tracking-tighter text-gray-900 border-l-8 border-[#FACC15] pl-6">
+          <h2 className="text-4xl font-black uppercase tracking-tighter text-gray-900 border-l-8 border-[#ba1f3d] pl-6">
             Dashboard
           </h2>
           <p className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400 mt-2 ml-6">
@@ -77,7 +77,7 @@ const DashboardHome = () => {
             disabled={loading}
             className={`p-3 bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-md transition-all group ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
-            <RefreshCcw size={18} className={`text-gray-400 group-hover:text-red-900 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCcw size={18} className={`text-gray-400 group-hover:text-[#ba1f3d] ${loading ? 'animate-spin' : ''}`} />
           </button>
         </div>
       </div>
@@ -100,9 +100,9 @@ const DashboardHome = () => {
           </div>
 
           {/* Insight Card */}
-          <div className="bg-[#8B0000] rounded-2xl p-8 text-white relative overflow-hidden group">
+          <div className="bg-[#ba1f3d] rounded-2xl p-8 text-white relative overflow-hidden group shadow-2xl">
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 group-hover:scale-125 transition-transform duration-700" />
-            <div className="absolute bottom-0 left-0 w-32 h-32 bg-yellow-400/10 rounded-full -ml-16 -mb-16" />
+            <div className="absolute bottom-0 left-0 w-32 h-32 bg-white/5 rounded-full -ml-16 -mb-16" />
             <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
               <div>
                 <p className="text-[11px] font-black uppercase tracking-[0.3em] text-red-200 mb-3">Real-Time Insight</p>
@@ -113,16 +113,16 @@ const DashboardHome = () => {
                 </p>
                 <div className="flex items-center space-x-6 mt-6">
                   <div className="flex items-center space-x-2">
-                    <span className="w-2 h-2 bg-yellow-400 rounded-full" />
-                    <span className="text-[9px] font-black uppercase tracking-widest text-red-100">Pending: {data.orders.pending}</span>
+                    <span className="w-2 h-2 bg-white/30 rounded-full" />
+                    <span className="text-[9px] font-black uppercase tracking-widest text-white">Pending: {data.orders.pending}</span>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <span className="w-2 h-2 bg-green-400 rounded-full" />
-                    <span className="text-[9px] font-black uppercase tracking-widest text-red-100">Total: {data.orders.total}</span>
+                    <span className="w-2 h-2 bg-white/30 rounded-full" />
+                    <span className="text-[9px] font-black uppercase tracking-widest text-white">Total: {data.orders.total}</span>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <span className="w-2 h-2 bg-red-300 rounded-full" />
-                    <span className="text-[9px] font-black uppercase tracking-widest text-red-100">Out of Stock: {data.inventory.outOfStock}</span>
+                    <span className="w-2 h-2 bg-white/30 rounded-full" />
+                    <span className="text-[9px] font-black uppercase tracking-widest text-white">Out of Stock: {data.inventory.outOfStock}</span>
                   </div>
                 </div>
               </div>
@@ -137,12 +137,13 @@ const DashboardHome = () => {
           </div>
 
           {/* Quick Actions */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
             {[
               { to: '/admin/orders', icon: ShoppingBag, label: 'Orders', count: data.orders.total, color: 'red' },
-              { to: '/admin/inventory', icon: Package, label: 'Inventory', count: data.inventory.total, color: 'blue' },
+              { to: '/admin/products', icon: Package, label: 'Catalog', count: data.inventory.total, color: 'blue' },
+              { to: '/admin/inventory', icon: Package, label: 'Stock', count: data.inventory.total, color: 'indigo' },
               { to: '/admin/users', icon: Users, label: 'Team', count: null, color: 'green' },
-              { to: '/admin/settings', icon: TrendingUp, label: 'Settings', count: null, color: 'yellow' },
+              { to: '/admin/settings', icon: Settings, label: 'Settings', count: null, color: 'yellow' },
             ].map(({ to, icon: Icon, label, count, color }) => (
               <NavLink
                 key={to}

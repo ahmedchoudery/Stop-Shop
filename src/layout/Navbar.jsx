@@ -7,7 +7,7 @@ import { useWishlist } from '../context/WishlistContext';
 import { apiUrl } from '../config/api';
 
 const Navbar = ({ onSearchOpen, onWishlistOpen }) => {
-  const { cartCount, isBouncing, openDrawer } = useCart();
+  const { cartCount, isBouncing, openDrawer, setActiveBucket } = useCart();
   const { wishlistCount } = useWishlist();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [logo, setLogo] = useState(null);
@@ -17,7 +17,7 @@ const Navbar = ({ onSearchOpen, onWishlistOpen }) => {
   useEffect(() => {
     const handleScroll = () => {
       const scrollY = window.scrollY;
-      setIsScrolled(scrollY > 50);
+      setIsScrolled(scrollY > 20);
 
       const doc = document.documentElement;
       const scrollTop = doc.scrollTop || document.body.scrollTop;
@@ -37,79 +37,81 @@ const Navbar = ({ onSearchOpen, onWishlistOpen }) => {
   }, []);
 
   const navLinks = [
-    { name: 'Home', href: '/' },
-    { name: 'Tops', href: '/#tops' },
-    { name: 'Bottoms', href: '/#bottoms' },
-    { name: 'Footwear', href: '/#footwear' },
+    { name: 'Home', href: '/', bucket: 'All' },
+    { name: 'Tops', href: '/#trending', bucket: 'Tops' },
+    { name: 'Bottoms', href: '/#trending', bucket: 'Bottoms' },
+    { name: 'Accessories', href: '/#trending', bucket: 'Accessories' },
   ];
+
+  const CARDINAL = '#ba1f3d';
 
   return (
     <>
-      <nav className={`bg-red-800 text-white shadow-lg sticky top-0 z-50 transition-all duration-300 ${isScrolled ? 'bg-red-900 shadow-2xl' : ''}`}>
+      <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${isScrolled ? 'bg-white/95 backdrop-blur-xl py-3 shadow-sm border-b border-gray-100' : 'bg-white py-6'}`}>
         {/* Scroll progress bar */}
         <div
-          className="absolute bottom-0 left-0 h-0.5 bg-yellow-400 transition-all duration-100 z-10"
-          style={{ width: `${scrollProgress}%` }}
+          className="absolute bottom-0 left-0 h-[3px] transition-all duration-100 z-10"
+          style={{ width: `${scrollProgress}%`, backgroundColor: CARDINAL }}
         />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between h-20 items-center">
+        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
+          <div className="flex justify-between items-center">
             {/* Logo & Hamburger */}
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-6">
               <button
                 onClick={() => setIsDrawerOpen(true)}
-                className="md:hidden p-2 hover:bg-red-700 rounded-full transition-all"
+                className="lg:hidden p-2 hover:bg-gray-50 rounded-full transition-all"
               >
-                <Menu size={28} />
+                <Menu size={24} className="text-gray-900" />
               </button>
 
               <Link
                 to="/"
-                className={`flex-shrink-0 flex items-center cursor-pointer group h-12 transition-all duration-700 ${isScrolled ? 'opacity-0 pointer-events-none scale-95' : 'opacity-100 scale-100'}`}
+                className="flex-shrink-0 flex items-center cursor-pointer group h-8"
               >
                 {logo ? (
                   <img src={logo} alt="STOP & SHOP" className="h-full w-auto object-contain transition-transform group-hover:scale-105" />
                 ) : (
-                  <span className="text-xl md:text-2xl font-black tracking-tighter group-hover:text-yellow-400 transition-colors">
-                    STOP & SHOP
+                  <span className="text-2xl font-black tracking-tighter transition-all duration-500 flex items-center" style={{ color: CARDINAL }}>
+                    STOP<span className="text-gray-900 ml-1">&</span>SHOP
                   </span>
                 )}
               </Link>
             </div>
 
             {/* Desktop Links */}
-            <div className="hidden md:flex space-x-10 text-[11px] font-black uppercase tracking-widest">
+            <div className="hidden lg:flex items-center space-x-12 text-[10px] font-black uppercase tracking-[0.25em]">
               {navLinks.map((link) => (
                 <Link
                   key={link.name}
                   to={link.href}
-                  className="hover:text-yellow-400 transition-all relative after:content-[''] after:absolute after:bottom-[-4px] after:left-0 after:w-0 after:h-0.5 after:bg-yellow-400 hover:after:w-full after:transition-all duration-300"
+                  onClick={() => setActiveBucket(link.bucket)}
+                  className="text-gray-500 hover:text-black transition-all relative group"
                 >
-                  {link.name}
+                  <span className="relative z-10">{link.name}</span>
+                  <span className="absolute bottom-[-4px] left-0 w-0 h-[2px] bg-[#ba1f3d] transition-all duration-300 group-hover:w-full" />
                 </Link>
               ))}
             </div>
 
             {/* Right Icons */}
-            <div className="flex items-center space-x-1 sm:space-x-2">
-              {/* Search */}
+            <div className="flex items-center space-x-2 sm:space-x-4">
               <button
                 onClick={onSearchOpen}
-                className="p-2.5 hover:bg-red-700 rounded-full transition-all group hidden sm:flex items-center"
+                className="p-3 hover:bg-gray-50 rounded-full transition-all group lg:flex items-center"
                 title="Search"
               >
-                <Search size={20} className="group-hover:scale-110 transition-transform" />
+                <Search size={20} className="text-gray-800 group-hover:scale-110 transition-transform" />
               </button>
 
-              {/* Wishlist */}
               <button
                 onClick={onWishlistOpen}
-                className="p-2.5 hover:bg-red-700 rounded-full transition-all relative hidden sm:flex items-center"
+                className="p-2.5 hover:bg-gray-50 rounded-full transition-all relative hidden sm:flex items-center"
                 title="Wishlist"
               >
-                <Heart size={20} className={wishlistCount > 0 ? 'fill-red-300 text-red-300' : ''} />
+                <Heart size={20} className={wishlistCount > 0 ? 'fill-[#ba1f3d] text-[#ba1f3d]' : 'text-gray-800'} />
                 {wishlistCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-yellow-400 text-red-900 text-[10px] font-black w-4 h-4 rounded-full flex items-center justify-center">
+                  <span className="absolute -top-1 -right-1 bg-[#ba1f3d] text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center">
                     {wishlistCount}
                   </span>
                 )}
@@ -118,7 +120,7 @@ const Navbar = ({ onSearchOpen, onWishlistOpen }) => {
               {/* Admin */}
               <Link
                 to="/admin"
-                className="p-2.5 hover:bg-red-700 rounded-full transition-all hidden sm:flex items-center text-white"
+                className="p-2.5 hover:bg-gray-50 rounded-full transition-all hidden sm:flex items-center text-gray-800"
                 title="Admin Dashboard"
               >
                 <Shield size={20} />
@@ -127,14 +129,14 @@ const Navbar = ({ onSearchOpen, onWishlistOpen }) => {
               {/* Cart */}
               <button
                 onClick={() => openDrawer('cart')}
-                className="p-2.5 bg-red-900/30 hover:bg-red-700 rounded-full transition-all relative"
+                className="p-3 bg-gray-900 text-white rounded-full transition-all relative hover:bg-[#ba1f3d] hover:shadow-xl hover:-translate-y-0.5"
               >
                 <ShoppingBag
-                  size={22}
+                  size={20}
                   className={isBouncing ? 'animate-cart-shake' : ''}
                 />
                 {cartCount > 0 && (
-                  <span className={`absolute -top-1 -right-1 bg-yellow-400 text-red-900 text-[11px] font-black px-1.5 py-0.5 rounded-full shadow-md transform transition-all duration-300 ${isBouncing ? 'scale-125' : 'scale-100'}`}>
+                  <span className={`absolute -top-1 -right-1 bg-white text-[#ba1f3d] text-[10px] font-black px-1.5 py-0.5 rounded-full shadow-lg transform transition-all duration-300 border border-[#ba1f3d]/10 ${isBouncing ? 'scale-125' : 'scale-100'}`}>
                     {cartCount}
                   </span>
                 )}

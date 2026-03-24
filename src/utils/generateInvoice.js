@@ -3,11 +3,11 @@ import 'jspdf-autotable';
 
 export const generateInvoice = (order) => {
   const doc = new jsPDF();
-  const brandRed = '#F63049';
-  const brandYellow = '#FACC15';
+  const brandRed = '#ba1f3d';
+  const brandGray = '#111827';
 
   // --- Header ---
-  doc.setFillColor(31, 41, 55); // Dark Gray / Black
+  doc.setFillColor(186, 31, 61); // Cardinal Red
   doc.rect(0, 0, 210, 40, 'F');
   
   doc.setTextColor(255, 255, 255);
@@ -17,7 +17,7 @@ export const generateInvoice = (order) => {
   
   doc.setFontSize(10);
   doc.setFont('helvetica', 'normal');
-  doc.text('PREMIUM CLOTHING & FOOTWEAR', 20, 32);
+  doc.text('PREMIUM CLOTHING & FOOTWEAR • PAKISTAN EDITION', 20, 32);
 
   // --- Invoice Info ---
   doc.setTextColor(0, 0, 0);
@@ -40,7 +40,7 @@ export const generateInvoice = (order) => {
   doc.setFont('helvetica', 'normal');
   doc.text(order.customer.name, 20, 68);
   doc.text(order.customer.address, 20, 73);
-  doc.text(`${order.customer.city}, Gujarat`, 20, 78);
+  doc.text(`${order.customer.city}, Pakistan`, 20, 78);
   doc.text(order.customer.zip, 20, 83);
   doc.text(order.customer.email, 20, 88);
 
@@ -50,8 +50,8 @@ export const generateInvoice = (order) => {
     item.id,
     item.name,
     item.quantity || 1,
-    `$${item.price.toFixed(2)}`,
-    `$${(item.price * (item.quantity || 1)).toFixed(2)}`
+    `PKR ${item.price.toLocaleString()}`,
+    `PKR ${(item.price * (item.quantity || 1)).toLocaleString()}`
   ]);
 
   doc.autoTable({
@@ -59,7 +59,7 @@ export const generateInvoice = (order) => {
     head: [tableColumn],
     body: tableRows,
     headStyles: { 
-      fillColor: [246, 48, 73], // Brand Red
+      fillColor: [186, 31, 61], // Cardinal Red
       textColor: [255, 255, 255],
       fontStyle: 'bold'
     },
@@ -71,12 +71,12 @@ export const generateInvoice = (order) => {
   const finalY = doc.lastAutoTable.finalY + 10;
   doc.setFontSize(12);
   doc.setFont('helvetica', 'bold');
-  doc.text(`GRAND TOTAL: $${order.total.toFixed(2)}`, 140, finalY);
+  doc.text(`GRAND TOTAL: PKR ${order.total.toLocaleString()}`, 140, finalY);
 
   // --- Footer ---
   doc.setFontSize(8);
   doc.setTextColor(150, 150, 150);
-  doc.text('Thank you for shopping at Stop & Shop Gujrat!', 105, 280, null, null, 'center');
+  doc.text('Thank you for shopping at Stop & Shop Pakistan!', 105, 280, null, null, 'center');
   doc.text('This is a computer-generated invoice and requires no signature.', 105, 285, null, null, 'center');
 
   // --- Save ---

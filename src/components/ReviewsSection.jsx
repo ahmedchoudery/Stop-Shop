@@ -4,62 +4,62 @@ import { Star, Quote, ChevronLeft, ChevronRight } from 'lucide-react';
 const REVIEWS = [
     {
         id: 1,
-        name: "Arjun Mehta",
-        location: "Mumbai",
+        name: "Ahmed Raza",
+        location: "DHA Karachi",
         rating: 5,
         title: "Absolutely premium quality",
-        review: "I've been shopping at Stop & Shop for 6 months now. The fabric quality is unmatched at this price point. The Classic Red Polo has become my go-to for every occasion.",
-        product: "Classic Red Polo",
-        avatar: "AM",
-        color: "#F63049",
+        review: "The Cardinal collection is a masterpiece. The fabric quality and the fit are unlike anything I've found in Pakistan before. Absolute elite service.",
+        product: "Signature Cardinal Suit",
+        avatar: "AR",
+        color: "#ba1f3d",
         date: "2 weeks ago"
     },
     {
         id: 2,
-        name: "Priya Sharma",
-        location: "Ahmedabad",
+        name: "Fatima Khan",
+        location: "Gulberg Lahore",
         rating: 5,
         title: "Fast delivery, great packaging",
-        review: "The packaging alone felt like a luxury experience. Cotton Chinos fit perfectly straight off the rack — no tailoring needed. Will definitely be ordering more.",
-        product: "Cotton Chinos",
-        avatar: "PS",
-        color: "#FBBF24",
+        review: "The packaging alone felt like a luxury experience. The attention to detail in the Accessories line is stunning. Will definitely be ordering more.",
+        product: "Silk Blend Pocket Square",
+        avatar: "FK",
+        color: "#111827",
         date: "1 month ago"
     },
     {
         id: 3,
-        name: "Rahul Patel",
-        location: "Surat",
+        name: "Zidan Sheikh",
+        location: "F-7 Islamabad",
         rating: 5,
-        title: "Worth every rupee",
-        review: "The Oversized Arctic Hoodie is everything. 400GSM weight, incredible softness, and it actually looks like the product photos. Rare for online shopping.",
-        product: "Oversized Arctic Hoodie",
-        avatar: "RP",
-        color: "#22C55E",
+        title: "True luxury experience",
+        review: "True luxury experience. From the packaging to the swift delivery in Islamabad, everything speaks Cardinal quality. Highly recommended for trendsetters.",
+        product: "Elite Leather Chelsea",
+        avatar: "ZS",
+        color: "#ba1f3d",
         date: "3 weeks ago"
     },
     {
         id: 4,
-        name: "Kavya Nair",
-        location: "Bangalore",
+        name: "Hamza Malik",
+        location: "Peshawar",
         rating: 5,
-        title: "My new favorite store",
-        review: "Ordered the Slim Fit Denim and it arrived in 2 days. The Japanese denim fabric is so premium — you can feel the quality. Already ordered 2 more pairs.",
-        product: "Slim Fit Denim",
-        avatar: "KN",
-        color: "#1D4ED8",
+        title: "Masterclass in Fit",
+        review: "The custom fit measurements for the trousers were spot on. It's rare to find such precision in ready-to-wear collections locally.",
+        product: "Slim-Fit Chinos",
+        avatar: "HM",
+        color: "#111827",
         date: "1 week ago"
     },
     {
         id: 5,
-        name: "Aditya Shah",
-        location: "Vadodara",
+        name: "Ayesha Omer",
+        location: "Multan",
         rating: 5,
         title: "Exceeded expectations",
-        review: "The Summer Linen Shirt is perfect for Gujarat's heat. Breathable, stylish, and the Cuban collar is a unique touch. Customer service was also very responsive.",
-        product: "Summer Linen Shirt",
-        avatar: "AS",
-        color: "#8B5CF6",
+        review: "The Summer Linen collection is perfect for Pakistan's heat. Breathable, stylish, and the Cardinal accents make it stand out.",
+        product: "Bespoke Linen Shirt",
+        avatar: "AO",
+        color: "#ba1f3d",
         date: "5 days ago"
     },
 ];
@@ -67,7 +67,7 @@ const REVIEWS = [
 const StarDisplay = ({ rating }) => (
     <div className="flex space-x-0.5">
         {[...Array(5)].map((_, i) => (
-            <Star key={i} size={14} className={i < rating ? "fill-yellow-400 text-yellow-400" : "text-gray-200"} />
+            <Star key={i} size={14} className={i < rating ? "fill-[#ba1f3d] text-[#ba1f3d]" : "text-gray-200"} />
         ))}
     </div>
 );
@@ -88,122 +88,127 @@ const ReviewsSection = () => {
     const prev = () => goTo((activeIdx - 1 + REVIEWS.length) % REVIEWS.length);
 
     useEffect(() => {
-        intervalRef.current = setInterval(next, 5000);
+        intervalRef.current = setInterval(next, 8000);
         return () => clearInterval(intervalRef.current);
     }, [activeIdx]);
 
     const review = REVIEWS[activeIdx];
 
     return (
-        <section className="bg-white py-24 overflow-hidden">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <section className="bg-white py-32 overflow-hidden border-t border-gray-50">
+            <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
                 {/* Header */}
-                <div className="flex flex-col md:flex-row md:items-end justify-between mb-16">
+                <div className="flex flex-col md:flex-row md:items-end justify-between mb-24">
                     <div>
-                        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-red-600 mb-3">Social Proof</p>
-                        <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tighter text-gray-900">
-                            Real People.<br />
-                            <span className="text-gray-300">Real Reviews.</span>
+                        <p className="text-[10px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-4">The Cardinal Experience</p>
+                        <h2 className="text-4xl md:text-7xl font-black uppercase tracking-tighter text-gray-900 leading-[0.85]">
+                            Elite Quality.<br />
+                            <span className="text-gray-200">Local Legacy.</span>
                         </h2>
                     </div>
-                    <div className="mt-8 md:mt-0 flex items-center space-x-3">
+                    <div className="mt-12 md:mt-0 flex items-center space-x-4">
                         <div className="text-right">
-                            <p className="text-5xl font-black text-gray-900">4.9</p>
-                            <StarDisplay rating={5} />
-                            <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mt-1">Based on 400+ reviews</p>
+                            <p className="text-6xl font-black text-gray-900 leading-none">4.9</p>
+                            <div className="mt-2"><StarDisplay rating={5} /></div>
+                            <p className="text-[8px] font-black uppercase tracking-[0.4em] text-gray-400 mt-3 whitespace-nowrap">Pakistan's Premium Choice</p>
                         </div>
                     </div>
                 </div>
 
                 {/* Main Review Card */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-16 items-start">
                     {/* Featured Review */}
                     <div
                         key={activeIdx}
-                        className="bg-gray-50 p-10 md:p-14 rounded-2xl relative overflow-hidden group transition-all duration-500"
-                        style={{ borderLeft: `4px solid ${review.color}` }}
+                        className="lg:col-span-7 bg-white border border-gray-100 p-12 md:p-20 relative overflow-hidden group transition-all duration-500 shadow-sm"
                     >
-                        <Quote size={48} className="text-gray-100 absolute top-6 right-6" />
+                        <Quote size={80} className="text-gray-50 absolute -top-4 -right-4 rotate-12" />
 
-                        <StarDisplay rating={review.rating} />
+                        <div className="relative z-10">
+                            <StarDisplay rating={review.rating} />
 
-                        <h3 className="text-2xl font-black uppercase tracking-tight text-gray-900 mt-6 mb-4">
-                            "{review.title}"
-                        </h3>
-                        <p className="text-gray-600 text-base font-medium leading-relaxed mb-8">
-                            {review.review}
-                        </p>
+                            <h3 className="text-3xl md:text-4xl font-black uppercase tracking-tight text-gray-900 mt-8 mb-6 leading-tight">
+                                "{review.title}"
+                            </h3>
+                            <p className="text-gray-500 text-lg md:text-xl font-medium leading-relaxed mb-12 italic">
+                                {review.review}
+                            </p>
 
-                        <div className="flex items-center justify-between border-t border-gray-200 pt-6">
-                            <div className="flex items-center space-x-4">
-                                <div
-                                    className="w-12 h-12 rounded-full flex items-center justify-center font-black text-white text-sm shadow-lg"
-                                    style={{ backgroundColor: review.color }}
-                                >
-                                    {review.avatar}
+                            <div className="flex items-center justify-between border-t border-gray-100 pt-10">
+                                <div className="flex items-center space-x-6">
+                                    <div
+                                        className="w-16 h-16 flex items-center justify-center font-black text-white text-lg tracking-tighter"
+                                        style={{ backgroundColor: review.color }}
+                                    >
+                                        {review.avatar}
+                                    </div>
+                                    <div>
+                                        <p className="font-black uppercase tracking-tighter text-xl text-gray-900">{review.name}</p>
+                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] mt-1">{review.location} · {review.date}</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <p className="font-black uppercase tracking-tight text-gray-900">{review.name}</p>
-                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{review.location} · {review.date}</p>
+                                <div className="text-right hidden sm:block">
+                                    <p className="text-[8px] font-black uppercase tracking-[0.5em] text-gray-300 mb-1">Authentic Gear</p>
+                                    <p className="text-xs font-black text-[#ba1f3d] uppercase tracking-tighter">{review.product}</p>
                                 </div>
-                            </div>
-                            <div className="text-right">
-                                <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">Purchased</p>
-                                <p className="text-xs font-black text-gray-700 uppercase tracking-tight">{review.product}</p>
                             </div>
                         </div>
                     </div>
 
                     {/* Mini Reviews Stack */}
-                    <div className="space-y-3">
+                    <div className="lg:col-span-5 space-y-4">
                         {REVIEWS.map((r, idx) => (
                             <button
                                 key={r.id}
                                 onClick={() => goTo(idx)}
-                                className={`w-full text-left p-5 rounded-xl border-2 transition-all duration-300 ${idx === activeIdx
-                                        ? 'border-gray-900 bg-gray-900 text-white shadow-2xl scale-[1.02]'
-                                        : 'border-gray-100 bg-white hover:border-gray-200 hover:shadow-md'
+                                className={`w-full text-left p-6 transition-all duration-500 border ${idx === activeIdx
+                                        ? 'border-[#ba1f3d] bg-white shadow-xl translate-x-4'
+                                        : 'border-transparent bg-gray-50/50 hover:bg-gray-50 hover:border-gray-200'
                                     }`}
                             >
                                 <div className="flex items-center justify-between">
-                                    <div className="flex items-center space-x-3">
+                                    <div className="flex items-center space-x-6">
                                         <div
-                                            className="w-8 h-8 rounded-full flex items-center justify-center font-black text-white text-[10px] flex-shrink-0"
+                                            className="w-10 h-10 flex items-center justify-center font-black text-white text-xs"
                                             style={{ backgroundColor: r.color }}
                                         >
                                             {r.avatar}
                                         </div>
                                         <div>
-                                            <p className={`font-black uppercase tracking-tight text-xs ${idx === activeIdx ? 'text-white' : 'text-gray-900'}`}>
+                                            <p className={`font-black uppercase tracking-tight text-sm ${idx === activeIdx ? 'text-[#ba1f3d]' : 'text-gray-900'}`}>
                                                 {r.name}
                                             </p>
-                                            <p className={`text-[9px] uppercase tracking-widest font-bold ${idx === activeIdx ? 'text-gray-400' : 'text-gray-400'}`}>
+                                            <p className="text-[9px] uppercase tracking-[0.3em] font-black text-gray-400 mt-0.5">
                                                 {r.product}
                                             </p>
                                         </div>
                                     </div>
-                                    <StarDisplay rating={r.rating} />
+                                    <div className={idx === activeIdx ? 'opacity-100' : 'opacity-30'}>
+                                        <StarDisplay rating={r.rating} />
+                                    </div>
                                 </div>
                             </button>
                         ))}
 
                         {/* Nav */}
-                        <div className="flex items-center space-x-3 pt-4">
+                        <div className="flex items-center space-x-4 pt-10">
                             <button
                                 onClick={prev}
-                                className="p-3 border-2 border-gray-200 rounded-xl hover:border-gray-900 hover:bg-gray-900 hover:text-white transition-all"
+                                className="w-14 h-14 border border-gray-100 flex items-center justify-center hover:bg-gray-900 hover:text-white hover:border-gray-900 transition-all"
                             >
-                                <ChevronLeft size={18} />
+                                <ChevronLeft size={20} />
                             </button>
                             <button
                                 onClick={next}
-                                className="p-3 border-2 border-gray-200 rounded-xl hover:border-gray-900 hover:bg-gray-900 hover:text-white transition-all"
+                                className="w-14 h-14 border border-gray-100 flex items-center justify-center hover:bg-gray-900 hover:text-white hover:border-gray-900 transition-all"
                             >
-                                <ChevronRight size={18} />
+                                <ChevronRight size={20} />
                             </button>
-                            <span className="text-xs font-black uppercase tracking-widest text-gray-400">
-                                {activeIdx + 1} / {REVIEWS.length}
-                            </span>
+                            <div className="flex-grow text-right">
+                                <span className="text-[10px] font-black uppercase tracking-[0.5em] text-gray-300">
+                                    0{activeIdx + 1} / 0{REVIEWS.length}
+                                </span>
+                            </div>
                         </div>
                     </div>
                 </div>

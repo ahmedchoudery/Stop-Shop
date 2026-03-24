@@ -155,7 +155,7 @@ const RecentCard = ({ product, onOpen, onAddToCart, isWishlisted, onWishlist }) 
                     <p className="text-sm font-black text-red-600">${product.price.toFixed(2)}</p>
                     <div className="flex items-center space-x-0.5 opacity-50">
                         {[...Array(5)].map((_, i) => (
-                            <Star key={i} size={10} className={i < (product.rating || 4) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-200'} />
+                            <Star key={i} size={10} className={i < (product.rating || 4) ? 'fill-[#ba1f3d] text-[#ba1f3d]' : 'text-gray-200'} />
                         ))}
                     </div>
                 </div>

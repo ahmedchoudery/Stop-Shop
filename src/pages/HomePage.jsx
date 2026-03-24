@@ -14,7 +14,7 @@ const HomePage = ({ onProductsLoaded }) => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [fetchError, setFetchError] = useState(false);
 
-  const { activeBucket, setActiveBucket, activeSub, setActiveSub, lastViewedBucket, setLastViewedBucket } = useCart();
+  const { activeBucket, setActiveBucket, activeSub, setActiveSub, lastViewedBucket, setLastViewedBucket, shouldScrollGrid } = useCart();
 
   useEffect(() => {
     const handleOnline = () => { setIsOnline(true); setIsFetching(true); setFetchError(false); };
@@ -23,6 +23,16 @@ const HomePage = ({ onProductsLoaded }) => {
     window.addEventListener('offline', handleOffline);
     return () => { window.removeEventListener('online', handleOnline); window.removeEventListener('offline', handleOffline); };
   }, []);
+
+  // Smooth Scroll Trigger
+  useEffect(() => {
+    if (shouldScrollGrid > 0) {
+      const element = document.getElementById('product-grid');
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  }, [shouldScrollGrid]);
 
   useEffect(() => {
     if (!isOnline) return;
@@ -81,27 +91,30 @@ const HomePage = ({ onProductsLoaded }) => {
       <PowerOfChoiceHero />
 
       {/* Category Filter */}
-      <div className="bg-[#F5F5F5] border-b border-gray-200 pt-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-center space-x-8 sm:space-x-12 mb-6 overflow-x-auto pb-2">
+      <div className="bg-white border-b border-gray-100 sticky top-[72px] z-40 overflow-x-auto no-scrollbar shadow-sm">
+        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
+          {/* Main Buckets */}
+          <div className="flex items-center space-x-12 h-20 border-b border-gray-50">
             {buckets.map(bucket => (
               <button
                 key={bucket}
                 onClick={() => handleBucketClick(bucket)}
-                className={`text-sm font-black uppercase tracking-[0.3em] pb-3 transition-all relative flex-shrink-0 ${activeBucket === bucket
-                    ? 'text-red-700 after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-red-700'
+                className={`text-[10px] font-black uppercase tracking-[0.3em] whitespace-nowrap transition-all relative group h-full flex items-center ${activeBucket === bucket
+                    ? 'text-[#ba1f3d]'
                     : 'text-gray-400 hover:text-gray-900'
                   }`}
               >
                 {bucket}
+                <span className={`absolute bottom-0 left-0 w-full h-[3px] bg-[#ba1f3d] transition-all duration-500 scale-x-0 group-hover:scale-x-100 ${activeBucket === bucket ? 'scale-x-100' : ''}`} />
               </button>
             ))}
           </div>
 
-          <div className="flex justify-center items-center flex-wrap gap-4 sm:gap-6 pb-8 border-t border-gray-50 pt-5">
+          {/* Sub-categories */}
+          <div className="flex items-center flex-wrap gap-8 py-6">
             <button
               onClick={() => { setActiveSub(null); if (activeBucket === 'All') setActiveBucket(lastViewedBucket); }}
-              className={`text-xs uppercase tracking-[0.2em] transition-all pb-1 ${!activeSub ? 'font-bold text-gray-900 border-b-2 border-gray-400' : 'text-gray-400 hover:text-gray-900 font-semibold border-b-2 border-transparent'
+              className={`text-[9px] uppercase tracking-[0.25em] transition-all pb-1 border-b-2 ${!activeSub ? 'font-black text-gray-900 border-[#ba1f3d]' : 'text-gray-400 hover:text-gray-900 font-bold border-transparent'
                 }`}
             >
               All {lastViewedBucket}
@@ -110,18 +123,20 @@ const HomePage = ({ onProductsLoaded }) => {
               <button
                 key={sub}
                 onClick={() => { setActiveSub(sub); if (activeBucket === 'All') setActiveBucket(lastViewedBucket); }}
-                className={`text-xs uppercase tracking-[0.2em] transition-all pb-1 ${activeSub === sub ? 'font-bold text-gray-900 border-b-2 border-gray-900' : 'text-gray-400 hover:text-gray-900 font-semibold border-b-2 border-transparent'
+                className={`text-[9px] uppercase tracking-[0.25em] transition-all pb-1 border-b-2 ${activeSub === sub ? 'font-black text-gray-900 border-[#ba1f3d]' : 'text-gray-400 hover:text-gray-900 font-bold border-transparent'
                   }`}
               >
                 {sub}
               </button>
             ))}
             {activeBucket === 'All' && (
-              <span className="text-[9px] text-gray-300 font-black uppercase tracking-widest self-center">— from {lastViewedBucket}</span>
+              <span className="text-[8px] text-gray-300 font-black uppercase tracking-[0.4em] ml-auto">— Curated from {lastViewedBucket}</span>
             )}
           </div>
         </div>
       </div>
+
+      <div id="product-grid" />
 
       {/* Products */}
       <div id="trending">
