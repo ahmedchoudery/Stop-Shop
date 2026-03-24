@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Toast from '../components/Toast';
 import Layout from '../layout/Layout';
 import UniversalDrawer from '../layout/UniversalDrawer';
 import SmoothLoader from '../components/SmoothLoader';
@@ -18,18 +17,6 @@ import AdminUsers from '../pages/AdminUsers';
 import AdminSettings from '../pages/AdminSettings';
 import LoginPage from '../pages/LoginPage';
 import ProtectedRoute from '../components/ProtectedRoute';
-
-const ContextAwareToast = () => {
-  const { toast, clearToast, openDrawer } = useCart();
-  if (!toast) return null;
-  return (
-    <Toast
-      message={toast}
-      onClose={clearToast}
-      onViewCart={() => { clearToast(); openDrawer('cart'); }}
-    />
-  );
-};
 
 const HomeWithLayout = () => {
   const [liveProducts, setLiveProducts] = useState([]);
@@ -90,7 +77,6 @@ function App() {
               } />
             </Routes>
 
-            <ContextAwareToast />
             <UniversalDrawer />
           </Router>
         </CartProvider>

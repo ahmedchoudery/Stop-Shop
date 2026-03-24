@@ -8,7 +8,6 @@ export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
   const [isBouncing, setIsBouncing] = useState(false);
   const [shakeCount, setShakeCount] = useState(0);
-  const [toast, setToast] = useState(null);
 
   // Handle Animation Queueing
   useEffect(() => {
@@ -46,10 +45,6 @@ export const CartProvider = ({ children }) => {
     });
 
     setShakeCount((prev) => prev + 1);
-    
-    // Show toast notification
-    setToast(`Added ${product.name} to cart!`);
-    setTimeout(() => setToast(null), 4000);
   };
 
   const removeFromCart = (id, activeColor) => {
@@ -84,8 +79,6 @@ export const CartProvider = ({ children }) => {
     });
   };
 
-  const clearToast = () => setToast(null);
-
   // Storefront Filter State (hoisted for global accessibility)
   const [activeBucket, setActiveBucket] = useState('All');
   const [activeSub, setActiveSub] = useState(null);
@@ -113,8 +106,6 @@ export const CartProvider = ({ children }) => {
     removeFromCart,
     updateQuantity,
     isBouncing,
-    toast,
-    clearToast,
     total: cartItems.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0),
     isDrawerOpen,
     drawerMode,
