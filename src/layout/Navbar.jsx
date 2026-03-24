@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ShoppingBag, Search, User, Menu, Shield, Heart } from 'lucide-react';
+import { ShoppingBag, Search, User, Menu, Shield, Heart, ChevronDown } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import MobileDrawer from './MobileDrawer';
 import { useCart } from '../context/CartContext';
@@ -127,9 +127,12 @@ const Navbar = ({ onSearchOpen, onWishlistOpen }) => {
                   <Link
                     to={link.href}
                     onClick={() => handleCategoryClick(link.bucket)}
-                    className="text-gray-500 hover:text-black transition-all relative group"
+                    className="text-gray-500 hover:text-black transition-all relative group flex items-center"
                   >
                     <span className="relative z-10">{link.name}</span>
+                    {link.categories.length > 0 && (
+                      <ChevronDown size={14} className="ml-1 relative z-10 transition-transform group-hover:rotate-180" />
+                    )}
                     <span className="absolute bottom-[-4px] left-0 w-0 h-[2px] bg-[#ba1f3d] transition-all duration-300 group-hover:w-full" />
                   </Link>
                 </div>

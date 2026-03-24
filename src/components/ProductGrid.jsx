@@ -3,15 +3,7 @@ import ProductCard from './ProductCard';
 import { useCart } from '../context/CartContext';
 
 const ProductGrid = ({ products, activeBucket = 'All', activeSubCategory = null }) => {
-  const { openDrawer, sortBy, setSortBy } = useCart();
-  const [isLoading, setIsLoading] = useState(false);
-  const [imagesLoadedCount, setImagesLoadedCount] = useState(0);
-
-  // Loading Reset logic
-  useEffect(() => {
-    setIsLoading(true);
-    setImagesLoadedCount(0);
-  }, [activeBucket, activeSubCategory, products]);
+  const { openDrawer, sortBy } = useCart();
 
   // Flawless Filtering: Memoized two-level grid rendering 
   const sortedProducts = useMemo(() => {
@@ -29,19 +21,6 @@ const ProductGrid = ({ products, activeBucket = 'All', activeSubCategory = null 
     });
   }, [products, activeBucket, activeSubCategory, sortBy]);
 
-  // Master Loading State Resolver
-  useEffect(() => {
-    if (sortedProducts.length === 0) {
-      setIsLoading(false);
-    } else if (imagesLoadedCount >= sortedProducts.length) {
-      setIsLoading(false);
-    }
-  }, [imagesLoadedCount, sortedProducts.length]);
-
-  const handleImageLoad = () => {
-    setImagesLoadedCount(prev => prev + 1);
-  };
-
   return (
     <div id="product-grid" className="bg-white py-12 sm:py-16">
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
@@ -54,15 +33,8 @@ const ProductGrid = ({ products, activeBucket = 'All', activeSubCategory = null 
           </div>
         </div>
         
-        {/* Master Loading Spinner */}
-        {isLoading && (
-          <div className="flex justify-center items-center h-96 w-full transition-opacity duration-1000 ease-in opacity-100">
-            <div className="animate-spin h-8 w-8 border-t-2 border-[#ba1f3d] rounded-full"></div>
-          </div>
-        )}
-
         {/* Structured Grid */}
-        <div className={isLoading ? 'hidden' : 'block'}>
+        <div className="block">
           {sortedProducts.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-12">
               {sortedProducts.map((product) => (
@@ -70,7 +42,6 @@ const ProductGrid = ({ products, activeBucket = 'All', activeSubCategory = null 
                   <ProductCard 
                     product={product} 
                     onSelectProduct={() => openDrawer('product', product)}
-                    onImageLoad={handleImageLoad}
                   />
                 </div>
               ))}
