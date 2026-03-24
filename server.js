@@ -262,7 +262,7 @@ app.get('/api/public/products', async (req, res) => {
 // ─────────────────────────────────────────────────────────────────
 app.get('/api/stats/revenue', authenticateToken, async (req, res) => {
   try {
-    const orders = await Order.find();
+    const orders = await Order.find({ status: { $ne: 'Cancelled' } });
     
     const now = new Date();
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -321,7 +321,7 @@ app.get('/api/stats/revenue', authenticateToken, async (req, res) => {
 
 app.get('/api/stats/orders', authenticateToken, async (req, res) => {
   try {
-    const totalOrders = await Order.countDocuments();
+    const totalOrders = await Order.countDocuments({ status: { $ne: 'Cancelled' } });
     const pendingOrders = await Order.countDocuments({ status: 'Pending' });
     res.json({ totalOrders, pendingOrders });
   } catch (error) {
