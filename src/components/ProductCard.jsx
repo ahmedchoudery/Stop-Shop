@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Star, Heart } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
+import MediaRenderer from './MediaRenderer';
 
 const ProductCard = ({ product, onSelectProduct, onImageLoad }) => {
   const { addToCart } = useCart();
@@ -67,7 +68,7 @@ const ProductCard = ({ product, onSelectProduct, onImageLoad }) => {
 
       {/* Image Container */}
       <div className="aspect-[4/5] overflow-hidden bg-white relative">
-        <img
+        <MediaRenderer
           src={isHovered && product.lifestyleImage ? product.lifestyleImage : currentImage}
           alt={product.name}
           onLoad={handleLoad}

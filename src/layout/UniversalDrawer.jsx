@@ -6,6 +6,7 @@ import { useWishlist } from '../context/WishlistContext';
 import { useRecentlyViewed } from '../components/RecentlyViewedContext';
 import SizeChartModal from '../components/SizeChartModal';
 import ProductLightbox from '../components/ProductLightbox';
+import MediaRenderer from '../components/MediaRenderer';
 
 const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 const CARDINAL = '#ba1f3d';
@@ -110,7 +111,7 @@ const UniversalDrawer = () => {
             {cartItems.map(item => (
               <div key={`${item.id}-${item.activeColor || 'none'}-${item.selectedSize || 'none'}`} className="flex items-center space-x-5 group animate-fade-up">
                 <div className="w-24 h-28 bg-gray-50 flex-shrink-0 overflow-hidden rounded-none border border-gray-100">
-                  <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                  <MediaRenderer src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                 </div>
                 <div className="flex-grow min-w-0">
                   <div className="flex justify-between items-start">
@@ -137,7 +138,7 @@ const UniversalDrawer = () => {
                 {UPSELL_PRODUCTS.map(up => (
                   <div key={up.id} className="flex-shrink-0 w-32 group">
                     <div className="w-full aspect-[4/5] bg-gray-50 rounded-none overflow-hidden mb-3">
-                      <img src={up.image} alt={up.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                      <MediaRenderer src={up.image} alt={up.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                     </div>
                     <p className="text-[9px] font-black uppercase tracking-tight text-gray-900 truncate">{up.name}</p>
                     <p className="text-[9px] text-[#ba1f3d] font-black mt-1">PKR {up.price.toLocaleString()}</p>
@@ -182,7 +183,7 @@ const UniversalDrawer = () => {
 
         {/* Main Image */}
         <div className="w-full aspect-[4/5] bg-gray-50 relative overflow-hidden cursor-zoom-in flex-shrink-0" onClick={() => { setLightboxIndex(0); setLightboxOpen(true); }}>
-          <img src={currentImage} alt={selectedProduct.name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-1000 ease-out" />
+          <MediaRenderer src={currentImage} alt={selectedProduct.name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-1000 ease-out" />
           {selectedProduct.stock > 0 && selectedProduct.stock <= 5 && (
             <div className="absolute top-6 left-6"><span className="bg-[#ba1f3d] text-white text-[9px] font-black px-4 py-2 uppercase tracking-[0.3em] shadow-2xl">Final Stock: {selectedProduct.stock}</span></div>
           )}
@@ -194,7 +195,7 @@ const UniversalDrawer = () => {
           <div className="flex space-x-3 px-8 py-5 border-b border-gray-50 overflow-x-auto flex-shrink-0 scrollbar-hide bg-gray-50/30">
             {lightboxImages.map((img, idx) => (
               <button key={idx} onClick={() => { setLightboxIndex(idx); setLightboxOpen(true); }} className={`flex-shrink-0 w-16 h-20 overflow-hidden border transition-all ${img.src === currentImage ? 'border-[#ba1f3d] shadow-lg' : 'border-transparent grayscale hover:grayscale-0'}`}>
-                <img src={img.src} alt={img.alt} className="w-full h-full object-cover" />
+                <MediaRenderer src={img.src} alt={img.alt} className="w-full h-full object-cover" />
               </button>
             ))}
           </div>

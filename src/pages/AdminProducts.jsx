@@ -15,9 +15,12 @@ import {
   CheckCircle,
   AlertCircle,
   Loader2,
-  Filter
+  Filter,
+  Video,
+  Info
 } from 'lucide-react';
 import { apiUrl } from '../config/api';
+import MediaRenderer from '../components/MediaRenderer';
 
 const AdminProducts = () => {
   const [products, setProducts] = useState([]);
@@ -260,7 +263,7 @@ const AdminProducts = () => {
                 <tr key={p.id} className="hover:bg-gray-50/50 transition-colors group">
                   <td className="p-6">
                     <div className="w-16 h-16 bg-gray-100 overflow-hidden border border-gray-100 group-hover:scale-110 transition-transform">
-                      <img src={p.image} alt="" className="w-full h-full object-cover mix-blend-multiply" />
+                      <MediaRenderer src={p.image} alt="" className="w-full h-full object-cover mix-blend-multiply" />
                     </div>
                   </td>
                   <td className="p-6">
@@ -427,12 +430,12 @@ const AdminProducts = () => {
                 <div className="space-y-6">
                   <div className="space-y-2">
                     <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 flex items-center space-x-2">
-                      <ImageIcon size={12} /> <span>Primary Showcase Image URL</span>
+                      <Video size={12} /> <span>Primary Media URL (Image/Video)</span>
                     </label>
                     <input 
                       required
                       type="url" 
-                      placeholder="https://images.unsplash.com/..."
+                      placeholder="e.g. https://cdn.../image.webp OR video.mp4"
                       className="w-full bg-gray-50 border-b-2 border-transparent focus:border-red-600 outline-none p-4 font-bold text-xs transition-all"
                       value={formData.image}
                       onChange={e => setFormData({...formData, image: e.target.value})}
@@ -440,15 +443,45 @@ const AdminProducts = () => {
                   </div>
                   <div className="space-y-2">
                     <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 flex items-center space-x-2">
-                      <ImageIcon size={12} /> <span>Lifestyle / Experience Image URL</span>
+                      <ImageIcon size={12} /> <span>Lifestyle Media URL (Image/Video)</span>
                     </label>
                     <input 
                       type="url" 
-                      placeholder="https://images.unsplash.com/..."
+                      placeholder="e.g. https://cdn.../lifestyle.webp OR video.mp4"
                       className="w-full bg-gray-50 border-b-2 border-transparent focus:border-red-600 outline-none p-4 font-bold text-xs transition-all"
                       value={formData.lifestyleImage}
                       onChange={e => setFormData({...formData, lifestyleImage: e.target.value})}
                     />
+                  </div>
+
+                  {/* Delivery Guidelines */}
+                  <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mt-8 space-y-6">
+                    <div className="flex items-center space-x-3">
+                      <Info className="text-yellow-500" size={18} />
+                      <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-white">Fastest Delivery Guidelines</h4>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                      {/* Video Tips */}
+                      <div className="space-y-4">
+                        <h5 className="text-[9px] font-black uppercase tracking-[0.1em] text-gray-400 border-b border-gray-700 pb-2">Videos (MP4/WebM)</h5>
+                        <ul className="text-xs text-gray-300 space-y-3">
+                          <li className="flex items-start"><span className="text-red-500 mr-2">♦</span> <span><b>Faststart:</b> Ensure MP4s use `-movflags +faststart` via FFMPEG so they play instantly before downloading.</span></li>
+                          <li className="flex items-start"><span className="text-red-500 mr-2">♦</span> <span><b>Bitrate:</b> 1080p @ 5-8 Mbps | 720p @ 2.5-4 Mbps to balance speed/quality.</span></li>
+                          <li className="flex items-start"><span className="text-red-500 mr-2">♦</span> <span><b>Modern Formats:</b> Rely on WebM natively, fallback to MP4. Deliver via CDN.</span></li>
+                        </ul>
+                      </div>
+
+                      {/* Image Tips */}
+                      <div className="space-y-4">
+                        <h5 className="text-[9px] font-black uppercase tracking-[0.1em] text-gray-400 border-b border-gray-700 pb-2">Images (WebP/AVIF/SVG)</h5>
+                        <ul className="text-xs text-gray-300 space-y-3">
+                          <li className="flex items-start"><span className="text-blue-500 mr-2">♦</span> <span><b>Photos/Complex:</b> Use AVIF or WebP for superior compression vs JPEG.</span></li>
+                          <li className="flex items-start"><span className="text-blue-500 mr-2">♦</span> <span><b>Transparent/Gfx:</b> Use WebP or PNG. For Logos/Icons, strictly use SVG.</span></li>
+                          <li className="flex items-start"><span className="text-blue-500 mr-2">♦</span> <span><b>Optimization:</b> Compress via Squoosh/TinyPNG. Request via CDN.</span></li>
+                        </ul>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </section>
