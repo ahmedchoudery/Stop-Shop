@@ -15,7 +15,7 @@ app.use(cors());
 // ─────────────────────────────────────────────────────────────────
 // DATABASE CONNECTION
 // ─────────────────────────────────────────────────────────────────
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/stop-shop')
+mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log('✅ Connected to MongoDB'))
   .catch(err => console.error('❌ MongoDB connection error:', err));
 
@@ -39,10 +39,10 @@ const orderSchema = new mongoose.Schema({
   }],
   total: Number,
   paymentMethod: String,
-  status: { 
-    type: String, 
+  status: {
+    type: String,
     enum: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'],
-    default: 'Pending' 
+    default: 'Pending'
   },
   createdAt: { type: Date, default: Date.now }
 });
@@ -154,8 +154,8 @@ app.patch('/api/admin/products/:id', authenticateToken, async (req, res) => {
   try {
     const { quantity, price } = req.body;
     const product = await Product.findOneAndUpdate(
-      { id: req.params.id }, 
-      { quantity, price }, 
+      { id: req.params.id },
+      { quantity, price },
       { new: true }
     );
     if (!product) return res.status(404).json({ error: 'Product not found' });
