@@ -108,7 +108,7 @@ const UniversalDrawer = () => {
         ) : (
           <>
             {cartItems.map(item => (
-              <div key={item.activeColor ? `${item.id}-${item.activeColor}` : item.id} className="flex items-center space-x-5 group animate-fade-up">
+              <div key={`${item.id}-${item.activeColor || 'none'}-${item.selectedSize || 'none'}`} className="flex items-center space-x-5 group animate-fade-up">
                 <div className="w-24 h-28 bg-gray-50 flex-shrink-0 overflow-hidden rounded-none border border-gray-100">
                   <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                 </div>
@@ -120,14 +120,14 @@ const UniversalDrawer = () => {
                   {item.selectedSize && <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-1">Size: {item.selectedSize}</p>}
                   <div className="flex items-center mt-3 space-x-4">
                     <div className="flex items-center border border-gray-100 bg-white">
-                      <button onClick={() => updateQuantity(item.id, item.activeColor, -1)} className="px-2 py-1.5 hover:bg-gray-50 text-gray-400 hover:text-gray-900 transition-colors"><Minus size={10} /></button>
+                      <button onClick={() => updateQuantity(item.id, item.activeColor, item.selectedSize, -1)} className="px-2 py-1.5 hover:bg-gray-50 text-gray-400 hover:text-gray-900 transition-colors"><Minus size={10} /></button>
                       <span className="text-[10px] font-black text-gray-900 px-3">{item.quantity || 1}</span>
-                      <button onClick={() => updateQuantity(item.id, item.activeColor, 1)} className="px-2 py-1.5 hover:bg-gray-50 text-gray-400 hover:text-gray-900 transition-colors"><Plus size={10} /></button>
+                      <button onClick={() => updateQuantity(item.id, item.activeColor, item.selectedSize, 1)} className="px-2 py-1.5 hover:bg-gray-50 text-gray-400 hover:text-gray-900 transition-colors"><Plus size={10} /></button>
                     </div>
                     {item.activeColor && <div className="w-3 h-3 rounded-none border border-gray-100" style={{ backgroundColor: item.activeColor }} />}
                   </div>
                 </div>
-                <button onClick={() => removeFromCart(item.id, item.activeColor)} className="p-2 text-gray-200 hover:text-[#ba1f3d] transition-all flex-shrink-0"><Trash2 size={16} /></button>
+                <button onClick={() => removeFromCart(item.id, item.activeColor, item.selectedSize)} className="p-2 text-gray-200 hover:text-[#ba1f3d] transition-all flex-shrink-0"><Trash2 size={16} /></button>
               </div>
             ))}
 

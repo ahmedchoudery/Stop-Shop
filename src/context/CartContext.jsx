@@ -25,9 +25,9 @@ export const CartProvider = ({ children }) => {
 
   const addToCart = (product) => {
     setCartItems((prevItems) => {
-      // Logic: Check for existence by ID and activeColor
+      // Logic: Check for existence by ID, activeColor, and selectedSize
       const existingItemIndex = prevItems.findIndex(
-        (item) => item.id === product.id && item.activeColor === product.activeColor
+        (item) => item.id === product.id && item.activeColor === product.activeColor && item.selectedSize === product.selectedSize
       );
 
       if (existingItemIndex > -1) {
@@ -47,16 +47,16 @@ export const CartProvider = ({ children }) => {
     setShakeCount((prev) => prev + 1);
   };
 
-  const removeFromCart = (id, activeColor) => {
+  const removeFromCart = (id, activeColor, selectedSize) => {
     setCartItems((prevItems) => 
-      prevItems.filter(item => !(item.id === id && item.activeColor === activeColor))
+      prevItems.filter(item => !(item.id === id && item.activeColor === activeColor && item.selectedSize === selectedSize))
     );
   };
 
-  const updateQuantity = (id, activeColor, delta) => {
+  const updateQuantity = (id, activeColor, selectedSize, delta) => {
     setCartItems((prevItems) => {
       const existingItemIndex = prevItems.findIndex(
-        (item) => item.id === id && item.activeColor === activeColor
+        (item) => item.id === id && item.activeColor === activeColor && item.selectedSize === selectedSize
       );
 
       if (existingItemIndex > -1) {

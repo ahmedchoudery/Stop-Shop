@@ -180,7 +180,8 @@ const OrderDetails = ({ order, isOpen, onClose, onStatusUpdated }) => {
                     <th className="p-4">SKU/ID</th>
                     <th className="p-4">Product Specification</th>
                     <th className="p-4 text-center">Qty</th>
-                    <th className="p-4 text-right">Price</th>
+                    <th className="p-4 text-right">Unit Price</th>
+                    <th className="p-4 text-right">Total</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -189,7 +190,8 @@ const OrderDetails = ({ order, isOpen, onClose, onStatusUpdated }) => {
                       <td className="p-4 font-mono text-[10px] font-bold text-[#ba1f3d]">{item.id}</td>
                       <td className="p-4 font-black uppercase tracking-tight text-gray-900">{item.name}</td>
                       <td className="p-4 text-center font-bold text-gray-400">{item.quantity || 1}</td>
-                      <td className="p-4 text-right font-black text-gray-900">PKR {item.price.toLocaleString()}</td>
+                      <td className="p-4 text-right font-bold text-gray-400">PKR {item.price.toLocaleString()}</td>
+                      <td className="p-4 text-right font-black text-[#ba1f3d]">PKR {(item.price * (item.quantity || 1)).toLocaleString()}</td>
                     </tr>
                   ))}
                 </tbody>
