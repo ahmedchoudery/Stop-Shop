@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Star, Heart } from 'lucide-react';
+import { Star, Heart, Play } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import MediaRenderer from './MediaRenderer';
@@ -69,12 +69,22 @@ const ProductCard = ({ product, onSelectProduct, onImageLoad }) => {
       {/* Image Container */}
       <div className="aspect-[4/5] overflow-hidden bg-white relative">
         <MediaRenderer
-          src={isHovered && product.lifestyleImage ? product.lifestyleImage : currentImage}
+          src={product.mediaType === 'embed' ? null : (isHovered && product.lifestyleImage ? product.lifestyleImage : currentImage)}
+          embedCode={product.mediaType === 'embed' ? product.embedCode : undefined}
+          mediaType={product.mediaType}
           alt={product.name}
           onLoad={handleLoad}
           className={`w-full h-full object-cover mix-blend-multiply transition-all duration-1000 ease-out ${isHovered ? 'scale-110' : 'scale-100'
             } ${product.stock === 0 ? 'grayscale opacity-70' : ''}`}
         />
+
+        {product.mediaType === 'embed' && (
+          <div className="absolute top-4 left-4 z-10">
+            <span className="bg-black/70 text-white text-[8px] sm:text-[9px] font-black px-3 py-1 uppercase tracking-[0.2em] rounded">
+              <span className="inline-flex items-center space-x-1"><Play size={12} /><span>Video</span></span>
+            </span>
+          </div>
+        )}
 
         {/* Out of Stock Overlay */}
         {product.stock === 0 && (

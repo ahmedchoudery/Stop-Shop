@@ -183,7 +183,13 @@ const UniversalDrawer = () => {
 
         {/* Main Image */}
         <div className="w-full aspect-[4/5] bg-gray-50 relative overflow-hidden cursor-zoom-in flex-shrink-0" onClick={() => { setLightboxIndex(0); setLightboxOpen(true); }}>
-          <MediaRenderer src={currentImage} alt={selectedProduct.name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-1000 ease-out" />
+          <MediaRenderer
+            src={selectedProduct.mediaType === 'embed' ? null : currentImage}
+            embedCode={selectedProduct.mediaType === 'embed' ? selectedProduct.embedCode : undefined}
+            mediaType={selectedProduct.mediaType}
+            alt={selectedProduct.name}
+            className="w-full h-full object-cover hover:scale-105 transition-transform duration-1000 ease-out"
+          />
           {selectedProduct.stock > 0 && selectedProduct.stock <= 5 && (
             <div className="absolute top-6 left-6"><span className="bg-[#ba1f3d] text-white text-[9px] font-black px-4 py-2 uppercase tracking-[0.3em] shadow-2xl">Final Stock: {selectedProduct.stock}</span></div>
           )}

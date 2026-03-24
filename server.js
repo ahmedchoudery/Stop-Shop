@@ -79,6 +79,8 @@ const productSchema = new mongoose.Schema({
   quantity: { type: Number, default: 0 }, // Used for internal logic/inventory table
   stock: { type: Number, default: 0 },    // Used for frontend display/matching static data
   image: String,
+  mediaType: { type: String, enum: ['upload', 'url', 'embed'], default: 'upload' },
+  embedCode: { type: String, default: '' },
   rating: { type: Number, default: 5 },
   bucket: { type: String, default: 'Tops' },
   subCategory: { type: String, default: 'General' },

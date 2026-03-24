@@ -1,542 +1,536 @@
-import React, { useState, useEffect } from 'react';
-import { 
-  Plus, 
-  Search, 
-  Edit2, 
-  Trash2, 
-  X, 
-  Save, 
-  Image as ImageIcon, 
-  Type, 
-  DollarSign, 
-  Layers, 
-  Package, 
-  Star,
-  CheckCircle,
-  AlertCircle,
-  Loader2,
-  Filter,
-  Video,
-  Info
+import React, { useState, useEffect, useRef } from 'react';
+import {
+  Plus, Trash2, Edit3, X, Save, Package, AlertTriangle,
+  Search, Image, DollarSign, Upload, Link2, Code2,
+  Play, CheckCircle, Copy
 } from 'lucide-react';
 import { apiUrl } from '../config/api';
-import MediaRenderer from '../components/MediaRenderer';
 
-const AdminProducts = () => {
+// ─── Constants ───────────────────────────────────────────────
+const BUCKETS = ['Tops', 'Bottoms', 'Accessories'];
+const SUBCATEGORIES = {
+  Tops: ['Polo', 'Shirt', 'T-Shirt', 'Hoodie', 'Jacket'],
+  Bottoms: ['Jeans', 'Pants', 'Shorts', 'Chinos'],
+  Accessories: ['Footwear', 'Belt', 'Cap', 'Bag', 'Socks'],
+};
+
+const MEDIA_TABS = [
+  { id: 'upload', label: 'Upload', icon: Upload },
+  { id: 'url', label: 'URL', icon: Link2 },
+  { id: 'embed', label: 'Embed', icon: Code2 },
+];
+
+const EMPTY_FORM = {
+  id: '', name: '', price: '', quantity: '',
+  image: '', mediaType: 'upload', embedCode: '',
+  bucket: 'Tops', subCategory: 'Polo',
+  rating: 5, stock: 10,
+  specs: ['', '', ''],
+  colors: [],
+};
+
+// ─── Embed helpers ────────────────────────────────────────────
+function parseEmbed(raw) {
+  if (!raw?.trim()) return null;
+  if (/^https?:\/\//.test(raw.trim()) && !raw.includes('<')) {
+    const url = raw.trim();
+    const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+    if (ytMatch) return { type: 'iframe', src: `https://www.youtube.com/embed/${ytMatch[1]}` };
+    const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
+    if (vimeoMatch) return { type: 'iframe', src: `https://player.vimeo.com/video/${vimeoMatch[1]}` };
+    if (/\.(mp4|webm|ogg)(\?.*)?$/i.test(url)) return { type: 'video', src: url };
+    if (/\.(jpg|jpeg|png|gif|webp|svg)(\?.*)?$/i.test(url)) return { type: 'image', src: url };
+    return { type: 'iframe', src: url };
+  }
+  const srcMatch = raw.match(/src=["']([^"']+)["']/i);
+  if (srcMatch) {
+    const src = srcMatch[1];
+    if (/\.(mp4|webm|ogg)/i.test(src)) return { type: 'video', src };
+    return { type: 'iframe', src };
+  }
+  return { type: 'raw', html: raw };
+}
+
+function embedThumbnail(raw) {
+  if (!raw) return null;
+  const ytMatch = raw.match(/(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
+  if (ytMatch) return `https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg`;
+  return null;
+}
+
+// ─── MediaPreview ─────────────────────────────────────────────
+const MediaPreview = ({ form }) => {
+  if (form.mediaType === 'embed' && form.embedCode) {
+    const parsed = parseEmbed(form.embedCode);
+    if (!parsed) return null;
+    if (parsed.type === 'iframe') return (
+      <iframe src={parsed.src} className="w-full h-full" frameBorder="0"
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowFullScreen title="product-media" />
+    );
+    if (parsed.type === 'video') return (
+      <video src={parsed.src} controls className="w-full h-full object-cover" />
+    );
+    if (parsed.type === 'raw') return (
+      <div className="w-full h-full flex items-center justify-center"
+        dangerouslySetInnerHTML={{ __html: parsed.html }} />
+    );
+    if (parsed.type === 'image') return (
+      <img src={parsed.src} alt="" className="w-full h-full object-cover" />
+    );
+  }
+  if (form.image) return <img src={form.image} alt="" className="w-full h-full object-cover" />;
+  return null;
+};
+
+// ─── ProductCard ──────────────────────────────────────────────
+const ProductCard = ({ product, onEdit, onDelete }) => {
+  const hasEmbed = product.mediaType === 'embed' && product.embedCode;
+  const thumb = hasEmbed ? embedThumbnail(product.embedCode) : null;
+  const displayImg = thumb || product.image;
+
+  return (
+    <div className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all group">
+      <div className="relative aspect-square bg-gray-50 overflow-hidden">
+        {displayImg
+          ? <img src={displayImg} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+          : <div className="w-full h-full flex items-center justify-center"><Image size={32} className="text-gray-200" /></div>
+        }
+        {hasEmbed && (
+          <div className="absolute top-2 left-2 flex items-center space-x-1 bg-black/70 backdrop-blur-sm text-white text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-lg">
+            <Play size={10} /><span>Video</span>
+          </div>
+        )}
+        <div className="absolute top-2 right-2 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button onClick={() => onEdit(product)} className="p-1.5 bg-white rounded-lg shadow-md text-gray-600 hover:text-blue-600 transition-colors"><Edit3 size={14} /></button>
+          <button onClick={() => onDelete(product.id || product._id)} className="p-1.5 bg-white rounded-lg shadow-md text-gray-600 hover:text-red-600 transition-colors"><Trash2 size={14} /></button>
+        </div>
+        <div className="absolute bottom-2 left-2">
+          <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-lg ${product.quantity === 0 ? 'bg-red-600 text-white'
+              : product.quantity < 5 ? 'bg-yellow-400 text-black'
+                : 'bg-green-100 text-green-700'
+            }`}>
+            {product.quantity === 0 ? 'Out of Stock' : `${product.quantity} in stock`}
+          </span>
+        </div>
+      </div>
+      <div className="p-4">
+        <p className="text-xs font-black uppercase tracking-tight text-gray-900 line-clamp-1">{product.name}</p>
+        <div className="flex items-center justify-between mt-1">
+          <p className="text-sm font-black text-red-600">${parseFloat(product.price || 0).toFixed(2)}</p>
+          <p className="text-[10px] text-gray-400 font-bold uppercase">{product.bucket}</p>
+        </div>
+        {product.colors?.length > 0 && (
+          <div className="flex space-x-1 mt-2">
+            {product.colors.slice(0, 5).map(c => (
+              <div key={c} className="w-3 h-3 rounded-full border border-gray-200" style={{ backgroundColor: c }} />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// ─── Main Component ───────────────────────────────────────────
+export default function AdminProducts() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
-  const [successMsg, setSuccessMsg] = useState('');
+  const [colorInput, setColorInput] = useState('#000000');
+  const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [mediaTab, setMediaTab] = useState('upload');
+  const [embedCopied, setEmbedCopied] = useState(false);
 
-  // Form State
-  const [formData, setFormData] = useState({
-    name: '',
-    price: '',
-    quantity: 0,
-    bucket: 'Tops',
-    subCategory: '',
-    image: '',
-    lifestyleImage: '',
-    specs: '',
-    colors: '',
-    rating: 5
-  });
+  const token = localStorage.getItem('adminToken');
+  const authHeaders = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
 
   const fetchProducts = async () => {
-    setLoading(true);
-    const token = localStorage.getItem('adminToken');
     try {
-      const response = await fetch(apiUrl('/api/admin/products'), {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (!response.ok) throw new Error('System sync failed');
-      const data = await response.json();
-      setProducts(data);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
+      const res = await fetch(apiUrl('/api/admin/products'), { headers: authHeaders });
+      if (res.status === 401 || res.status === 403) { window.location.href = '/login'; return; }
+      if (!res.ok) throw new Error('Failed to fetch');
+      setProducts(await res.json());
+    } catch (e) { setError(e.message); }
+    finally { setLoading(false); }
   };
 
-  useEffect(() => {
-    fetchProducts();
-  }, []);
+  useEffect(() => { fetchProducts(); }, []);
 
-  const handleOpenModal = (product = null) => {
-    if (product) {
-      setEditingProduct(product);
-      setFormData({
-        name: product.name,
-        price: product.price,
-        quantity: product.quantity,
-        bucket: product.bucket || 'Tops',
-        subCategory: product.subCategory || '',
-        image: product.image,
-        lifestyleImage: product.lifestyleImage || '',
-        specs: Array.isArray(product.specs) ? product.specs.join(', ') : '',
-        colors: Array.isArray(product.colors) ? product.colors.join(', ') : '',
-        rating: product.rating || 5
-      });
-    } else {
-      setEditingProduct(null);
-      setFormData({
-        name: '',
-        price: '',
-        quantity: 0,
-        bucket: 'Tops',
-        subCategory: '',
-        image: '',
-        lifestyleImage: '',
-        specs: '',
-        colors: '',
-        rating: 5
-      });
-    }
+  const openAdd = () => {
+    setEditingProduct(null);
+    setForm({ ...EMPTY_FORM, id: 'prod-' + Date.now() });
+    setMediaTab('upload');
     setIsModalOpen(true);
   };
 
-  const handleSave = async (e) => {
-    e.preventDefault();
+  const openEdit = (p) => {
+    setEditingProduct(p);
+    const mt = p.mediaType || (p.embedCode ? 'embed' : 'upload');
+    setForm({
+      id: p.id || p._id, name: p.name || '', price: p.price || '',
+      quantity: p.quantity ?? '', image: p.image || '',
+      mediaType: mt, embedCode: p.embedCode || '',
+      bucket: p.bucket || 'Tops', subCategory: p.subCategory || 'Polo',
+      rating: p.rating || 5, stock: p.stock ?? p.quantity ?? 10,
+      specs: p.specs?.length ? [...p.specs, '', '', ''].slice(0, 3) : ['', '', ''],
+      colors: p.colors || [],
+    });
+    setMediaTab(mt);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => { setIsModalOpen(false); setEditingProduct(null); setForm(EMPTY_FORM); setMediaTab('upload'); };
+
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => setForm(f => ({ ...f, image: reader.result, mediaType: 'upload' }));
+    reader.readAsDataURL(file);
+  };
+
+  const handleTabSwitch = (tab) => { setMediaTab(tab); setForm(f => ({ ...f, mediaType: tab })); };
+
+  const injectTemplate = (template) => { setForm(f => ({ ...f, embedCode: template, mediaType: 'embed' })); setMediaTab('embed'); };
+
+  const handleSave = async () => {
+    if (!form.name.trim()) return alert('Product name is required');
+    if (!form.price) return alert('Price is required');
+    if (!form.image && !form.embedCode) return alert('Please add a product image or embed code');
     setSaving(true);
-    const token = localStorage.getItem('adminToken');
-    
-    const productPayload = {
-      ...formData,
-      price: parseFloat(formData.price),
-      quantity: parseInt(formData.quantity),
-      stock: parseInt(formData.quantity),
-      specs: formData.specs.split(',').map(s => s.trim()).filter(s => s),
-      colors: formData.colors.split(',').map(c => c.trim()).filter(c => c),
-      rating: parseInt(formData.rating)
-    };
-
     try {
-      const url = editingProduct 
-        ? apiUrl(`/api/admin/products/${editingProduct.id}`)
+      const payload = {
+        id: form.id, name: form.name.trim(), price: parseFloat(form.price),
+        quantity: parseInt(form.quantity) || 0, stock: parseInt(form.quantity) || 0,
+        image: form.image, mediaType: form.mediaType, embedCode: form.embedCode || '',
+        bucket: form.bucket, subCategory: form.subCategory,
+        rating: parseInt(form.rating) || 5,
+        specs: form.specs.filter(s => s.trim()), colors: form.colors,
+      };
+      const url = editingProduct
+        ? apiUrl(`/api/admin/products/${editingProduct.id || editingProduct._id}`)
         : apiUrl('/api/admin/products');
-      
-      const response = await fetch(url, {
-        method: editingProduct ? 'PATCH' : 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify(productPayload)
-      });
-
-      if (!response.ok) throw new Error('Transaction failed');
-      
-      setSuccessMsg(`Product ${editingProduct ? 'updated' : 'created'} successfully!`);
-      setTimeout(() => setSuccessMsg(''), 3000);
-      setIsModalOpen(false);
-      fetchProducts();
-    } catch (err) {
-      alert(err.message);
-    } finally {
-      setSaving(false);
-    }
+      const res = await fetch(url, { method: editingProduct ? 'PATCH' : 'POST', headers: authHeaders, body: JSON.stringify(payload) });
+      if (!res.ok) { const err = await res.json(); throw new Error(err.error || 'Save failed'); }
+      await fetchProducts();
+      closeModal();
+    } catch (e) { alert('Error: ' + e.message); }
+    finally { setSaving(false); }
   };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm('IRREVERSIBLE ACTION: Are you sure you want to delete this asset?')) return;
-    
-    const token = localStorage.getItem('adminToken');
+  const handleDelete = async (productId) => {
     try {
-      const response = await fetch(apiUrl(`/api/admin/products/${id}`), {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (!response.ok) throw new Error('Delete failed');
-      setProducts(products.filter(p => p.id !== id));
-      setSuccessMsg('Asset purged successfully.');
-      setTimeout(() => setSuccessMsg(''), 3000);
-    } catch (err) {
-      alert(err.message);
-    }
+      const res = await fetch(apiUrl(`/api/admin/products/${productId}`), { method: 'DELETE', headers: authHeaders });
+      if (!res.ok) throw new Error('Delete failed');
+      setProducts(prev => prev.filter(p => (p.id || p._id) !== productId));
+    } catch (e) { alert('Error: ' + e.message); }
+    setDeleteConfirm(null);
   };
 
-  const filteredProducts = products.filter(p => 
-    p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    p.id.toLowerCase().includes(searchTerm.toLowerCase())
+  const addColor = () => { if (!form.colors.includes(colorInput)) setForm(f => ({ ...f, colors: [...f.colors, colorInput] })); };
+  const removeColor = (c) => setForm(f => ({ ...f, colors: f.colors.filter(x => x !== c) }));
+  const filtered = products.filter(p => p.name?.toLowerCase().includes(searchTerm.toLowerCase()));
+
+  if (loading) return (
+    <div className="flex items-center justify-center h-64">
+      <div className="animate-spin w-8 h-8 border-2 border-red-600 border-t-transparent rounded-full" />
+    </div>
   );
 
   return (
-    <div className="animate-in fade-in duration-700">
+    <div className="space-y-8">
+
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between mb-12 gap-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-4xl font-black uppercase tracking-tighter text-gray-900 border-l-8 border-[#ba1f3d] pl-6">
-            Product Logistics
-          </h2>
+          <h2 className="text-4xl font-black uppercase tracking-tighter text-gray-900 border-l-8 border-red-600 pl-6">Products</h2>
           <p className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400 mt-2 ml-6">
-            Inventory Asset Management • Global Control
+            {products.length} product{products.length !== 1 ? 's' : ''} in catalogue
           </p>
         </div>
-        
-        <button 
-          onClick={() => handleOpenModal()}
-          className="bg-black text-white px-8 py-4 text-[11px] font-black uppercase tracking-[0.2em] rounded-sm shadow-2xl hover:bg-[#ba1f3d] transition-all flex items-center space-x-3 active:scale-95"
-        >
-          <Plus size={18} />
-          <span>Deploy New Asset</span>
+        <button onClick={openAdd} className="flex items-center space-x-3 bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-xl shadow-xl transition-all group">
+          <Plus size={18} className="group-hover:rotate-90 transition-transform" />
+          <span className="text-[11px] font-black uppercase tracking-widest">Add Product</span>
         </button>
       </div>
 
-      {/* Stats Summary */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        {[
-          { label: 'Total Assets', value: products.length, icon: Package, color: 'text-blue-600' },
-          { label: 'Out of Stock', value: products.filter(p => p.quantity === 0).length, icon: AlertCircle, color: 'text-red-600' },
-          { label: 'Cloud Sync', value: 'Active', icon: CheckCircle, color: 'text-green-600' },
-          { label: 'Categories', value: new Set(products.map(p => p.bucket)).size, icon: Layers, color: 'text-[#ba1f3d]' },
-        ].map((stat, i) => (
-          <div key={i} className="bg-white border border-gray-100 p-6 rounded-sm shadow-sm flex items-center space-x-4">
-            <div className={`p-3 bg-gray-50 rounded-lg ${stat.color}`}>
-              <stat.icon size={20} />
-            </div>
-            <div>
-              <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">{stat.label}</p>
-              <p className="text-xl font-black text-gray-900">{stat.value}</p>
-            </div>
-          </div>
-        ))}
+      {/* Search */}
+      <div className="relative max-w-md">
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+        <input type="text" placeholder="Search products..." value={searchTerm} onChange={e => setSearchTerm(e.target.value)}
+          className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 pl-11 pr-4 text-sm font-bold focus:border-red-600 outline-none transition-all" />
       </div>
 
-      {/* Success Banner */}
-      {successMsg && (
-        <div className="mb-6 bg-green-50 border-l-4 border-green-500 p-4 animate-in slide-in-from-top-4">
-          <p className="text-xs font-black uppercase tracking-widest text-green-700">{successMsg}</p>
+      {error && <div className="bg-red-50 border border-red-200 rounded-xl p-4 text-red-600 font-bold text-sm">{error}</div>}
+
+      {/* Grid */}
+      {filtered.length === 0 ? (
+        <div className="flex flex-col items-center justify-center h-64 border-2 border-dashed border-gray-200 rounded-2xl">
+          <Package size={48} className="text-gray-200 mb-4" />
+          <p className="text-gray-400 font-black uppercase tracking-widest text-sm">No products yet</p>
+          <button onClick={openAdd} className="mt-4 text-[11px] font-black uppercase tracking-widest text-red-600 border-b border-red-200 hover:border-red-600 transition-colors">Add your first product →</button>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {filtered.map(p => <ProductCard key={p._id || p.id} product={p} onEdit={openEdit} onDelete={(id) => setDeleteConfirm(id)} />)}
         </div>
       )}
 
-      {/* Filter Bar */}
-      <div className="bg-white border border-gray-100 p-4 mb-8 flex items-center space-x-4">
-        <div className="relative flex-grow">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-          <input 
-            type="text" 
-            placeholder="Search by ID or Product Name..."
-            className="w-full bg-gray-50 border-none rounded-none py-4 pl-12 pr-6 text-xs font-bold uppercase tracking-widest outline-none focus:ring-2 ring-[#ba1f3d]/20 transition-all"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+      {/* Delete Confirm */}
+      {deleteConfirm && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl p-8 max-w-sm w-full shadow-2xl">
+            <div className="w-14 h-14 bg-red-100 rounded-2xl flex items-center justify-center mb-6 mx-auto"><AlertTriangle size={28} className="text-red-600" /></div>
+            <h3 className="text-xl font-black uppercase tracking-tight text-center mb-2">Delete Product?</h3>
+            <p className="text-sm text-gray-500 text-center mb-8">This cannot be undone.</p>
+            <div className="flex space-x-3">
+              <button onClick={() => setDeleteConfirm(null)} className="flex-1 py-3 border-2 border-gray-200 rounded-xl font-black uppercase text-xs tracking-widest hover:border-gray-400 transition-colors">Cancel</button>
+              <button onClick={() => handleDelete(deleteConfirm)} className="flex-1 py-3 bg-red-600 text-white rounded-xl font-black uppercase text-xs tracking-widest hover:bg-red-700 transition-colors">Delete</button>
+            </div>
+          </div>
         </div>
-        <button className="p-4 text-gray-400 hover:text-black transition-colors">
-          <Filter size={20} />
-        </button>
-      </div>
+      )}
 
-      {/* Data Table */}
-      <div className="bg-white border border-gray-100 shadow-2xl overflow-hidden">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="bg-gray-50 border-b border-gray-100">
-              <th className="p-6 text-[10px] font-black uppercase tracking-widest text-gray-400">Preview</th>
-              <th className="p-6 text-[10px] font-black uppercase tracking-widest text-gray-400">Asset Identity</th>
-              <th className="p-6 text-[10px] font-black uppercase tracking-widest text-gray-400">Category</th>
-              <th className="p-6 text-[10px] font-black uppercase tracking-widest text-gray-400">Valuation</th>
-              <th className="p-6 text-[10px] font-black uppercase tracking-widest text-gray-400">Stock Status</th>
-              <th className="p-6 text-[10px] font-black uppercase tracking-widest text-gray-400 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-50">
-            {loading ? (
-              <tr>
-                <td colSpan="6" className="p-20 text-center">
-                  <Loader2 className="animate-spin mx-auto text-gray-300" size={48} />
-                  <p className="mt-4 text-[10px] font-black uppercase tracking-[0.4em] text-gray-400">Syncing Master Database...</p>
-                </td>
-              </tr>
-            ) : filteredProducts.length === 0 ? (
-              <tr>
-                <td colSpan="6" className="p-20 text-center">
-                  <p className="text-sm font-black uppercase tracking-widest text-gray-300 italic">No assets detected matching query</p>
-                </td>
-              </tr>
-            ) : (
-              filteredProducts.map((p) => (
-                <tr key={p.id} className="hover:bg-gray-50/50 transition-colors group">
-                  <td className="p-6">
-                    <div className="w-16 h-16 bg-gray-100 overflow-hidden border border-gray-100 group-hover:scale-110 transition-transform">
-                      <MediaRenderer src={p.image} alt="" className="w-full h-full object-cover mix-blend-multiply" />
-                    </div>
-                  </td>
-                  <td className="p-6">
-                    <div>
-                      <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1">#{p.id}</p>
-                      <p className="text-sm font-black uppercase tracking-tighter text-gray-900">{p.name}</p>
-                    </div>
-                  </td>
-                  <td className="p-6">
-                    <span className="px-3 py-1 bg-gray-100 text-[9px] font-black uppercase tracking-widest text-gray-500 rounded-sm">
-                      {p.bucket} / {p.subCategory}
-                    </span>
-                  </td>
-                  <td className="p-6 font-black text-sm text-[#ba1f3d]">
-                    PKR {p.price?.toLocaleString()}
-                  </td>
-                  <td className="p-6">
-                    <div className="flex items-center space-x-3">
-                      <span className={`w-2 h-2 rounded-full ${p.quantity === 0 ? 'bg-[#ba1f3d] animate-pulse' : 'bg-green-500'}`} />
-                      <span className="text-xs font-black uppercase italic">{p.quantity} Units</span>
-                    </div>
-                  </td>
-                  <td className="p-6 text-right space-x-2">
-                    <button 
-                      onClick={() => handleOpenModal(p)}
-                      className="p-3 text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-all rounded-lg"
-                    >
-                      <Edit2 size={16} />
-                    </button>
-                    <button 
-                      onClick={() => handleDelete(p.id)}
-                      className="p-3 text-gray-400 hover:text-red-700 hover:bg-red-50 transition-all rounded-lg"
-                    >
-                      <Trash2 size={16} />
-                    </button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Modal */}
+      {/* ══ ADD / EDIT MODAL ══ */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 md:p-10">
-          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setIsModalOpen(false)} />
-          <div className="relative w-full max-w-4xl bg-white shadow-2xl flex flex-col max-h-[90vh] overflow-hidden animate-in zoom-in-95 duration-300">
-            {/* Modal Header */}
-            <div className="p-8 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-              <div>
-                <h3 className="text-2xl font-black uppercase tracking-tighter text-gray-900 italic">
-                  {editingProduct ? 'Update Asset Index' : 'Register New Asset'}
-                </h3>
-                <p className="text-[9px] font-black uppercase tracking-[0.3em] text-gray-400 mt-1">Stop & Shop Master Control</p>
+        <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm">
+          <div className="bg-white w-full sm:max-w-2xl max-h-[95vh] sm:max-h-[90vh] rounded-t-3xl sm:rounded-2xl overflow-hidden flex flex-col shadow-2xl">
+
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 flex-shrink-0 bg-gray-900 text-white">
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-red-600 rounded-xl flex items-center justify-center"><Package size={16} /></div>
+                <h3 className="font-black uppercase tracking-tight">{editingProduct ? 'Edit Product' : 'Add New Product'}</h3>
               </div>
-              <button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-gray-200 transition-colors">
-                <X size={24} />
-              </button>
+              <button onClick={closeModal} className="p-2 hover:bg-white/10 rounded-xl transition-all hover:rotate-90 transform"><X size={20} /></button>
             </div>
 
-            {/* Modal Body */}
-            <form onSubmit={handleSave} className="flex-grow overflow-y-auto p-10 space-y-12">
-              {/* Basic Info */}
-              <section>
-                <div className="flex items-center space-x-4 mb-8">
-                  <div className="w-1 h-6 bg-[#ba1f3d]" />
-                  <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400">Primary Specifications</h4>
+            {/* Scrollable Body */}
+            <div className="overflow-y-auto flex-grow p-6 space-y-7">
+
+              {/* ── MEDIA SECTION ── */}
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-3">Product Media *</label>
+
+                {/* Tab switcher */}
+                <div className="flex space-x-1 bg-gray-100 rounded-xl p-1 mb-4">
+                  {MEDIA_TABS.map(({ id, label, icon: Icon }) => (
+                    <button key={id} onClick={() => handleTabSwitch(id)}
+                      className={`flex-1 flex items-center justify-center space-x-2 py-2.5 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all ${mediaTab === id ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-600'
+                        }`}>
+                      <Icon size={14} /><span>{label}</span>
+                    </button>
+                  ))}
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 flex items-center space-x-2">
-                      <Type size={12} /> <span>Product Display Name</span>
-                    </label>
-                    <input 
-                      required
-                      type="text" 
-                      className="w-full bg-gray-50 border-b-2 border-transparent focus:border-[#ba1f3d] outline-none p-4 font-black uppercase tracking-tight text-sm transition-all"
-                      value={formData.name}
-                      onChange={e => setFormData({...formData, name: e.target.value})}
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 flex items-center space-x-2">
-                        <DollarSign size={12} /> <span>Price</span>
+
+                {/* Upload tab */}
+                {mediaTab === 'upload' && (
+                  <div className="flex items-start space-x-4">
+                    <div className="w-28 h-28 bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl overflow-hidden flex-shrink-0">
+                      {form.image
+                        ? <img src={form.image} alt="" className="w-full h-full object-cover" />
+                        : <div className="w-full h-full flex items-center justify-center"><Image size={28} className="text-gray-300" /></div>
+                      }
+                    </div>
+                    <div className="flex-grow">
+                      <label className="flex flex-col items-center justify-center w-full py-6 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-red-400 hover:bg-red-50 transition-all">
+                        <Upload size={20} className="text-gray-400 mb-2" />
+                        <span className="text-[11px] font-black uppercase tracking-widest text-gray-500">Click to Upload Image</span>
+                        <span className="text-[10px] text-gray-400 mt-1">JPG, PNG, WEBP up to 5MB</span>
+                        <input type="file" accept="image/*" className="hidden" onChange={handleImageUpload} />
                       </label>
-                      <input 
-                        required
-                        type="number" 
-                        step="0.01"
-                        className="w-full bg-gray-50 border-b-2 border-transparent focus:border-[#ba1f3d] outline-none p-4 font-black text-sm transition-all"
-                        value={formData.price}
-                        onChange={e => setFormData({...formData, price: e.target.value})}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 flex items-center space-x-2">
-                        <Package size={12} /> <span>Units</span>
-                      </label>
-                      <input 
-                        required
-                        type="number" 
-                        className="w-full bg-gray-50 border-b-2 border-transparent focus:border-[#ba1f3d] outline-none p-4 font-black text-sm transition-all"
-                        value={formData.quantity}
-                        onChange={e => setFormData({...formData, quantity: e.target.value})}
-                      />
                     </div>
                   </div>
-                </div>
-              </section>
-
-              {/* Categorization */}
-              <section>
-                <div className="flex items-center space-x-4 mb-8">
-                  <div className="w-1 h-6 bg-blue-600" />
-                  <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400">Asset Classification</h4>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Bucket Category</label>
-                    <select 
-                      className="w-full bg-gray-50 border-b-2 border-transparent focus:border-red-600 outline-none p-4 font-black uppercase tracking-widest text-xs transition-all cursor-pointer"
-                      value={formData.bucket}
-                      onChange={e => setFormData({...formData, bucket: e.target.value})}
-                    >
-                      <option value="Tops">Tops</option>
-                      <option value="Bottoms">Bottoms</option>
-                      <option value="Footwear">Footwear</option>
-                      <option value="Accessories">Accessories</option>
-                    </select>
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Sub-Category</label>
-                    <input 
-                      type="text" 
-                      placeholder="e.g. Polo, Jeans, Footwear"
-                      className="w-full bg-gray-50 border-b-2 border-transparent focus:border-red-600 outline-none p-4 font-black uppercase tracking-widest text-xs transition-all"
-                      value={formData.subCategory}
-                      onChange={e => setFormData({...formData, subCategory: e.target.value})}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 flex items-center space-x-2">
-                      <Star size={12} /> <span>Product Rating (1-5)</span>
-                    </label>
-                    <input 
-                      type="number" 
-                      min="1" max="5"
-                      className="w-full bg-gray-50 border-b-2 border-transparent focus:border-red-600 outline-none p-4 font-black text-sm transition-all"
-                      value={formData.rating}
-                      onChange={e => setFormData({...formData, rating: e.target.value})}
-                    />
-                  </div>
-                </div>
-              </section>
-
-              {/* Visual Assets */}
-              <section>
-                <div className="flex items-center space-x-4 mb-8">
-                  <div className="w-1 h-6 bg-green-600" />
-                  <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400">Visual Assets (CDN Links)</h4>
-                </div>
-                <div className="space-y-6">
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 flex items-center space-x-2">
-                      <Video size={12} /> <span>Primary Media URL (Image/Video)</span>
-                    </label>
-                    <input 
-                      required
-                      type="url" 
-                      placeholder="e.g. https://cdn.../image.webp OR video.mp4"
-                      className="w-full bg-gray-50 border-b-2 border-transparent focus:border-red-600 outline-none p-4 font-bold text-xs transition-all"
-                      value={formData.image}
-                      onChange={e => setFormData({...formData, image: e.target.value})}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400 flex items-center space-x-2">
-                      <ImageIcon size={12} /> <span>Lifestyle Media URL (Image/Video)</span>
-                    </label>
-                    <input 
-                      type="url" 
-                      placeholder="e.g. https://cdn.../lifestyle.webp OR video.mp4"
-                      className="w-full bg-gray-50 border-b-2 border-transparent focus:border-red-600 outline-none p-4 font-bold text-xs transition-all"
-                      value={formData.lifestyleImage}
-                      onChange={e => setFormData({...formData, lifestyleImage: e.target.value})}
-                    />
-                  </div>
-
-                  {/* Delivery Guidelines */}
-                  <div className="bg-gray-900 border border-gray-800 rounded-xl p-6 mt-8 space-y-6">
-                    <div className="flex items-center space-x-3">
-                      <Info className="text-yellow-500" size={18} />
-                      <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-white">Fastest Delivery Guidelines</h4>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                      {/* Video Tips */}
-                      <div className="space-y-4">
-                        <h5 className="text-[9px] font-black uppercase tracking-[0.1em] text-gray-400 border-b border-gray-700 pb-2">Videos (MP4/WebM)</h5>
-                        <ul className="text-xs text-gray-300 space-y-3">
-                          <li className="flex items-start"><span className="text-red-500 mr-2">♦</span> <span><b>Faststart:</b> Ensure MP4s use `-movflags +faststart` via FFMPEG so they play instantly before downloading.</span></li>
-                          <li className="flex items-start"><span className="text-red-500 mr-2">♦</span> <span><b>Bitrate:</b> 1080p @ 5-8 Mbps | 720p @ 2.5-4 Mbps to balance speed/quality.</span></li>
-                          <li className="flex items-start"><span className="text-red-500 mr-2">♦</span> <span><b>Modern Formats:</b> Rely on WebM natively, fallback to MP4. Deliver via CDN.</span></li>
-                        </ul>
-                      </div>
-
-                      {/* Image Tips */}
-                      <div className="space-y-4">
-                        <h5 className="text-[9px] font-black uppercase tracking-[0.1em] text-gray-400 border-b border-gray-700 pb-2">Images (WebP/AVIF/SVG)</h5>
-                        <ul className="text-xs text-gray-300 space-y-3">
-                          <li className="flex items-start"><span className="text-blue-500 mr-2">♦</span> <span><b>Photos/Complex:</b> Use AVIF or WebP for superior compression vs JPEG.</span></li>
-                          <li className="flex items-start"><span className="text-blue-500 mr-2">♦</span> <span><b>Transparent/Gfx:</b> Use WebP or PNG. For Logos/Icons, strictly use SVG.</span></li>
-                          <li className="flex items-start"><span className="text-blue-500 mr-2">♦</span> <span><b>Optimization:</b> Compress via Squoosh/TinyPNG. Request via CDN.</span></li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </section>
-
-              {/* Metadata */}
-              <section>
-                <div className="flex items-center space-x-4 mb-8">
-                  <div className="w-1 h-6 bg-gray-900" />
-                  <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400">Technical Metadata</h4>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="space-y-4">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Product Specs (Comma Separated)</label>
-                    <textarea 
-                      rows="3"
-                      placeholder="Premium Cotton, Athletic Fit, Signature Logo..."
-                      className="w-full bg-gray-50 border-2 border-transparent focus:border-red-600 outline-none p-4 font-bold text-xs transition-all resize-none"
-                      value={formData.specs}
-                      onChange={e => setFormData({...formData, specs: e.target.value})}
-                    />
-                  </div>
-                  <div className="space-y-4">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">Hex Colors (Comma Separated)</label>
-                    <textarea 
-                      rows="3"
-                      placeholder="#F63049, #000000, #FFFFFF..."
-                      className="w-full bg-gray-50 border-2 border-transparent focus:border-red-600 outline-none p-4 font-bold text-xs transition-all resize-none"
-                      value={formData.colors}
-                      onChange={e => setFormData({...formData, colors: e.target.value})}
-                    />
-                  </div>
-                </div>
-              </section>
-            </form>
-
-            {/* Modal Footer */}
-            <div className="p-8 border-t border-gray-100 bg-gray-50 flex justify-end items-center space-x-6">
-              <button 
-                type="button"
-                onClick={() => setIsModalOpen(false)}
-                className="text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-black transition-colors"
-              >
-                Cancel Procedure
-              </button>
-              <button 
-                onClick={handleSave}
-                disabled={saving}
-                className="bg-[#ba1f3d] text-white px-12 py-5 text-[11px] font-black uppercase tracking-[0.3em] rounded-sm shadow-2xl hover:bg-black transition-all flex items-center space-x-3 active:scale-95 disabled:opacity-50"
-              >
-                {saving ? (
-                  <Loader2 className="animate-spin" size={20} />
-                ) : (
-                  <Save size={20} />
                 )}
-                <span>{editingProduct ? 'Update Index' : 'Authorize Deployment'}</span>
+
+                {/* URL tab */}
+                {mediaTab === 'url' && (
+                  <div className="space-y-3">
+                    <div className="relative">
+                      <Link2 className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                      <input type="text" placeholder="https://example.com/product-image.jpg"
+                        value={form.image.startsWith('data:') ? '' : form.image}
+                        onChange={e => setForm(f => ({ ...f, image: e.target.value, mediaType: 'url' }))}
+                        className="w-full border-2 border-gray-200 rounded-xl pl-11 pr-4 py-3 text-sm font-bold focus:border-red-600 outline-none transition-colors" />
+                    </div>
+                    {form.image && !form.image.startsWith('data:') && (
+                      <div className="w-full aspect-video bg-gray-50 rounded-xl overflow-hidden border border-gray-200">
+                        <img src={form.image} alt="" className="w-full h-full object-cover" onError={e => e.target.style.display = 'none'} />
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Embed tab */}
+                {mediaTab === 'embed' && (
+                  <div className="space-y-4">
+
+                    {/* Quick template buttons */}
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2">Quick Templates</p>
+                      <div className="flex flex-wrap gap-2">
+                        {[
+                          { label: '▶ YouTube URL', t: 'https://www.youtube.com/watch?v=YOUR_VIDEO_ID' },
+                          { label: '▶ Vimeo URL', t: 'https://vimeo.com/YOUR_VIDEO_ID' },
+                          { label: '</> iframe', t: '<iframe src="https://www.youtube.com/embed/YOUR_VIDEO_ID" width="100%" height="315" frameborder="0" allowfullscreen></iframe>' },
+                          { label: '🎥 .mp4 URL', t: 'https://example.com/your-video.mp4' },
+                        ].map(({ label, t }) => (
+                          <button key={label} onClick={() => injectTemplate(t)}
+                            className="px-3 py-1.5 bg-gray-100 hover:bg-red-50 hover:text-red-700 border border-gray-200 hover:border-red-200 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all">
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Code textarea */}
+                    <div className="relative">
+                      <textarea
+                        value={form.embedCode}
+                        onChange={e => setForm(f => ({ ...f, embedCode: e.target.value, mediaType: 'embed' }))}
+                        placeholder={`Paste your embed code or URL here.\n\nSupported:\n• YouTube URL  →  https://youtube.com/watch?v=...\n• Vimeo URL  →  https://vimeo.com/...\n• iframe tag  →  <iframe src="..." ...></iframe>\n• Direct video  →  https://example.com/video.mp4\n• Direct image  →  https://example.com/image.jpg`}
+                        rows={7}
+                        className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-sm font-mono focus:border-red-600 outline-none transition-colors resize-none bg-gray-50"
+                      />
+                      {form.embedCode && (
+                        <button onClick={() => { navigator.clipboard.writeText(form.embedCode); setEmbedCopied(true); setTimeout(() => setEmbedCopied(false), 2000); }}
+                          className="absolute top-3 right-3 p-1.5 bg-white border border-gray-200 rounded-lg text-gray-400 hover:text-gray-700 transition-all" title="Copy">
+                          {embedCopied ? <CheckCircle size={14} className="text-green-500" /> : <Copy size={14} />}
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Live preview */}
+                    {form.embedCode && (
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2 flex items-center space-x-1.5">
+                          <Play size={10} /><span>Live Preview</span>
+                        </p>
+                        <div className="w-full aspect-video rounded-xl overflow-hidden border-2 border-gray-200 bg-gray-900">
+                          <MediaPreview form={form} />
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Help box */}
+                    <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 space-y-1">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-blue-900 mb-1">Supported Formats</p>
+                      <p className="text-xs text-blue-700">• YouTube & Vimeo watch URLs (auto-converted)</p>
+                      <p className="text-xs text-blue-700">• Any &lt;iframe&gt; embed code</p>
+                      <p className="text-xs text-blue-700">• Direct .mp4 / .webm / .ogg video file URLs</p>
+                      <p className="text-xs text-blue-700">• Direct image URLs (.jpg, .png, .webp)</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Name & Price */}
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Product Name *</label>
+                  <input type="text" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                    placeholder="e.g. Classic Red Polo"
+                    className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:border-red-600 outline-none transition-colors" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Price ($) *</label>
+                  <div className="relative">
+                    <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+                    <input type="number" step="0.01" value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))}
+                      placeholder="0.00"
+                      className="w-full border-2 border-gray-200 rounded-xl pl-9 pr-4 py-3 text-sm font-bold focus:border-red-600 outline-none transition-colors" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Stock & Category */}
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Stock Qty</label>
+                  <input type="number" value={form.quantity} onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))}
+                    placeholder="0"
+                    className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:border-red-600 outline-none transition-colors" />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Category</label>
+                  <select value={form.bucket} onChange={e => setForm(f => ({ ...f, bucket: e.target.value, subCategory: SUBCATEGORIES[e.target.value][0] }))}
+                    className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:border-red-600 outline-none bg-white">
+                    {BUCKETS.map(b => <option key={b} value={b}>{b}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Sub-Category</label>
+                  <select value={form.subCategory} onChange={e => setForm(f => ({ ...f, subCategory: e.target.value }))}
+                    className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:border-red-600 outline-none bg-white">
+                    {(SUBCATEGORIES[form.bucket] || []).map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              {/* Specs */}
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Product Specs (up to 3)</label>
+                <div className="space-y-2">
+                  {form.specs.map((spec, i) => (
+                    <input key={i} type="text" value={spec}
+                      onChange={e => { const s = [...form.specs]; s[i] = e.target.value; setForm(f => ({ ...f, specs: s })); }}
+                      placeholder={`Spec ${i + 1} — e.g. 100% Cotton`}
+                      className="w-full border-2 border-gray-200 rounded-xl px-4 py-2.5 text-sm font-bold focus:border-red-600 outline-none transition-colors" />
+                  ))}
+                </div>
+              </div>
+
+              {/* Colors */}
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Color Variants</label>
+                <div className="flex items-center space-x-3 mb-3">
+                  <input type="color" value={colorInput} onChange={e => setColorInput(e.target.value)}
+                    className="w-12 h-10 rounded-lg border-2 border-gray-200 cursor-pointer" />
+                  <input type="text" value={colorInput} onChange={e => setColorInput(e.target.value)}
+                    className="flex-grow border-2 border-gray-200 rounded-xl px-4 py-2.5 text-sm font-mono font-bold focus:border-red-600 outline-none" />
+                  <button onClick={addColor} className="px-4 py-2.5 bg-gray-900 text-white rounded-xl text-[11px] font-black uppercase tracking-widest hover:bg-red-600 transition-colors">Add</button>
+                </div>
+                {form.colors.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {form.colors.map(c => (
+                      <div key={c} className="flex items-center space-x-2 bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5">
+                        <div className="w-4 h-4 rounded-full border border-gray-300" style={{ backgroundColor: c }} />
+                        <span className="text-[11px] font-mono font-bold text-gray-600">{c}</span>
+                        <button onClick={() => removeColor(c)} className="text-gray-400 hover:text-red-500"><X size={12} /></button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Rating */}
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Rating (1–5)</label>
+                <div className="flex space-x-2">
+                  {[1, 2, 3, 4, 5].map(n => (
+                    <button key={n} onClick={() => setForm(f => ({ ...f, rating: n }))}
+                      className={`w-10 h-10 rounded-xl border-2 font-black text-sm transition-all ${form.rating >= n ? 'border-yellow-400 bg-yellow-50 text-yellow-600' : 'border-gray-200 text-gray-300'
+                        }`}>★</button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="flex items-center space-x-3 px-6 py-5 border-t border-gray-100 flex-shrink-0">
+              <button onClick={closeModal} className="flex-1 py-4 border-2 border-gray-200 rounded-xl font-black uppercase text-xs tracking-widest hover:border-gray-400 transition-colors">Cancel</button>
+              <button onClick={handleSave} disabled={saving}
+                className="flex-[2] py-4 bg-red-600 hover:bg-red-700 text-white rounded-xl font-black uppercase text-xs tracking-widest transition-all shadow-xl disabled:opacity-50 flex items-center justify-center space-x-2">
+                {saving
+                  ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  : <><Save size={16} /><span>{editingProduct ? 'Save Changes' : 'Add Product'}</span></>
+                }
               </button>
             </div>
           </div>
@@ -544,6 +538,4 @@ const AdminProducts = () => {
       )}
     </div>
   );
-};
-
-export default AdminProducts;
+}
