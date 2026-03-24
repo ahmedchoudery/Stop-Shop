@@ -12,7 +12,13 @@ dotenv.config();
 
 const app = express();
 app.use(express.json({ limit: '10mb' })); // Increased limit for base64 logo uploads
-app.use(cors());
+app.use(cors({
+  origin: [
+    'http://localhost:5173',
+    'https://stop-shop-gamma.vercel.app'
+  ],
+  credentials: true
+}));
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
