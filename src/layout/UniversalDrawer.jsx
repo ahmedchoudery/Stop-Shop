@@ -3,7 +3,7 @@ import { X, ShoppingBag, Trash2, ArrowRight, Star, Plus, Minus, Heart, Ruler, Ma
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
-import { useRecentlyViewed } from '../context/RecentlyViewedContext';
+import { useRecentlyViewed } from '../components/RecentlyViewedContext';
 import SizeChartModal from '../components/SizeChartModal';
 import ProductLightbox from '../components/ProductLightbox';
 

@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import { ChevronLeft, ChevronRight, Clock, X } from 'lucide-react';
 import { Star } from 'lucide-react';
-import { useRecentlyViewed } from '../context/RecentlyViewedContext';
+import { useRecentlyViewed } from '../components/RecentlyViewedContext';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 

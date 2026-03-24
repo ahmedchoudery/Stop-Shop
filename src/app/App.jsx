@@ -5,7 +5,7 @@ import Layout from '../layout/Layout';
 import UniversalDrawer from '../layout/UniversalDrawer';
 import { CartProvider, useCart } from '../context/CartContext';
 import { WishlistProvider } from '../context/WishlistContext';
-import { RecentlyViewedProvider } from '../context/RecentlyViewedContext';
+import { RecentlyViewedProvider } from '../components/RecentlyViewedContext';
 import HomePage from '../pages/HomePage';
 import CheckoutPage from '../pages/CheckoutPage';
 import AdminDashboard from '../pages/AdminDashboard';

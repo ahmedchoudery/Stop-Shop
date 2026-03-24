@@ -5,6 +5,8 @@ import dotenv from 'dotenv';
 import cors from 'cors';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 dotenv.config();
 
@@ -12,10 +14,25 @@ const app = express();
 app.use(express.json({ limit: '10mb' })); // Increased limit for base64 logo uploads
 app.use(cors());
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const distPath = path.join(__dirname, 'dist');
+const getEnv = (...keys) => {
+  for (const key of keys) {
+    if (process.env[key]) return process.env[key];
+  }
+  return undefined;
+};
+
 // ─────────────────────────────────────────────────────────────────
 // DATABASE CONNECTION
 // ─────────────────────────────────────────────────────────────────
-mongoose.connect(process.env.MONGO_URI)
+const mongoUri = getEnv('MONGO_URI', 'MONGODB_URI');
+if (!mongoUri) {
+  console.error('❌ Missing MongoDB env var (MONGO_URI or MONGODB_URI)');
+}
+
+mongoose.connect(mongoUri)
   .then(() => console.log('✅ Connected to MongoDB'))
   .catch(err => console.error('❌ MongoDB connection error:', err));
 
@@ -80,7 +97,7 @@ const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
   if (!token) return res.sendStatus(401);
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+  jwt.verify(token, getEnv('JWT_SECRET', 'jwt_secret'), (err, user) => {
     if (err) return res.sendStatus(403);
     req.user = user;
     next();
@@ -93,8 +110,8 @@ const authenticateToken = (req, res, next) => {
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
+    user: getEnv('EMAIL_USER', 'email_user'),
+    pass: getEnv('EMAIL_PASS', 'email_pass')
   }
 });
 
@@ -108,7 +125,11 @@ app.post('/api/admin/login', async (req, res) => {
     if (!admin) return res.status(401).json({ error: 'Invalid credentials' });
     const isMatch = await bcrypt.compare(password, admin.password);
     if (!isMatch) return res.status(401).json({ error: 'Invalid credentials' });
-    const token = jwt.sign({ id: admin._id, email: admin.email }, process.env.JWT_SECRET, { expiresIn: '8h' });
+    const token = jwt.sign(
+      { id: admin._id, email: admin.email },
+      getEnv('JWT_SECRET', 'jwt_secret'),
+      { expiresIn: '8h' }
+    );
     res.json({ token, name: admin.name });
   } catch (error) {
     res.status(500).json({ error: 'Login failed' });
@@ -324,8 +345,8 @@ app.post('/api/checkout', async (req, res) => {
     `).join('');
 
     const mainMailOptions = {
-      from: process.env.EMAIL_USER,
-      to: process.env.ADMIN_EMAIL || process.env.EMAIL_USER,
+      from: getEnv('EMAIL_USER', 'email_user'),
+      to: getEnv('ADMIN_EMAIL', 'admin_email', 'EMAIL_USER', 'email_user'),
       subject: `New Order: ${orderID}`,
       html: `
         <h2 style="color:#F63049">New Order Summary</h2>
@@ -356,8 +377,8 @@ app.post('/api/checkout', async (req, res) => {
     if (lowStockItems.length > 0) {
       const lowStockHtml = lowStockItems.map(p => `<li>${p.name} — Remaining: <b>${p.quantity}</b></li>`).join('');
       const alertMailOptions = {
-        from: process.env.EMAIL_USER,
-        to: process.env.ADMIN_EMAIL || process.env.EMAIL_USER,
+        from: getEnv('EMAIL_USER', 'email_user'),
+        to: getEnv('ADMIN_EMAIL', 'admin_email', 'EMAIL_USER', 'email_user'),
         subject: `⚠️ LOW STOCK ALERT: ${lowStockItems.length} Items`,
         html: `<h2>Inventory Alert</h2><p>Low stock after Order <b>${orderID}</b>:</p><ul>${lowStockHtml}</ul>`
       };
@@ -374,6 +395,14 @@ app.post('/api/checkout', async (req, res) => {
 // ─────────────────────────────────────────────────────────────────
 // START SERVER
 // ─────────────────────────────────────────────────────────────────
+app.use(express.static(distPath));
+app.get('*', (req, res) => {
+  if (req.path.startsWith('/api/')) {
+    return res.status(404).json({ error: 'Not found' });
+  }
+  return res.sendFile(path.join(distPath, 'index.html'));
+});
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
