@@ -90,6 +90,7 @@ export const CartProvider = ({ children }) => {
   const [activeBucket, setActiveBucket] = useState('All');
   const [activeSub, setActiveSub] = useState(null);
   const [lastViewedBucket, setLastViewedBucket] = useState('Tops');
+  const [sortBy, setSortBy] = useState('featured');
 
   // Unified Drawer State
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
@@ -126,9 +127,14 @@ export const CartProvider = ({ children }) => {
       setShouldScrollGrid(prev => prev + 1);
     },
     activeSub,
-    setActiveSub,
+    setActiveSub: (sub) => {
+      setActiveSub(sub);
+      setShouldScrollGrid(prev => prev + 1);
+    },
     lastViewedBucket,
     setLastViewedBucket,
+    sortBy,
+    setSortBy,
     shouldScrollGrid,
   };
 

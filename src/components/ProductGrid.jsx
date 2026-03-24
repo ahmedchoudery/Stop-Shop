@@ -3,8 +3,7 @@ import ProductCard from './ProductCard';
 import { useCart } from '../context/CartContext';
 
 const ProductGrid = ({ products, activeBucket = 'All', activeSubCategory = null }) => {
-  const [sortBy, setSortBy] = useState('featured');
-  const { openDrawer } = useCart();
+  const { openDrawer, sortBy, setSortBy } = useCart();
   const [isLoading, setIsLoading] = useState(false);
   const [imagesLoadedCount, setImagesLoadedCount] = useState(0);
 

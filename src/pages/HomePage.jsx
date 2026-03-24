@@ -75,7 +75,14 @@ const HomePage = ({ onProductsLoaded }) => {
     return map;
   }, [products]);
 
-  const buckets = ['All', 'Tops', 'Bottoms', 'Accessories'];
+  const buckets = ['All', 'Tops', 'Bottoms', 'Footwear', 'Accessories'];
+
+  const DEFAULT_SUB_CATEGORIES = {
+    'Tops': ['Shirts', 'T-Shirts', 'SweatShirts', 'Hoodies', 'Sweater', 'Jackets'],
+    'Bottoms': ['Jeans', 'Trousers', 'Shorts'],
+    'Accessories': ['Watches', 'Glasses', 'Caps', 'Rings', 'Bracelet', 'Chains', 'Bags'],
+    'Footwear': []
+  };
 
   const handleBucketClick = (bucket) => {
     setActiveBucket(bucket);
@@ -83,7 +90,12 @@ const HomePage = ({ onProductsLoaded }) => {
     if (bucket !== 'All') setLastViewedBucket(bucket);
   };
 
-  const visibleSubCategories = subCategoryMap[lastViewedBucket] || [];
+  const visibleSubCategories = useMemo(() => {
+    const fromDB = subCategoryMap[lastViewedBucket] || [];
+    const defaults = DEFAULT_SUB_CATEGORIES[lastViewedBucket] || [];
+    // Combine and unique
+    return Array.from(new Set([...defaults, ...fromDB]));
+  }, [subCategoryMap, lastViewedBucket]);
 
   return (
     <>
