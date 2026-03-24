@@ -5,6 +5,7 @@ import MarqueeBar from '../components/MarqueeBar';
 import SearchOverlay from '../components/SearchOverlay';
 import WishlistDrawer from '../components/WishlistDrawer';
 import CustomCursor from '../components/CustomCursor';
+import { apiUrl } from '../config/api';
 
 // Cursor DOM elements injected at layout level
 const CursorElements = () => (
@@ -20,7 +21,7 @@ const Layout = ({ children, products = [] }) => {
   const [isWishlistOpen, setIsWishlistOpen] = useState(false);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/public/settings')
+    fetch(apiUrl('/api/public/settings'))
       .then(res => res.ok ? res.json() : null)
       .then(data => { if (data?.announcement) setAnnouncement(data.announcement); })
       .catch(() => { });

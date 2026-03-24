@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Package, Truck, CheckCircle, Clock, AlertCircle, FileText, Download } from 'lucide-react';
 import { generateInvoice } from '../utils/generateInvoice';
+import { apiUrl } from '../config/api';
 
 const OrderTable = ({ externalOrders, loading: externalLoading, onStatusUpdated, onViewDetail }) => {
   const [internalOrders, setInternalOrders] = useState([]);
@@ -14,7 +15,7 @@ const OrderTable = ({ externalOrders, loading: externalLoading, onStatusUpdated,
     if (externalOrders) return; // Skip if data is provided externally
     const token = localStorage.getItem('adminToken');
     try {
-      const response = await fetch('http://localhost:5000/api/orders', {
+      const response = await fetch(apiUrl('/api/orders'), {
         headers: { 
           'Authorization': `Bearer ${token}` 
         }
@@ -41,7 +42,7 @@ const OrderTable = ({ externalOrders, loading: externalLoading, onStatusUpdated,
   const handleStatusChange = async (orderId, newStatus) => {
     const token = localStorage.getItem('adminToken');
     try {
-      const response = await fetch(`http://localhost:5000/api/orders/${orderId}`, {
+      const response = await fetch(apiUrl(`/api/orders/${orderId}`), {
         method: 'PATCH',
         headers: { 
           'Content-Type': 'application/json',

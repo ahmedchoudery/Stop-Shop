@@ -30,6 +30,7 @@ const getEnv = (...keys) => {
 const mongoUri = getEnv('MONGO_URI', 'MONGODB_URI');
 if (!mongoUri) {
   console.error('❌ Missing MongoDB env var (MONGO_URI or MONGODB_URI)');
+  process.exit(1);
 }
 
 mongoose.connect(mongoUri)

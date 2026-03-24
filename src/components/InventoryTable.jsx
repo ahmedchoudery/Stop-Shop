@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Package, Edit3, Save, X, AlertTriangle, Search, Filter } from 'lucide-react';
+import { apiUrl } from '../config/api';
 
 const InventoryTable = () => {
   const [products, setProducts] = useState([]);
@@ -14,7 +15,7 @@ const InventoryTable = () => {
   const fetchProducts = async () => {
     const token = localStorage.getItem('adminToken');
     try {
-      const response = await fetch('http://localhost:5000/api/admin/products', {
+      const response = await fetch(apiUrl('/api/admin/products'), {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.status === 401 || response.status === 403) {
@@ -41,7 +42,7 @@ const InventoryTable = () => {
     try {
       const updateData = field === 'quantity' ? { quantity: parseInt(value) } : { price: parseFloat(value) };
       
-      const response = await fetch(`http://localhost:5000/api/admin/products/${productId}`, {
+      const response = await fetch(apiUrl(`/api/admin/products/${productId}`), {
         method: 'PATCH',
         headers: { 
           'Content-Type': 'application/json',

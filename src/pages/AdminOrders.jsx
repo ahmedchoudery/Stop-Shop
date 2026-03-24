@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import OrderTable from '../components/OrderTable';
+import { apiUrl } from '../config/api';
 
 const AdminOrders = () => {
   const [orders, setOrders] = useState([]);
@@ -8,7 +9,7 @@ const AdminOrders = () => {
   const fetchOrders = async () => {
     const token = localStorage.getItem('adminToken');
     try {
-      const response = await fetch('http://localhost:5000/api/orders', {
+      const response = await fetch(apiUrl('/api/orders'), {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {

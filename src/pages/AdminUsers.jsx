@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { UserPlus, Trash2, X, Shield, Mail, Lock, User } from 'lucide-react';
+import { apiUrl } from '../config/api';
 
 const AdminUsers = () => {
   const [admins, setAdmins] = useState([]);
@@ -11,7 +12,7 @@ const AdminUsers = () => {
   const fetchAdmins = async () => {
     const token = localStorage.getItem('adminToken');
     try {
-      const response = await fetch('http://localhost:5000/api/admin/users', {
+      const response = await fetch(apiUrl('/api/admin/users'), {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (!response.ok) throw new Error('Failed to fetch team members');
@@ -32,7 +33,7 @@ const AdminUsers = () => {
     e.preventDefault();
     const token = localStorage.getItem('adminToken');
     try {
-      const response = await fetch('http://localhost:5000/api/admin/users', {
+      const response = await fetch(apiUrl('/api/admin/users'), {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
@@ -59,7 +60,7 @@ const AdminUsers = () => {
     
     const token = localStorage.getItem('adminToken');
     try {
-      const response = await fetch(`http://localhost:5000/api/admin/users/${adminId}`, {
+      const response = await fetch(apiUrl(`/api/admin/users/${adminId}`), {
         method: 'DELETE',
         headers: { 'Authorization': `Bearer ${token}` }
       });

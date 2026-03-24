@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import MobileDrawer from './MobileDrawer';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
+import { apiUrl } from '../config/api';
 
 const Navbar = ({ onSearchOpen, onWishlistOpen }) => {
   const { cartCount, isBouncing, openDrawer } = useCart();
@@ -29,7 +30,7 @@ const Navbar = ({ onSearchOpen, onWishlistOpen }) => {
   }, []);
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/public/settings')
+    fetch(apiUrl('/api/public/settings'))
       .then(res => res.ok ? res.json() : null)
       .then(data => { if (data?.logo) setLogo(data.logo); })
       .catch(() => { });

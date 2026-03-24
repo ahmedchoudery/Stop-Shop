@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Upload, Megaphone, Save, CheckCircle, RefreshCcw } from 'lucide-react';
+import { apiUrl } from '../config/api';
 
 const AdminSettings = () => {
   const [settings, setSettings] = useState({ logo: '', announcement: '' });
@@ -10,7 +11,7 @@ const AdminSettings = () => {
   const fetchSettings = async () => {
     const token = localStorage.getItem('adminToken');
     try {
-      const response = await fetch('http://localhost:5000/api/settings', {
+      const response = await fetch(apiUrl('/api/settings'), {
         headers: { 'Authorization': `Bearer ${token}` }
       });
       if (response.ok) {
@@ -45,7 +46,7 @@ const AdminSettings = () => {
     setSuccess(false);
     const token = localStorage.getItem('adminToken');
     try {
-      const response = await fetch('http://localhost:5000/api/settings', {
+      const response = await fetch(apiUrl('/api/settings'), {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',

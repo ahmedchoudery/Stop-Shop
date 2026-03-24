@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
+import { apiUrl } from '../config/api';
 
 const AnnouncementBar = () => {
   const [announcement, setAnnouncement] = useState('');
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/public/settings')
+    fetch(apiUrl('/api/public/settings'))
       .then(res => res.ok ? res.json() : null)
       .then(data => {
         if (data?.announcement) setAnnouncement(data.announcement);

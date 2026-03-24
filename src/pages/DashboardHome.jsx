@@ -4,6 +4,7 @@ import { NavLink } from 'react-router-dom';
 import StatsGrid from '../components/StatsGrid';
 import InventoryHealthChart from '../components/InventoryHealthChart';
 import RevenueChart from '../components/RevenueChart';
+import { apiUrl } from '../config/api';
 
 const DashboardHome = () => {
   const [data, setData] = useState({
@@ -21,9 +22,9 @@ const DashboardHome = () => {
     try {
       const headers = { 'Authorization': `Bearer ${token}` };
       const [revRes, ordRes, invRes] = await Promise.all([
-        fetch('http://localhost:5000/api/stats/revenue', { headers }),
-        fetch('http://localhost:5000/api/stats/orders', { headers }),
-        fetch('http://localhost:5000/api/stats/inventory', { headers })
+        fetch(apiUrl('/api/stats/revenue'), { headers }),
+        fetch(apiUrl('/api/stats/orders'), { headers }),
+        fetch(apiUrl('/api/stats/inventory'), { headers })
       ]);
       if (!revRes.ok || !ordRes.ok || !invRes.ok) throw new Error('Failed to synchronize stats');
       const [revData, ordData, invData] = await Promise.all([

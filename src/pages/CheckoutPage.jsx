@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import CheckoutForm from '../components/CheckoutForm';
 import OrderSuccessPage from './OrderSuccessPage';
 import { useCart } from '../context/CartContext';
+import { apiUrl } from '../config/api';
 
 const CheckoutPage = () => {
   const [orderComplete, setOrderComplete] = useState(false);
@@ -31,7 +32,7 @@ const CheckoutPage = () => {
         promoApplied: formData.appliedPromo?.code || null,
       };
 
-      await fetch('http://localhost:5000/api/orders', {
+      await fetch(apiUrl('/api/checkout'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(orderPayload),

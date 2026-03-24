@@ -6,6 +6,7 @@ import Newsletter from '../components/Newsletter';
 import ReviewsSection from '../components/ReviewsSection';
 import RecentlyViewedSection from '../components/RecentlyViewedSection';
 import { products as staticProducts } from '../data/products';
+import { apiUrl } from '../config/api';
 
 const HomePage = ({ onProductsLoaded }) => {
   const [products, setProducts] = useState([]);
@@ -27,7 +28,7 @@ const HomePage = ({ onProductsLoaded }) => {
     if (!isOnline) return;
     const fetchCloudInventory = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/public/products');
+        const response = await fetch(apiUrl('/api/public/products'));
         if (!response.ok) throw new Error('Cloud fetch failed');
         const data = await response.json();
         setProducts(data);

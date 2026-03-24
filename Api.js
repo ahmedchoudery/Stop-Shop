@@ -19,7 +19,7 @@ export const API = {
 
     // Admin — Products
     adminProducts: `${API_BASE}/api/admin/products`,
-    adminProduct: (id)`${API_BASE}/api/admin/products/${id}`,
+    adminProduct: (id) => `${API_BASE}/api/admin/products/${id}`,
 
     // Admin — Users
     adminUsers: `${API_BASE}/api/admin/users`,

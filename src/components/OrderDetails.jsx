@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { X, Printer, Package, Truck, User, MapPin, CreditCard, Calendar } from 'lucide-react';
+import { ShoppingBag, Clock } from 'lucide-react';
+import { apiUrl } from '../config/api';
 
 const OrderDetails = ({ order, isOpen, onClose, onStatusUpdated }) => {
   const [isUpdating, setIsUpdating] = useState(false);
@@ -12,7 +14,7 @@ const OrderDetails = ({ order, isOpen, onClose, onStatusUpdated }) => {
     
     setIsUpdating(true);
     try {
-      const response = await fetch(`http://localhost:5000/api/orders/${order._id}`, {
+      const response = await fetch(apiUrl(`/api/orders/${order._id}`), {
         method: 'PATCH',
         headers: { 
           'Content-Type': 'application/json',
