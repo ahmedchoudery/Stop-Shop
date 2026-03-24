@@ -28,7 +28,15 @@ const HomePage = ({ onProductsLoaded }) => {
     if (!isOnline) return;
     const fetchCloudInventory = async () => {
       try {
-        const response = await fetch(apiUrl('/api/public/products'));
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+    
+        const response = await fetch(
+          `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/public/products`,
+          { signal: controller.signal }
+        );
+        clearTimeout(timeout);
+    
         if (!response.ok) throw new Error('Cloud fetch failed');
         const data = await response.json();
         setProducts(data);
@@ -36,7 +44,7 @@ const HomePage = ({ onProductsLoaded }) => {
         setIsFetching(false);
         setFetchError(false);
       } catch {
-        // Fallback to static products
+        // Fallback to static products after timeout or error
         setProducts(staticProducts);
         if (onProductsLoaded) onProductsLoaded(staticProducts);
         setFetchError(true);
