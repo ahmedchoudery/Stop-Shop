@@ -101,6 +101,7 @@ const productSchema = new mongoose.Schema({
   sizeStock: { type: Map, of: Number, default: {} },
   lifestyleImage: { type: String, default: '' },
   variantImages: { type: Map, of: String, default: {} },
+  gallery: [{ type: String }],
   createdAt: { type: Date, default: Date.now }
 });
 

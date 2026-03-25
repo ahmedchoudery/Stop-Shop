@@ -15,7 +15,12 @@ export const products = [
       '#F63049': "https://images.unsplash.com/photo-1581655353564-df123a1eb820?q=80&w=600&auto=format&fit=crop",
       '#000000': "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?q=80&w=600&auto=format&fit=crop",
       '#22C55E': "https://images.unsplash.com/photo-1604176354204-9268737828e4?q=80&w=600&auto=format&fit=crop"
-    }
+    },
+    gallery: [
+      "https://images.unsplash.com/photo-1618354695981-7060176a53ee?q=80&w=600&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1606312612717-61a3a27a59b1?q=80&w=600&auto=format&fit=crop",
+      "https://images.unsplash.com/photo-1619983087750-b2ade1d3e8eb?q=80&w=600&auto=format&fit=crop"
+    ]
   },
   {
     id: 2,

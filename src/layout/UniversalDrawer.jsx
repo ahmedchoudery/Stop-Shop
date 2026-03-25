@@ -40,10 +40,12 @@ const UniversalDrawer = () => {
   const [sizeChartOpen, setSizeChartOpen] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const [galleryIndex, setGalleryIndex] = useState(0);
 
   useEffect(() => {
     if (drawerMode === 'product' && selectedProduct) {
       setActiveColor(selectedProduct.colors?.[0] || null);
+      setGalleryIndex(0);
       const sizes = getPresetSizes(selectedProduct);
       const firstAvailable = sizes.find(s => {
         const bySize = selectedProduct.sizeStock?.[s];
@@ -75,19 +77,35 @@ const UniversalDrawer = () => {
 
   if (!isDrawerOpen) return null;
 
-  const currentImage = activeColor && selectedProduct?.variantImages?.[activeColor]
-    ? selectedProduct.variantImages[activeColor]
-    : selectedProduct?.image;
+  const currentImage = (selectedProduct?.gallery?.length > 0)
+    ? selectedProduct.gallery[galleryIndex % selectedProduct.gallery.length]
+    : (activeColor && selectedProduct?.variantImages?.[activeColor]
+      ? selectedProduct.variantImages[activeColor]
+      : selectedProduct?.image);
 
   const buildLightboxImages = () => {
     if (!selectedProduct) return [];
     const imgs = [];
+
+    if (selectedProduct.gallery && Array.isArray(selectedProduct.gallery)) {
+      selectedProduct.gallery.forEach((src, index) => {
+        if (!src) return;
+        if (!imgs.find(i => i.src === src)) {
+          imgs.push({ src, alt: `${selectedProduct.name} gallery ${index + 1}`, label: `Gallery ${index + 1}` });
+        }
+      });
+    }
+
     if (selectedProduct.variantImages) {
       Object.entries(selectedProduct.variantImages).forEach(([color, src]) => {
-        imgs.push({ src, alt: selectedProduct.name, label: color });
+        if (src && !imgs.find(i => i.src === src)) {
+          imgs.push({ src, alt: selectedProduct.name, label: color });
+        }
       });
     } else if (selectedProduct.image) {
-      imgs.push({ src: selectedProduct.image, alt: selectedProduct.name, label: 'Main' });
+      if (!imgs.find(i => i.src === selectedProduct.image)) {
+        imgs.push({ src: selectedProduct.image, alt: selectedProduct.name, label: 'Main' });
+      }
     }
     if (selectedProduct.lifestyleImage && !imgs.find(i => i.src === selectedProduct.lifestyleImage)) {
       imgs.push({ src: selectedProduct.lifestyleImage, alt: `${selectedProduct.name} lifestyle`, label: 'Lifestyle' });
@@ -275,6 +293,16 @@ const UniversalDrawer = () => {
           {selectedProduct.stock > 0 && selectedProduct.stock <= 5 && (
             <div className="absolute top-6 left-6"><span className="bg-[#ba1f3d] text-white text-[9px] font-black px-4 py-2 uppercase tracking-[0.3em] shadow-2xl">Final Stock: {selectedProduct.stock}</span></div>
           )}
+
+        {selectedProduct.gallery?.length > 1 && (
+          <div className="absolute inset-x-0 top-3 flex justify-between px-3 pointer-events-auto">
+            <button onClick={() => setGalleryIndex((prev) => (prev - 1 + selectedProduct.gallery.length) % selectedProduct.gallery.length)}
+              className="bg-white/90 text-gray-800 p-2 rounded-full shadow hover:bg-white transition-all">‹</button>
+            <button onClick={() => setGalleryIndex((prev) => (prev + 1) % selectedProduct.gallery.length)}
+              className="bg-white/90 text-gray-800 p-2 rounded-full shadow hover:bg-white transition-all">›</button>
+          </div>
+        )}
+
           <div className="absolute bottom-6 left-6 pointer-events-none transition-all group-hover:translate-x-2"><span className="bg-white text-gray-900 text-[10px] font-black px-5 py-2 shadow-2xl uppercase tracking-[0.4em]">Cardinal Choice</span></div>
         </div>
 

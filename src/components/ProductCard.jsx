@@ -9,14 +9,19 @@ const ProductCard = ({ product, onSelectProduct, onImageLoad }) => {
   const { toggleWishlist, isWishlisted } = useWishlist();
   const [isHovered, setIsHovered] = useState(false);
   const [activeColor, setActiveColor] = useState(product.colors?.[0] || null);
+  const [galleryIndex, setGalleryIndex] = useState(0);
   const [hasLoaded, setHasLoaded] = useState(false);
   const [wishlistAnim, setWishlistAnim] = useState(false);
 
   const CARDINAL = '#ba1f3d';
 
-  const currentImage = activeColor && product.variantImages?.[activeColor]
+  const baseImage = activeColor && product.variantImages?.[activeColor]
     ? product.variantImages[activeColor]
     : product.image;
+
+  const currentImage = product.gallery?.length > 0
+    ? product.gallery[galleryIndex % product.gallery.length]
+    : baseImage;
 
   useEffect(() => {
     setHasLoaded(false);
@@ -34,6 +39,14 @@ const ProductCard = ({ product, onSelectProduct, onImageLoad }) => {
     toggleWishlist(product);
     setWishlistAnim(true);
     setTimeout(() => setWishlistAnim(false), 600);
+  };
+
+  const cycleGallery = (direction) => {
+    if (!product.gallery?.length) return;
+    setGalleryIndex((prev) => {
+      const length = product.gallery.length;
+      return (prev + direction + length) % length;
+    });
   };
 
   const wishlisted = isWishlisted(product.id);
@@ -77,6 +90,17 @@ const ProductCard = ({ product, onSelectProduct, onImageLoad }) => {
           className={`w-full h-full object-cover mix-blend-multiply transition-all duration-1000 ease-out ${isHovered ? 'scale-110' : 'scale-100'
             } ${product.stock === 0 ? 'grayscale opacity-70' : ''}`}
         />
+
+        {product.gallery?.length > 1 && (
+          <div className="absolute top-2 right-2 left-2 flex justify-between items-center pointer-events-auto">
+            <button onClick={(e) => { e.stopPropagation(); cycleGallery(-1); }}
+              className="bg-white/90 text-gray-800 p-1 rounded-full shadow-md hover:bg-white transition-colors">‹</button>
+            <span className="bg-black/70 text-white text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-xl">{galleryIndex + 1}/{product.gallery.length}</span>
+            <button onClick={(e) => { e.stopPropagation(); cycleGallery(1); }}
+              className="bg-white/90 text-gray-800 p-1 rounded-full shadow-md hover:bg-white transition-colors">›</button>
+          </div>
+        )}
+
 
         {product.mediaType === 'embed' && (
           <div className="absolute top-4 left-4 z-10">

@@ -8,27 +8,42 @@ import { useCart } from '../context/CartContext';
  * @param {string} image - Main product image URL
  * @param {string|number} id - Unique product identifier
  */
-const ReusableProductCard = ({ name, price, image, id, colors, variantImages }) => {
+const ReusableProductCard = ({ name, price, image, id, colors, variantImages, gallery }) => {
   const { addToCart } = useCart();
   const [activeColor, setActiveColor] = useState(colors?.[0] || null);
+  const [galleryIndex, setGalleryIndex] = useState(0);
 
-  const currentImage = activeColor && variantImages?.[activeColor] 
-    ? variantImages[activeColor] 
+  const baseImage = activeColor && variantImages?.[activeColor]
+    ? variantImages[activeColor]
     : image;
 
+  const galleryImage = Array.isArray(gallery) && gallery.length > 0
+    ? gallery[galleryIndex % gallery.length]
+    : null;
+
+  const displayedImage = galleryImage || baseImage;
+
   const handleAddToCart = () => {
-    addToCart({ id, name, price, image: currentImage });
+    addToCart({ id, name, price, image: displayedImage });
   };
 
   return (
     <div className="bg-white border border-gray-200 overflow-hidden hover:shadow-lg transition-shadow duration-300 flex flex-col h-full">
       {/* Image Section */}
-      <div className="aspect-square bg-gray-50 overflow-hidden">
-        <img 
-          src={currentImage} 
-          alt={name} 
+      <div className="relative aspect-square bg-gray-50 overflow-hidden">
+        <img
+          src={displayedImage}
+          alt={name}
           className="w-full h-full object-cover"
         />
+        {Array.isArray(gallery) && gallery.length > 1 && (
+          <div className="absolute inset-0 flex items-center justify-between px-2">
+            <button onClick={(e) => { e.stopPropagation(); setGalleryIndex((prev) => (prev - 1 + gallery.length) % gallery.length); }}
+              className="bg-white/90 text-gray-800 rounded-full p-1.5 hover:bg-white transition-colors">‹</button>
+            <button onClick={(e) => { e.stopPropagation(); setGalleryIndex((prev) => (prev + 1) % gallery.length); }}
+              className="bg-white/90 text-gray-800 rounded-full p-1.5 hover:bg-white transition-colors">›</button>
+          </div>
+        )}
       </div>
 
       {/* Content Section */}

@@ -24,6 +24,7 @@ const MEDIA_TABS = [
 const EMPTY_FORM = {
   id: '', name: '', price: '', quantity: '',
   image: '', lifestyleImage: '', mediaType: 'upload', embedCode: '',
+  gallery: [],
   bucket: 'Tops', subCategory: 'Polo',
   rating: 5, stock: 10,
   specs: ['', '', ''],
@@ -231,6 +232,7 @@ export default function AdminProducts() {
   const [sizeInput, setSizeInput] = useState('M');
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [mediaTab, setMediaTab] = useState('upload');
+  const [galleryUrl, setGalleryUrl] = useState('');
   const [embedCopied, setEmbedCopied] = useState(false);
 
   const token = localStorage.getItem('adminToken');
@@ -279,6 +281,7 @@ export default function AdminProducts() {
     setForm({ ...EMPTY_FORM });
     setSizeInput('M');
     setMediaTab('upload');
+    setGalleryUrl('');
     setIsModalOpen(true);
   };
 
@@ -295,6 +298,7 @@ export default function AdminProducts() {
       id: p.id || p._id, name: p.name || '', price: p.price || '',
       quantity: p.quantity ?? '', image: p.image || '', lifestyleImage: p.lifestyleImage || '',
       mediaType: mt, embedCode: p.embedCode || '',
+      gallery: p.gallery || [],
       bucket: rawBucket, subCategory: normalizedSubCategory,
       rating: p.rating || 5, stock: p.stock ?? p.quantity ?? 10,
       specs: p.specs?.length ? [...p.specs, '', '', ''].slice(0, 3) : ['', '', ''],
@@ -307,7 +311,7 @@ export default function AdminProducts() {
     setIsModalOpen(true);
   };
 
-  const closeModal = () => { setIsModalOpen(false); setEditingProduct(null); setForm(EMPTY_FORM); setSizeInput('M'); setMediaTab('upload'); };
+  const closeModal = () => { setIsModalOpen(false); setEditingProduct(null); setForm(EMPTY_FORM); setSizeInput('M'); setMediaTab('upload'); setGalleryUrl(''); };
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
@@ -332,13 +336,14 @@ export default function AdminProducts() {
   const handleSave = async () => {
     if (!form.name.trim()) return alert('Product name is required');
     if (!form.price) return alert('Price is required');
-    if (!form.image && !form.embedCode) return alert('Please add a product image or embed code');
+    if (!form.image && !form.embedCode && (!form.gallery || form.gallery.length === 0)) return alert('Please add a product image, gallery image or embed code');
     setSaving(true);
     try {
       const payload = {
         id: editingProduct ? form.id : undefined, name: form.name.trim(), price: parseFloat(form.price),
         quantity: parseInt(form.quantity) || 0, stock: parseInt(form.quantity) || 0,
         image: form.image, lifestyleImage: form.lifestyleImage || '', mediaType: form.mediaType, embedCode: form.embedCode || '',
+        gallery: form.gallery || [],
         bucket: form.bucket, subCategory: form.subCategory,
         rating: parseInt(form.rating) || 5,
         specs: form.specs.filter(s => s.trim()), colors: form.colors, sizes: form.sizes,
@@ -417,6 +422,32 @@ export default function AdminProducts() {
     const parsed = Math.max(0, parseInt(qty) || 0);
     setForm(f => ({ ...f, sizeStock: { ...(f.sizeStock || {}), [size]: parsed } }));
   };
+
+  const addGalleryItem = () => {
+    const value = galleryUrl.trim();
+    if (!value) return;
+    if (form.gallery.includes(value)) {
+      alert('Already in gallery');
+      return;
+    }
+    setForm(f => ({ ...f, gallery: [...(f.gallery || []), value] }));
+    setGalleryUrl('');
+  };
+
+  const removeGalleryItem = (item) => {
+    setForm(f => ({ ...f, gallery: (f.gallery || []).filter(g => g !== item) }));
+  };
+
+  const handleGalleryUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setForm(f => ({ ...f, gallery: [...(f.gallery || []), reader.result] }));
+    };
+    reader.readAsDataURL(file);
+  };
+
   const filtered = products.filter(p => p.name?.toLowerCase().includes(searchTerm.toLowerCase()));
 
   if (loading) return (
@@ -615,6 +646,30 @@ export default function AdminProducts() {
                       <p className="text-xs text-blue-700">• Direct .mp4 / .webm / .ogg video file URLs</p>
                       <p className="text-xs text-blue-700">• Direct image URLs (.jpg, .png, .webp)</p>
                     </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Gallery Media */}
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Gallery Images (optional)</label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
+                  <input type="text" value={galleryUrl} onChange={e => setGalleryUrl(e.target.value)} placeholder="Image URL"
+                    className="col-span-2 border-2 border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:border-red-600 outline-none transition-colors" />
+                  <button onClick={addGalleryItem} className="px-4 py-3 bg-gray-900 text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-red-600 transition-colors">Add</button>
+                </div>
+                <label className="flex items-center justify-center w-full py-3 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-red-400 hover:bg-red-50 transition-all mb-3">
+                  <span className="text-[11px] font-black uppercase tracking-widest text-gray-500">Upload Gallery Image</span>
+                  <input type="file" accept="image/*" className="hidden" onChange={handleGalleryUpload} />
+                </label>
+                {form.gallery?.length > 0 && (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {form.gallery.map((item, idx) => (
+                      <div key={`${item}-${idx}`} className="relative rounded-xl overflow-hidden border border-gray-200">
+                        <img src={item} alt={`Gallery ${idx + 1}`} className="w-full h-24 object-cover" />
+                        <button onClick={() => removeGalleryItem(item)} className="absolute top-1 right-1 bg-white/90 text-red-600 p-1 rounded-full text-xs">×</button>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>
