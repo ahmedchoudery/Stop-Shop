@@ -61,6 +61,25 @@ function embedThumbnail(raw) {
 
 // ─── MediaPreview ─────────────────────────────────────────────
 const MediaPreview = ({ form }) => {
+  useEffect(() => {
+    if (form.mediaType === 'embed' && form.embedCode) {
+      const raw = form.embedCode;
+      if (raw.includes('instagram-media') || raw.includes('instagram.com/embed.js')) {
+        const existing = document.querySelector('script[src*="instagram.com/embed.js"]');
+        if (!existing) {
+          const s = document.createElement('script');
+          s.async = true;
+          s.src = 'https://www.instagram.com/embed.js';
+          s.onload = () => {
+            if (window.instgrm?.Embeds?.process) window.instgrm.Embeds.process();
+          };
+          document.body.appendChild(s);
+        } else {
+          if (window.instgrm?.Embeds?.process) window.instgrm.Embeds.process();
+        }
+      }
+    }
+  }, [form.mediaType, form.embedCode]);
   if (form.mediaType === 'embed' && form.embedCode) {
     const parsed = parseEmbed(form.embedCode);
     if (!parsed) return null;

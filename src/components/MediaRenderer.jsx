@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 function parseEmbed(raw) {
   if (!raw?.trim()) return null;
@@ -77,6 +77,22 @@ const MediaRenderer = ({ src, embedCode, mediaType, alt, className, onLoad }) =>
       );
     }
     if (parsed.type === 'raw') {
+      useEffect(() => {
+        if (embedCode.includes('instagram-media') || embedCode.includes('instagram.com/embed.js')) {
+          const existing = document.querySelector('script[src*="instagram.com/embed.js"]');
+          if (!existing) {
+            const s = document.createElement('script');
+            s.async = true;
+            s.src = 'https://www.instagram.com/embed.js';
+            s.onload = () => {
+              if (window.instgrm?.Embeds?.process) window.instgrm.Embeds.process();
+            };
+            document.body.appendChild(s);
+          } else {
+            if (window.instgrm?.Embeds?.process) window.instgrm.Embeds.process();
+          }
+        }
+      }, [embedCode]);
       return (
         <div
           className={className}
