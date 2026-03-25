@@ -19,9 +19,11 @@ const ProductCard = ({ product, onSelectProduct, onImageLoad }) => {
     ? product.variantImages[activeColor]
     : product.image;
 
-  const currentImage = product.gallery?.length > 0
-    ? product.gallery[galleryIndex % product.gallery.length]
-    : baseImage;
+  const currentImage = (activeColor && product.variantImages?.[activeColor])
+    ? product.variantImages[activeColor]
+    : (product.gallery?.length > 0
+      ? product.gallery[galleryIndex % product.gallery.length]
+      : product.image);
 
   useEffect(() => {
     setHasLoaded(false);

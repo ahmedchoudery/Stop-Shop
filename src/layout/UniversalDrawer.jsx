@@ -77,10 +77,10 @@ const UniversalDrawer = () => {
 
   if (!isDrawerOpen) return null;
 
-  const currentImage = (selectedProduct?.gallery?.length > 0)
-    ? selectedProduct.gallery[galleryIndex % selectedProduct.gallery.length]
-    : (activeColor && selectedProduct?.variantImages?.[activeColor]
-      ? selectedProduct.variantImages[activeColor]
+  const currentImage = (activeColor && selectedProduct?.variantImages?.[activeColor])
+    ? selectedProduct.variantImages[activeColor]
+    : ((selectedProduct?.gallery?.length > 0)
+      ? selectedProduct.gallery[galleryIndex % selectedProduct.gallery.length]
       : selectedProduct?.image);
 
   const buildLightboxImages = () => {
