@@ -27,7 +27,7 @@ const ProductCard = ({ product, onSelectProduct, onImageLoad }) => {
 
   useEffect(() => {
     setHasLoaded(false);
-  }, [product.id]);
+  }, [currentImage]);
 
   const handleLoad = () => {
     if (!hasLoaded) {

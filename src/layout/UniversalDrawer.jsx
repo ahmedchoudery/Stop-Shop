@@ -46,7 +46,9 @@ const UniversalDrawer = () => {
     if (drawerMode === 'product' && selectedProduct) {
       setActiveColor(selectedProduct.colors?.[0] || null);
       setGalleryIndex(0);
-      const sizes = getPresetSizes(selectedProduct);
+      const sizes = (selectedProduct.sizes && selectedProduct.sizes.length > 0)
+        ? selectedProduct.sizes
+        : getPresetSizes(selectedProduct);
       const firstAvailable = sizes.find(s => {
         const bySize = selectedProduct.sizeStock?.[s];
         return bySize === undefined || (parseInt(bySize) || 0) > 0;
