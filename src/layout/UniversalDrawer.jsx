@@ -167,10 +167,15 @@ const UniversalDrawer = () => {
           </div>
         ) : (
           <>
-            {cartItems.map(item => (
+            {cartItems.map(item => {
+              const currentImage = (item.activeColor && item.variantImages?.[item.activeColor])
+                ? item.variantImages[item.activeColor]
+                : item.image;
+
+              return (
               <div key={`${item.id}-${item.activeColor || 'none'}-${item.selectedSize || 'none'}`} className="flex items-center space-x-5 group animate-fade-up">
                 <div className="w-24 h-28 bg-gray-50 flex-shrink-0 overflow-hidden rounded-none border border-gray-100">
-                  <MediaRenderer src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                  <MediaRenderer src={currentImage} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                 </div>
                 <div className="flex-grow min-w-0">
                   <div className="flex justify-between items-start">
@@ -225,7 +230,8 @@ const UniversalDrawer = () => {
                 </div>
                 <button onClick={() => removeFromCart(item.id, item.activeColor, item.selectedSize, item.cartId)} className="p-2 text-gray-200 hover:text-[#ba1f3d] transition-all flex-shrink-0"><Trash2 size={16} /></button>
               </div>
-            ))}
+              );
+            })}
 
             <div className="pt-8 border-t border-gray-100">
               <p className="text-[9px] font-black uppercase tracking-[0.4em] text-gray-300 mb-6">You might also like</p>
