@@ -23,7 +23,7 @@ const MEDIA_TABS = [
 
 const EMPTY_FORM = {
   id: '', name: '', price: '', quantity: '',
-  image: '', mediaType: 'upload', embedCode: '',
+  image: '', lifestyleImage: '', mediaType: 'upload', embedCode: '',
   bucket: 'Tops', subCategory: 'Polo',
   rating: 5, stock: 10,
   specs: ['', '', ''],
@@ -201,7 +201,7 @@ const ProductCard = ({ product, onEdit, onDelete }) => {
       <div className="p-4">
         <p className="text-xs font-black uppercase tracking-tight text-gray-900 line-clamp-1">{product.name}</p>
         <div className="flex items-center justify-between mt-1">
-          <p className="text-sm font-black text-red-600">${parseFloat(product.price || 0).toFixed(2)}</p>
+          <p className="text-sm font-black text-red-600">PKR {parseFloat(product.price || 0).toFixed(2)}</p>
           <p className="text-[10px] text-gray-400 font-bold uppercase">{product.bucket}</p>
         </div>
         {product.colors?.length > 0 && (
@@ -293,7 +293,7 @@ export default function AdminProducts() {
       : (p.subCategory || 'Polo');
     setForm({
       id: p.id || p._id, name: p.name || '', price: p.price || '',
-      quantity: p.quantity ?? '', image: p.image || '',
+      quantity: p.quantity ?? '', image: p.image || '', lifestyleImage: p.lifestyleImage || '',
       mediaType: mt, embedCode: p.embedCode || '',
       bucket: rawBucket, subCategory: normalizedSubCategory,
       rating: p.rating || 5, stock: p.stock ?? p.quantity ?? 10,
@@ -317,6 +317,14 @@ export default function AdminProducts() {
     reader.readAsDataURL(file);
   };
 
+  const handleSecondaryMediaUpload = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onloadend = () => setForm(f => ({ ...f, lifestyleImage: reader.result }));
+    reader.readAsDataURL(file);
+  };
+
   const handleTabSwitch = (tab) => { setMediaTab(tab); setForm(f => ({ ...f, mediaType: tab })); };
 
   const injectTemplate = (template) => { setForm(f => ({ ...f, embedCode: template, mediaType: 'embed' })); setMediaTab('embed'); };
@@ -330,7 +338,7 @@ export default function AdminProducts() {
       const payload = {
         id: editingProduct ? form.id : undefined, name: form.name.trim(), price: parseFloat(form.price),
         quantity: parseInt(form.quantity) || 0, stock: parseInt(form.quantity) || 0,
-        image: form.image, mediaType: form.mediaType, embedCode: form.embedCode || '',
+        image: form.image, lifestyleImage: form.lifestyleImage || '', mediaType: form.mediaType, embedCode: form.embedCode || '',
         bucket: form.bucket, subCategory: form.subCategory,
         rating: parseInt(form.rating) || 5,
         specs: form.specs.filter(s => s.trim()), colors: form.colors, sizes: form.sizes,
@@ -620,13 +628,38 @@ export default function AdminProducts() {
                     className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:border-red-600 outline-none transition-colors" />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Price ($) *</label>
+                  <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Price (PKR) *</label>
                   <div className="relative">
                     <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
                     <input type="number" step="0.01" value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))}
                       placeholder="0.00"
                       className="w-full border-2 border-gray-200 rounded-xl pl-9 pr-4 py-3 text-sm font-bold focus:border-red-600 outline-none transition-colors" />
                   </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Secondary Hover Media (Image or Video URL)</label>
+                <div className="space-y-3">
+                  <input
+                    type="text"
+                    value={form.lifestyleImage.startsWith('data:') ? '' : form.lifestyleImage}
+                    onChange={e => setForm(f => ({ ...f, lifestyleImage: e.target.value }))}
+                    placeholder="https://example.com/hover-image.jpg or https://example.com/hover-video.mp4"
+                    className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:border-red-600 outline-none transition-colors"
+                  />
+                  <label className="flex items-center justify-center w-full py-3 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-red-400 hover:bg-red-50 transition-all">
+                    <span className="text-[11px] font-black uppercase tracking-widest text-gray-500">Upload Secondary Image/Video</span>
+                    <input type="file" accept="image/*,video/*" className="hidden" onChange={handleSecondaryMediaUpload} />
+                  </label>
+                  {form.lifestyleImage && (
+                    <div className="w-full aspect-video bg-gray-50 rounded-xl overflow-hidden border border-gray-200">
+                      {/\.(mp4|webm|ogg|m4v|mov)(\?.*)?$/i.test(form.lifestyleImage) || form.lifestyleImage.startsWith('data:video/')
+                        ? <video src={form.lifestyleImage} controls className="w-full h-full object-cover" />
+                        : <img src={form.lifestyleImage} alt="" className="w-full h-full object-cover" onError={e => e.target.style.display = 'none'} />
+                      }
+                    </div>
+                  )}
                 </div>
               </div>
 

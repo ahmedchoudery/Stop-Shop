@@ -118,7 +118,7 @@ const OrderTable = ({ externalOrders, loading: externalLoading, onStatusUpdated,
                     </span>
                   </td>
                   <td className="p-4">
-                    <span className="text-sm font-black text-gray-900">${order.total.toFixed(2)}</span>
+                    <span className="text-sm font-black text-gray-900">PKR {order.total.toFixed(2)}</span>
                   </td>
                   <td className="p-4">
                     <div className="flex items-center space-x-3">

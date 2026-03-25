@@ -8,7 +8,19 @@ import SizeChartModal from '../components/SizeChartModal';
 import ProductLightbox from '../components/ProductLightbox';
 import MediaRenderer from '../components/MediaRenderer';
 
-const DEFAULT_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+const getPresetSizes = (product) => {
+  const bucket = (product?.bucket || '').toLowerCase();
+  const subCategory = (product?.subCategory || '').toLowerCase();
+  if (bucket === 'accessories') return [];
+  if (bucket === 'footwear') return ['7', '8', '9', '10', '11'];
+  if (bucket === 'bottoms') {
+    if (subCategory === 'jeans') return ['28', '30', '32', '34', '36', '38'];
+    if (subCategory === 'trousers' || subCategory === 'shorts') return ['S', 'M', 'L'];
+    return ['S', 'M', 'L'];
+  }
+  if (bucket === 'tops') return ['S', 'M', 'L', 'XL'];
+  return ['S', 'M', 'L', 'XL'];
+};
 const CARDINAL = '#ba1f3d';
 
 const UPSELL_PRODUCTS = [
@@ -32,12 +44,12 @@ const UniversalDrawer = () => {
   useEffect(() => {
     if (drawerMode === 'product' && selectedProduct) {
       setActiveColor(selectedProduct.colors?.[0] || null);
-      const sizes = selectedProduct.sizes?.length ? selectedProduct.sizes : DEFAULT_SIZES;
+      const sizes = getPresetSizes(selectedProduct);
       const firstAvailable = sizes.find(s => {
         const bySize = selectedProduct.sizeStock?.[s];
         return bySize === undefined || (parseInt(bySize) || 0) > 0;
       });
-      setSelectedSize(firstAvailable || sizes[0] || 'M');
+      setSelectedSize(firstAvailable || sizes[0] || null);
       setSizeError(false);
       addViewed(selectedProduct);
     }
@@ -180,7 +192,8 @@ const UniversalDrawer = () => {
     if (!selectedProduct) return null;
     const wishlisted = isWishlisted(selectedProduct.id);
     const lightboxImages = buildLightboxImages();
-    const availableSizes = selectedProduct.sizes?.length ? selectedProduct.sizes : DEFAULT_SIZES;
+    const availableSizes = getPresetSizes(selectedProduct);
+    const requiresSize = availableSizes.length > 0;
     const stockForSize = (size) => {
       const bySize = selectedProduct.sizeStock?.[size];
       if (bySize === undefined) return selectedProduct.stock ?? 0;
@@ -233,28 +246,33 @@ const UniversalDrawer = () => {
             </div>
           </div>
 
-          {/* Size Selector */}
-          <div className="mb-10 pt-8 border-t border-gray-100">
-            <div className="flex items-center justify-between mb-5">
-              <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400">Select Dimension</h3>
-              <button onClick={() => setSizeChartOpen(true)} className="flex items-center space-x-2 text-[9px] font-black uppercase tracking-[0.3em] text-[#ba1f3d] hover:text-gray-900 transition-colors">
-                <Ruler size={14} /><span>Sizing Protocol</span>
-              </button>
-            </div>
-            {sizeError && <p className="text-[10px] font-black text-[#ba1f3d] uppercase tracking-[0.2em] mb-4 animate-reveal-up">Select a size to proceed</p>}
-            <div className="flex flex-wrap gap-2">
-              {availableSizes.map(size => (
-                <button
-                  key={size}
-                  onClick={() => { if (stockForSize(size) > 0) { setSelectedSize(size); setSizeError(false); } }}
-                  disabled={stockForSize(size) <= 0}
-                  className={`size-btn-premium ${selectedSize === size ? 'active' : ''} ${stockForSize(size) <= 0 ? 'opacity-30 cursor-not-allowed' : ''}`}
-                >
-                  {size}
+          {requiresSize && (
+            <div className="mb-10 pt-8 border-t border-gray-100">
+              <div className="flex items-center justify-between mb-5">
+                <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400">Select Dimension</h3>
+                <button onClick={() => setSizeChartOpen(true)} className="flex items-center space-x-2 text-[9px] font-black uppercase tracking-[0.3em] text-[#ba1f3d] hover:text-gray-900 transition-colors">
+                  <Ruler size={14} /><span>Sizing Protocol</span>
                 </button>
-              ))}
+              </div>
+              {sizeError && <p className="text-[10px] font-black text-[#ba1f3d] uppercase tracking-[0.2em] mb-4 animate-reveal-up">Select a size to proceed</p>}
+              <div className="flex flex-wrap gap-2">
+                {availableSizes.map(size => {
+                  const outOfStock = stockForSize(size) <= 0;
+                  return (
+                    <button
+                      key={size}
+                      onClick={() => { if (!outOfStock) { setSelectedSize(size); setSizeError(false); } }}
+                      disabled={outOfStock}
+                      className={`size-btn-premium relative overflow-hidden ${selectedSize === size ? 'active' : ''} ${outOfStock ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      <span>{size}</span>
+                      {outOfStock && <span className="absolute inset-0"><span className="absolute left-[-20%] top-1/2 w-[140%] h-[2px] bg-[#ba1f3d] rotate-[-35deg]" /></span>}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Colors */}
           {selectedProduct.colors?.length > 0 && (
@@ -293,14 +311,16 @@ const UniversalDrawer = () => {
           <div className="mt-8 pt-10 border-t border-gray-100 space-y-4">
             {selectedProduct.stock > 0 ? (
               <button onClick={() => {
-                if (!selectedSize) { setSizeError(true); return; }
-                const inCartForSize = cartItems
-                  .filter(item => item.id === selectedProduct.id && item.selectedSize === selectedSize)
-                  .reduce((sum, item) => sum + (item.quantity || 1), 0);
-                const available = stockForSize(selectedSize);
-                if (available <= 0 || inCartForSize >= available) {
-                  setSizeError(true);
-                  return;
+                if (requiresSize) {
+                  if (!selectedSize) { setSizeError(true); return; }
+                  const inCartForSize = cartItems
+                    .filter(item => item.id === selectedProduct.id && item.selectedSize === selectedSize)
+                    .reduce((sum, item) => sum + (item.quantity || 1), 0);
+                  const available = stockForSize(selectedSize);
+                  if (available <= 0 || inCartForSize >= available) {
+                    setSizeError(true);
+                    return;
+                  }
                 }
                 addToCart({ ...selectedProduct, image: currentImage, activeColor, selectedSize });
               }} className="w-full bg-[#ba1f3d] text-white font-black py-6 shadow-2xl hover:bg-black active:scale-[0.98] text-[11px] uppercase tracking-[0.4em] transition-all flex justify-center items-center group">
