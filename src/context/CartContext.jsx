@@ -2,12 +2,34 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 
 // 1. Create the Context
 const CartContext = createContext();
+const CART_STORAGE_KEY = 'stopshop-cart';
 
 // 2. Create the Provider
 export const CartProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
   const [isBouncing, setIsBouncing] = useState(false);
   const [shakeCount, setShakeCount] = useState(0);
+
+  // hydrate from localStorage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(CART_STORAGE_KEY);
+      if (saved) {
+        setCartItems(JSON.parse(saved));
+      }
+    } catch (err) {
+      console.warn('Failed to parse cart from localStorage', err);
+    }
+  }, []);
+
+  // persist changes
+  useEffect(() => {
+    try {
+      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
+    } catch (err) {
+      console.warn('Failed to persist cart in localStorage', err);
+    }
+  }, [cartItems]);
 
   // Handle Animation Queueing
   useEffect(() => {
@@ -77,6 +99,21 @@ export const CartProvider = ({ children }) => {
       }
       return prevItems;
     });
+  };
+
+  const setCartItemOptions = (id, updatedColor, updatedSize) => {
+    setCartItems((prevItems) =>
+      prevItems.map((item) => {
+        if (item.id === id) {
+          return {
+            ...item,
+            activeColor: updatedColor || item.activeColor,
+            selectedSize: updatedSize || item.selectedSize,
+          };
+        }
+        return item;
+      })
+    );
   };
 
   // Storefront Filter State (hoisted for global accessibility)

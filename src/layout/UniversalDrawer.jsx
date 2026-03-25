@@ -55,6 +55,24 @@ const UniversalDrawer = () => {
     }
   }, [drawerMode, selectedProduct]);
 
+  useEffect(() => {
+    if (!isDrawerOpen) return;
+
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        closeDrawer();
+      }
+    };
+
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', onKeyDown);
+
+    return () => {
+      document.body.style.overflow = 'auto';
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [isDrawerOpen, closeDrawer]);
+
   if (!isDrawerOpen) return null;
 
   const currentImage = activeColor && selectedProduct?.variantImages?.[activeColor]
