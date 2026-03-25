@@ -3,14 +3,15 @@ import React, { useEffect } from 'react';
 function parseEmbed(raw) {
   if (!raw?.trim()) return null;
   if (/^https?:\/\//.test(raw.trim()) && !raw.includes('<')) {
-    const url = raw.trim();
+    const url = raw.trim().replace(/^['"`\s]+|['"`\s]+$/g, '');
     const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
     if (ytMatch) return { type: 'iframe', src: `https://www.youtube.com/embed/${ytMatch[1]}` };
     const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
     if (vimeoMatch) return { type: 'iframe', src: `https://player.vimeo.com/video/${vimeoMatch[1]}` };
     if (url.includes('instagram.com')) {
-      const igEmbed = url.replace(/\/$/, '').replace(/(\/p\/|\/reel\/|\/tv\/)/, (m) => `${m}`) + '/embed';
-      return { type: 'iframe', src: igEmbed };
+      const igPostMatch = url.match(/https?:\/\/(?:www\.)?instagram\.com\/(?:p|reel|tv)\/[^/?#]+/i);
+      if (igPostMatch) return { type: 'iframe', src: `${igPostMatch[0]}/embed/captioned` };
+      return { type: 'raw', html: raw };
     }
     if (url.includes('facebook.com')) {
       const fbEmbed = `https://www.facebook.com/plugins/post.php?href=${encodeURIComponent(url)}&show_text=true`;
@@ -29,12 +30,13 @@ function parseEmbed(raw) {
     if (/\.(jpg|jpeg|png|gif|webp|svg)(\?.*)?$/i.test(url)) return { type: 'image', src: url };
     return { type: 'iframe', src: url };
   }
-  const srcMatch = raw.match(/src=["']([^"']+)["']/i);
-  if (srcMatch) {
-    const s = srcMatch[1];
-    if (/\.(mp4|webm|ogg)/i.test(s)) return { type: 'video', src: s };
-    return { type: 'iframe', src: s };
-  }
+  if (/<blockquote[\s>]/i.test(raw) || /<script[\s>]/i.test(raw)) return { type: 'raw', html: raw };
+  const iframeMatch = raw.match(/<iframe[^>]*src=["']([^"']+)["']/i);
+  if (iframeMatch) return { type: 'iframe', src: iframeMatch[1] };
+  const videoMatch = raw.match(/<video[^>]*src=["']([^"']+)["']/i);
+  if (videoMatch) return { type: 'video', src: videoMatch[1] };
+  const imageMatch = raw.match(/<img[^>]*src=["']([^"']+)["']/i);
+  if (imageMatch) return { type: 'image', src: imageMatch[1] };
   return { type: 'raw', html: raw };
 }
 
