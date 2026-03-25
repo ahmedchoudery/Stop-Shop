@@ -8,6 +8,23 @@ function parseEmbed(raw) {
     if (ytMatch) return { type: 'iframe', src: `https://www.youtube.com/embed/${ytMatch[1]}` };
     const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
     if (vimeoMatch) return { type: 'iframe', src: `https://player.vimeo.com/video/${vimeoMatch[1]}` };
+    if (url.includes('instagram.com')) {
+      const igEmbed = url.replace(/\/$/, '').replace(/(\/p\/|\/reel\/|\/tv\/)/, (m) => `${m}`) + '/embed';
+      return { type: 'iframe', src: igEmbed };
+    }
+    if (url.includes('facebook.com')) {
+      const fbEmbed = `https://www.facebook.com/plugins/post.php?href=${encodeURIComponent(url)}&show_text=true`;
+      return { type: 'iframe', src: fbEmbed };
+    }
+    if (url.includes('twitter.com') || url.includes('x.com')) {
+      const twEmbed = `https://twitframe.com/show?url=${encodeURIComponent(url)}`;
+      return { type: 'iframe', src: twEmbed };
+    }
+    const ttMatch = url.match(/tiktok\.com\/@[^/]+\/video\/(\d+)/);
+    if (ttMatch) {
+      const ttEmbed = `https://www.tiktok.com/embed/v2/video/${ttMatch[1]}`;
+      return { type: 'iframe', src: ttEmbed };
+    }
     if (/\.(mp4|webm|ogg)(\?.*)?$/i.test(url)) return { type: 'video', src: url };
     if (/\.(jpg|jpeg|png|gif|webp|svg)(\?.*)?$/i.test(url)) return { type: 'image', src: url };
     return { type: 'iframe', src: url };

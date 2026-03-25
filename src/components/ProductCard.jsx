@@ -123,7 +123,11 @@ const ProductCard = ({ product, onSelectProduct, onImageLoad }) => {
                 onClick={(e) => { e.stopPropagation(); setActiveColor(color); }}
                 className={`w-4 h-4 transition-all duration-300 ${activeColor === color ? 'ring-2 ring-offset-2 ring-gray-900 scale-110' : 'hover:scale-125 border border-gray-100'
                   }`}
-                style={{ backgroundColor: color }}
+                style={
+                  color.includes('|')
+                    ? { background: `linear-gradient(to right, ${color.split('|')[0]} 50%, ${color.split('|')[1]} 50%)` }
+                    : { backgroundColor: color }
+                }
                 title={color}
               />
             ))}

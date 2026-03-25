@@ -7,11 +7,12 @@ import {
 import { apiUrl } from '../config/api';
 
 // ─── Constants ───────────────────────────────────────────────
-const BUCKETS = ['Tops', 'Bottoms', 'Accessories'];
+const BUCKETS = ['Tops', 'Bottoms', 'Footwear', 'Accessories'];
 const SUBCATEGORIES = {
   Tops: ['Polo', 'Shirt', 'T-Shirt', 'Hoodie', 'Jacket'],
   Bottoms: ['Jeans', 'Pants', 'Shorts', 'Chinos'],
-  Accessories: ['Footwear', 'Belt', 'Cap', 'Bag', 'Socks'],
+  Footwear: ['Shoes', 'Slippers'],
+  Accessories: ['Belt', 'Cap', 'Bag', 'Socks'],
 };
 
 const MEDIA_TABS = [
@@ -217,7 +218,16 @@ export default function AdminProducts() {
         ? apiUrl(`/api/admin/products/${editingProduct.id || editingProduct._id}`)
         : apiUrl('/api/admin/products');
       const res = await fetch(url, { method: editingProduct ? 'PATCH' : 'POST', headers: authHeaders, body: JSON.stringify(payload) });
-      if (!res.ok) { const err = await res.json(); throw new Error(err.error || 'Save failed'); }
+      if (!res.ok) {
+        const ct = res.headers.get('content-type') || '';
+        let errText = '';
+        try {
+          errText = ct.includes('application/json') ? (await res.json()).error : (await res.text());
+        } catch {
+          errText = `HTTP ${res.status}`;
+        }
+        throw new Error(errText || 'Save failed');
+      }
       await fetchProducts();
       closeModal();
     } catch (e) { alert('Error: ' + e.message); }
@@ -507,7 +517,13 @@ export default function AdminProducts() {
                   <div className="flex flex-wrap gap-2">
                     {form.colors.map(c => (
                       <div key={c} className="flex items-center space-x-2 bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5">
-                        <div className="w-4 h-4 rounded-full border border-gray-300" style={{ backgroundColor: c }} />
+                        <div className="w-4 h-4 rounded-full border border-gray-300"
+                          style={
+                            c.includes('|')
+                              ? { background: `linear-gradient(to right, ${c.split('|')[0]} 50%, ${c.split('|')[1]} 50%)` }
+                              : { backgroundColor: c }
+                          }
+                        />
                         <span className="text-[11px] font-mono font-bold text-gray-600">{c}</span>
                         <button onClick={() => removeColor(c)} className="text-gray-400 hover:text-red-500"><X size={12} /></button>
                       </div>

@@ -63,7 +63,11 @@ const UniversalDrawer = () => {
   const freeShippingThreshold = 5000;
   const remaining = Math.max(0, freeShippingThreshold - total);
   const shippingProgress = Math.min(100, (total / freeShippingThreshold) * 100);
-  const sizeChartCategory = selectedProduct?.bucket === 'Bottoms' ? 'Bottoms' : selectedProduct?.bucket === 'Accessories' ? 'Footwear' : 'Tops';
+  const sizeChartCategory = selectedProduct?.bucket === 'Bottoms'
+    ? 'Bottoms'
+    : selectedProduct?.bucket === 'Footwear'
+      ? 'Footwear'
+      : 'Tops';
 
   /* ── CART ─────────────────────────────────────────────────── */
   const renderCartView = () => (
@@ -240,7 +244,16 @@ const UniversalDrawer = () => {
               <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400 mb-5">Palettes</h3>
               <div className="flex items-center space-x-4">
                 {selectedProduct.colors.map(color => (
-                  <button key={color} onClick={() => setActiveColor(color)} className={`w-10 h-10 border transition-all ${activeColor === color ? 'border-gray-900 scale-110 shadow-xl' : 'border-transparent'}`} style={{ backgroundColor: color }} />
+                  <button
+                    key={color}
+                    onClick={() => setActiveColor(color)}
+                    className={`w-10 h-10 border transition-all ${activeColor === color ? 'border-gray-900 scale-110 shadow-xl' : 'border-transparent'}`}
+                    style={
+                      color.includes('|')
+                        ? { background: `linear-gradient(to right, ${color.split('|')[0]} 50%, ${color.split('|')[1]} 50%)` }
+                        : { backgroundColor: color }
+                    }
+                  />
                 ))}
               </div>
             </div>
