@@ -41,6 +41,7 @@ const UniversalDrawer = () => {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
   const [galleryIndex, setGalleryIndex] = useState(0);
+  const [cartSizeError, setCartSizeError] = useState(false);
 
   useEffect(() => {
     if (drawerMode === 'product' && selectedProduct) {
@@ -171,6 +172,8 @@ const UniversalDrawer = () => {
               const currentImage = (item.activeColor && item.variantImages?.[item.activeColor])
                 ? item.variantImages[item.activeColor]
                 : item.image;
+              const itemRequiresSize = (item.availableSizes?.length || 0) > 0;
+              const sizeNotSelected = itemRequiresSize && !item.selectedSize;
 
               return (
               <div key={`${item.id}-${item.activeColor || 'none'}-${item.selectedSize || 'none'}`} className="flex items-center space-x-5 group animate-fade-up">
@@ -183,17 +186,18 @@ const UniversalDrawer = () => {
                     <p className="text-[#ba1f3d] font-black text-xs flex-shrink-0">PKR {(item.price * (item.quantity || 1)).toLocaleString()}</p>
                   </div>
                   {item.selectedSize && <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-1">Size: {item.selectedSize}</p>}
+                  {sizeNotSelected && <p className="text-[9px] font-black text-[#ba1f3d] uppercase tracking-widest mt-1 animate-pulse">Select Size Below</p>}
 
                   {((item.availableSizes?.length || 0) > 0 || (item.colors?.length || 0) > 0) && (
                     <div className="mt-3 text-[9px] font-black uppercase tracking-wide text-gray-500">
                       <div className="flex flex-wrap gap-2 items-center mb-2">
                         {item.availableSizes?.length > 0 && (
                           <div className="flex items-center gap-2">
-                            <span>Size</span>
+                            <span className={sizeNotSelected ? 'text-[#ba1f3d]' : ''}>Size</span>
                             {item.availableSizes.map((size) => (
                               <button
                                 key={size}
-                                onClick={() => setCartItemOptions(item.cartId, item.activeColor, size)}
+                                onClick={() => { setCartItemOptions(item.cartId, item.activeColor, size); setCartSizeError(false); }}
                                 className={`px-2 py-1 border text-xs ${item.selectedSize === size ? 'bg-black text-white' : 'bg-white text-gray-700'} rounded-sm`}
                               >
                                 {size}
@@ -252,18 +256,32 @@ const UniversalDrawer = () => {
         )}
       </div>
 
-      {cartItems.length > 0 && (
+      {cartItems.length > 0 && (() => {
+        const missingSize = cartItems.some(item => (item.availableSizes?.length || 0) > 0 && !item.selectedSize);
+        return (
         <div className="p-8 border-t border-gray-100 bg-white">
           <div className="flex justify-between items-center mb-6">
             <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400">Total Obligation</span>
             <span className="text-2xl font-black text-gray-900 tracking-tighter">PKR {total.toLocaleString()}</span>
           </div>
-          <Link to="/checkout" onClick={closeDrawer} className="flex items-center justify-center space-x-4 w-full bg-black text-white py-5 font-black uppercase tracking-[0.3em] hover:bg-[#ba1f3d] transition-all shadow-2xl active:scale-[0.98] text-[11px] mb-4">
-            <span>Secure Checkout</span><ArrowRight size={18} />
-          </Link>
+          {missingSize && (
+            <p className="text-[10px] font-black text-[#ba1f3d] uppercase tracking-[0.2em] mb-4 animate-reveal-up">
+              Please select a size for all items before checkout
+            </p>
+          )}
+          {missingSize ? (
+            <button onClick={() => setCartSizeError(true)} className="flex items-center justify-center space-x-4 w-full bg-gray-300 text-gray-500 py-5 font-black uppercase tracking-[0.3em] cursor-not-allowed text-[11px] mb-4">
+              <span>Select Size to Proceed</span>
+            </button>
+          ) : (
+            <Link to="/checkout" onClick={closeDrawer} className="flex items-center justify-center space-x-4 w-full bg-black text-white py-5 font-black uppercase tracking-[0.3em] hover:bg-[#ba1f3d] transition-all shadow-2xl active:scale-[0.98] text-[11px] mb-4">
+              <span>Secure Checkout</span><ArrowRight size={18} />
+            </Link>
+          )}
           <button onClick={closeDrawer} className="w-full text-gray-400 py-1 text-[9px] font-black uppercase tracking-[0.4em] hover:text-gray-900 transition-colors">Return to Shop</button>
         </div>
-      )}
+        );
+      })()}
     </div>
   );
 
@@ -412,7 +430,7 @@ const UniversalDrawer = () => {
                     return;
                   }
                 }
-                addToCart({ ...selectedProduct, image: currentImage, activeColor, selectedSize });
+                addToCart({ ...selectedProduct, image: currentImage, activeColor, selectedSize, availableSizes });
               }} className="w-full bg-[#ba1f3d] text-white font-black py-6 shadow-2xl hover:bg-black active:scale-[0.98] text-[11px] uppercase tracking-[0.4em] transition-all flex justify-center items-center group">
                 <span className="group-hover:mr-4 transition-all">Add To Bag</span>
                 <span className="opacity-0 group-hover:opacity-100 transition-all font-black text-white text-lg leading-none">+</span>
