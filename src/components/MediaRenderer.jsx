@@ -92,6 +92,53 @@ const MediaRenderer = ({ src, embedCode, mediaType, alt, className, onLoad }) =>
             if (window.instgrm?.Embeds?.process) window.instgrm.Embeds.process();
           }
         }
+        if (embedCode.includes('tiktok-embed') || embedCode.includes('tiktok.com/embed.js')) {
+          const existing = document.querySelector('script[src*="tiktok.com/embed.js"]');
+          if (!existing) {
+            const s = document.createElement('script');
+            s.async = true;
+            s.src = 'https://www.tiktok.com/embed.js';
+            document.body.appendChild(s);
+          }
+        }
+        if (embedCode.includes('twitter-tweet') || embedCode.includes('platform.twitter.com/widgets.js')) {
+          const existing = document.querySelector('script[src*="platform.twitter.com/widgets.js"]');
+          if (!existing) {
+            const s = document.createElement('script');
+            s.async = true;
+            s.src = 'https://platform.twitter.com/widgets.js';
+            s.onload = () => {
+              if (window.twttr?.widgets?.load) window.twttr.widgets.load();
+            };
+            document.body.appendChild(s);
+          } else {
+            if (window.twttr?.widgets?.load) window.twttr.widgets.load();
+          }
+        }
+        if (embedCode.includes('fb-post') || embedCode.includes('facebook.com/sdk.js')) {
+          if (!window.FB) {
+            const s = document.createElement('script');
+            s.async = true;
+            s.defer = true;
+            s.crossOrigin = 'anonymous';
+            s.src = 'https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v13.0';
+            s.onload = () => {
+              if (window.FB?.XFBML?.parse) window.FB.XFBML.parse();
+            };
+            document.body.appendChild(s);
+          } else {
+            if (window.FB?.XFBML?.parse) window.FB.XFBML.parse();
+          }
+        }
+        if (embedCode.includes('reddit-embed') || embedCode.includes('embed.redditmedia.com')) {
+          const existing = document.querySelector('script[src*="embed.redditmedia.com/widgets/platform.js"]');
+          if (!existing) {
+            const s = document.createElement('script');
+            s.async = true;
+            s.src = 'https://embed.redditmedia.com/widgets/platform.js';
+            document.body.appendChild(s);
+          }
+        }
       }, [embedCode]);
       return (
         <div

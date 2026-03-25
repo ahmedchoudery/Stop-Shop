@@ -1,4 +1,7 @@
-const rawBaseUrl = import.meta.env.VITE_API_URL || '';
+const rawBaseUrl = import.meta.env.VITE_API_URL
+  || (typeof window !== 'undefined' && window.location.hostname.endsWith('vercel.app')
+    ? 'https://stop-shop-production.up.railway.app'
+    : '');
 
 // If VITE_API_URL is not provided, use relative paths.
 // This works with Railway (same origin) and with Vite proxy in development.
