@@ -29,6 +29,7 @@ const EMPTY_FORM = {
   rating: 5, stock: 10,
   specs: ['', '', ''],
   colors: [],
+  variantImages: {},
   sizes: [],
   sizeStock: {},
 };
@@ -303,6 +304,7 @@ export default function AdminProducts() {
       rating: p.rating || 5, stock: p.stock ?? p.quantity ?? 10,
       specs: p.specs?.length ? [...p.specs, '', '', ''].slice(0, 3) : ['', '', ''],
       colors: p.colors || [],
+      variantImages: p.variantImages ? { ...p.variantImages } : {},
       sizes: p.sizes || [],
       sizeStock: Object.fromEntries(Object.entries(p.sizeStock || {}).map(([k, v]) => [k, parseInt(v) || 0])),
     });
@@ -344,6 +346,7 @@ export default function AdminProducts() {
         quantity: parseInt(form.quantity) || 0, stock: parseInt(form.quantity) || 0,
         image: form.image, lifestyleImage: form.lifestyleImage || '', mediaType: form.mediaType, embedCode: form.embedCode || '',
         gallery: form.gallery || [],
+        variantImages: form.variantImages || {},
         bucket: form.bucket, subCategory: form.subCategory,
         rating: parseInt(form.rating) || 5,
         specs: form.specs.filter(s => s.trim()), colors: form.colors, sizes: form.sizes,
@@ -399,8 +402,32 @@ export default function AdminProducts() {
     setDeleteConfirm(null);
   };
 
-  const addColor = () => { if (!form.colors.includes(colorInput)) setForm(f => ({ ...f, colors: [...f.colors, colorInput] })); };
-  const removeColor = (c) => setForm(f => ({ ...f, colors: f.colors.filter(x => x !== c) }));
+  const addColor = () => {
+    const color = colorInput.trim();
+    if (!color) return;
+    if (!form.colors.includes(color)) {
+      setForm(f => ({
+        ...f,
+        colors: [...f.colors, color],
+        variantImages: { ...(f.variantImages || {}), [color]: f.variantImages?.[color] || '' }
+      }));
+    }
+  };
+
+  const removeColor = (c) => setForm(f => {
+    const nextImages = { ...(f.variantImages || {}) };
+    delete nextImages[c];
+    return {
+      ...f,
+      colors: f.colors.filter(x => x !== c),
+      variantImages: nextImages,
+    };
+  });
+
+  const setVariantImageForColor = (color, value) => {
+    setForm(f => ({ ...f, variantImages: { ...(f.variantImages || {}), [color]: value } }));
+  };
+
   const addSize = () => {
     const normalized = sizeInput.trim().toUpperCase();
     if (!normalized) return;
@@ -762,22 +789,41 @@ export default function AdminProducts() {
                   <input type="color" value={colorInput} onChange={e => setColorInput(e.target.value)}
                     className="w-12 h-10 rounded-lg border-2 border-gray-200 cursor-pointer" />
                   <input type="text" value={colorInput} onChange={e => setColorInput(e.target.value)}
+                    placeholder="#FF0000 or rgb(...)"
                     className="flex-grow border-2 border-gray-200 rounded-xl px-4 py-2.5 text-sm font-mono font-bold focus:border-red-600 outline-none" />
                   <button onClick={addColor} className="px-4 py-2.5 bg-gray-900 text-white rounded-xl text-[11px] font-black uppercase tracking-widest hover:bg-red-600 transition-colors">Add</button>
                 </div>
                 {form.colors.length > 0 && (
-                  <div className="flex flex-wrap gap-2">
+                  <div className="space-y-3">
                     {form.colors.map(c => (
-                      <div key={c} className="flex items-center space-x-2 bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5">
-                        <div className="w-4 h-4 rounded-full border border-gray-300"
-                          style={
-                            c.includes('|')
-                              ? { background: `linear-gradient(to right, ${c.split('|')[0]} 50%, ${c.split('|')[1]} 50%)` }
-                              : { backgroundColor: c }
-                          }
-                        />
-                        <span className="text-[11px] font-mono font-bold text-gray-600">{c}</span>
-                        <button onClick={() => removeColor(c)} className="text-gray-400 hover:text-red-500"><X size={12} /></button>
+                      <div key={c} className="grid grid-cols-1 lg:grid-cols-3 items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl p-2">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-4 h-4 rounded-full border border-gray-300"
+                            style={
+                              c.includes('|')
+                                ? { background: `linear-gradient(to right, ${c.split('|')[0]} 50%, ${c.split('|')[1]} 50%)` }
+                                : { backgroundColor: c }
+                            }
+                          />
+                          <span className="text-[11px] font-mono font-bold text-gray-600">{c}</span>
+                        </div>
+                        <input type="text" value={form.variantImages?.[c] || ''}
+                          onChange={e => setVariantImageForColor(c, e.target.value)}
+                          placeholder="Variant Image URL"
+                          className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-xs focus:border-red-600 outline-none" />
+                        <div className="flex items-center justify-end gap-2">
+                          <label className="px-3 py-2 bg-gray-100 border border-gray-200 rounded-lg text-xs font-black cursor-pointer hover:bg-red-50">
+                            Upload
+                            <input type="file" accept="image/*" className="hidden" onChange={e => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              const reader = new FileReader();
+                              reader.onloadend = () => setVariantImageForColor(c, reader.result);
+                              reader.readAsDataURL(file);
+                            }} />
+                          </label>
+                          <button onClick={() => removeColor(c)} className="text-gray-400 hover:text-red-500"><X size={16} /></button>
+                        </div>
                       </div>
                     ))}
                   </div>
