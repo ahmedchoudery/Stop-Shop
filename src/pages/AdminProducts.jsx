@@ -273,7 +273,7 @@ export default function AdminProducts() {
 
   const openAdd = () => {
     setEditingProduct(null);
-    setForm({ ...EMPTY_FORM, id: 'prod-' + Date.now() });
+    setForm({ ...EMPTY_FORM });
     setMediaTab('upload');
     setIsModalOpen(true);
   };
@@ -315,7 +315,7 @@ export default function AdminProducts() {
     setSaving(true);
     try {
       const payload = {
-        id: form.id, name: form.name.trim(), price: parseFloat(form.price),
+        id: editingProduct ? form.id : undefined, name: form.name.trim(), price: parseFloat(form.price),
         quantity: parseInt(form.quantity) || 0, stock: parseInt(form.quantity) || 0,
         image: form.image, mediaType: form.mediaType, embedCode: form.embedCode || '',
         bucket: form.bucket, subCategory: form.subCategory,

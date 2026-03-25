@@ -213,15 +213,24 @@ app.get('/api/admin/products', authenticateToken, async (req, res) => {
 app.post('/api/admin/products', authenticateToken, async (req, res) => {
   try {
     const productData = req.body;
-    if (!productData.id) {
-      productData.id = 'PRD-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+    const buildId = () => 'PRD-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+    if (!productData.id) productData.id = buildId();
+    try {
+      const product = new Product(productData);
+      await product.save();
+      return res.status(201).json(product);
+    } catch (saveError) {
+      if (saveError?.code === 11000 && saveError?.keyPattern?.id) {
+        const retryData = { ...productData, id: buildId() };
+        const retryProduct = new Product(retryData);
+        await retryProduct.save();
+        return res.status(201).json(retryProduct);
+      }
+      throw saveError;
     }
-    const product = new Product(productData);
-    await product.save();
-    res.status(201).json(product);
   } catch (error) {
     console.error('Create product error:', error);
-    res.status(500).json({ error: 'Failed to create product' });
+    res.status(500).json({ error: error?.message || 'Failed to create product' });
   }
 });
 
