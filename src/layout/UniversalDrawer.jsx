@@ -172,7 +172,8 @@ const UniversalDrawer = () => {
               const currentImage = (item.activeColor && item.variantImages?.[item.activeColor])
                 ? item.variantImages[item.activeColor]
                 : item.image;
-              const itemRequiresSize = (item.availableSizes?.length || 0) > 0;
+              const computedSizes = (item.availableSizes?.length || 0) > 0 ? item.availableSizes : getPresetSizes(item);
+              const itemRequiresSize = computedSizes.length > 0;
               const sizeNotSelected = itemRequiresSize && !item.selectedSize;
 
               return (
@@ -188,13 +189,13 @@ const UniversalDrawer = () => {
                   {item.selectedSize && <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-1">Size: {item.selectedSize}</p>}
                   {sizeNotSelected && <p className="text-[9px] font-black text-[#ba1f3d] uppercase tracking-widest mt-1 animate-pulse">Select Size Below</p>}
 
-                  {((item.availableSizes?.length || 0) > 0 || (item.colors?.length || 0) > 0) && (
+                  {(itemRequiresSize || (item.colors?.length || 0) > 0) && (
                     <div className="mt-3 text-[9px] font-black uppercase tracking-wide text-gray-500">
                       <div className="flex flex-wrap gap-2 items-center mb-2">
-                        {item.availableSizes?.length > 0 && (
+                        {itemRequiresSize && (
                           <div className="flex items-center gap-2">
                             <span className={sizeNotSelected ? 'text-[#ba1f3d]' : ''}>Size</span>
-                            {item.availableSizes.map((size) => (
+                            {computedSizes.map((size) => (
                               <button
                                 key={size}
                                 onClick={() => { setCartItemOptions(item.cartId, item.activeColor, size); setCartSizeError(false); }}
@@ -257,7 +258,10 @@ const UniversalDrawer = () => {
       </div>
 
       {cartItems.length > 0 && (() => {
-        const missingSize = cartItems.some(item => (item.availableSizes?.length || 0) > 0 && !item.selectedSize);
+        const missingSize = cartItems.some(item => {
+          const computedSizes = (item.availableSizes?.length || 0) > 0 ? item.availableSizes : getPresetSizes(item);
+          return computedSizes.length > 0 && !item.selectedSize;
+        });
         return (
         <div className="p-8 border-t border-gray-100 bg-white">
           <div className="flex justify-between items-center mb-6">
