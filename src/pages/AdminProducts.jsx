@@ -216,6 +216,7 @@ const ProductCard = ({ product, onEdit, onDelete }) => {
 
 // ─── Main Component ───────────────────────────────────────────
 export default function AdminProducts() {
+  const FALLBACK_API_BASE = 'https://stop-shop-production.up.railway.app';
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -231,13 +232,35 @@ export default function AdminProducts() {
 
   const token = localStorage.getItem('adminToken');
   const authHeaders = { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+  const buildApiCandidates = (path) => {
+    const primary = apiUrl(path);
+    const fallback = `${FALLBACK_API_BASE}${path}`;
+    return primary === fallback ? [primary] : [primary, fallback];
+  };
+  const readErrorText = async (res) => {
+    const ct = res.headers.get('content-type') || '';
+    try {
+      return ct.includes('application/json') ? (await res.json()).error : (await res.text());
+    } catch {
+      return `HTTP ${res.status}`;
+    }
+  };
 
   const fetchProducts = async () => {
     try {
-      const res = await fetch(apiUrl('/api/admin/products'), { headers: authHeaders });
-      if (res.status === 401 || res.status === 403) { window.location.href = '/login'; return; }
-      if (!res.ok) throw new Error('Failed to fetch');
-      setProducts(await res.json());
+      let loaded = false;
+      let lastError = 'Failed to fetch';
+      for (const url of buildApiCandidates('/api/admin/products')) {
+        const res = await fetch(url, { headers: authHeaders });
+        if (res.status === 401 || res.status === 403) { window.location.href = '/login'; return; }
+        if (res.ok) {
+          setProducts(await res.json());
+          loaded = true;
+          break;
+        }
+        lastError = await readErrorText(res);
+      }
+      if (!loaded) throw new Error(lastError || 'Failed to fetch');
     } catch (e) { setError(e.message); }
     finally { setLoading(false); }
   };
@@ -295,20 +318,24 @@ export default function AdminProducts() {
         rating: parseInt(form.rating) || 5,
         specs: form.specs.filter(s => s.trim()), colors: form.colors,
       };
-      const url = editingProduct
-        ? apiUrl(`/api/admin/products/${editingProduct.id || editingProduct._id}`)
-        : apiUrl('/api/admin/products');
-      const res = await fetch(url, { method: editingProduct ? 'PATCH' : 'POST', headers: authHeaders, body: JSON.stringify(payload) });
-      if (!res.ok) {
-        const ct = res.headers.get('content-type') || '';
-        let errText = '';
-        try {
-          errText = ct.includes('application/json') ? (await res.json()).error : (await res.text());
-        } catch {
-          errText = `HTTP ${res.status}`;
+      const path = editingProduct
+        ? `/api/admin/products/${editingProduct.id || editingProduct._id}`
+        : '/api/admin/products';
+      let saved = false;
+      let lastError = 'Save failed';
+      for (const url of buildApiCandidates(path)) {
+        const res = await fetch(url, { method: editingProduct ? 'PATCH' : 'POST', headers: authHeaders, body: JSON.stringify(payload) });
+        if (res.ok) {
+          saved = true;
+          break;
         }
-        throw new Error(errText || 'Save failed');
+        lastError = await readErrorText(res);
+        if (res.status === 401 || res.status === 403) {
+          window.location.href = '/login';
+          return;
+        }
       }
+      if (!saved) throw new Error(lastError || 'Save failed');
       await fetchProducts();
       closeModal();
     } catch (e) { alert('Error: ' + e.message); }
@@ -317,8 +344,17 @@ export default function AdminProducts() {
 
   const handleDelete = async (productId) => {
     try {
-      const res = await fetch(apiUrl(`/api/admin/products/${productId}`), { method: 'DELETE', headers: authHeaders });
-      if (!res.ok) throw new Error('Delete failed');
+      let deleted = false;
+      let lastError = 'Delete failed';
+      for (const url of buildApiCandidates(`/api/admin/products/${productId}`)) {
+        const res = await fetch(url, { method: 'DELETE', headers: authHeaders });
+        if (res.ok) {
+          deleted = true;
+          break;
+        }
+        lastError = await readErrorText(res);
+      }
+      if (!deleted) throw new Error(lastError || 'Delete failed');
       setProducts(prev => prev.filter(p => (p.id || p._id) !== productId));
     } catch (e) { alert('Error: ' + e.message); }
     setDeleteConfirm(null);
