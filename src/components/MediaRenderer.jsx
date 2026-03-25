@@ -23,8 +23,12 @@ function parseEmbed(raw) {
     }
     const ttMatch = url.match(/tiktok\.com\/@[^/]+\/video\/(\d+)/);
     if (ttMatch) {
-      const ttEmbed = `https://www.tiktok.com/embed/v2/video/${ttMatch[1]}`;
-      return { type: 'iframe', src: ttEmbed };
+      const safeUrl = url.replace(/"/g, '&quot;');
+      const videoId = ttMatch[1];
+      return {
+        type: 'raw',
+        html: `<blockquote class="tiktok-embed" cite="${safeUrl}" data-video-id="${videoId}" style="max-width:605px;min-width:325px;"><section><a target="_blank" href="${safeUrl}">View on TikTok</a></section></blockquote>`
+      };
     }
     if (/\.(mp4|webm|ogg)(\?.*)?$/i.test(url)) return { type: 'video', src: url };
     if (/\.(jpg|jpeg|png|gif|webp|svg)(\?.*)?$/i.test(url)) return { type: 'image', src: url };
@@ -59,7 +63,7 @@ const MediaRenderer = ({ src, embedCode, mediaType, alt, className, onLoad }) =>
         if (window.instgrm?.Embeds?.process) window.instgrm.Embeds.process();
       }
     }
-    if (embedCode.includes('tiktok-embed') || embedCode.includes('tiktok.com/embed.js')) {
+    if (embedCode.includes('tiktok-embed') || embedCode.includes('tiktok.com/embed.js') || /tiktok\.com\/@[^/]+\/video\//i.test(embedCode)) {
       const existing = document.querySelector('script[src*="tiktok.com/embed.js"]');
       if (!existing) {
         const s = document.createElement('script');

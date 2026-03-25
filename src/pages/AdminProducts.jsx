@@ -44,6 +44,15 @@ function parseEmbed(raw) {
       if (igPostMatch) return { type: 'iframe', src: `${igPostMatch[0]}/embed/captioned` };
       return { type: 'raw', html: raw };
     }
+    const ttMatch = url.match(/tiktok\.com\/@[^/]+\/video\/(\d+)/);
+    if (ttMatch) {
+      const safeUrl = url.replace(/"/g, '&quot;');
+      const videoId = ttMatch[1];
+      return {
+        type: 'raw',
+        html: `<blockquote class="tiktok-embed" cite="${safeUrl}" data-video-id="${videoId}" style="max-width:605px;min-width:325px;"><section><a target="_blank" href="${safeUrl}">View on TikTok</a></section></blockquote>`
+      };
+    }
     if (/\.(mp4|webm|ogg)(\?.*)?$/i.test(url)) return { type: 'video', src: url };
     if (/\.(jpg|jpeg|png|gif|webp|svg)(\?.*)?$/i.test(url)) return { type: 'image', src: url };
     return { type: 'iframe', src: url };
@@ -84,7 +93,7 @@ const MediaPreview = ({ form }) => {
           if (window.instgrm?.Embeds?.process) window.instgrm.Embeds.process();
         }
       }
-      if (raw.includes('tiktok-embed') || raw.includes('tiktok.com/embed.js')) {
+      if (raw.includes('tiktok-embed') || raw.includes('tiktok.com/embed.js') || /tiktok\.com\/@[^/]+\/video\//i.test(raw)) {
         const existing = document.querySelector('script[src*="tiktok.com/embed.js"]');
         if (!existing) {
           const s = document.createElement('script');
