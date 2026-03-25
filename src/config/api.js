@@ -1,7 +1,10 @@
+const isBrowser = typeof window !== 'undefined';
+const host = isBrowser ? window.location.hostname : '';
+const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host.endsWith('.local');
+const isProductionHost = isBrowser && !isLocalHost;
+
 const rawBaseUrl = import.meta.env.VITE_API_URL
-  || (typeof window !== 'undefined' && window.location.hostname.endsWith('vercel.app')
-    ? 'https://stop-shop-production.up.railway.app'
-    : '');
+  || (isProductionHost ? 'https://stop-shop-production.up.railway.app' : '');
 
 // If VITE_API_URL is not provided, use relative paths.
 // This works with Railway (same origin) and with Vite proxy in development.
