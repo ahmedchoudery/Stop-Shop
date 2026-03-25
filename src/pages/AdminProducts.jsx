@@ -10,7 +10,7 @@ import { apiUrl } from '../config/api';
 const BUCKETS = ['Tops', 'Bottoms', 'Footwear', 'Accessories'];
 const SUBCATEGORIES = {
   Tops: ['Polo', 'Shirt', 'T-Shirt', 'Hoodie', 'Jacket'],
-  Bottoms: ['Jeans', 'Pants', 'Shorts', 'Chinos'],
+  Bottoms: ['Jeans', 'Trousers', 'Shorts'],
   Footwear: ['Shoes', 'Slippers'],
   Accessories: ['Belt', 'Cap', 'Bag', 'Socks'],
 };
@@ -28,6 +28,8 @@ const EMPTY_FORM = {
   rating: 5, stock: 10,
   specs: ['', '', ''],
   colors: [],
+  sizes: [],
+  sizeStock: {},
 };
 
 // ─── Embed helpers ────────────────────────────────────────────
@@ -226,6 +228,7 @@ export default function AdminProducts() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [colorInput, setColorInput] = useState('#000000');
+  const [sizeInput, setSizeInput] = useState('M');
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [mediaTab, setMediaTab] = useState('upload');
   const [embedCopied, setEmbedCopied] = useState(false);
@@ -274,6 +277,7 @@ export default function AdminProducts() {
   const openAdd = () => {
     setEditingProduct(null);
     setForm({ ...EMPTY_FORM });
+    setSizeInput('M');
     setMediaTab('upload');
     setIsModalOpen(true);
   };
@@ -281,20 +285,29 @@ export default function AdminProducts() {
   const openEdit = (p) => {
     setEditingProduct(p);
     const mt = p.mediaType || (p.embedCode ? 'embed' : 'upload');
+    const rawBucket = p.bucket || 'Tops';
+    const normalizedSubCategory = rawBucket === 'Bottoms'
+      ? ((p.subCategory || '').toLowerCase() === 'pants' || (p.subCategory || '').toLowerCase() === 'chinos'
+          ? 'Trousers'
+          : (p.subCategory || 'Jeans'))
+      : (p.subCategory || 'Polo');
     setForm({
       id: p.id || p._id, name: p.name || '', price: p.price || '',
       quantity: p.quantity ?? '', image: p.image || '',
       mediaType: mt, embedCode: p.embedCode || '',
-      bucket: p.bucket || 'Tops', subCategory: p.subCategory || 'Polo',
+      bucket: rawBucket, subCategory: normalizedSubCategory,
       rating: p.rating || 5, stock: p.stock ?? p.quantity ?? 10,
       specs: p.specs?.length ? [...p.specs, '', '', ''].slice(0, 3) : ['', '', ''],
       colors: p.colors || [],
+      sizes: p.sizes || [],
+      sizeStock: Object.fromEntries(Object.entries(p.sizeStock || {}).map(([k, v]) => [k, parseInt(v) || 0])),
     });
+    setSizeInput(p.sizes?.[0] || 'M');
     setMediaTab(mt);
     setIsModalOpen(true);
   };
 
-  const closeModal = () => { setIsModalOpen(false); setEditingProduct(null); setForm(EMPTY_FORM); setMediaTab('upload'); };
+  const closeModal = () => { setIsModalOpen(false); setEditingProduct(null); setForm(EMPTY_FORM); setSizeInput('M'); setMediaTab('upload'); };
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
@@ -320,7 +333,8 @@ export default function AdminProducts() {
         image: form.image, mediaType: form.mediaType, embedCode: form.embedCode || '',
         bucket: form.bucket, subCategory: form.subCategory,
         rating: parseInt(form.rating) || 5,
-        specs: form.specs.filter(s => s.trim()), colors: form.colors,
+        specs: form.specs.filter(s => s.trim()), colors: form.colors, sizes: form.sizes,
+        sizeStock: Object.fromEntries(form.sizes.map(size => [size, Math.max(0, parseInt(form.sizeStock?.[size]) || 0)])),
       };
       const path = editingProduct
         ? `/api/admin/products/${editingProduct.id || editingProduct._id}`
@@ -374,6 +388,27 @@ export default function AdminProducts() {
 
   const addColor = () => { if (!form.colors.includes(colorInput)) setForm(f => ({ ...f, colors: [...f.colors, colorInput] })); };
   const removeColor = (c) => setForm(f => ({ ...f, colors: f.colors.filter(x => x !== c) }));
+  const addSize = () => {
+    const normalized = sizeInput.trim().toUpperCase();
+    if (!normalized) return;
+    if (!form.sizes.includes(normalized)) {
+      setForm(f => ({
+        ...f,
+        sizes: [...f.sizes, normalized],
+        sizeStock: { ...f.sizeStock, [normalized]: f.sizeStock?.[normalized] ?? 0 }
+      }));
+    }
+    setSizeInput('');
+  };
+  const removeSize = (size) => setForm(f => {
+    const nextStock = { ...(f.sizeStock || {}) };
+    delete nextStock[size];
+    return { ...f, sizes: f.sizes.filter(s => s !== size), sizeStock: nextStock };
+  });
+  const setSizeStock = (size, qty) => {
+    const parsed = Math.max(0, parseInt(qty) || 0);
+    setForm(f => ({ ...f, sizeStock: { ...(f.sizeStock || {}), [size]: parsed } }));
+  };
   const filtered = products.filter(p => p.name?.toLowerCase().includes(searchTerm.toLowerCase()));
 
   if (loading) return (
@@ -655,6 +690,33 @@ export default function AdminProducts() {
                         />
                         <span className="text-[11px] font-mono font-bold text-gray-600">{c}</span>
                         <button onClick={() => removeColor(c)} className="text-gray-400 hover:text-red-500"><X size={12} /></button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Size Variants</label>
+                <div className="flex items-center space-x-3 mb-3">
+                  <input type="text" value={sizeInput} onChange={e => setSizeInput(e.target.value)}
+                    placeholder="e.g. XS, S, M, L, XL, 42"
+                    className="flex-grow border-2 border-gray-200 rounded-xl px-4 py-2.5 text-sm font-black uppercase tracking-widest focus:border-red-600 outline-none" />
+                  <button onClick={addSize} className="px-4 py-2.5 bg-gray-900 text-white rounded-xl text-[11px] font-black uppercase tracking-widest hover:bg-red-600 transition-colors">Add</button>
+                </div>
+                {form.sizes.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {form.sizes.map(size => (
+                      <div key={size} className="flex items-center space-x-2 bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5">
+                        <span className="text-[11px] font-black uppercase tracking-widest text-gray-700">{size}</span>
+                        <input
+                          type="number"
+                          min="0"
+                          value={form.sizeStock?.[size] ?? 0}
+                          onChange={e => setSizeStock(size, e.target.value)}
+                          className="w-16 border border-gray-200 rounded-lg px-2 py-1 text-[11px] font-black text-center"
+                        />
+                        <button onClick={() => removeSize(size)} className="text-gray-400 hover:text-red-500"><X size={12} /></button>
                       </div>
                     ))}
                   </div>

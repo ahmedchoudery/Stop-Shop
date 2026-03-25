@@ -69,7 +69,8 @@ const orderSchema = new mongoose.Schema({
     id: String,
     name: String,
     price: Number,
-    quantity: Number
+    quantity: Number,
+    selectedSize: String
   }],
   total: Number,
   paymentMethod: String,
@@ -96,6 +97,8 @@ const productSchema = new mongoose.Schema({
   subCategory: { type: String, default: 'General' },
   specs: [{ type: String }],
   colors: [{ type: String }],
+  sizes: [{ type: String }],
+  sizeStock: { type: Map, of: Number, default: {} },
   lifestyleImage: { type: String, default: '' },
   variantImages: { type: Map, of: String, default: {} },
   createdAt: { type: Date, default: Date.now }
@@ -103,6 +106,16 @@ const productSchema = new mongoose.Schema({
 
 // Keep stock and quantity in sync
 productSchema.pre('save', function() {
+  const mapValues = this.sizeStock instanceof Map
+    ? [...this.sizeStock.values()]
+    : Object.values(this.sizeStock || {});
+  const hasSizeStock = mapValues.length > 0;
+  if (hasSizeStock) {
+    const totalFromSizes = mapValues.reduce((sum, n) => sum + Math.max(0, parseInt(n) || 0), 0);
+    this.quantity = totalFromSizes;
+    this.stock = totalFromSizes;
+    return;
+  }
   if (this.isModified('quantity')) {
     this.stock = this.quantity;
   } else if (this.isModified('stock')) {
@@ -237,6 +250,12 @@ app.patch('/api/admin/products/:id', authenticateToken, async (req, res) => {
   try {
     // Sync quantity/stock if one is provided
     const updateData = { ...req.body };
+    if (updateData.sizeStock && typeof updateData.sizeStock === 'object') {
+      const totalFromSizes = Object.values(updateData.sizeStock)
+        .reduce((sum, n) => sum + Math.max(0, parseInt(n) || 0), 0);
+      updateData.quantity = totalFromSizes;
+      updateData.stock = totalFromSizes;
+    }
     if (updateData.quantity !== undefined && updateData.stock === undefined) {
       updateData.stock = updateData.quantity;
     } else if (updateData.stock !== undefined && updateData.quantity === undefined) {
@@ -449,20 +468,53 @@ app.delete('/api/admin/users/:id', authenticateToken, async (req, res) => {
 app.post('/api/checkout', async (req, res) => {
   try {
     const { customer, items, total, paymentMethod } = req.body;
-    const orderID = 'ORD-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+    if (!Array.isArray(items) || items.length === 0) {
+      return res.status(400).json({ error: 'No items in order' });
+    }
 
-    const newOrder = new Order({ orderID, customer, items, total, paymentMethod });
-    await newOrder.save();
+    const precheckProducts = await Product.find({ id: { $in: items.map(i => i.id) } });
+    const byId = new Map(precheckProducts.map(p => [p.id, p]));
+    for (const item of items) {
+      const orderedQty = Math.max(1, parseInt(item.quantity) || 1);
+      const product = byId.get(item.id);
+      if (!product) return res.status(400).json({ error: `Product not found: ${item.id}` });
+      const size = (item.selectedSize || '').trim();
+      if (size && product.sizeStock && product.sizeStock.get(size) !== undefined) {
+        const available = Math.max(0, parseInt(product.sizeStock.get(size)) || 0);
+        if (available < orderedQty) return res.status(400).json({ error: `Insufficient stock for ${product.name} (${size})` });
+      } else if ((product.quantity || 0) < orderedQty) {
+        return res.status(400).json({ error: `Insufficient stock for ${product.name}` });
+      }
+    }
+
+    const orderID = 'ORD-' + Math.random().toString(36).substr(2, 9).toUpperCase();
 
     const lowStockItems = [];
     for (const item of items) {
-      const product = await Product.findOneAndUpdate(
-        { id: item.id },
-        { $inc: { quantity: -(item.quantity || 1) } },
-        { new: true }
-      );
+      const orderedQty = Math.max(1, parseInt(item.quantity) || 1);
+      const size = (item.selectedSize || '').trim();
+      const baseProduct = byId.get(item.id);
+      let product;
+      if (size && baseProduct?.sizeStock && baseProduct.sizeStock.get(size) !== undefined) {
+        const sizePath = `sizeStock.${size}`;
+        product = await Product.findOneAndUpdate(
+          { id: item.id, [sizePath]: { $gte: orderedQty } },
+          { $inc: { quantity: -orderedQty, stock: -orderedQty, [sizePath]: -orderedQty } },
+          { new: true }
+        );
+      } else {
+        product = await Product.findOneAndUpdate(
+          { id: item.id, quantity: { $gte: orderedQty } },
+          { $inc: { quantity: -orderedQty, stock: -orderedQty } },
+          { new: true }
+        );
+      }
+      if (!product) return res.status(400).json({ error: `Unable to reserve stock for ${item.name}` });
       if (product && product.quantity < 5) lowStockItems.push(product);
     }
+
+    const newOrder = new Order({ orderID, customer, items, total, paymentMethod });
+    await newOrder.save();
 
     const itemsHtml = items.map(item => `
       <tr>

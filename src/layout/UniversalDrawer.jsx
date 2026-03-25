@@ -8,7 +8,7 @@ import SizeChartModal from '../components/SizeChartModal';
 import ProductLightbox from '../components/ProductLightbox';
 import MediaRenderer from '../components/MediaRenderer';
 
-const SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+const DEFAULT_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 const CARDINAL = '#ba1f3d';
 
 const UPSELL_PRODUCTS = [
@@ -32,7 +32,12 @@ const UniversalDrawer = () => {
   useEffect(() => {
     if (drawerMode === 'product' && selectedProduct) {
       setActiveColor(selectedProduct.colors?.[0] || null);
-      setSelectedSize('M');
+      const sizes = selectedProduct.sizes?.length ? selectedProduct.sizes : DEFAULT_SIZES;
+      const firstAvailable = sizes.find(s => {
+        const bySize = selectedProduct.sizeStock?.[s];
+        return bySize === undefined || (parseInt(bySize) || 0) > 0;
+      });
+      setSelectedSize(firstAvailable || sizes[0] || 'M');
       setSizeError(false);
       addViewed(selectedProduct);
     }
@@ -175,6 +180,12 @@ const UniversalDrawer = () => {
     if (!selectedProduct) return null;
     const wishlisted = isWishlisted(selectedProduct.id);
     const lightboxImages = buildLightboxImages();
+    const availableSizes = selectedProduct.sizes?.length ? selectedProduct.sizes : DEFAULT_SIZES;
+    const stockForSize = (size) => {
+      const bySize = selectedProduct.sizeStock?.[size];
+      if (bySize === undefined) return selectedProduct.stock ?? 0;
+      return Math.max(0, parseInt(bySize) || 0);
+    };
 
     return (
       <div className="h-full flex flex-col bg-white shadow-2xl overflow-y-auto relative scrollbar-hide">
@@ -232,8 +243,15 @@ const UniversalDrawer = () => {
             </div>
             {sizeError && <p className="text-[10px] font-black text-[#ba1f3d] uppercase tracking-[0.2em] mb-4 animate-reveal-up">Select a size to proceed</p>}
             <div className="flex flex-wrap gap-2">
-              {SIZES.map(size => (
-                <button key={size} onClick={() => { setSelectedSize(size); setSizeError(false); }} className={`size-btn-premium ${selectedSize === size ? 'active' : ''}`}>{size}</button>
+              {availableSizes.map(size => (
+                <button
+                  key={size}
+                  onClick={() => { if (stockForSize(size) > 0) { setSelectedSize(size); setSizeError(false); } }}
+                  disabled={stockForSize(size) <= 0}
+                  className={`size-btn-premium ${selectedSize === size ? 'active' : ''} ${stockForSize(size) <= 0 ? 'opacity-30 cursor-not-allowed' : ''}`}
+                >
+                  {size}
+                </button>
               ))}
             </div>
           </div>
@@ -274,7 +292,18 @@ const UniversalDrawer = () => {
           {/* CTAs */}
           <div className="mt-8 pt-10 border-t border-gray-100 space-y-4">
             {selectedProduct.stock > 0 ? (
-              <button onClick={() => { if (!selectedSize) { setSizeError(true); return; } addToCart({ ...selectedProduct, image: currentImage, activeColor, selectedSize }); }} className="w-full bg-[#ba1f3d] text-white font-black py-6 shadow-2xl hover:bg-black active:scale-[0.98] text-[11px] uppercase tracking-[0.4em] transition-all flex justify-center items-center group">
+              <button onClick={() => {
+                if (!selectedSize) { setSizeError(true); return; }
+                const inCartForSize = cartItems
+                  .filter(item => item.id === selectedProduct.id && item.selectedSize === selectedSize)
+                  .reduce((sum, item) => sum + (item.quantity || 1), 0);
+                const available = stockForSize(selectedSize);
+                if (available <= 0 || inCartForSize >= available) {
+                  setSizeError(true);
+                  return;
+                }
+                addToCart({ ...selectedProduct, image: currentImage, activeColor, selectedSize });
+              }} className="w-full bg-[#ba1f3d] text-white font-black py-6 shadow-2xl hover:bg-black active:scale-[0.98] text-[11px] uppercase tracking-[0.4em] transition-all flex justify-center items-center group">
                 <span className="group-hover:mr-4 transition-all">Add To Bag</span>
                 <span className="opacity-0 group-hover:opacity-100 transition-all font-black text-white text-lg leading-none">+</span>
               </button>
