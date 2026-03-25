@@ -102,13 +102,12 @@ const productSchema = new mongoose.Schema({
 });
 
 // Keep stock and quantity in sync
-productSchema.pre('save', function(next) {
+productSchema.pre('save', function() {
   if (this.isModified('quantity')) {
     this.stock = this.quantity;
   } else if (this.isModified('stock')) {
     this.quantity = this.stock;
   }
-  next();
 });
 
 const Product = mongoose.model('Product', productSchema);
