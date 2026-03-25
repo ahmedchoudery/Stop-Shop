@@ -251,14 +251,18 @@ export default function AdminProducts() {
       let loaded = false;
       let lastError = 'Failed to fetch';
       for (const url of buildApiCandidates('/api/admin/products')) {
-        const res = await fetch(url, { headers: authHeaders });
-        if (res.status === 401 || res.status === 403) { window.location.href = '/login'; return; }
-        if (res.ok) {
-          setProducts(await res.json());
-          loaded = true;
-          break;
+        try {
+          const res = await fetch(url, { headers: authHeaders });
+          if (res.status === 401 || res.status === 403) { window.location.href = '/login'; return; }
+          if (res.ok) {
+            setProducts(await res.json());
+            loaded = true;
+            break;
+          }
+          lastError = await readErrorText(res);
+        } catch (e) {
+          lastError = e.message || 'Failed to fetch';
         }
-        lastError = await readErrorText(res);
       }
       if (!loaded) throw new Error(lastError || 'Failed to fetch');
     } catch (e) { setError(e.message); }
@@ -324,15 +328,19 @@ export default function AdminProducts() {
       let saved = false;
       let lastError = 'Save failed';
       for (const url of buildApiCandidates(path)) {
-        const res = await fetch(url, { method: editingProduct ? 'PATCH' : 'POST', headers: authHeaders, body: JSON.stringify(payload) });
-        if (res.ok) {
-          saved = true;
-          break;
-        }
-        lastError = await readErrorText(res);
-        if (res.status === 401 || res.status === 403) {
-          window.location.href = '/login';
-          return;
+        try {
+          const res = await fetch(url, { method: editingProduct ? 'PATCH' : 'POST', headers: authHeaders, body: JSON.stringify(payload) });
+          if (res.ok) {
+            saved = true;
+            break;
+          }
+          lastError = await readErrorText(res);
+          if (res.status === 401 || res.status === 403) {
+            window.location.href = '/login';
+            return;
+          }
+        } catch (e) {
+          lastError = e.message || 'Save failed';
         }
       }
       if (!saved) throw new Error(lastError || 'Save failed');
@@ -347,12 +355,16 @@ export default function AdminProducts() {
       let deleted = false;
       let lastError = 'Delete failed';
       for (const url of buildApiCandidates(`/api/admin/products/${productId}`)) {
-        const res = await fetch(url, { method: 'DELETE', headers: authHeaders });
-        if (res.ok) {
-          deleted = true;
-          break;
+        try {
+          const res = await fetch(url, { method: 'DELETE', headers: authHeaders });
+          if (res.ok) {
+            deleted = true;
+            break;
+          }
+          lastError = await readErrorText(res);
+        } catch (e) {
+          lastError = e.message || 'Delete failed';
         }
-        lastError = await readErrorText(res);
       }
       if (!deleted) throw new Error(lastError || 'Delete failed');
       setProducts(prev => prev.filter(p => (p.id || p._id) !== productId));
