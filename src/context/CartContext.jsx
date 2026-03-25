@@ -69,17 +69,21 @@ export const CartProvider = ({ children }) => {
     setShakeCount((prev) => prev + 1);
   };
 
-  const removeFromCart = (id, activeColor, selectedSize) => {
+  const removeFromCart = (id, activeColor, selectedSize, cartId = null) => {
     setCartItems((prevItems) => 
-      prevItems.filter(item => !(item.id === id && item.activeColor === activeColor && item.selectedSize === selectedSize))
+      prevItems.filter((item) => {
+        if (cartId) return item.cartId !== cartId;
+        return !(item.id === id && item.activeColor === activeColor && item.selectedSize === selectedSize);
+      })
     );
   };
 
-  const updateQuantity = (id, activeColor, selectedSize, delta) => {
+  const updateQuantity = (id, activeColor, selectedSize, delta, cartId = null) => {
     setCartItems((prevItems) => {
-      const existingItemIndex = prevItems.findIndex(
-        (item) => item.id === id && item.activeColor === activeColor && item.selectedSize === selectedSize
-      );
+      const existingItemIndex = cartId
+        ? prevItems.findIndex((item) => item.cartId === cartId)
+        : prevItems.findIndex((item) => item.id === id && item.activeColor === activeColor && item.selectedSize === selectedSize);
+
 
       if (existingItemIndex > -1) {
         const newItems = [...prevItems];
@@ -101,10 +105,10 @@ export const CartProvider = ({ children }) => {
     });
   };
 
-  const setCartItemOptions = (id, updatedColor, updatedSize) => {
+  const setCartItemOptions = (cartId, updatedColor, updatedSize) => {
     setCartItems((prevItems) =>
       prevItems.map((item) => {
-        if (item.id === id) {
+        if (item.cartId === cartId) {
           return {
             ...item,
             activeColor: updatedColor || item.activeColor,
@@ -149,6 +153,7 @@ export const CartProvider = ({ children }) => {
     selectedProduct,
     openDrawer,
     closeDrawer,
+    setCartItemOptions,
     activeBucket,
     setActiveBucket: (bucket) => {
       setActiveBucket(bucket);

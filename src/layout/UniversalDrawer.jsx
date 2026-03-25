@@ -30,7 +30,7 @@ const UPSELL_PRODUCTS = [
 ];
 
 const UniversalDrawer = () => {
-  const { isDrawerOpen, drawerMode, selectedProduct, closeDrawer, cartItems, removeFromCart, updateQuantity, total, addToCart, setActiveBucket, setActiveSub } = useCart();
+  const { isDrawerOpen, drawerMode, selectedProduct, closeDrawer, cartItems, removeFromCart, updateQuantity, total, addToCart, setCartItemOptions, setActiveBucket, setActiveSub } = useCart();
   const { toggleWishlist, isWishlisted } = useWishlist();
   const { addViewed } = useRecentlyViewed();
 
@@ -158,16 +158,52 @@ const UniversalDrawer = () => {
                     <p className="text-[#ba1f3d] font-black text-xs flex-shrink-0">PKR {(item.price * (item.quantity || 1)).toLocaleString()}</p>
                   </div>
                   {item.selectedSize && <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-1">Size: {item.selectedSize}</p>}
+
+                  {((item.availableSizes?.length || 0) > 0 || (item.colors?.length || 0) > 0) && (
+                    <div className="mt-3 text-[9px] font-black uppercase tracking-wide text-gray-500">
+                      <div className="flex flex-wrap gap-2 items-center mb-2">
+                        {item.availableSizes?.length > 0 && (
+                          <div className="flex items-center gap-2">
+                            <span>Size</span>
+                            {item.availableSizes.map((size) => (
+                              <button
+                                key={size}
+                                onClick={() => setCartItemOptions(item.cartId, item.activeColor, size)}
+                                className={`px-2 py-1 border text-xs ${item.selectedSize === size ? 'bg-black text-white' : 'bg-white text-gray-700'} rounded-sm`}
+                              >
+                                {size}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {item.colors?.length > 0 && (
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span>Color</span>
+                          {item.colors.map((color) => (
+                            <button
+                              key={color}
+                              onClick={() => setCartItemOptions(item.cartId, color, item.selectedSize)}
+                              className={`w-5 h-5 rounded-full border ${item.activeColor === color ? 'ring-2 ring-[#ba1f3d] scale-110' : 'border-gray-200'}`}
+                              style={color.includes('|') ? { background: `linear-gradient(to right, ${color.split('|')[0]} 50%, ${color.split('|')[1]} 50%)` } : { backgroundColor: color }}
+                            />
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   <div className="flex items-center mt-3 space-x-4">
                     <div className="flex items-center border border-gray-100 bg-white">
-                      <button onClick={() => updateQuantity(item.id, item.activeColor, item.selectedSize, -1)} className="px-2 py-1.5 hover:bg-gray-50 text-gray-400 hover:text-gray-900 transition-colors"><Minus size={10} /></button>
+                      <button onClick={() => updateQuantity(item.id, item.activeColor, item.selectedSize, -1, item.cartId)} className="px-2 py-1.5 hover:bg-gray-50 text-gray-400 hover:text-gray-900 transition-colors"><Minus size={10} /></button>
                       <span className="text-[10px] font-black text-gray-900 px-3">{item.quantity || 1}</span>
-                      <button onClick={() => updateQuantity(item.id, item.activeColor, item.selectedSize, 1)} className="px-2 py-1.5 hover:bg-gray-50 text-gray-400 hover:text-gray-900 transition-colors"><Plus size={10} /></button>
+                      <button onClick={() => updateQuantity(item.id, item.activeColor, item.selectedSize, 1, item.cartId)} className="px-2 py-1.5 hover:bg-gray-50 text-gray-400 hover:text-gray-900 transition-colors"><Plus size={10} /></button>
                     </div>
                     {item.activeColor && <div className="w-3 h-3 rounded-none border border-gray-100" style={{ backgroundColor: item.activeColor }} />}
                   </div>
                 </div>
-                <button onClick={() => removeFromCart(item.id, item.activeColor, item.selectedSize)} className="p-2 text-gray-200 hover:text-[#ba1f3d] transition-all flex-shrink-0"><Trash2 size={16} /></button>
+                <button onClick={() => removeFromCart(item.id, item.activeColor, item.selectedSize, item.cartId)} className="p-2 text-gray-200 hover:text-[#ba1f3d] transition-all flex-shrink-0"><Trash2 size={16} /></button>
               </div>
             ))}
 
