@@ -1,4 +1,4 @@
-const { test, expect } = require('@playwright/test');
+import { test, expect } from '@playwright/test';
 
 test.describe('RBAC End-to-End', () => {
   let adminToken, managerToken;

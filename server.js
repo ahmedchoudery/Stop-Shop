@@ -131,6 +131,7 @@ const adminSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true },
   isPrimary: { type: Boolean, default: false },
+  roles: { type: [String], enum: ['admin', 'super-admin', 'auditor'], default: ['admin'] },
   createdAt: { type: Date, default: Date.now }
 });
 const Admin = mongoose.model('Admin', adminSchema);
@@ -178,7 +179,7 @@ app.post('/api/admin/login', async (req, res) => {
     const isMatch = await bcrypt.compare(password, admin.password);
     if (!isMatch) return res.status(401).json({ error: 'Invalid credentials' });
     const token = jwt.sign(
-      { id: admin._id, email: admin.email },
+      { id: admin._id, email: admin.email, role: admin.roles?.[0] || 'admin' },
       getEnv('JWT_SECRET', 'jwt_secret'),
       { expiresIn: '8h' }
     );

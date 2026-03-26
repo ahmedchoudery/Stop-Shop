@@ -18,13 +18,26 @@ const AdminSidebar = () => {
     window.location.href = '/login';
   };
 
+  const getAdminRole = () => {
+    try {
+      const token = localStorage.getItem('adminToken');
+      if (!token) return 'admin';
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.role || 'admin';
+    } catch {
+      return 'admin';
+    }
+  };
+
+  const role = getAdminRole();
+
   const navItems = [
     { to: '/admin/dashboard', label: 'Dashboard', icon: <LayoutDashboard size={20} /> },
     { to: '/admin/orders', label: 'Orders', icon: <ShoppingBag size={20} /> },
     { to: '/admin/products', label: 'Products', icon: <Package size={20} /> },
     { to: '/admin/users', label: 'Team', icon: <Users size={20} /> },
-    { to: '/admin/audits', label: 'Audits', icon: <ShieldCheck size={20} /> },
-    { to: '/admin/settings', label: 'Settings', icon: <Settings size={20} /> },
+    ...(role === 'super-admin' || role === 'auditor' ? [{ to: '/admin/audits', label: 'Audits', icon: <ShieldCheck size={20} /> }] : []),
+    ...(role === 'super-admin' ? [{ to: '/admin/settings', label: 'Settings', icon: <Settings size={20} /> }] : []),
   ];
 
   return (
