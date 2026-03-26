@@ -7,7 +7,9 @@ import {
   Settings, 
   Users,
   LogOut,
-  ChevronRight
+  ChevronRight,
+  ShieldCheck,
+  ShieldAlert
 } from 'lucide-react';
 
 const AdminSidebar = () => {
@@ -21,6 +23,7 @@ const AdminSidebar = () => {
     { to: '/admin/orders', label: 'Orders', icon: <ShoppingBag size={20} /> },
     { to: '/admin/products', label: 'Products', icon: <Package size={20} /> },
     { to: '/admin/users', label: 'Team', icon: <Users size={20} /> },
+    { to: '/admin/audits', label: 'Audits', icon: <ShieldCheck size={20} /> },
     { to: '/admin/settings', label: 'Settings', icon: <Settings size={20} /> },
   ];
 
@@ -54,6 +57,21 @@ const AdminSidebar = () => {
           </NavLink>
         ))}
       </nav>
+
+      {/* RBAC Status Banner */}
+      <div className="p-4 mx-4 mb-4 rounded-md border border-red-900/50 bg-black/20">
+        <p className="text-[9px] font-black uppercase tracking-widest text-red-200/60 mb-2">Gate Status</p>
+        <div className="flex items-center space-x-2">
+          {import.meta.env.VITE_RBAC_ENABLED === 'true' ? (
+             <ShieldCheck size={14} className="text-green-500" />
+          ) : (
+             <ShieldAlert size={14} className="text-yellow-500" />
+          )}
+          <span className={`text-[10px] font-black uppercase tracking-widest ${import.meta.env.VITE_RBAC_ENABLED === 'true' ? 'text-green-500' : 'text-yellow-500'}`}>
+            {import.meta.env.VITE_RBAC_ENABLED === 'true' ? `SECURED (${import.meta.env.VITE_RBAC_STAGE || 'PROD'})` : 'DISABLED'}
+          </span>
+        </div>
+      </div>
 
       {/* Bottom Actions */}
       <div className="p-4 border-t border-red-900/50">

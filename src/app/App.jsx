@@ -15,6 +15,7 @@ import AdminInventory from '../pages/AdminInventory';
 import AdminProducts from '../pages/AdminProducts';
 import AdminUsers from '../pages/AdminUsers';
 import AdminSettings from '../pages/AdminSettings';
+import AdminAuditPanel from '../pages/AdminAuditPanel';
 import LoginPage from '../pages/LoginPage';
 import ProtectedRoute from '../components/ProtectedRoute';
 
@@ -60,6 +61,7 @@ function App() {
                 <Route path="inventory" element={<AdminInventory />} />
                 <Route path="products" element={<AdminProducts />} />
                 <Route path="users" element={<AdminUsers />} />
+                <Route path="audits" element={<AdminAuditPanel />} />
                 <Route path="settings" element={<AdminSettings />} />
               </Route>
 

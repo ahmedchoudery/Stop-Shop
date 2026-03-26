@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useCart } from '../context/CartContext';
-import { CreditCard, Truck, CheckCircle, ArrowRight, ArrowLeft, Tag, X } from 'lucide-react';
+import { CreditCard, Truck, CheckCircle, ArrowRight, ArrowLeft, Tag, X, AlertTriangle, ShoppingBag } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const PROMO_CODES = {
   'CARDINAL20': { discount: 0.20, label: '20% OFF' },
@@ -8,24 +9,103 @@ const PROMO_CODES = {
   'FIRST15': { discount: 0.15, label: '15% OFF' },
 };
 
-const CheckoutForm = ({ onComplete }) => {
+const CheckoutForm = ({ onComplete, stockWarnings = [] }) => {
   const { total, cartItems } = useCart();
   const [step, setStep] = useState(1);
   const [promoInput, setPromoInput] = useState('');
   const [appliedPromo, setAppliedPromo] = useState(null);
   const [promoError, setPromoError] = useState('');
+  const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState({
-    firstName: '', lastName: '', email: '', address: '',
-    city: 'Karachi', zip: '75500', paymentMethod: 'credit-card',
+    firstName: '', lastName: '', email: '', phone: '', address: '',
+    city: 'Karachi', zip: '', paymentMethod: 'credit-card',
     cardNumber: '', expiry: '', cvv: '',
   });
+
+  const validateEmail = (email) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+
+  const validatePhone = (phone) => {
+    return /^03[0-9]{9}$/.test(phone.replace(/\s/g, ''));
+  };
+
+  const validateCardNumber = (num) => {
+    const cleaned = num.replace(/\s/g, '');
+    return /^\d{16}$/.test(cleaned);
+  };
+
+  const validateExpiry = (exp) => {
+    return /^(0[1-9]|1[0-2])\/\d{2}$/.test(exp);
+  };
+
+  const validateCVV = (cvv) => {
+    return /^\d{3,4}$/.test(cvv);
+  };
+
+  const validateStep = (stepNum) => {
+    const newErrors = {};
+
+    if (stepNum === 1) {
+      if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
+      if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
+      if (!formData.email.trim()) {
+        newErrors.email = 'Email is required';
+      } else if (!validateEmail(formData.email)) {
+        newErrors.email = 'Please enter a valid email';
+      }
+      if (!formData.phone.trim()) {
+        newErrors.phone = 'Phone number is required';
+      } else if (!validatePhone(formData.phone)) {
+        newErrors.phone = 'Enter 11-digit number starting with 03';
+      }
+      if (!formData.address.trim()) newErrors.address = 'Address is required';
+      if (!formData.city.trim()) newErrors.city = 'City is required';
+    }
+
+    if (stepNum === 2) {
+      if (formData.paymentMethod === 'credit-card') {
+        if (!formData.cardNumber.trim()) {
+          newErrors.cardNumber = 'Card number is required';
+        } else if (!validateCardNumber(formData.cardNumber)) {
+          newErrors.cardNumber = 'Enter 16-digit card number';
+        }
+        if (!formData.expiry.trim()) {
+          newErrors.expiry = 'Expiry is required';
+        } else if (!validateExpiry(formData.expiry)) {
+          newErrors.expiry = 'Use MM/YY format';
+        }
+        if (!formData.cvv.trim()) {
+          newErrors.cvv = 'CVV is required';
+        } else if (!validateCVV(formData.cvv)) {
+          newErrors.cvv = 'Enter 3-4 digit CVV';
+        }
+      }
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const clearError = (field) => {
+    setErrors((prev) => {
+      const newErrors = { ...prev };
+      delete newErrors[field];
+      return newErrors;
+    });
+  };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    clearError(name);
   };
 
-  const nextStep = () => setStep((prev) => Math.min(prev + 1, 3));
+  const nextStep = () => {
+    if (validateStep(step)) {
+      setStep((prev) => Math.min(prev + 1, 3));
+    }
+  };
   const prevStep = () => setStep((prev) => Math.max(prev - 1, 1));
 
   const applyPromo = () => {
@@ -48,7 +128,8 @@ const CheckoutForm = ({ onComplete }) => {
   const discount = appliedPromo ? total * appliedPromo.discount : 0;
   const finalTotal = total - discount;
 
-  const inputClass = "w-full border-b-2 border-gray-100 focus:border-[#ba1f3d] outline-none py-2.5 font-bold text-gray-900 transition-colors bg-transparent placeholder:text-gray-300";
+  const inputClass = (hasError) => `w-full border-b-2 ${hasError ? 'border-red-400' : 'border-gray-100'} focus:border-[#ba1f3d] outline-none py-2.5 font-bold text-gray-900 transition-colors bg-transparent placeholder:text-gray-300`;
+  const errorClass = "text-[9px] font-bold text-red-500 mt-1";
   const labelClass = "text-[10px] font-black uppercase tracking-widest text-gray-400";
 
   const ProgressIndicator = () => (
@@ -85,30 +166,40 @@ const CheckoutForm = ({ onComplete }) => {
             </div>
             <div className="grid grid-cols-2 gap-6">
               <div className="space-y-1">
-                <label className={labelClass}>First Name</label>
-                <input type="text" name="firstName" value={formData.firstName} onChange={handleInputChange} className={inputClass} placeholder="John" />
+                <label className={labelClass}>First Name *</label>
+                <input type="text" name="firstName" value={formData.firstName} onChange={handleInputChange} className={inputClass(!!errors.firstName)} placeholder="John" />
+                {errors.firstName && <p className={errorClass}>{errors.firstName}</p>}
               </div>
               <div className="space-y-1">
-                <label className={labelClass}>Last Name</label>
-                <input type="text" name="lastName" value={formData.lastName} onChange={handleInputChange} className={inputClass} placeholder="Doe" />
+                <label className={labelClass}>Last Name *</label>
+                <input type="text" name="lastName" value={formData.lastName} onChange={handleInputChange} className={inputClass(!!errors.lastName)} placeholder="Doe" />
+                {errors.lastName && <p className={errorClass}>{errors.lastName}</p>}
               </div>
             </div>
             <div className="space-y-1">
-              <label className={labelClass}>Email Address</label>
-              <input type="email" name="email" value={formData.email} onChange={handleInputChange} className={inputClass} placeholder="john@example.com" />
+              <label className={labelClass}>Email Address *</label>
+              <input type="email" name="email" value={formData.email} onChange={handleInputChange} className={inputClass(!!errors.email)} placeholder="john@example.com" />
+              {errors.email && <p className={errorClass}>{errors.email}</p>}
             </div>
             <div className="space-y-1">
-              <label className={labelClass}>Street Address</label>
-              <input type="text" name="address" value={formData.address} onChange={handleInputChange} className={inputClass} placeholder="123 Fashion Ave" />
+              <label className={labelClass}>Phone Number *</label>
+              <input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} className={inputClass(!!errors.phone)} placeholder="03001234567" />
+              {errors.phone && <p className={errorClass}>{errors.phone}</p>}
+            </div>
+            <div className="space-y-1">
+              <label className={labelClass}>Street Address *</label>
+              <input type="text" name="address" value={formData.address} onChange={handleInputChange} className={inputClass(!!errors.address)} placeholder="123 Fashion Ave" />
+              {errors.address && <p className={errorClass}>{errors.address}</p>}
             </div>
             <div className="grid grid-cols-2 gap-6">
               <div className="space-y-1">
-                <label className={labelClass}>City</label>
-                <input type="text" name="city" value={formData.city} onChange={handleInputChange} className={inputClass} placeholder="Ahmedabad" />
+                <label className={labelClass}>City *</label>
+                <input type="text" name="city" value={formData.city} onChange={handleInputChange} className={inputClass(!!errors.city)} placeholder="Karachi" />
+                {errors.city && <p className={errorClass}>{errors.city}</p>}
               </div>
               <div className="space-y-1">
-                <label className={labelClass}>ZIP / PIN Code</label>
-                <input type="text" name="zip" value={formData.zip} onChange={handleInputChange} className={inputClass} placeholder="380054" />
+                <label className={labelClass}>Postal Code</label>
+                <input type="text" name="zip" value={formData.zip} onChange={handleInputChange} className={inputClass(false)} placeholder="75500" />
               </div>
             </div>
           </div>
@@ -127,7 +218,7 @@ const CheckoutForm = ({ onComplete }) => {
             <div className="space-y-3">
               {[
                 { value: 'credit-card', label: 'Credit / Debit Card' },
-                { value: 'upi', label: 'UPI / QR Code' },
+                { value: 'bank-transfer', label: 'Bank Transfer' },
                 { value: 'cod', label: 'Cash on Delivery' },
               ].map(opt => (
                 <label key={opt.value} className="flex items-center p-4 border-2 rounded-xl cursor-pointer transition-all hover:bg-gray-50 border-gray-100 has-[:checked]:border-[#ba1f3d] has-[:checked]:bg-[#ba1f3d]/5">
@@ -145,34 +236,41 @@ const CheckoutForm = ({ onComplete }) => {
             {formData.paymentMethod === 'credit-card' && (
               <div className="p-6 bg-gray-50 rounded-2xl space-y-4 border border-gray-100">
                 <div className="space-y-1">
-                  <label className={labelClass}>Card Number</label>
-                  <input type="text" name="cardNumber" value={formData.cardNumber} onChange={handleInputChange} className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 font-mono text-sm focus:border-[#ba1f3d] outline-none" placeholder="•••• •••• •••• ••••" />
+                  <label className={labelClass}>Card Number *</label>
+                  <input type="text" name="cardNumber" value={formData.cardNumber} onChange={handleInputChange} maxLength={16} className={`w-full bg-white border rounded-xl px-4 py-3 font-mono text-sm focus:border-[#ba1f3d] outline-none ${errors.cardNumber ? 'border-red-400' : 'border-gray-200'}`} placeholder="•••• •••• •••• ••••" />
+                  {errors.cardNumber && <p className={errorClass}>{errors.cardNumber}</p>}
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <label className={labelClass}>Expiry</label>
-                    <input type="text" name="expiry" value={formData.expiry} onChange={handleInputChange} className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#ba1f3d] outline-none" placeholder="MM/YY" />
+                    <label className={labelClass}>Expiry *</label>
+                    <input type="text" name="expiry" value={formData.expiry} onChange={handleInputChange} maxLength={5} className={`w-full bg-white border rounded-xl px-4 py-3 text-sm focus:border-[#ba1f3d] outline-none ${errors.expiry ? 'border-red-400' : 'border-gray-200'}`} placeholder="MM/YY" />
+                    {errors.expiry && <p className={errorClass}>{errors.expiry}</p>}
                   </div>
                   <div className="space-y-1">
-                    <label className={labelClass}>CVV</label>
-                    <input type="text" name="cvv" value={formData.cvv} onChange={handleInputChange} className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm focus:border-[#ba1f3d] outline-none" placeholder="•••" />
+                    <label className={labelClass}>CVV *</label>
+                    <input type="text" name="cvv" value={formData.cvv} onChange={handleInputChange} maxLength={4} className={`w-full bg-white border rounded-xl px-4 py-3 text-sm focus:border-[#ba1f3d] outline-none ${errors.cvv ? 'border-red-400' : 'border-gray-200'}`} placeholder="•••" />
+                    {errors.cvv && <p className={errorClass}>{errors.cvv}</p>}
                   </div>
                 </div>
               </div>
             )}
 
-            {formData.paymentMethod === 'upi' && (
-              <div className="p-8 bg-purple-50 rounded-2xl border-2 border-dashed border-purple-200 text-center space-y-3">
-                <p className="text-4xl">📱</p>
-                <p className="font-black uppercase text-xs tracking-widest text-purple-900">UPI ID: stopshop@upi</p>
-                <p className="text-sm text-purple-700">Scan QR or pay to the above UPI ID at delivery confirmation.</p>
+            {formData.paymentMethod === 'bank-transfer' && (
+              <div className="p-6 bg-green-50 rounded-2xl border-2 border-dashed border-green-200 space-y-3">
+                <p className="font-black uppercase text-xs tracking-widest text-green-800">Bank Transfer Details</p>
+                <p className="text-sm text-green-700">Account Title: Stop Shop</p>
+                <p className="text-sm text-green-700">Account Number: 0123-4567890123</p>
+                <p className="text-sm text-green-700">Bank: HBL / MCB / UBL</p>
+                <p className="text-[10px] text-green-600 mt-2">Please include your phone number in the transfer reference.</p>
               </div>
             )}
 
             {formData.paymentMethod === 'cod' && (
-              <div className="p-8 bg-yellow-50 rounded-2xl border-2 border-dashed border-yellow-200 text-center space-y-3">
-                <Truck className="mx-auto text-yellow-600" size={32} />
-                <p className="font-black uppercase text-xs tracking-widest text-yellow-900">Pay At Your Door</p>
+              <div className="p-6 bg-yellow-50 rounded-2xl border-2 border-dashed border-yellow-200 space-y-3">
+                <div className="flex items-center space-x-3">
+                  <Truck className="text-yellow-600" size={24} />
+                  <p className="font-black uppercase text-xs tracking-widest text-yellow-900">Pay At Your Door</p>
+                </div>
                 <p className="text-sm text-yellow-700">Keep exact change ready for our delivery partner.</p>
               </div>
             )}
@@ -182,12 +280,33 @@ const CheckoutForm = ({ onComplete }) => {
         {/* Step 3: Review */}
         {step === 3 && (
           <div className="space-y-6 animate-fade-up">
-            <div className="flex items-center space-x-3 mb-8">
-              <div className="p-2 bg-red-50 rounded-xl">
-                <CheckCircle className="text-[#ba1f3d]" size={22} />
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 bg-red-50 rounded-xl">
+                  <CheckCircle className="text-[#ba1f3d]" size={22} />
+                </div>
+                <h2 className="text-2xl font-black uppercase tracking-tighter">Order Review</h2>
               </div>
-              <h2 className="text-2xl font-black uppercase tracking-tighter">Order Review</h2>
+              <Link to="/" onClick={() => {}} className="flex items-center space-x-2 text-[10px] font-black uppercase tracking-widest text-[#ba1f3d] hover:text-gray-900 transition-colors">
+                <ShoppingBag size={14} />
+                <span>Edit Bag</span>
+              </Link>
             </div>
+
+            {/* Stock Warnings */}
+            {stockWarnings.length > 0 && (
+              <div className="bg-red-50 border border-red-200 rounded-xl p-4 space-y-2">
+                <div className="flex items-center space-x-2 text-red-700">
+                  <AlertTriangle size={16} />
+                  <span className="font-black uppercase text-xs tracking-widest">Low Stock Warning</span>
+                </div>
+                {stockWarnings.map((warning, idx) => (
+                  <p key={idx} className="text-[10px] text-red-600 font-bold">
+                    {warning}
+                  </p>
+                ))}
+              </div>
+            )}
 
             {/* Items */}
             <div className="space-y-3 max-h-[180px] overflow-y-auto">
@@ -272,7 +391,8 @@ const CheckoutForm = ({ onComplete }) => {
 
             <div className="bg-gray-50 p-4 rounded-xl text-xs font-bold text-gray-500 uppercase tracking-widest space-y-1">
               <p>📍 {formData.address}, {formData.city} {formData.zip}</p>
-              <p>💳 {formData.paymentMethod === 'credit-card' ? 'Card ending ···· ' + (formData.cardNumber.slice(-4) || '????') : formData.paymentMethod === 'upi' ? 'UPI Payment' : 'Cash on Delivery'}</p>
+              <p>📞 {formData.phone}</p>
+              <p>💳 {formData.paymentMethod === 'credit-card' ? 'Card ending ···· ' + (formData.cardNumber.slice(-4) || '????') : formData.paymentMethod === 'bank-transfer' ? 'Bank Transfer' : 'Cash on Delivery'}</p>
             </div>
           </div>
         )}
