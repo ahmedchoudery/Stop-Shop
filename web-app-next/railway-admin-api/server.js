@@ -2,7 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import bodyParser from 'body-parser';
 import { config } from './config.js';
-import { rbacGate } from './rbacGate.js';
+import { rbacGate, requireRole, requireStage } from './rbacGate.js';
 
 const app = express();
 
@@ -20,6 +20,11 @@ app.get('/api/admin/metrics', rbacGate, (req, res) => {
     metrics: { revenue: 5000, users: 42, activeSessions: 12 },
     context: `Accessed by ${req.user.email || req.user.role}`
   });
+});
+
+// Phase 12 Granularity Tests: Endpoints strictly fenced inside constrained stages demanding explicit super-admin execution structures natively
+app.post('/api/admin/metrics/reset', rbacGate, requireRole('super-admin'), requireStage('dev', 'staging'), (req, res) => {
+  res.json({ status: 'RESET_SUCCESS', details: 'Core metrics destroyed under elevated command execution.' });
 });
 
 if (process.env.NODE_ENV !== 'test') {

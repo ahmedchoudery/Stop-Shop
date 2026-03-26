@@ -10,7 +10,7 @@ let db;
 export async function getDb() {
   if (db) return db;
   if (!client) {
-    client = new MongoClient(MONGO_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+    client = new MongoClient(MONGO_URI);
     await client.connect();
   }
   db = client.db(DB_NAME);

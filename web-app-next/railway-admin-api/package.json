@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
-    "test:e2e": "npx playwright test"
+    "test:e2e": "npx playwright test",
+    "migrate:db": "node scripts/migrate_seed_to_mongo.mjs"
   },
   "dependencies": {
     "express": "^4.18.2",

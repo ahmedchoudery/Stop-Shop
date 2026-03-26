@@ -30,3 +30,29 @@ export const rbacGate = (req, res, next) => {
     return res.status(401).json({ error: 'Unauthorized: Invalid token' });
   }
 };
+
+/**
+ * requireRole: Granular role validation mapping applied sequentially after rbacGate.
+ * Restricts the execution boundaries to specifically required explicit roles.
+ */
+export const requireRole = (requiredRole) => {
+  return (req, res, next) => {
+    if (!req.user || req.user.role !== requiredRole) {
+      return res.status(403).json({ error: `Forbidden: Requires explicit ${requiredRole} access.` });
+    }
+    next();
+  };
+};
+
+/**
+ * requireStage: Hardens API surfaces by globally obfuscating isolated features 
+ * from rendering their existence outside of designated staging thresholds.
+ */
+export const requireStage = (...allowedStages) => {
+  return (req, res, next) => {
+    if (!allowedStages.includes(config.rbacStage)) {
+      return res.status(404).json({ error: 'Not Found' });
+    }
+    next();
+  };
+};
