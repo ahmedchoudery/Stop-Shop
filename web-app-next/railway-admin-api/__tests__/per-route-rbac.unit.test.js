@@ -23,7 +23,7 @@ describe('Phase 12 Granular Granularity Middleware', () => {
       gate(req, res, next);
       
       expect(res.status).toHaveBeenCalledWith(403);
-      expect(res.json).toHaveBeenCalledWith({ error: 'Forbidden: Requires explicit super-admin access.' });
+      expect(res.json).toHaveBeenCalledWith({ error: 'Forbidden: Requires explicit [super-admin] access.' });
       expect(next).not.toHaveBeenCalled();
     });
 
