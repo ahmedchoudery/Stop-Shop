@@ -1,3 +1,4 @@
+import { jest } from '@jest/globals';
 import { requireRole, requireStage } from '../rbacGate.js';
 import { config } from '../config.js';
 

@@ -1,3 +1,4 @@
+import { jest } from '@jest/globals';
 import jwt from 'jsonwebtoken';
 import { rbacGate } from '../rbacGate.js';
 import { config } from '../config.js';
