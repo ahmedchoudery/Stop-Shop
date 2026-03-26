@@ -3,8 +3,10 @@ import cors from 'cors';
 import bodyParser from 'body-parser';
 import { config } from './config.js';
 import { rbacGate, requireRole, requireStage } from './rbacGate.js';
+import { AuditRepository } from './repositories/AuditRepository.js';
 
 const app = express();
+const auditRepo = new AuditRepository();
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -25,6 +27,17 @@ app.get('/api/admin/metrics', rbacGate, (req, res) => {
 // Phase 12 Granularity Tests: Endpoints strictly fenced inside constrained stages demanding explicit super-admin execution structures natively
 app.post('/api/admin/metrics/reset', rbacGate, requireRole('super-admin'), requireStage('dev', 'staging'), (req, res) => {
   res.json({ status: 'RESET_SUCCESS', details: 'Core metrics destroyed under elevated command execution.' });
+});
+
+// Phase 14 Telemetry: Filterable Audit streams strictly protected to internal auditors
+app.get('/api/admin/audits', rbacGate, requireRole('super-admin', 'auditor'), async (req, res) => {
+  try {
+    const filters = req.query;
+    const audits = await auditRepo.findAll(filters);
+    res.json(audits);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to access remote audit logs.' });
+  }
 });
 
 if (process.env.NODE_ENV !== 'test') {

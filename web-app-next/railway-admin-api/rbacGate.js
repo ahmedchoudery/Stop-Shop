@@ -35,10 +35,10 @@ export const rbacGate = (req, res, next) => {
  * requireRole: Granular role validation mapping applied sequentially after rbacGate.
  * Restricts the execution boundaries to specifically required explicit roles.
  */
-export const requireRole = (requiredRole) => {
+export const requireRole = (...allowedRoles) => {
   return (req, res, next) => {
-    if (!req.user || req.user.role !== requiredRole) {
-      return res.status(403).json({ error: `Forbidden: Requires explicit ${requiredRole} access.` });
+    if (!req.user || !allowedRoles.includes(req.user.role)) {
+      return res.status(403).json({ error: `Forbidden: Requires explicit [${allowedRoles.join(' or ')}] access.` });
     }
     next();
   };
