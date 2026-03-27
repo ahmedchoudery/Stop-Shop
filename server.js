@@ -24,11 +24,14 @@ app.use(cors({
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(null, false);
+      callback(new Error(`CORS: origin ${origin} not allowed`));
     }
   },
   credentials: true
 }));
+
+// Handle CORS preflight for all routes
+app.options('*', cors());
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -301,7 +304,7 @@ app.get('/api/public/products', async (req, res) => {
 // ─────────────────────────────────────────────────────────────────
 // STATS ROUTES
 // ─────────────────────────────────────────────────────────────────
-app.get('/api/stats/revenue', authenticateToken, async (req, res) => {
+app.get(['/api/stats/revenue', '/api/admin/stats/revenue'], authenticateToken, async (req, res) => {
   try {
     const orders = await Order.find({ status: { $ne: 'Cancelled' } });
     
@@ -360,7 +363,7 @@ app.get('/api/stats/revenue', authenticateToken, async (req, res) => {
   }
 });
 
-app.get('/api/stats/orders', authenticateToken, async (req, res) => {
+app.get(['/api/stats/orders', '/api/admin/stats/orders'], authenticateToken, async (req, res) => {
   try {
     const totalOrders = await Order.countDocuments({ status: { $ne: 'Cancelled' } });
     const pendingOrders = await Order.countDocuments({ status: 'Pending' });
@@ -370,7 +373,7 @@ app.get('/api/stats/orders', authenticateToken, async (req, res) => {
   }
 });
 
-app.get('/api/stats/inventory', authenticateToken, async (req, res) => {
+app.get(['/api/stats/inventory', '/api/admin/stats/inventory'], authenticateToken, async (req, res) => {
   try {
     const products = await Product.find();
     const totalProducts = products.length;
