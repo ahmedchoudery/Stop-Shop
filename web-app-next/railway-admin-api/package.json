@@ -15,7 +15,8 @@
     "uuid": "^9.0.0",
     "body-parser": "^1.20.0",
     "mongodb": "^5.3.0",
-    "dotenv": "^16.4.5"
+    "dotenv": "^16.4.5",
+    "bcryptjs": "^2.4.3"
   },
   "devDependencies": {
     "jsonwebtoken": "^9.0.0",
