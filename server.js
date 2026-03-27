@@ -27,11 +27,10 @@ app.use(cors({
       callback(new Error(`CORS: origin ${origin} not allowed`));
     }
   },
-  credentials: true
+  credentials: true,
+  preflightContinue: false,
+  optionsSuccessStatus: 204
 }));
-
-// Handle CORS preflight for all routes (Express 5 compatible)
-app.options('/{*path}', cors());
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
