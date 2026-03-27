@@ -4,11 +4,15 @@ import { Link } from 'react-router-dom';
 import MobileDrawer from './MobileDrawer';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
+import { useCurrency } from '../context/CurrencyContext';
+import { useLocale } from '../context/LocaleContext';
 import { apiUrl } from '../config/api';
 
 const Navbar = ({ onSearchOpen, onWishlistOpen }) => {
   const { cartCount, isBouncing, openDrawer, setActiveBucket, setActiveSub, setLastViewedBucket, setSortBy } = useCart();
   const { wishlistCount } = useWishlist();
+  const { currency, setCurrency, CURRENCIES } = useCurrency();
+  const { locale, t, setLocale } = useLocale();
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [logo, setLogo] = useState(null);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -38,27 +42,27 @@ const Navbar = ({ onSearchOpen, onWishlistOpen }) => {
   }, []);
 
   const navLinks = [
-    { name: 'Home', href: '/', bucket: 'All', categories: [] },
+    { name: t('nav.home'), href: '/', bucket: 'All', categories: [] },
     { 
-      name: 'Tops', 
+      name: t('nav.tops'), 
       href: '/#trending', 
       bucket: 'Tops', 
       categories: ['Shirts', 'T-Shirts', 'SweatShirts', 'Hoodies', 'Sweater', 'Jackets'] 
     },
     { 
-      name: 'Bottoms', 
+      name: t('nav.bottoms'), 
       href: '/#trending', 
       bucket: 'Bottoms', 
       categories: ['Jeans', 'Trousers', 'Shorts'] 
     },
     { 
-      name: 'Footwear', 
+      name: t('nav.footwear'), 
       href: '/#trending', 
       bucket: 'Footwear', 
       categories: ['Shoes', 'Slippers'] 
     },
     { 
-      name: 'Accessories', 
+      name: t('nav.accessories'), 
       href: '/#trending', 
       bucket: 'Accessories', 
       categories: ['Watches', 'Glasses', 'Caps', 'Rings', 'Bracelet', 'Chains', 'Bags'] 
@@ -141,6 +145,34 @@ const Navbar = ({ onSearchOpen, onWishlistOpen }) => {
 
             {/* Right Icons */}
             <div className="flex items-center space-x-2 sm:space-x-4">
+              {/* Currency & Locale Selectors (Desktop) */}
+              <div className="hidden xl:flex items-center space-x-4 border-r border-gray-100 pr-4 mr-2">
+                <div className="relative group/curr">
+                  <button className="flex items-center space-x-1 text-[9px] font-black uppercase tracking-widest text-gray-400 hover:text-black transition-colors">
+                    <span>{currency}</span>
+                    <ChevronDown size={10} className="group-hover/curr:rotate-180 transition-transform" />
+                  </button>
+                  <div className="absolute top-full right-0 mt-2 bg-white shadow-2xl border border-gray-100 py-2 min-w-[80px] opacity-0 invisible group-hover/curr:opacity-100 group-hover/curr:visible transition-all z-[60]">
+                    {Object.keys(CURRENCIES).map(code => (
+                      <button 
+                        key={code}
+                        onClick={() => setCurrency(code)}
+                        className={`w-full text-left px-4 py-2 text-[9px] font-black uppercase tracking-widest hover:bg-gray-50 transition-colors ${currency === code ? 'text-[#ba1f3d]' : 'text-gray-500'}`}
+                      >
+                        {code}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <button 
+                  onClick={() => setLocale(locale === 'en-US' ? 'ur-PK' : 'en-US')}
+                  className="text-[9px] font-black uppercase tracking-widest text-[#ba1f3d] hover:text-black transition-colors"
+                >
+                  {locale === 'en-US' ? 'Urdu' : 'English'}
+                </button>
+              </div>
+
               <button
                 onClick={onSearchOpen}
                 className="p-3 hover:bg-gray-50 rounded-full transition-all group lg:flex items-center"

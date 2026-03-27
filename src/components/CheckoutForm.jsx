@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import { useCart } from '../context/CartContext';
 import { CreditCard, Truck, CheckCircle, ArrowRight, ArrowLeft, Tag, X, AlertTriangle, ShoppingBag } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useLocale } from '../context/LocaleContext';
+import { useCurrency } from '../context/CurrencyContext';
 
 const PROMO_CODES = {
   'CARDINAL20': { discount: 0.20, label: '20% OFF' },
@@ -11,6 +13,8 @@ const PROMO_CODES = {
 
 const CheckoutForm = ({ onComplete, stockWarnings = [] }) => {
   const { total, cartItems } = useCart();
+  const { t } = useLocale();
+  const { formatPrice } = useCurrency();
   const [step, setStep] = useState(1);
   const [promoInput, setPromoInput] = useState('');
   const [appliedPromo, setAppliedPromo] = useState(null);
@@ -47,20 +51,20 @@ const CheckoutForm = ({ onComplete, stockWarnings = [] }) => {
     const newErrors = {};
 
     if (stepNum === 1) {
-      if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
-      if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
+      if (!formData.firstName.trim()) newErrors.firstName = `${t('forms.firstName')} ${t('forms.required')}`;
+      if (!formData.lastName.trim()) newErrors.lastName = `${t('forms.lastName')} ${t('forms.required')}`;
       if (!formData.email.trim()) {
-        newErrors.email = 'Email is required';
+        newErrors.email = `${t('forms.email')} ${t('forms.required')}`;
       } else if (!validateEmail(formData.email)) {
-        newErrors.email = 'Please enter a valid email';
+        newErrors.email = `${t('forms.email')} ${t('forms.invalid')}`;
       }
       if (!formData.phone.trim()) {
-        newErrors.phone = 'Phone number is required';
+        newErrors.phone = `${t('forms.phone')} ${t('forms.required')}`;
       } else if (!validatePhone(formData.phone)) {
-        newErrors.phone = 'Enter 11-digit number starting with 03';
+        newErrors.phone = `${t('forms.phone')} ${t('forms.invalid')}`;
       }
-      if (!formData.address.trim()) newErrors.address = 'Address is required';
-      if (!formData.city.trim()) newErrors.city = 'City is required';
+      if (!formData.address.trim()) newErrors.address = `${t('forms.address')} ${t('forms.required')}`;
+      if (!formData.city.trim()) newErrors.city = `${t('forms.city')} ${t('forms.required')}`;
     }
 
     if (stepNum === 2) {
@@ -135,7 +139,7 @@ const CheckoutForm = ({ onComplete, stockWarnings = [] }) => {
   const ProgressIndicator = () => (
     <div className="mb-10">
       <div className="flex items-center justify-between mb-3">
-        {[{ n: 1, label: 'Shipping' }, { n: 2, label: 'Payment' }, { n: 3, label: 'Review' }].map(({ n, label }) => (
+        {[{ n: 1, label: t('checkout.step1') }, { n: 2, label: t('checkout.step2') }, { n: 3, label: t('checkout.step3') }].map(({ n, label }) => (
           <div key={n} className="flex items-center">
             <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-black transition-all ${step >= n ? 'bg-[#ba1f3d] text-white shadow-lg shadow-[#ba1f3d]/10' : 'bg-gray-100 text-gray-400'
               }`}>
@@ -162,43 +166,43 @@ const CheckoutForm = ({ onComplete, stockWarnings = [] }) => {
               <div className="p-2 bg-red-50 rounded-xl">
                 <Truck className="text-[#ba1f3d]" size={22} />
               </div>
-              <h2 className="text-2xl font-black uppercase tracking-tighter">Shipping Info</h2>
+              <h2 className="text-2xl font-black uppercase tracking-tighter">{t('checkout.info')}</h2>
             </div>
             <div className="grid grid-cols-2 gap-6">
               <div className="space-y-1">
-                <label className={labelClass}>First Name *</label>
+                <label className={labelClass}>{t('forms.firstName')} *</label>
                 <input type="text" name="firstName" value={formData.firstName} onChange={handleInputChange} className={inputClass(!!errors.firstName)} placeholder="John" />
                 {errors.firstName && <p className={errorClass}>{errors.firstName}</p>}
               </div>
               <div className="space-y-1">
-                <label className={labelClass}>Last Name *</label>
+                <label className={labelClass}>{t('forms.lastName')} *</label>
                 <input type="text" name="lastName" value={formData.lastName} onChange={handleInputChange} className={inputClass(!!errors.lastName)} placeholder="Doe" />
                 {errors.lastName && <p className={errorClass}>{errors.lastName}</p>}
               </div>
             </div>
             <div className="space-y-1">
-              <label className={labelClass}>Email Address *</label>
+              <label className={labelClass}>{t('forms.email')} *</label>
               <input type="email" name="email" value={formData.email} onChange={handleInputChange} className={inputClass(!!errors.email)} placeholder="john@example.com" />
               {errors.email && <p className={errorClass}>{errors.email}</p>}
             </div>
             <div className="space-y-1">
-              <label className={labelClass}>Phone Number *</label>
+              <label className={labelClass}>{t('forms.phone')} *</label>
               <input type="tel" name="phone" value={formData.phone} onChange={handleInputChange} className={inputClass(!!errors.phone)} placeholder="03001234567" />
               {errors.phone && <p className={errorClass}>{errors.phone}</p>}
             </div>
             <div className="space-y-1">
-              <label className={labelClass}>Street Address *</label>
+              <label className={labelClass}>{t('forms.address')} *</label>
               <input type="text" name="address" value={formData.address} onChange={handleInputChange} className={inputClass(!!errors.address)} placeholder="123 Fashion Ave" />
               {errors.address && <p className={errorClass}>{errors.address}</p>}
             </div>
             <div className="grid grid-cols-2 gap-6">
               <div className="space-y-1">
-                <label className={labelClass}>City *</label>
+                <label className={labelClass}>{t('forms.city')} *</label>
                 <input type="text" name="city" value={formData.city} onChange={handleInputChange} className={inputClass(!!errors.city)} placeholder="Karachi" />
                 {errors.city && <p className={errorClass}>{errors.city}</p>}
               </div>
               <div className="space-y-1">
-                <label className={labelClass}>Postal Code</label>
+                <label className={labelClass}>{t('forms.zip')}</label>
                 <input type="text" name="zip" value={formData.zip} onChange={handleInputChange} className={inputClass(false)} placeholder="75500" />
               </div>
             </div>
@@ -212,7 +216,7 @@ const CheckoutForm = ({ onComplete, stockWarnings = [] }) => {
               <div className="p-2 bg-red-50 rounded-xl">
                 <CreditCard className="text-[#ba1f3d]" size={22} />
               </div>
-              <h2 className="text-2xl font-black uppercase tracking-tighter">Payment</h2>
+              <h2 className="text-2xl font-black uppercase tracking-tighter">{t('checkout.payment')}</h2>
             </div>
 
             <div className="space-y-3">
@@ -285,11 +289,11 @@ const CheckoutForm = ({ onComplete, stockWarnings = [] }) => {
                 <div className="p-2 bg-red-50 rounded-xl">
                   <CheckCircle className="text-[#ba1f3d]" size={22} />
                 </div>
-                <h2 className="text-2xl font-black uppercase tracking-tighter">Order Review</h2>
+                <h2 className="text-2xl font-black uppercase tracking-tighter">{t('checkout.review')}</h2>
               </div>
               <Link to="/" onClick={() => {}} className="flex items-center space-x-2 text-[10px] font-black uppercase tracking-widest text-[#ba1f3d] hover:text-gray-900 transition-colors">
                 <ShoppingBag size={14} />
-                <span>Edit Bag</span>
+                <span>{t('checkout.edit')}</span>
               </Link>
             </div>
 
@@ -319,7 +323,7 @@ const CheckoutForm = ({ onComplete, stockWarnings = [] }) => {
                       <p className="text-[10px] text-gray-400">Qty: {item.quantity || 1}{item.selectedSize ? ` · Size: ${item.selectedSize}` : ''}</p>
                     </div>
                   </div>
-                  <p className="font-black text-sm text-[#ba1f3d]">PKR {(item.price * (item.quantity || 1)).toLocaleString()}</p>
+                  <p className="font-black text-sm text-[#ba1f3d]">{formatPrice(item.price * (item.quantity || 1))}</p>
                 </div>
               ))}
             </div>
@@ -370,22 +374,22 @@ const CheckoutForm = ({ onComplete, stockWarnings = [] }) => {
             {/* Order Summary */}
             <div className="bg-gray-900 text-white rounded-2xl p-6 space-y-3 shadow-xl">
               <div className="flex justify-between text-sm">
-                <span className="text-gray-400 font-bold uppercase tracking-widest text-xs">Subtotal</span>
-                <span className="font-black">PKR {total.toLocaleString()}</span>
+                <span className="text-gray-400 font-bold uppercase tracking-widest text-xs">{t('checkout.subtotal')}</span>
+                <span className="font-black">{formatPrice(total)}</span>
               </div>
               {appliedPromo && (
                 <div className="flex justify-between text-sm">
-                  <span className="text-green-400 font-bold uppercase tracking-widest text-xs">Discount ({appliedPromo.label})</span>
-                  <span className="font-black text-green-400">-PKR {discount.toLocaleString()}</span>
+                  <span className="text-green-400 font-bold uppercase tracking-widest text-xs">{t('checkout.discount')} ({appliedPromo.label})</span>
+                  <span className="font-black text-green-400">-{formatPrice(discount)}</span>
                 </div>
               )}
               <div className="flex justify-between text-sm">
-                <span className="text-gray-400 font-bold uppercase tracking-widest text-xs">Shipping</span>
+                <span className="text-gray-400 font-bold uppercase tracking-widest text-xs">{t('checkout.step1')}</span>
                 <span className="font-black text-green-400">Free</span>
               </div>
               <div className="border-t border-gray-700 pt-3 flex justify-between items-center">
-                <span className="font-black uppercase tracking-tighter text-lg">Total</span>
-                <span className="text-3xl font-black text-[#ba1f3d]">PKR {finalTotal.toLocaleString()}</span>
+                <span className="font-black uppercase tracking-tighter text-lg">{t('checkout.total')}</span>
+                <span className="text-3xl font-black text-[#ba1f3d]">{formatPrice(finalTotal)}</span>
               </div>
             </div>
 
@@ -406,7 +410,7 @@ const CheckoutForm = ({ onComplete, stockWarnings = [] }) => {
             className="flex-1 py-4 border-2 border-gray-200 text-gray-700 font-black uppercase text-[11px] tracking-[0.2em] rounded-xl hover:border-gray-900 hover:bg-gray-50 flex items-center justify-center space-x-2 transition-all"
           >
             <ArrowLeft size={16} />
-            <span>Back</span>
+            <span>{t('checkout.back')}</span>
           </button>
         )}
 
@@ -416,7 +420,7 @@ const CheckoutForm = ({ onComplete, stockWarnings = [] }) => {
             style={{ backgroundColor: '#ba1f3d' }}
             className="flex-[2] py-4 text-white font-black uppercase text-[11px] tracking-[0.2em] rounded-xl shadow-xl hover:brightness-110 active:scale-95 flex items-center justify-center space-x-2 transition-all"
           >
-            <span>Next Step</span>
+            <span>{t('checkout.next')}</span>
             <ArrowRight size={16} />
           </button>
         ) : (
@@ -425,7 +429,7 @@ const CheckoutForm = ({ onComplete, stockWarnings = [] }) => {
             style={{ backgroundColor: '#F63049' }}
             className="flex-[2] py-4 text-white font-black uppercase text-[11px] tracking-[0.2em] rounded-xl shadow-2xl hover:brightness-110 active:scale-95 flex items-center justify-center space-x-2 transition-all"
           >
-            <span>Confirm Order 🎉</span>
+            <span>{t('checkout.confirm')} 🎉</span>
             <CheckCircle size={16} />
           </button>
         )}

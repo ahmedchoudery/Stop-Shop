@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { CheckCircle, Package, Truck, Home, ArrowRight, Copy } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useLocale } from '../context/LocaleContext';
 
 const OrderSuccessPage = ({ orderData }) => {
+    const { t } = useLocale();
     const [copied, setCopied] = useState(false);
     const orderId = orderData?.orderId || `SS-${Math.floor(100000 + Math.random() * 900000)}`;
     const estimatedDays = Math.floor(3 + Math.random() * 3);
@@ -36,18 +38,18 @@ const OrderSuccessPage = ({ orderData }) => {
 
                 <div className="animate-fade-up">
                     <p className="text-[10px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-4">
-                        Order Confirmed
+                        {t('success.confirmed')}
                     </p>
                     <h1 className="text-4xl sm:text-5xl font-black text-white uppercase tracking-tighter mb-4">
-                        Thank You!
+                        {t('success.title')}
                     </h1>
                     <p className="text-gray-400 text-lg font-medium mb-8">
-                        Your order has been placed successfully. You'll receive a confirmation email shortly.
+                        {t('success.subtitle')}
                     </p>
 
                     {/* Order ID */}
                     <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-8">
-                        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 mb-2">Order Reference</p>
+                        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 mb-2">{t('success.ref')}</p>
                         <div className="flex items-center justify-center space-x-3">
                             <span className="text-2xl font-black text-white font-mono">{orderId}</span>
                             <button
@@ -61,13 +63,13 @@ const OrderSuccessPage = ({ orderData }) => {
 
                     {/* Delivery Timeline */}
                     <div className="bg-white/5 border border-white/10 rounded-2xl p-6 mb-8 text-left">
-                        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 mb-6">Delivery Timeline</p>
+                        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 mb-6">{t('timeline.title')}</p>
                         <div className="space-y-4">
                             {[
-                                { icon: CheckCircle, label: 'Order Confirmed', status: 'done', time: 'Just now' },
-                                { icon: Package, label: 'Being Packed', status: 'active', time: 'Today' },
-                                { icon: Truck, label: 'Out for Delivery', status: 'pending', time: `${estimatedDays} days` },
-                                { icon: Home, label: 'Delivered', status: 'pending', time: `${estimatedDays + 1} days` },
+                                { icon: CheckCircle, label: t('success.confirmed'), status: 'done', time: t('timeline.now') },
+                                { icon: Package, label: t('timeline.pack'), status: 'active', time: t('timeline.today') },
+                                { icon: Truck, label: t('timeline.ship'), status: 'pending', time: `${estimatedDays} ${t('timeline.days')}` },
+                                { icon: Home, label: t('timeline.delivered') || 'Delivered', status: 'pending', time: `${estimatedDays + 1} ${t('timeline.days')}` },
                             ].map((step, i) => (
                                 <div key={i} className="flex items-center space-x-4">
                                     <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${step.status === 'done' ? 'bg-green-500/20 text-green-400' :
@@ -93,7 +95,7 @@ const OrderSuccessPage = ({ orderData }) => {
                         to="/"
                         className="inline-flex items-center space-x-3 bg-white text-black px-8 py-4 rounded-xl font-black uppercase tracking-widest text-sm hover:bg-[#ba1f3d] hover:text-white transition-all shadow-2xl active:scale-95"
                     >
-                        <span>Continue Shopping</span>
+                        <span>{t('checkout.continue')}</span>
                         <ArrowRight size={18} />
                     </Link>
                 </div>

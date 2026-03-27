@@ -15,7 +15,8 @@ const OrderTable = ({ externalOrders, loading: externalLoading, onStatusUpdated,
     if (externalOrders) return; // Skip if data is provided externally
     const token = localStorage.getItem('adminToken');
     try {
-      const response = await fetch(apiUrl('/api/orders'), {
+      // Phase 17: Use the dedicated Admin API orders endpoint
+      const response = await fetch(apiUrl('/api/admin/orders'), {
         headers: { 
           'Authorization': `Bearer ${token}` 
         }
@@ -42,7 +43,7 @@ const OrderTable = ({ externalOrders, loading: externalLoading, onStatusUpdated,
   const handleStatusChange = async (orderId, newStatus) => {
     const token = localStorage.getItem('adminToken');
     try {
-      const response = await fetch(apiUrl(`/api/orders/${orderId}`), {
+      const response = await fetch(apiUrl(`/api/admin/orders/${orderId}`), {
         method: 'PATCH',
         headers: { 
           'Content-Type': 'application/json',
@@ -104,12 +105,12 @@ const OrderTable = ({ externalOrders, loading: externalLoading, onStatusUpdated,
               {orders.map((order) => (
                 <tr key={order._id} className="hover:bg-gray-50 transition-colors group">
                   <td className="p-4 font-mono text-xs font-bold text-red-600">
-                    {order.orderID}
+                    {order.orderId || order.orderID || order._id}
                   </td>
                   <td className="p-4">
                     <div className="flex flex-col">
-                      <span className="text-sm font-black uppercase tracking-tight">{order.customer.name}</span>
-                      <span className="text-[10px] text-gray-400 font-medium">{order.customer.city}, Gujarat</span>
+                      <span className="text-sm font-black uppercase tracking-tight">{order.customer?.firstName} {order.customer?.lastName}</span>
+                      <span className="text-[10px] text-gray-400 font-medium">{order.customer?.city || 'Urgent Delivery'}</span>
                     </div>
                   </td>
                   <td className="p-4">
@@ -118,7 +119,7 @@ const OrderTable = ({ externalOrders, loading: externalLoading, onStatusUpdated,
                     </span>
                   </td>
                   <td className="p-4">
-                    <span className="text-sm font-black text-gray-900">PKR {order.total.toFixed(2)}</span>
+                    <span className="text-sm font-black text-gray-900">{order.currency || 'PKR'} {order.total?.toFixed(2)}</span>
                   </td>
                   <td className="p-4">
                     <div className="flex items-center space-x-3">

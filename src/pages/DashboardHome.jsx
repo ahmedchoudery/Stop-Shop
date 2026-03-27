@@ -22,9 +22,9 @@ const DashboardHome = () => {
     try {
       const headers = { 'Authorization': `Bearer ${token}` };
       const [revRes, ordRes, invRes] = await Promise.all([
-        fetch(apiUrl('/api/stats/revenue'), { headers }),
-        fetch(apiUrl('/api/stats/orders'), { headers }),
-        fetch(apiUrl('/api/stats/inventory'), { headers })
+        fetch(apiUrl('/api/admin/stats/revenue'), { headers }),
+        fetch(apiUrl('/api/admin/stats/orders'), { headers }),
+        fetch(apiUrl('/api/admin/stats/inventory'), { headers })
       ]);
       if (!revRes.ok || !ordRes.ok || !invRes.ok) throw new Error('Failed to synchronize stats');
       const [revData, ordData, invData] = await Promise.all([

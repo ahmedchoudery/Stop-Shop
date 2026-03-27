@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
 import { useRecentlyViewed } from '../components/RecentlyViewedContext';
+import { useCurrency } from '../context/CurrencyContext';
+import { useLocale } from '../context/LocaleContext';
 import SizeChartModal from '../components/SizeChartModal';
 import ProductLightbox from '../components/ProductLightbox';
 import MediaRenderer from '../components/MediaRenderer';
@@ -33,6 +35,8 @@ const UniversalDrawer = () => {
   const { isDrawerOpen, drawerMode, selectedProduct, closeDrawer, cartItems, removeFromCart, updateQuantity, total, addToCart, setCartItemOptions, setActiveBucket, setActiveSub } = useCart();
   const { toggleWishlist, isWishlisted } = useWishlist();
   const { addViewed } = useRecentlyViewed();
+  const { formatPrice } = useCurrency();
+  const { t } = useLocale();
 
   const [activeColor, setActiveColor] = useState(null);
   const [selectedSize, setSelectedSize] = useState('M');
@@ -131,7 +135,7 @@ const UniversalDrawer = () => {
       <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-[#ba1f3d] text-white">
         <div className="flex items-center space-x-3">
           <ShoppingBag size={24} />
-          <h2 className="text-xl font-black uppercase tracking-tighter">Your Bag</h2>
+          <h2 className="text-xl font-black uppercase tracking-tighter">{t('cart.view')}</h2>
           {cartItems.length > 0 && (
             <span className="bg-white text-[#ba1f3d] text-[10px] font-black px-2 py-0.5 rounded-none">
               {cartItems.reduce((s, i) => s + (i.quantity || 1), 0)}
@@ -146,7 +150,7 @@ const UniversalDrawer = () => {
       {cartItems.length > 0 && (
         <div className="px-6 py-4 bg-gray-50/50 border-b border-gray-100">
           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 mb-2">
-            {remaining > 0 ? <>Add <span className="text-[#ba1f3d]">PKR {remaining.toLocaleString()}</span> more for FREE shipping 🚚</> : '🎉 FREE shipping unlocked!'}
+            {remaining > 0 ? <>Add <span className="text-[#ba1f3d]">{formatPrice(remaining)}</span> more for FREE shipping 🚚</> : '🎉 FREE shipping unlocked!'}
           </p>
           <div className="h-1 bg-gray-200 rounded-none overflow-hidden">
             <div className="h-full bg-[#ba1f3d] transition-all duration-700 ease-out-expo" style={{ width: `${shippingProgress}%` }} />
@@ -184,7 +188,7 @@ const UniversalDrawer = () => {
                 <div className="flex-grow min-w-0">
                   <div className="flex justify-between items-start">
                     <h3 className="text-xs font-black uppercase tracking-tight text-gray-900 leading-tight truncate pr-2">{item.name}</h3>
-                    <p className="text-[#ba1f3d] font-black text-xs flex-shrink-0">PKR {(item.price * (item.quantity || 1)).toLocaleString()}</p>
+                    <p className="text-[#ba1f3d] font-black text-xs flex-shrink-0">{formatPrice(item.price * (item.quantity || 1))}</p>
                   </div>
                   {item.selectedSize && <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-1">Size: {item.selectedSize}</p>}
                   {sizeNotSelected && <p className="text-[9px] font-black text-[#ba1f3d] uppercase tracking-widest mt-1 animate-pulse">Select Size Below</p>}
@@ -247,7 +251,7 @@ const UniversalDrawer = () => {
                       <MediaRenderer src={up.image} alt={up.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                     </div>
                     <p className="text-[9px] font-black uppercase tracking-tight text-gray-900 truncate">{up.name}</p>
-                    <p className="text-[9px] text-[#ba1f3d] font-black mt-1">PKR {up.price.toLocaleString()}</p>
+                    <p className="text-[9px] text-[#ba1f3d] font-black mt-1">{formatPrice(up.price / 280)}</p>
                     <button onClick={() => addToCart({ ...up, quantity: 1, cartId: Date.now() })} className="mt-2 w-full text-[8px] font-black uppercase tracking-[0.2em] border border-gray-100 hover:bg-black hover:text-white py-2 transition-all">+ Add To Bag</button>
                   </div>
                 ))}
@@ -265,8 +269,8 @@ const UniversalDrawer = () => {
         return (
         <div className="p-8 border-t border-gray-100 bg-white">
           <div className="flex justify-between items-center mb-6">
-            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400">Total Obligation</span>
-            <span className="text-2xl font-black text-gray-900 tracking-tighter">PKR {total.toLocaleString()}</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400">{t('cart.total')}</span>
+            <span className="text-2xl font-black text-gray-900 tracking-tighter">{formatPrice(total)}</span>
           </div>
           {missingSize && (
             <p className="text-[10px] font-black text-[#ba1f3d] uppercase tracking-[0.2em] mb-4 animate-reveal-up">
@@ -351,7 +355,7 @@ const UniversalDrawer = () => {
           {/* Title / Price */}
           <div className="mb-10">
             <h2 className="text-3xl font-black text-gray-900 uppercase tracking-tighter mb-4 leading-[0.9]">{selectedProduct.name}</h2>
-            <p className="text-2xl text-[#ba1f3d] font-black tracking-tighter">PKR {selectedProduct.price.toLocaleString()}</p>
+            <p className="text-2xl text-[#ba1f3d] font-black tracking-tighter">{formatPrice(selectedProduct.price)}</p>
             <div className="flex items-center space-x-2 mt-4">
               {[...Array(5)].map((_, i) => (<Star key={i} size={11} className={i < selectedProduct.rating ? 'fill-[#ba1f3d] text-[#ba1f3d]' : 'text-gray-200'} />))}
               <span className="text-[10px] font-black uppercase tracking-widest text-gray-300 ml-3">Verified Experience ({selectedProduct.rating}.0)</span>

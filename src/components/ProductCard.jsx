@@ -2,11 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { Star, Heart, Play } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
+import { useCurrency } from '../context/CurrencyContext';
+import { useLocale } from '../context/LocaleContext';
 import MediaRenderer from './MediaRenderer';
 
 const ProductCard = ({ product, onSelectProduct, onImageLoad }) => {
   const { addToCart } = useCart();
   const { toggleWishlist, isWishlisted } = useWishlist();
+  const { formatPrice } = useCurrency();
+  const { t } = useLocale();
   const [isHovered, setIsHovered] = useState(false);
   const [activeColor, setActiveColor] = useState(product.colors?.[0] || null);
   const [galleryIndex, setGalleryIndex] = useState(0);
@@ -63,7 +67,7 @@ const ProductCard = ({ product, onSelectProduct, onImageLoad }) => {
       {/* Trending Badge */}
       <div className="absolute top-4 left-4 z-10">
         <span className="bg-[#ba1f3d] text-white text-[8px] sm:text-[9px] font-black px-3 py-1 rounded-none shadow-xl uppercase tracking-[0.2em]">
-          Trending
+          {t('status.trending')}
         </span>
       </div>
 
@@ -116,7 +120,7 @@ const ProductCard = ({ product, onSelectProduct, onImageLoad }) => {
         {product.stock === 0 && (
           <div className="absolute inset-0 bg-white/60 backdrop-blur-[4px] flex items-center justify-center">
             <span className="text-gray-900 font-black uppercase tracking-[0.4em] text-[10px] border-b-2 border-gray-900 pb-1">
-              Sold Out
+              {t('status.soldOut')}
             </span>
           </div>
         )}
@@ -132,7 +136,7 @@ const ProductCard = ({ product, onSelectProduct, onImageLoad }) => {
               style={{ backgroundColor: CARDINAL }}
               className="text-white font-black py-4 px-10 shadow-2xl hover:brightness-110 active:scale-95 text-[10px] uppercase tracking-[0.3em] transition-all"
             >
-              Add To Bag
+              {t('cart.add')}
             </button>
           )}
         </div>
@@ -170,7 +174,7 @@ const ProductCard = ({ product, onSelectProduct, onImageLoad }) => {
 
         <div className="flex items-center justify-between mt-auto">
           <p className="text-lg font-black text-[#ba1f3d] tracking-tight">
-            PKR {product.price.toLocaleString()}
+            {formatPrice(product.price)}
           </p>
           {product.stock > 0 && product.stock <= 5 && (
             <span className="text-[8px] font-black uppercase tracking-widest text-[#ba1f3d] animate-pulse">

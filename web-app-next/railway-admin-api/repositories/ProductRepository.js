@@ -1,52 +1,39 @@
 "use strict";
+
 export class ProductRepository {
   constructor() {
     this.collection = null;
   }
+
   async _init() {
     if (this.collection) return;
-    const { getDb } = await import('../db.js');
+    const { getDb } = await import("../db.js");
     const db = await getDb();
     this.collection = db.collection('products');
   }
+
   async _col() {
     if (!this.collection) await this._init();
     return this.collection;
   }
+
   async findAll() {
     const c = await this._col();
     return await c.find({}).toArray();
   }
-  async findById(id) {
+
+  async countTotal() {
     const c = await this._col();
-    return await c.findOne({ _id: id });
+    return await c.countDocuments({});
   }
-  async insert(doc) {
+
+  async findOutOfStock() {
     const c = await this._col();
-    const res = await c.insertOne(doc);
-    return res.insertedId;
+    return await c.countDocuments({ quantity: 0 });
   }
-  async update(id, update) {
+
+  async findLowStock(threshold = 5) {
     const c = await this._col();
-    return await c.updateOne({ _id: id }, { $set: update });
-  }
-  async delete(id) {
-    const c = await this._col();
-    return await c.deleteOne({ _id: id });
-  }
-  async bulkInsert(docs) {
-    const c = await this._col();
-    return await c.insertMany(docs);
-  }
-  async bulkDelete(ids) {
-    const c = await this._col();
-    return await c.deleteMany({ _id: { $in: ids } });
-  }
-  async updateSizeStock(productId, size, stock) {
-    const c = await this._col();
-    const path = `sizeStock.${size}`;
-    const update = { $set: {} };
-    update.$set[path] = stock;
-    return await c.updateOne({ _id: productId }, update);
+    return await c.countDocuments({ quantity: { $lt: threshold, $gt: 0 } });
   }
 }
