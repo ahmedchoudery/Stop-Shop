@@ -1,4 +1,4 @@
-name: Railway Admin API CI (Patch 9 Lean)
+name: Railway Admin API CI
 
 on:
   push:
@@ -6,23 +6,20 @@ on:
   pull_request:
     branches: [ "main" ]
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-  ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: true
-
 jobs:
   test-admin-api:
     runs-on: ubuntu-latest
-    
+
     env:
       MONGODB_URI: "mongodb://127.0.0.1:27017/stop_shop_test"
       MONGO_URL: "mongodb://127.0.0.1:27017/stop_shop_test"
       JWT_SECRET: "ci_testing_secret_key"
       RBAC_STAGE: "dev"
+      NODE_ENV: "test"
 
     services:
       mongodb:
-        image: mongo:latest
+        image: mongo:7
         ports:
           - 27017:27017
 
@@ -31,16 +28,17 @@ jobs:
         working-directory: ./web-app-next/railway-admin-api
 
     steps:
-    - uses: actions/checkout@v4.2.2
-    
+    - uses: actions/checkout@v4
+
     - name: Use Node.js 20.x
-      uses: actions/setup-node@v4.1.0
+      uses: actions/setup-node@v4
       with:
         node-version: 20.x
         cache: 'npm'
-        
+        cache-dependency-path: web-app-next/railway-admin-api/package-lock.json
+
     - name: Install Dependencies
       run: npm install
-      
+
     - name: Run Jest Unit & Integration Tests (ESM)
       run: npm test
