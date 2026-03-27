@@ -30,8 +30,8 @@ app.use(cors({
   credentials: true
 }));
 
-// Handle CORS preflight for all routes
-app.options('*', cors());
+// Handle CORS preflight for all routes (Express 5 compatible)
+app.options('/{*path}', cors());
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
