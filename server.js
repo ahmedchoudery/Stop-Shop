@@ -578,11 +578,14 @@ app.post('/api/checkout', async (req, res) => {
 // START SERVER
 // ─────────────────────────────────────────────────────────────────
 app.use(express.static(distPath));
-app.get('/{*splat}', (req, res) => {
+
+// SPA catch-all - must be last
+app.get('*', (req, res) => {
+  // Don't catch API routes
   if (req.path.startsWith('/api/')) {
     return res.status(404).json({ error: 'Not found' });
   }
-  return res.sendFile(path.join(distPath, 'index.html'));
+  res.sendFile(path.join(distPath, 'index.html'));
 });
 
 const PORT = process.env.PORT || 5000;
