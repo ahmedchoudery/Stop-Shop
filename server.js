@@ -14,7 +14,7 @@ const app = express();
 app.use(express.json({ limit: '50mb' }));
 const allowedFromEnv = (process.env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
 const defaultAllowed = [
-  'http://localhost:5173',
+  'http://localhost:5173', 'http://localhost:3000',
   'https://stop-shop-gamma.vercel.app'
 ];
 const allowedOrigins = [...new Set([...defaultAllowed, ...allowedFromEnv])];
