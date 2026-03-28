@@ -1,2 +1,5 @@
 [variables]
 NIXPACKS_NODE_VERSION = "20"
+
+[phases.build]
+cmds = ["echo 'Skipping frontend build - served from Vercel'"]
