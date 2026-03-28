@@ -476,18 +476,24 @@ app.post('/api/checkout', async (req, res) => {
 
     const precheckProducts = await Product.find({ id: { $in: items.map(i => i.id) } });
     const byId = new Map(precheckProducts.map(p => [p.id, p]));
-    for (const item of items) {
-      const orderedQty = Math.max(1, parseInt(item.quantity) || 1);
-      const product = byId.get(item.id);
-      if (!product) return res.status(400).json({ error: `Product not found: ${item.id}` });
-      const size = (item.selectedSize || '').trim();
-      if (size && product.sizeStock && product.sizeStock.get(size) !== undefined) {
-        const available = Math.max(0, parseInt(product.sizeStock.get(size)) || 0);
-        if (available < orderedQty) return res.status(400).json({ error: `Insufficient stock for ${product.name} (${size})` });
-      } else if ((product.quantity || 0) < orderedQty) {
-        return res.status(400).json({ error: `Insufficient stock for ${product.name}` });
-      }
-    }
+     for (const item of items) {
+       const orderedQty = Math.max(1, parseInt(item.quantity) || 1);
+       const product = byId.get(item.id);
+       if (!product) return res.status(400).json({ error: `Product not found: ${item.id}` });
+       const size = (item.selectedSize || '').trim();
+       
+       // Validate that selected size is valid for this product
+       if (size && (!product.sizes || !product.sizes.includes(size))) {
+         return res.status(400).json({ error: `Invalid size ${size} for product ${product.name}` });
+       }
+       
+       if (size && product.sizeStock && product.sizeStock.get(size) !== undefined) {
+         const available = Math.max(0, parseInt(product.sizeStock.get(size)) || 0);
+         if (available < orderedQty) return res.status(400).json({ error: `Insufficient stock for ${product.name} (${size})` });
+       } else if ((product.quantity || 0) < orderedQty) {
+         return res.status(400).json({ error: `Insufficient stock for ${product.name}` });
+       }
+     }
 
     const orderID = 'ORD-' + Math.random().toString(36).substr(2, 9).toUpperCase();
 
@@ -526,16 +532,16 @@ app.post('/api/checkout', async (req, res) => {
       </tr>
     `).join('');
 
-    const mainMailOptions = {
-      from: getEnv('EMAIL_USER', 'email_user'),
-      to: getEnv('ADMIN_EMAIL', 'admin_email', 'EMAIL_USER', 'email_user'),
-      subject: `New Order: ${orderID}`,
-      html: `
-        <h2 style="color:#F63049">New Order Summary</h2>
-        <p><strong>Order ID:</strong> ${orderID}</p>
-        <p><strong>Customer:</strong> ${customer.name} (${customer.email})</p>
-        <p><strong>Address:</strong> ${customer.address}, ${customer.city}, ${customer.zip}</p>
-        <table style="width:100%;border-collapse:collapse;margin-top:20px">
+     const mainMailOptions = {
+       from: getEnv('EMAIL_USER', 'email_user'),
+       to: getEnv('admin_email', 'admin_email', 'EMAIL_USER', 'email_user'),
+       subject: `New Order: ${orderID}`,
+       html: `
+         <h2 style="color:#F63049">New Order Summary</h2>
+         <p><strong>Order ID:</strong> ${orderID}</p>
+         <p><strong>Customer:</strong> ${customer.name} (${customer.email})</p>
+         <p><strong>Address:</strong> ${customer.address}, ${customer.city}, ${customer.zip}</p>
+         <table style="width:100%;border-collapse:collapse;margin-top:20px">
           <thead>
             <tr style="background:#f2f2f2">
               <th style="padding:8px;border:1px solid #ddd;text-align:left">Name</th>
@@ -580,13 +586,7 @@ app.post('/api/checkout', async (req, res) => {
 app.use(express.static(distPath));
 
 // SPA catch-all - must be last
-app.get('*', (req, res) => {
-  // Don't catch API routes
-  if (req.path.startsWith('/api/')) {
-    return res.status(404).json({ error: 'Not found' });
-  }
-  res.sendFile(path.join(distPath, 'index.html'));
-});
+app.all(/.*/, (req, res) => { res.sendFile(path.join(distPath, "index.html")); });
 
 const PORT = process.env.PORT || 5000;
 
