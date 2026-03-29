@@ -25,10 +25,10 @@ const InventoryTable = () => {
       setProducts(data);
     } catch (err) {
       if (err.name === 'TypeError' && err.message === 'Failed to fetch') {
-        const attemptedUrl = apiUrl('/api/admin/products');
-        setError(`Connection Refused. URL attempted: ${attemptedUrl}. Check if your backend is live.`);
+        const url = apiUrl('/api/admin/products');
+        setError(`Backend Connection Failed: ${url}. Please verify if the Railway service is healthy.`);
       } else {
-        setError(`${err.message} (URL: ${apiUrl('/api/admin/products')})`);
+        setError(`Inventory Sync Error: ${err.message}`);
       }
     } finally {
       setLoading(false);

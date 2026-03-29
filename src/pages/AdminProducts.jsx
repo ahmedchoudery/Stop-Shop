@@ -94,10 +94,10 @@ export default function AdminProducts() {
       setProducts(await res.json());
     } catch (e) {
       if (e.name === 'TypeError' && e.message === 'Failed to fetch') {
-        const attemptedUrl = apiUrl('/api/admin/products');
-        setError(`Failed to connect to API. URL attempted: ${attemptedUrl}. Please verify your backend is running and CORS is allowed.`);
+        const url = apiUrl('/api/admin/products');
+        setError(`CRITICAL: Backend Unreachable at ${url}. If you see this in production, please check your Railway logs for a 502/Crash error.`);
       } else {
-        setError(`${e.message} (Attempted: ${apiUrl('/api/admin/products')})`);
+        setError(`API Error: ${e.message} (Target: ${apiUrl('/api/admin/products')})`);
       }
     } finally {
       setLoading(false);
