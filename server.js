@@ -19,6 +19,24 @@ import { validateRequest, loginSchema, createProductSchema, updateProductSchema,
 
 dotenv.config();
 
+console.log('--- DIAGNOSTIC STARTUP ---');
+console.log('NODE_ENV:', process.env.NODE_ENV);
+console.log('PORT:', process.env.PORT);
+console.log('MONGO_URI Present:', !!(process.env.MONGO_URI || process.env.MONGODB_URI));
+console.log('JWT_SECRET Present:', !!process.env.JWT_SECRET);
+console.log('--------------------------');
+
+// Global error handlers for debugging crashes
+process.on('uncaughtException', (err) => {
+  console.error('FATAL: Uncaught Exception:', err.message);
+  console.error(err.stack);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('FATAL: Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
 // ─────────────────────────────────────────────────────────────────
 // CUSTOM ERROR CLASSES
 // ─────────────────────────────────────────────────────────────────
@@ -184,6 +202,15 @@ const getEnv = (...keys) => {
   }
   return undefined;
 };
+
+// ─────────────────────────────────────────────────────────────────
+// START SERVER EARLY (Prevent Railway 502 Healthcheck Timeout)
+// ─────────────────────────────────────────────────────────────────
+const PORT = process.env.PORT || 5000;
+const server = app.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 API Server listening on port ${PORT}`);
+  console.log(`Health endpoint: http://localhost:${PORT}/api/health`);
+});
 
 // ─────────────────────────────────────────────────────────────────
 // DATABASE CONNECTION
@@ -986,11 +1013,7 @@ app.use((req, res, next) => {
 // Global error handler
 app.use(globalErrorHandler);
 
-const PORT = process.env.PORT || 5000;
-
-const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-});
+// app.listen moved to top
 
 const gracefulShutdown = async (signal) => {
   console.log(`\n${signal} received. Starting graceful shutdown...`);
