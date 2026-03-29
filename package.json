@@ -3,6 +3,9 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "engines": {
+    "node": ">=20.19.0"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -55,6 +58,6 @@
     "tailwindcss": "^3.3.3",
     "typescript": "^5.3.3",
     "vite": "^4.4.5",
-    "vitest": "^4.1.2"
+    "vitest": "^1.6.0"
   }
 }
