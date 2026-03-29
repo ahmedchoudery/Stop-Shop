@@ -217,22 +217,19 @@ const server = app.listen(PORT, '0.0.0.0', () => {
 // ─────────────────────────────────────────────────────────────────
 const mongoUri = getEnv('MONGO_URI', 'MONGODB_URI');
 if (!mongoUri) {
-  console.error('❌ Missing MongoDB env var (MONGO_URI or MONGODB_URI)');
-  process.exit(1);
+  console.error('❌ Missing MongoDB env var (MONGO_URI or MONGODB_URI) - STAYING ALIVE FOR DIAGNOSTICS');
+} else {
+  mongoose.connect(mongoUri, {
+    maxPoolSize: 10,
+    socketTimeoutMS: 45000,
+    serverSelectionTimeoutMS: 5000,
+    family: 4
+  })
+    .then(() => console.log('✅ Connected to MongoDB'))
+    .catch(err => {
+      console.error('❌ MongoDB connection error:', err);
+    });
 }
-
-mongoose.connect(mongoUri, {
-  maxPoolSize: 10,
-  socketTimeoutMS: 45000,
-  serverSelectionTimeoutMS: 5000,
-  family: 4
-})
-  .then(() => console.log('✅ Connected to MongoDB'))
-  .catch(err => {
-    console.error('❌ MongoDB connection error:', err);
-    // Don't exit — let the server stay up so healthcheck passes
-    // and Railway doesn't kill the container
-  });
 
 // ─────────────────────────────────────────────────────────────────
 // SCHEMAS & MODELS
