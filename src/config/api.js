@@ -2,22 +2,30 @@ const isBrowser = typeof window !== 'undefined';
 const host = isBrowser ? window.location.hostname : '';
 const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host.endsWith('.local');
 const isProductionHost = isBrowser && !isLocalHost;
+
+// The base URL from environment (Vercel/Local)
+let envBase = (import.meta.env.VITE_API_URL || '').trim();
+
+// If it's an external URL (contains dots and doesn't have protocol), add https://
+if (envBase && !envBase.startsWith('http') && envBase.includes('.')) {
+  envBase = `https://${envBase}`;
+}
+
+const envIsFrontendHost = isBrowser && envBase.includes(window.location.host);
 const SAFE_PROD_API = 'https://stop-shop-production.up.railway.app';
 
-const envBase = (import.meta.env.VITE_API_URL || '').trim().replace(/\/+$/, '');
-const envIsFrontendHost = /^https?:\/\/[^/]*vercel\.app/i.test(envBase);
+// Choose the actual API base to use
 const rawBaseUrl = isProductionHost
   ? (envBase && !envIsFrontendHost ? envBase : SAFE_PROD_API)
   : envBase;
 
-// If VITE_API_URL is not provided, use relative paths.
-// This works with Railway (same origin) and with Vite proxy in development.
-const API_BASE = rawBaseUrl.trim().replace(/\/+$/, '');
+const API_BASE = (rawBaseUrl || '').trim().replace(/\/+$/, '');
 
 export const apiUrl = (path) => {
   if (!path.startsWith('/')) {
     throw new Error('apiUrl(path) expects a leading slash');
   }
+  // Return absolute URL only if API_BASE is set and it's not pointing to the same host
   return API_BASE ? `${API_BASE}${path}` : path;
 };
 

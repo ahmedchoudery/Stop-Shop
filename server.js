@@ -143,22 +143,30 @@ app.use(express.json({ limit: '10kb' }));
 app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 
 // CORS
-const allowedFromEnv = (process.env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
 const defaultAllowed = [
-  'http://localhost:5173', 'http://localhost:3000',
+  'http://localhost:5173', 
+  'http://localhost:3000',
   'https://stop-shop-gamma.vercel.app',
   'https://stop-shop-4da620xej-ahmedchouderys-projects.vercel.app'
 ];
+const allowedFromEnv = (process.env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
 const allowedOrigins = [...new Set([...defaultAllowed, ...allowedFromEnv])];
 
 app.use(cors({
   origin: function (origin, callback) {
     // Allow requests with no origin (mobile apps, curl, etc.)
     if (!origin) return callback(null, true);
-    // Allow any vercel.app subdomain for this project
-    if (/^https:\/\/stop-shop[^.]*\.vercel\.app$/.test(origin)) return callback(null, true);
-    if (allowedOrigins.includes(origin)) return callback(null, true);
-    callback(null, false);
+    
+    // Check if origin is in the allowed list or is a Vercel preview/project URL
+    const isAllowed = allowedOrigins.includes(origin) || 
+                      /^https:\/\/stop-shop.*\.vercel\.app$/.test(origin);
+    
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      console.warn(`[CORS] Blocked request from origin: ${origin}`);
+      callback(null, false);
+    }
   },
   credentials: true
 }));
