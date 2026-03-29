@@ -2,11 +2,8 @@
 NIXPACKS_NODE_VERSION = "20"
 NODE_ENV = "production"
 
-[phases.setup]
-nixPkgs = ["nodejs_20"]
-
 [phases.install]
 cmds = ["npm ci"]
 
 [phases.build]
-cmds = ["npm run build"]
+cmds = ["npm run build", "npm prune --omit=dev"]
