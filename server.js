@@ -121,15 +121,35 @@ const globalErrorHandler = (err, req, res, next) => {
 // ─────────────────────────────────────────────────────────────────
 const app = express();
 
-// Health check BEFORE all middleware - must always return 200
+// Trust Railway/proxy headers (required for rate-limit & cookies behind load balancer)
+app.set('trust proxy', 1);
+
+// ─────────────────────────────────────────────────────────────────
+// PRE-MIDDLEWARE HEALTH & DIAGNOSTIC ROUTES
+// These MUST stay above helmet/cors/rate-limit so they always respond
+// ─────────────────────────────────────────────────────────────────
+
+// Health check - Railway uses this to verify the container is alive
 app.get('/api/health', (req, res) => {
-  res.status(200).json({ status: 'healthy', uptime: process.uptime() });
+  res.status(200).json({ status: 'healthy', uptime: process.uptime(), env: process.env.NODE_ENV });
 });
 
-// TEST ROUTE AT BEGINNING
+// Diagnostic route - helps confirm env vars are loaded without exposing secrets
+app.get('/_diag', (req, res) => {
+  res.json({
+    status: 'alive',
+    uptime: process.uptime(),
+    node_env: process.env.NODE_ENV,
+    port: process.env.PORT,
+    mongo_uri_present: !!(process.env.MONGO_URI || process.env.MONGODB_URI),
+    jwt_secret_present: !!(process.env.JWT_SECRET || process.env.jwt_secret),
+    memory: process.memoryUsage()
+  });
+});
+
+// Basic test route
 app.get('/api/test', (req, res) => {
-  console.log('TEST ROUTE AT BEGINNING HIT!');
-  res.json({ test: true, message: 'Test route at beginning works' });
+  res.json({ test: true, message: 'Server is reachable' });
 });
 
 // Security headers
@@ -204,12 +224,14 @@ const getEnv = (...keys) => {
 };
 
 // ─────────────────────────────────────────────────────────────────
-// START SERVER EARLY (Prevent Railway 502 Healthcheck Timeout)
+// START SERVER (Bind port before DB/heavy init to pass Railway health check)
 // ─────────────────────────────────────────────────────────────────
-const PORT = process.env.PORT || 5000;
+const PORT = parseInt(process.env.PORT || '5000', 10);
+console.log(`[STARTUP] Binding to port ${PORT}...`);
 const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 API Server listening on port ${PORT}`);
-  console.log(`Health endpoint: http://localhost:${PORT}/api/health`);
+  console.log(`✅ Server listening on 0.0.0.0:${PORT}`);
+  console.log(`Health: http://0.0.0.0:${PORT}/api/health`);
+  console.log(`Diag:   http://0.0.0.0:${PORT}/_diag`);
 });
 
 // ─────────────────────────────────────────────────────────────────
