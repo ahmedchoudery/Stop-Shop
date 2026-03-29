@@ -11,7 +11,7 @@
     "build": "vite build",
     "start": "node server.js",
     "railway-build": "npm run build",
-    "lint": "eslint . --ext js,jsx --report-unused-disable-directives --max-warnings 0",
+    "lint": "eslint . --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest"
