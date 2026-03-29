@@ -7,13 +7,14 @@ const sanitizeString = (str) => {
     .trim();
 };
 
-const sanitizeObject = (obj) => {
+const sanitizeObject = (obj, depth = 0) => {
+  if (depth > 10) return obj; // Prevent deep recursion crashes
   if (typeof obj === 'string') return sanitizeString(obj);
-  if (Array.isArray(obj)) return obj.map(sanitizeObject);
+  if (Array.isArray(obj)) return obj.map(item => sanitizeObject(item, depth + 1));
   if (obj && typeof obj === 'object') {
     const sanitized = {};
     for (const [key, value] of Object.entries(obj)) {
-      sanitized[key] = sanitizeObject(value);
+      sanitized[key] = sanitizeObject(value, depth + 1);
     }
     return sanitized;
   }
@@ -22,36 +23,44 @@ const sanitizeObject = (obj) => {
 
 export const sanitizeInput = (req, res, next) => {
   try {
+    // Sanitize body if present and it's a writable object
     if (req.body && typeof req.body === 'object') {
       const sanitizedBody = sanitizeObject(req.body);
-      // Try to reassign, if it fails (non-writable), try to clear and assign
-      try { req.body = sanitizedBody; } catch (e) {
-        for (const key in req.body) delete req.body[key];
-        Object.assign(req.body, sanitizedBody);
-      }
-    }
-    if (req.query && typeof req.query === 'object') {
-      const sanitizedQuery = sanitizeObject(req.query);
-      try { req.query = sanitizedQuery; } catch (e) {
-        // If req.query is a getter/non-writable, we might not be able to delete/assign
-        // In Express 5, req.query is often a getter that returns an object.
-        // We can try to modify that object's properties if it's not frozen.
-        const q = req.query;
-        for (const key in q) {
-          if (typeof q[key] === 'string') q[key] = sanitizeString(q[key]);
+      try {
+        // Only if it's a plain object can we reliably merge safely
+        if (req.body.constructor === Object) {
+          for (const key in req.body) delete req.body[key];
+          Object.assign(req.body, sanitizedBody);
+        } else {
+          req.body = sanitizedBody;
+        }
+      } catch (e) {
+        // Fallback for non-reassignable objects
+        for (const key in sanitizedBody) {
+          try { req.body[key] = sanitizedBody[key]; } catch (ie) { /* ignore non-writable property */ }
         }
       }
     }
+
+    // Sanitize query parameters in-place where possible
+    if (req.query && typeof req.query === 'object') {
+      for (const key in req.query) {
+        if (typeof req.query[key] === 'string') {
+          try { req.query[key] = sanitizeString(req.query[key]); } catch (e) { /* ignore non-writable property */ }
+        }
+      }
+    }
+
+    // Sanitize URL params in-place where possible
     if (req.params && typeof req.params === 'object') {
-      const sanitizedParams = sanitizeObject(req.params);
-      try { req.params = sanitizedParams; } catch (e) {
-        for (const key in req.params) {
-          if (typeof req.params[key] === 'string') req.params[key] = sanitizeString(req.params[key]);
+      for (const key in req.params) {
+        if (typeof req.params[key] === 'string') {
+          try { req.params[key] = sanitizeString(req.params[key]); } catch (e) { /* ignore non-writable property */ }
         }
       }
     }
   } catch (err) {
-    console.error('Sanitization Error:', err);
+    console.error('Non-critical Sanitization Error:', err);
   }
   next();
 };

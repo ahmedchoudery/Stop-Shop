@@ -12,7 +12,8 @@ if (envBase && !envBase.startsWith('http') && envBase.includes('.')) {
 }
 
 const envIsFrontendHost = isBrowser && envBase.includes(window.location.host);
-const SAFE_PROD_API = 'https://stop-shop-production.up.railway.app';
+const SAFE_PROD_API = 'https://stop-shop-production-3860.up.railway.app';
+const SECONDARY_SAFE_API = 'https://stop-shop-production.up.railway.app';
 
 // Choose the actual API base to use
 const rawBaseUrl = isProductionHost
