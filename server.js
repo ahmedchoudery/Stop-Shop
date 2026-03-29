@@ -103,6 +103,11 @@ const globalErrorHandler = (err, req, res, next) => {
 // ─────────────────────────────────────────────────────────────────
 const app = express();
 
+// Health check BEFORE all middleware - must always return 200
+app.get('/api/health', (req, res) => {
+  res.status(200).json({ status: 'healthy', uptime: process.uptime() });
+});
+
 // TEST ROUTE AT BEGINNING
 app.get('/api/test', (req, res) => {
   console.log('TEST ROUTE AT BEGINNING HIT!');
@@ -367,29 +372,6 @@ const transporter = nodemailer.createTransport({
     user: getEnv('EMAIL_USER', 'email_user'),
     pass: getEnv('EMAIL_PASS', 'email_pass')
   }
-});
-
-// ─────────────────────────────────────────────────────────────────
-// HEALTH CHECK
-// ─────────────────────────────────────────────────────────────────
-app.get('/api/health', (req, res) => {
-  try {
-    const dbState = mongoose.connection.readyState;
-    const dbStatus = { 0: 'disconnected', 1: 'connected', 2: 'connecting', 3: 'disconnecting' };
-    res.status(200).json({
-      status: 'healthy',
-      timestamp: new Date().toISOString(),
-      database: dbStatus[dbState] || 'unknown',
-      uptime: process.uptime()
-    });
-  } catch (err) {
-    console.error('Health check error:', err);
-    res.status(200).json({ status: 'healthy', uptime: process.uptime() });
-  }
-});
-
-app.get('/api/test', (req, res) => {
-  res.json({ test: true, message: 'Test route works' });
 });
 
 // ─────────────────────────────────────────────────────────────────
