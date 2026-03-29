@@ -6,6 +6,7 @@ import cors from 'cors';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import helmet from 'helmet';
 import compression from 'compression';
@@ -340,7 +341,8 @@ const authLimiter = rateLimit({
   message: { error: 'Too many login attempts. Please try again in 15 minutes.' },
   standardHeaders: true,
   legacyHeaders: false,
-  skipSuccessfulRequests: true
+  skipSuccessfulRequests: true,
+  validate: { xForwardedForHeader: false }
 });
 
 const apiLimiter = rateLimit({
@@ -348,7 +350,8 @@ const apiLimiter = rateLimit({
   max: 100,
   message: { error: 'Too many requests. Please slow down.' },
   standardHeaders: true,
-  legacyHeaders: false
+  legacyHeaders: false,
+  validate: { xForwardedForHeader: false }
 });
 
 // ─────────────────────────────────────────────────────────────────
@@ -967,22 +970,23 @@ app.post('/api/checkout', validateRequest(checkoutSchema), async (req, res) => {
 // ─────────────────────────────────────────────────────────────────
 // SERVE STATIC FILES
 // ─────────────────────────────────────────────────────────────────
-// TEMPORARILY DISABLED: app.use(express.static(distPath));
-
-// SPA catch-all - must be last (only for non-API routes)
-app.use((req, res, next) => {
-  console.log(`SPA check: ${req.path}`);
-  if (req.path.startsWith('/api')) {
-    console.log('Skipping SPA, passing to next');
-    return next();
-  }
-  res.sendFile(path.join(distPath, "index.html"));
-});
+if (fs.existsSync(distPath)) {
+  app.use(express.static(distPath));
+}
 
 // 404 handler for API routes
 app.use('/api', (req, res) => {
-  console.log(`API 404: ${req.path}`);
   res.status(404).json({ error: 'API endpoint not found', path: req.path });
+});
+
+// SPA catch-all - must be last (only for non-API routes)
+app.use((req, res, next) => {
+  const indexPath = path.join(distPath, 'index.html');
+  if (fs.existsSync(indexPath)) {
+    res.sendFile(indexPath);
+  } else {
+    res.status(200).json({ status: 'API server running', message: 'Frontend not built' });
+  }
 });
 
 // Global error handler
