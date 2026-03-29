@@ -1,30 +1,55 @@
-import React, { useEffect, useState } from 'react';
-import { ArrowRight, ArrowDown } from 'lucide-react';
+import React, { useEffect, useRef } from 'react';
+import { ArrowRight } from 'lucide-react';
+import { gsap } from 'gsap';
+import HeroScene from './HeroScene';
 
 const PowerOfChoiceHero = () => {
-  const [isVisible, setIsVisible] = useState(false);
+  const containerRef = useRef(null);
+  const textRef = useRef(null);
+  const badgeRef = useRef(null);
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsVisible(true), 100);
-    return () => clearTimeout(timer);
+    const ctx = gsap.context(() => {
+      // Entrance Animation
+      gsap.from(textRef.current.children, {
+        y: 100,
+        opacity: 0,
+        duration: 1.2,
+        stagger: 0.2,
+        ease: 'expo.out'
+      });
+
+      gsap.from(badgeRef.current, {
+        x: 50,
+        opacity: 0,
+        duration: 1,
+        delay: 0.8,
+        ease: 'power3.out'
+      });
+    }, containerRef);
+
+    return () => ctx.revert();
   }, []);
 
   return (
-    <section className="relative overflow-hidden bg-white text-gray-900 border-b border-gray-100">
-      <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[95vh]">
+    <section ref={containerRef} className="relative overflow-hidden bg-white text-gray-900 border-b border-gray-100">
+      <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[90vh]">
+        
         {/* Text Column */}
-        <div className="lg:col-span-7 flex flex-col justify-center px-8 py-24 md:px-16 lg:px-24 bg-white z-10 relative">
-          <div className={`max-w-2xl transition-all duration-1000 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}>
+        <div className="lg:col-span-7 flex flex-col justify-center px-8 py-24 md:px-16 lg:px-24 bg-white z-20 relative">
+          <div ref={textRef} className="max-w-2xl">
             <div className="flex items-center space-x-3 mb-10 overflow-hidden">
-              <div className="w-10 h-[2px] bg-[#ba1f3d] animate-reveal-left" />
+              <div className="w-10 h-[2px] bg-[#ba1f3d]" />
               <span className="text-[10px] font-black uppercase tracking-[0.6em] text-[#ba1f3d]">
                 Supreme Elegance · Pakistan Edition
               </span>
             </div>
 
-            <h1 className="text-6xl md:text-8xl lg:text-[10rem] font-black leading-[0.85] tracking-tighter mb-10 uppercase">
-              Pure <br />
-              <span className="text-transparent" style={{ WebkitTextStroke: '2px #ba1f3d' }}>Power</span>
+            <h1 className="text-6xl md:text-8xl lg:text-[9rem] font-black leading-[0.8] tracking-tighter mb-10 uppercase">
+              <span className="block text-gray-900">The Power</span>
+              <span className="block text-transparent" style={{ WebkitTextStroke: '2px #ba1f3d' }}>
+                Of Choice
+              </span>
             </h1>
 
             <p className="text-gray-500 text-xl font-medium leading-relaxed mb-12 max-w-lg">
@@ -43,52 +68,32 @@ const PowerOfChoiceHero = () => {
                 Lookbook
               </button>
             </div>
-
           </div>
-
         </div>
 
-        {/* Image Column */}
-        <div className="lg:col-span-5 relative h-[70vh] lg:h-full overflow-hidden bg-gray-50">
-          <div 
-            className={`absolute inset-0 w-full h-full grayscale-[0.2] transition-all duration-[2000ms] ease-out-expo ${isVisible ? 'scale-100 opacity-100' : 'scale-110 opacity-0'}`}
-          >
-            <img
-              src="/src/assets/premium_suit_hero.png"
-              alt="Power of Choice - Pakistan Premium Collection"
-              className="w-full h-full object-cover object-top"
-            />
+        {/* 3D Visual Column */}
+        <div className="lg:col-span-5 relative h-[70vh] lg:h-full overflow-hidden bg-gray-50 flex items-center justify-center">
+          {/* 3D Scene */}
+          <div className="absolute inset-0 z-0 bg-gradient-to-tr from-gray-50 to-white">
+             <HeroScene />
           </div>
-          <div className="absolute inset-0 bg-gradient-to-l from-transparent via-transparent to-white/20 lg:block hidden" />
+
+          
+          <div className="absolute inset-0 bg-gradient-to-l from-transparent via-transparent to-white/40 lg:block hidden z-10 pointer-events-none" />
           
           {/* Floating badge */}
-          <div className={`absolute bottom-12 right-12 bg-gray-900 text-white p-8 shadow-3xl transition-all duration-1000 delay-700 animate-3d-float ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-12'}`}>
+          <div ref={badgeRef} className="absolute bottom-12 right-12 bg-gray-900 text-white p-8 shadow-3xl z-20">
             <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#ba1f3d] mb-2">Exclusive</p>
             <p className="text-3xl font-black leading-none mb-1 uppercase tracking-tighter">Luxury <br/> Shipping</p>
             <p className="text-[11px] font-bold text-gray-400 uppercase tracking-[0.2em] mt-3">Orders over PKR 2,000</p>
           </div>
 
           {/* Decorative Pattern */}
-          <div className="absolute top-0 right-0 p-12 opacity-5">
+          <div className="absolute top-0 right-0 p-12 opacity-5 z-0">
              <div className="w-48 h-48 border-[20px] border-gray-900 rounded-full" />
           </div>
         </div>
       </div>
-      <style dangerouslySetInnerHTML={{ __html: `
-        .vertical-text { writing-mode: vertical-rl; transform: rotate(180deg); }
-        @keyframes scroll-indicator {
-          0% { transform: translateY(-100%); }
-          100% { transform: translateY(100%); }
-        }
-        .animate-scroll-indicator { animation: scroll-indicator 2s infinite cubic-bezier(0.77, 0, 0.175, 1); }
-        .animate-reveal-left {
-          animation: revealLeft 1s cubic-bezier(0.77, 0, 0.175, 1) forwards;
-        }
-        @keyframes revealLeft {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(0); }
-        }
-      `}} />
     </section>
   );
 };
