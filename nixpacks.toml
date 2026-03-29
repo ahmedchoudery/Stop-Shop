@@ -1,10 +1,9 @@
 [variables]
 NIXPACKS_NODE_VERSION = "20"
 NODE_ENV = "production"
-NPM_CONFIG_LEGACY_PEER_DEPS = "true"
 
 [phases.install]
-cmds = ["npm install --legacy-peer-deps"]
+cmds = ["npm ci"]
 
 [phases.build]
 cmds = ["npm run build", "npm prune --omit=dev"]
