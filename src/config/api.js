@@ -11,6 +11,13 @@ if (envBase && !envBase.startsWith('http') && envBase.includes('.')) {
   envBase = `https://${envBase}`;
 }
 
+// FORCED OVERRIDE: If the environment variable contains the broken -3860 suffix, strip it.
+// This handles cases where Vercel dashboard environment variables are stale.
+if (envBase.includes('stop-shop-production-3860')) {
+  envBase = envBase.replace('stop-shop-production-3860', 'stop-shop-production');
+  if (isBrowser) console.warn('DIAGNOSTIC: Coring stale -3860 subdomain detected in environment. Overriding to stop-shop-production.');
+}
+
 const envIsFrontendHost = isBrowser && envBase.includes(window.location.host);
 const SAFE_PROD_API = 'https://stop-shop-production.up.railway.app';
 const SECONDARY_SAFE_API = 'https://stop-shop-production.up.railway.app';
