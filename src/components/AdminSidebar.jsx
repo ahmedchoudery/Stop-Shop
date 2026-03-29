@@ -12,6 +12,8 @@ import {
   ShieldAlert
 } from 'lucide-react';
 import { apiUrl } from '../config/api';
+import { authFetch, clearToken } from '../lib/auth';
+
 
 const AdminSidebar = () => {
   const [role, setRole] = useState('admin');
@@ -19,9 +21,7 @@ const AdminSidebar = () => {
   useEffect(() => {
     const fetchUserRole = async () => {
       try {
-        const response = await fetch(apiUrl('/api/admin/users'), {
-          credentials: 'include'
-        });
+        const response = await authFetch(apiUrl('/api/admin/users'));
         if (response.ok) {
           setRole('admin');
         }
@@ -32,11 +32,15 @@ const AdminSidebar = () => {
     fetchUserRole();
   }, []);
 
+
   const handleLogout = () => {
-    document.cookie = 'auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-    document.cookie = 'csrf_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    clearToken();
+    // Also clear cookies for backward compatibility
+    document.cookie = 'auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/';
+    document.cookie = 'csrf_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/';
     window.location.href = '/login';
   };
+
 
   const navItems = [
     { to: '/admin/dashboard', label: 'Dashboard', icon: <LayoutDashboard size={20} /> },

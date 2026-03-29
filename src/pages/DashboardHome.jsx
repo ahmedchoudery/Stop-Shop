@@ -5,6 +5,8 @@ import StatsGrid from '../components/StatsGrid';
 import InventoryHealthChart from '../components/InventoryHealthChart';
 import RevenueChart from '../components/RevenueChart';
 import { apiUrl } from '../config/api';
+import { authFetch, handleAuthError } from '../lib/auth';
+
 
 const DashboardHome = () => {
   const [data, setData] = useState({
@@ -21,24 +23,15 @@ const DashboardHome = () => {
     setError(null);
 
     try {
-      const fetchOptions = {
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' }
-      };
-      
       const [revRes, ordRes, invRes] = await Promise.all([
-        fetch(apiUrl('/api/admin/stats/revenue'), fetchOptions),
-        fetch(apiUrl('/api/admin/stats/orders'), fetchOptions),
-        fetch(apiUrl('/api/admin/stats/inventory'), fetchOptions)
+        authFetch(apiUrl('/api/admin/stats/revenue')),
+        authFetch(apiUrl('/api/admin/stats/orders')),
+        authFetch(apiUrl('/api/admin/stats/inventory'))
       ]);
 
+      if (handleAuthError(revRes.status) || handleAuthError(ordRes.status) || handleAuthError(invRes.status)) return;
+
       if (!revRes.ok || !ordRes.ok || !invRes.ok) {
-        if (revRes.status === 401 || ordRes.status === 401 || invRes.status === 401) {
-          throw new Error('Session expired. Please login again.');
-        }
-        if (revRes.status === 403 || ordRes.status === 403 || invRes.status === 403) {
-          throw new Error('Access denied. Invalid session.');
-        }
         throw new Error('Failed to synchronize with server');
       }
 
@@ -67,6 +60,7 @@ const DashboardHome = () => {
       setLoading(false);
     }
   }, [retryCount]);
+
 
   useEffect(() => { 
     fetchWithRetry(); 

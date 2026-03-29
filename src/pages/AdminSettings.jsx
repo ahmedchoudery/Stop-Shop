@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Upload, Megaphone, Save, CheckCircle, RefreshCcw } from 'lucide-react';
 import { apiUrl } from '../config/api';
+import { authFetch, handleAuthError } from '../lib/auth';
+
 
 const AdminSettings = () => {
   const [settings, setSettings] = useState({ logo: '', announcement: '' });
@@ -10,9 +12,8 @@ const AdminSettings = () => {
 
   const fetchSettings = async () => {
     try {
-      const response = await fetch(apiUrl('/api/settings'), {
-        credentials: 'include'
-      });
+      const response = await authFetch(apiUrl('/api/settings'));
+      if (handleAuthError(response.status)) return;
       if (response.ok) {
         const data = await response.json();
         setSettings({ logo: data.logo || '', announcement: data.announcement || '' });
@@ -23,6 +24,7 @@ const AdminSettings = () => {
       setLoading(false);
     }
   };
+
 
   useEffect(() => {
     fetchSettings();
@@ -44,12 +46,12 @@ const AdminSettings = () => {
     setSaving(true);
     setSuccess(false);
     try {
-      const response = await fetch(apiUrl('/api/settings'), {
+      const response = await authFetch(apiUrl('/api/settings'), {
         method: 'POST',
-        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(settings)
       });
+      if (handleAuthError(response.status)) return;
       if (response.ok) {
         setSuccess(true);
         setTimeout(() => setSuccess(false), 3000);
@@ -60,6 +62,7 @@ const AdminSettings = () => {
       setSaving(false);
     }
   };
+
 
   if (loading) return <div className="p-10 text-center font-black uppercase tracking-widest text-gray-400">Syncing Identity Engine...</div>;
 

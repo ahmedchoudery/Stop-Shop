@@ -4,6 +4,8 @@ import {
 } from 'lucide-react';
 import { apiUrl } from '../config/api';
 import { ProductForm, EMPTY_FORM } from '../components/ProductForm';
+import { authFetch, handleAuthError } from '../lib/auth';
+
 
 const ProductCard = memo(({ product, onEdit, onDelete }) => {
   const hasEmbed = product.mediaType === 'embed' && product.embedCode;
@@ -69,24 +71,11 @@ export default function AdminProducts() {
   const [galleryUrl, setGalleryUrl] = useState('');
   const [embedCopied, setEmbedCopied] = useState(false);
 
-  const fetchOptions = { credentials: 'include' };
-  const buildApiCandidates = (path) => {
-    return [apiUrl(path)];
-  };
-  const readErrorText = async (res) => {
-    const ct = res.headers.get('content-type') || '';
-    try {
-      return ct.includes('application/json') ? (await res.json()).error : (await res.text());
-    } catch {
-      return `HTTP ${res.status}`;
-    }
-  };
-
   const fetchProducts = async () => {
     try {
       const url = apiUrl('/api/admin/products');
-      const res = await fetch(url, fetchOptions);
-      if (res.status === 401 || res.status === 403) { window.location.href = '/login'; return; }
+      const res = await authFetch(url);
+      if (handleAuthError(res.status)) return;
       if (!res.ok) {
         const errText = await readErrorText(res);
         throw new Error(errText || `Server error: ${res.status}`);
@@ -95,14 +84,15 @@ export default function AdminProducts() {
     } catch (e) {
       if (e.name === 'TypeError' && e.message === 'Failed to fetch') {
         const url = apiUrl('/api/admin/products');
-        setError(`CRITICAL: Backend Unreachable at ${url}. If you see this in production, please check your Railway logs for a 502/Crash error.`);
+        setError(`CRITICAL: Backend Unreachable at ${url}. Please check your Railway logs.`);
       } else {
-        setError(`API Error: ${e.message} (Target: ${apiUrl('/api/admin/products')})`);
+        setError(`API Error: ${e.message}`);
       }
     } finally {
       setLoading(false);
     }
   };
+
 
   useEffect(() => { fetchProducts(); }, []);
 
@@ -148,6 +138,15 @@ export default function AdminProducts() {
     setGalleryUrl('');
   };
 
+  const readErrorText = async (res) => {
+    const ct = res.headers.get('content-type') || '';
+    try {
+      return ct.includes('application/json') ? (await res.json()).error : (await res.text());
+    } catch {
+      return `HTTP ${res.status}`;
+    }
+  };
+
   const handleSave = async () => {
     if (!form.name.trim()) return alert('Product name is required');
     if (!form.price) return alert('Price is required');
@@ -166,52 +165,30 @@ export default function AdminProducts() {
         sizeStock: Object.fromEntries(form.sizes.map(size => [size, Math.max(0, parseInt(form.sizeStock?.[size]) || 0)])),
       };
       const path = editingProduct ? `/api/admin/products/${editingProduct.id || editingProduct._id}` : '/api/admin/products';
-      let saved = false;
-      let lastError = 'Save failed';
-      for (const url of buildApiCandidates(path)) {
-        try {
-          const res = await fetch(url, { method: editingProduct ? 'PATCH' : 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-          if (res.ok) {
-            saved = true;
-            break;
-          }
-          lastError = await readErrorText(res);
-          if (res.status === 401 || res.status === 403) {
-            window.location.href = '/login';
-            return;
-          }
-        } catch (e) {
-          lastError = e.message || 'Save failed';
-        }
-      }
-      if (!saved) throw new Error(lastError || 'Save failed');
+      const res = await authFetch(apiUrl(path), {
+        method: editingProduct ? 'PATCH' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+      if (handleAuthError(res.status)) return;
+      if (!res.ok) throw new Error(await readErrorText(res) || 'Save failed');
       await fetchProducts();
       closeModal();
     } catch (e) { alert('Error: ' + e.message); }
     finally { setSaving(false); }
   };
 
+
   const handleDelete = async (productId) => {
     try {
-      let deleted = false;
-      let lastError = 'Delete failed';
-      for (const url of buildApiCandidates(`/api/admin/products/${productId}`)) {
-        try {
-          const res = await fetch(url, { method: 'DELETE', credentials: 'include' });
-          if (res.ok) {
-            deleted = true;
-            break;
-          }
-          lastError = await readErrorText(res);
-        } catch (e) {
-          lastError = e.message || 'Delete failed';
-        }
-      }
-      if (!deleted) throw new Error(lastError || 'Delete failed');
+      const res = await authFetch(apiUrl(`/api/admin/products/${productId}`), { method: 'DELETE' });
+      if (handleAuthError(res.status)) return;
+      if (!res.ok) throw new Error(await readErrorText(res) || 'Delete failed');
       setProducts(prev => prev.filter(p => (p.id || p._id) !== productId));
     } catch (e) { alert('Error: ' + e.message); }
     setDeleteConfirm(null);
   };
+
 
   const filtered = products.filter(p => p.name?.toLowerCase().includes(searchTerm.toLowerCase()));
 

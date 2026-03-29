@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Lock, Mail, AlertCircle } from 'lucide-react';
 import { apiUrl } from '../config/api';
+import { setToken } from '../lib/auth';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -27,6 +28,11 @@ const LoginPage = () => {
 
       if (!response.ok) {
         throw new Error(data.error || 'Login failed');
+      }
+
+      // Save token to localStorage for cross-origin Bearer auth
+      if (data.token) {
+        setToken(data.token);
       }
 
       navigate('/admin');

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import OrderTable from '../components/OrderTable';
 import { apiUrl } from '../config/api';
+import { authFetch, handleAuthError } from '../lib/auth';
 
 const AdminOrders = () => {
   const [orders, setOrders] = useState([]);
@@ -8,9 +9,8 @@ const AdminOrders = () => {
 
   const fetchOrders = async () => {
     try {
-      const response = await fetch(apiUrl('/api/orders'), {
-        credentials: 'include'
-      });
+      const response = await authFetch(apiUrl('/api/orders'));
+      if (handleAuthError(response.status)) return;
       if (response.ok) {
         const data = await response.json();
         setOrders(data);
@@ -33,7 +33,7 @@ const AdminOrders = () => {
           Order Management
         </h2>
         <p className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400 mt-2 ml-6">
-          Track fulfillment & customer satisfaction
+          Track fulfillment &amp; customer satisfaction
         </p>
       </header>
       <OrderTable externalOrders={orders} loading={loading} onStatusUpdated={fetchOrders} />

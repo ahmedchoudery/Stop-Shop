@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Package, Edit3, Save, X, AlertTriangle, Search, Filter } from 'lucide-react';
 import { apiUrl } from '../config/api';
+import { authFetch, handleAuthError } from '../lib/auth';
+
 
 const InventoryTable = () => {
   const [products, setProducts] = useState([]);
@@ -13,20 +15,14 @@ const InventoryTable = () => {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch(apiUrl('/api/admin/products'), {
-        credentials: 'include'
-      });
-      if (response.status === 401 || response.status === 403) {
-        window.location.href = '/login';
-        return;
-      }
+      const response = await authFetch(apiUrl('/api/admin/products'));
+      if (handleAuthError(response.status)) return;
       if (!response.ok) throw new Error('Failed to fetch products');
       const data = await response.json();
       setProducts(data);
     } catch (err) {
       if (err.name === 'TypeError' && err.message === 'Failed to fetch') {
-        const url = apiUrl('/api/admin/products');
-        setError(`Backend Connection Failed: ${url}. Please verify if the Railway service is healthy.`);
+        setError(`Backend Connection Failed. Please verify if the Railway service is healthy.`);
       } else {
         setError(`Inventory Sync Error: ${err.message}`);
       }
@@ -35,6 +31,7 @@ const InventoryTable = () => {
     }
   };
 
+
   useEffect(() => {
     fetchProducts();
   }, []);
@@ -42,20 +39,15 @@ const InventoryTable = () => {
   const handleQuickUpdate = async (productId, field, value) => {
     try {
       const updateData = field === 'quantity' ? { quantity: parseInt(value) } : { price: parseFloat(value) };
-      
-      const response = await fetch(apiUrl(`/api/admin/products/${productId}`), {
+      const response = await authFetch(apiUrl(`/api/admin/products/${productId}`), {
         method: 'PATCH',
-        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updateData),
       });
-
+      if (handleAuthError(response.status)) return;
       if (!response.ok) throw new Error('Update failed');
-      
       const updatedProduct = await response.json();
       setProducts(products.map(p => p.id === productId ? updatedProduct : p));
-      
-      // Visual feedback
       setSuccessIds(prev => new Set(prev).add(productId));
       setTimeout(() => {
         setSuccessIds(prev => {
@@ -64,11 +56,11 @@ const InventoryTable = () => {
           return next;
         });
       }, 2000);
-
     } catch (err) {
       alert('Error: ' + err.message);
     }
   };
+
 
   const handleLocalChange = (productId, field, value) => {
     setProducts(products.map(p => 

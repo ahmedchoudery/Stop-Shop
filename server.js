@@ -509,7 +509,7 @@ app.post('/api/admin/login', validateRequest(loginSchema), authLimiter, async (r
       path: '/'
     });
 
-    res.json({ name: admin.name, success: true });
+    res.json({ name: admin.name, success: true, token });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ error: 'Login failed. Please try again.' });

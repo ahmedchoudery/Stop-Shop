@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { UserPlus, Trash2, X, Shield, Mail, Lock, User } from 'lucide-react';
 import { apiUrl } from '../config/api';
+import { authFetch, handleAuthError } from '../lib/auth';
+
 
 const AdminUsers = () => {
   const [admins, setAdmins] = useState([]);
@@ -11,9 +13,8 @@ const AdminUsers = () => {
 
   const fetchAdmins = async () => {
     try {
-      const response = await fetch(apiUrl('/api/admin/users'), {
-        credentials: 'include'
-      });
+      const response = await authFetch(apiUrl('/api/admin/users'));
+      if (handleAuthError(response.status)) return;
       if (!response.ok) throw new Error('Failed to fetch team members');
       const data = await response.json();
       setAdmins(data);
@@ -24,6 +25,7 @@ const AdminUsers = () => {
     }
   };
 
+
   useEffect(() => {
     fetchAdmins();
   }, []);
@@ -31,18 +33,16 @@ const AdminUsers = () => {
   const handleAddMember = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch(apiUrl('/api/admin/users'), {
+      const response = await authFetch(apiUrl('/api/admin/users'), {
         method: 'POST',
-        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
-
+      if (handleAuthError(response.status)) return;
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to add member');
       }
-
       setIsModalOpen(false);
       setFormData({ name: '', email: '', password: '' });
       fetchAdmins();
@@ -51,25 +51,22 @@ const AdminUsers = () => {
     }
   };
 
+
   const handleDelete = async (adminId) => {
     if (!window.confirm('Are you sure you want to revoke this user\'s administrative access?')) return;
-    
     try {
-      const response = await fetch(apiUrl(`/api/admin/users/${adminId}`), {
-        method: 'DELETE',
-        credentials: 'include'
-      });
-
+      const response = await authFetch(apiUrl(`/api/admin/users/${adminId}`), { method: 'DELETE' });
+      if (handleAuthError(response.status)) return;
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to revoke access');
       }
-
       fetchAdmins();
     } catch (err) {
       alert(err.message);
     }
   };
+
 
   if (loading) return <div className="p-10 text-center font-black uppercase tracking-widest text-gray-400 italic">Syncing Team Registry...</div>;
 

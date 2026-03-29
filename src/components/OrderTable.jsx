@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Package, Truck, CheckCircle, Clock, AlertCircle, FileText, Download } from 'lucide-react';
 import { generateInvoice } from '../utils/generateInvoice';
 import { apiUrl } from '../config/api';
+import { authFetch, handleAuthError } from '../lib/auth';
+
 
 const OrderTable = ({ externalOrders, loading: externalLoading, onStatusUpdated, onViewDetail }) => {
   const [internalOrders, setInternalOrders] = useState([]);
@@ -12,15 +14,10 @@ const OrderTable = ({ externalOrders, loading: externalLoading, onStatusUpdated,
   const isLoading = externalLoading !== undefined ? externalLoading : loading;
 
   const fetchOrders = async () => {
-    if (externalOrders) return; // Skip if data is provided externally
+    if (externalOrders) return;
     try {
-      const response = await fetch(apiUrl('/api/orders'), {
-        credentials: 'include'
-      });
-      if (response.status === 401 || response.status === 403) {
-        window.location.href = '/login';
-        return;
-      }
+      const response = await authFetch(apiUrl('/api/orders'));
+      if (handleAuthError(response.status)) return;
       if (!response.ok) throw new Error('Failed to fetch orders');
       const data = await response.json();
       setInternalOrders(data);
@@ -31,29 +28,24 @@ const OrderTable = ({ externalOrders, loading: externalLoading, onStatusUpdated,
     }
   };
 
+
   useEffect(() => {
     fetchOrders();
   }, [externalOrders]);
 
   const handleStatusChange = async (orderId, newStatus) => {
     try {
-      const response = await fetch(apiUrl(`/api/orders/${orderId}`), {
+      const response = await authFetch(apiUrl(`/api/orders/${orderId}`), {
         method: 'PATCH',
-        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus }),
       });
-      
-      if (response.status === 401 || response.status === 403) {
-        window.location.href = '/login';
-        return;
-      }
+      if (handleAuthError(response.status)) return;
       if (!response.ok) throw new Error('Failed to update status');
-      
       if (onStatusUpdated) {
         onStatusUpdated();
       } else {
-        setInternalOrders(orders.map(order => 
+        setInternalOrders(orders.map(order =>
           order._id === orderId ? { ...order, status: newStatus } : order
         ));
       }
@@ -61,6 +53,7 @@ const OrderTable = ({ externalOrders, loading: externalLoading, onStatusUpdated,
       alert('Error updating status: ' + err.message);
     }
   };
+
 
   const statusIcons = {
     'Pending': <Clock className="text-yellow-500" size={16} />,
