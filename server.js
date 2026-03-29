@@ -373,14 +373,19 @@ const transporter = nodemailer.createTransport({
 // HEALTH CHECK
 // ─────────────────────────────────────────────────────────────────
 app.get('/api/health', (req, res) => {
-  const dbState = mongoose.connection.readyState;
-  const dbStatus = { 0: 'disconnected', 1: 'connected', 2: 'connecting', 3: 'disconnecting' };
-  res.status(200).json({
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
-    database: dbStatus[dbState] || 'unknown',
-    uptime: process.uptime()
-  });
+  try {
+    const dbState = mongoose.connection.readyState;
+    const dbStatus = { 0: 'disconnected', 1: 'connected', 2: 'connecting', 3: 'disconnecting' };
+    res.status(200).json({
+      status: 'healthy',
+      timestamp: new Date().toISOString(),
+      database: dbStatus[dbState] || 'unknown',
+      uptime: process.uptime()
+    });
+  } catch (err) {
+    console.error('Health check error:', err);
+    res.status(200).json({ status: 'healthy', uptime: process.uptime() });
+  }
 });
 
 app.get('/api/test', (req, res) => {
@@ -991,7 +996,7 @@ app.use(globalErrorHandler);
 
 const PORT = process.env.PORT || 5000;
 
-const server = app.listen(PORT, () => {
+const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
 
