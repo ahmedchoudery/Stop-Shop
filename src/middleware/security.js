@@ -21,9 +21,38 @@ const sanitizeObject = (obj) => {
 };
 
 export const sanitizeInput = (req, res, next) => {
-  if (req.body) req.body = sanitizeObject(req.body);
-  if (req.query) req.query = sanitizeObject(req.query);
-  if (req.params) req.params = sanitizeObject(req.params);
+  try {
+    if (req.body && typeof req.body === 'object') {
+      const sanitizedBody = sanitizeObject(req.body);
+      // Try to reassign, if it fails (non-writable), try to clear and assign
+      try { req.body = sanitizedBody; } catch (e) {
+        for (const key in req.body) delete req.body[key];
+        Object.assign(req.body, sanitizedBody);
+      }
+    }
+    if (req.query && typeof req.query === 'object') {
+      const sanitizedQuery = sanitizeObject(req.query);
+      try { req.query = sanitizedQuery; } catch (e) {
+        // If req.query is a getter/non-writable, we might not be able to delete/assign
+        // In Express 5, req.query is often a getter that returns an object.
+        // We can try to modify that object's properties if it's not frozen.
+        const q = req.query;
+        for (const key in q) {
+          if (typeof q[key] === 'string') q[key] = sanitizeString(q[key]);
+        }
+      }
+    }
+    if (req.params && typeof req.params === 'object') {
+      const sanitizedParams = sanitizeObject(req.params);
+      try { req.params = sanitizedParams; } catch (e) {
+        for (const key in req.params) {
+          if (typeof req.params[key] === 'string') req.params[key] = sanitizeString(req.params[key]);
+        }
+      }
+    }
+  } catch (err) {
+    console.error('Sanitization Error:', err);
+  }
   next();
 };
 

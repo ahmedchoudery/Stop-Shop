@@ -24,7 +24,11 @@ const InventoryTable = () => {
       const data = await response.json();
       setProducts(data);
     } catch (err) {
-      setError(err.message);
+      if (err.name === 'TypeError' && err.message === 'Failed to fetch') {
+        setError('Connection Refused: Is the backend server running on port 5000?');
+      } else {
+        setError(err.message);
+      }
     } finally {
       setLoading(false);
     }

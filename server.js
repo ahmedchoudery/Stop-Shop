@@ -441,16 +441,16 @@ app.post('/api/admin/login', validateRequest(loginSchema), authLimiter, async (r
     
     res.cookie('auth_token', token, {
       httpOnly: true,
-      secure: true,
-      sameSite: 'none',
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
       maxAge: 8 * 60 * 60 * 1000,
       path: '/'
     });
 
     res.cookie('csrf_token', csrfToken, {
       httpOnly: true,
-      secure: true,
-      sameSite: 'none',
+      secure: isProduction,
+      sameSite: isProduction ? 'none' : 'lax',
       maxAge: 60 * 60 * 1000,
       path: '/'
     });

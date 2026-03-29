@@ -71,9 +71,7 @@ export default function AdminProducts() {
 
   const fetchOptions = { credentials: 'include' };
   const buildApiCandidates = (path) => {
-    const primary = apiUrl(path);
-    const fallback = `${FALLBACK_API_BASE}${path}`;
-    return primary === fallback ? [primary] : [primary, fallback];
+    return [apiUrl(path)];
   };
   const readErrorText = async (res) => {
     const ct = res.headers.get('content-type') || '';
@@ -86,25 +84,23 @@ export default function AdminProducts() {
 
   const fetchProducts = async () => {
     try {
-      let loaded = false;
-      let lastError = 'Failed to fetch';
-      for (const url of buildApiCandidates('/api/admin/products')) {
-        try {
-          const res = await fetch(url, fetchOptions);
-          if (res.status === 401 || res.status === 403) { window.location.href = '/login'; return; }
-          if (res.ok) {
-            setProducts(await res.json());
-            loaded = true;
-            break;
-          }
-          lastError = await readErrorText(res);
-        } catch (e) {
-          lastError = e.message || 'Failed to fetch';
-        }
+      const url = apiUrl('/api/admin/products');
+      const res = await fetch(url, fetchOptions);
+      if (res.status === 401 || res.status === 403) { window.location.href = '/login'; return; }
+      if (!res.ok) {
+        const errText = await readErrorText(res);
+        throw new Error(errText || `Server error: ${res.status}`);
       }
-      if (!loaded) throw new Error(lastError || 'Failed to fetch');
-    } catch (e) { setError(e.message); }
-    finally { setLoading(false); }
+      setProducts(await res.json());
+    } catch (e) {
+      if (e.name === 'TypeError' && e.message === 'Failed to fetch') {
+        setError('Connection Refused: Is the backend server running on port 5000?');
+      } else {
+        setError(e.message);
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { fetchProducts(); }, []);
