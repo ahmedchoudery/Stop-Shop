@@ -94,9 +94,10 @@ export default function AdminProducts() {
       setProducts(await res.json());
     } catch (e) {
       if (e.name === 'TypeError' && e.message === 'Failed to fetch') {
-        setError('Connection Refused: Is the backend server running on port 5000?');
+        const attemptedUrl = apiUrl('/api/admin/products');
+        setError(`Failed to connect to API. URL attempted: ${attemptedUrl}. Please verify your backend is running and CORS is allowed.`);
       } else {
-        setError(e.message);
+        setError(`${e.message} (Attempted: ${apiUrl('/api/admin/products')})`);
       }
     } finally {
       setLoading(false);

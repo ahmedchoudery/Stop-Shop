@@ -22,6 +22,14 @@ const rawBaseUrl = isProductionHost
 
 const API_BASE = (rawBaseUrl || '').trim().replace(/\/+$/, '');
 
+if (isBrowser) {
+  console.log('--- API DIAGNOSTICS ---');
+  console.log('VITE_API_URL:', import.meta.env.VITE_API_URL);
+  console.log('isProductionHost:', isProductionHost);
+  console.log('Resolved API_BASE:', API_BASE);
+  console.log('-----------------------');
+}
+
 export const apiUrl = (path) => {
   if (!path.startsWith('/')) {
     throw new Error('apiUrl(path) expects a leading slash');
