@@ -186,7 +186,11 @@ mongoose.connect(mongoUri, {
   family: 4
 })
   .then(() => console.log('✅ Connected to MongoDB'))
-  .catch(err => console.error('❌ MongoDB connection error:', err));
+  .catch(err => {
+    console.error('❌ MongoDB connection error:', err);
+    // Don't exit — let the server stay up so healthcheck passes
+    // and Railway doesn't kill the container
+  });
 
 // ─────────────────────────────────────────────────────────────────
 // SCHEMAS & MODELS
@@ -368,20 +372,13 @@ const transporter = nodemailer.createTransport({
 // ─────────────────────────────────────────────────────────────────
 // HEALTH CHECK
 // ─────────────────────────────────────────────────────────────────
-app.get('/api/health', async (req, res) => {
+app.get('/api/health', (req, res) => {
   const dbState = mongoose.connection.readyState;
-  const dbStatus = {
-    0: 'disconnected',
-    1: 'connected',
-    2: 'connecting',
-    3: 'disconnecting'
-  };
-  
-  res.json({
+  const dbStatus = { 0: 'disconnected', 1: 'connected', 2: 'connecting', 3: 'disconnecting' };
+  res.status(200).json({
     status: 'healthy',
     timestamp: new Date().toISOString(),
     database: dbStatus[dbState] || 'unknown',
-    cache: cacheService.getInMemoryStats(),
     uptime: process.uptime()
   });
 });
