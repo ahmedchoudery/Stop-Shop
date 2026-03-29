@@ -1,10 +1,9 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { ShoppingBag, TrendingUp, ArrowUpRight } from 'lucide-react';
 
 const StatsGrid = ({ totalSales, totalOrders, trend = 0, pendingOrders = 0 }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-      {/* Revenue Card */}
       <div className="bg-white p-8 rounded-sm border border-gray-100 shadow-xl shadow-gray-100/50 group hover:border-green-500 transition-all duration-500 relative overflow-hidden">
         <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
           <TrendingUp size={80} className="text-green-600" />
@@ -32,7 +31,6 @@ const StatsGrid = ({ totalSales, totalOrders, trend = 0, pendingOrders = 0 }) =>
         </div>
       </div>
 
-      {/* Orders Card */}
       <div className="bg-white p-8 rounded-sm border border-gray-100 shadow-xl shadow-gray-100/50 group hover:border-red-600 transition-all duration-500 relative overflow-hidden">
         <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
           <ShoppingBag size={80} className="text-red-600" />
@@ -67,4 +65,4 @@ const StatsGrid = ({ totalSales, totalOrders, trend = 0, pendingOrders = 0 }) =>
   );
 };
 
-export default StatsGrid;
+export default memo(StatsGrid);

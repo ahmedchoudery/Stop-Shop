@@ -1,11 +1,14 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, memo, useCallback } from 'react';
 import ProductCard from './ProductCard';
 import { useCart } from '../context/CartContext';
 
 const ProductGrid = ({ products, activeBucket = 'All', activeSubCategory = null }) => {
   const { openDrawer, sortBy } = useCart();
 
-  // Flawless Filtering: Memoized two-level grid rendering 
+  const handleSelectProduct = useCallback((product) => {
+    openDrawer('product', product);
+  }, [openDrawer]);
+
   const sortedProducts = useMemo(() => {
     const filtered = products.filter(item => {
       const bucketMatch = activeBucket === 'All' || item.bucket === activeBucket;
@@ -17,7 +20,7 @@ const ProductGrid = ({ products, activeBucket = 'All', activeSubCategory = null 
       if (sortBy === 'popular') return b.rating - a.rating;
       if (sortBy === 'price-high') return b.price - a.price;
       if (sortBy === 'price-low') return a.price - b.price;
-      return 0; // Newest/Featured
+      return 0;
     });
   }, [products, activeBucket, activeSubCategory, sortBy]);
 
@@ -33,7 +36,6 @@ const ProductGrid = ({ products, activeBucket = 'All', activeSubCategory = null 
           </div>
         </div>
         
-        {/* Structured Grid */}
         <div className="block">
           {sortedProducts.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 sm:gap-12">
@@ -41,13 +43,12 @@ const ProductGrid = ({ products, activeBucket = 'All', activeSubCategory = null 
                 <div key={product.id} className="animate-fade-up">
                   <ProductCard 
                     product={product} 
-                    onSelectProduct={() => openDrawer('product', product)}
+                    onSelectProduct={() => handleSelectProduct(product)}
                   />
                 </div>
               ))}
             </div>
           ) : (
-            // Fallback UI
             <div className="flex flex-col justify-center items-center h-96 w-full border border-dashed border-gray-200 bg-gray-50/30 rounded-3xl">
               <p className="text-gray-400 font-black tracking-[0.4em] uppercase text-xs">
                 Collection Dropping Soon
@@ -63,4 +64,4 @@ const ProductGrid = ({ products, activeBucket = 'All', activeSubCategory = null 
   );
 };
 
-export default ProductGrid;
+export default memo(ProductGrid);

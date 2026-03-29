@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import { 
   LayoutDashboard, 
@@ -11,25 +11,32 @@ import {
   ShieldCheck,
   ShieldAlert
 } from 'lucide-react';
+import { apiUrl } from '../config/api';
 
 const AdminSidebar = () => {
+  const [role, setRole] = useState('admin');
+
+  useEffect(() => {
+    const fetchUserRole = async () => {
+      try {
+        const response = await fetch(apiUrl('/api/admin/users'), {
+          credentials: 'include'
+        });
+        if (response.ok) {
+          setRole('admin');
+        }
+      } catch {
+        setRole('admin');
+      }
+    };
+    fetchUserRole();
+  }, []);
+
   const handleLogout = () => {
-    localStorage.removeItem('adminToken');
+    document.cookie = 'auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    document.cookie = 'csrf_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
     window.location.href = '/login';
   };
-
-  const getAdminRole = () => {
-    try {
-      const token = localStorage.getItem('adminToken');
-      if (!token) return 'admin';
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      return payload.role || 'admin';
-    } catch {
-      return 'admin';
-    }
-  };
-
-  const role = getAdminRole();
 
   const navItems = [
     { to: '/admin/dashboard', label: 'Dashboard', icon: <LayoutDashboard size={20} /> },

@@ -7,10 +7,9 @@ const AdminOrders = () => {
   const [loading, setLoading] = useState(true);
 
   const fetchOrders = async () => {
-    const token = localStorage.getItem('adminToken');
     try {
-      const response = await fetch(apiUrl('/api/admin/orders'), {
-        headers: { 'Authorization': `Bearer ${token}` }
+      const response = await fetch(apiUrl('/api/orders'), {
+        credentials: 'include'
       });
       if (response.ok) {
         const data = await response.json();

@@ -10,10 +10,9 @@ const AdminUsers = () => {
   const [error, setError] = useState(null);
 
   const fetchAdmins = async () => {
-    const token = localStorage.getItem('adminToken');
     try {
       const response = await fetch(apiUrl('/api/admin/users'), {
-        headers: { 'Authorization': `Bearer ${token}` }
+        credentials: 'include'
       });
       if (!response.ok) throw new Error('Failed to fetch team members');
       const data = await response.json();
@@ -31,14 +30,11 @@ const AdminUsers = () => {
 
   const handleAddMember = async (e) => {
     e.preventDefault();
-    const token = localStorage.getItem('adminToken');
     try {
       const response = await fetch(apiUrl('/api/admin/users'), {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
       });
 
@@ -58,11 +54,10 @@ const AdminUsers = () => {
   const handleDelete = async (adminId) => {
     if (!window.confirm('Are you sure you want to revoke this user\'s administrative access?')) return;
     
-    const token = localStorage.getItem('adminToken');
     try {
       const response = await fetch(apiUrl(`/api/admin/users/${adminId}`), {
         method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` }
+        credentials: 'include'
       });
 
       if (!response.ok) {

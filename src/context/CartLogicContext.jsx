@@ -1,20 +1,10 @@
 import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
 
-const CartContext = createContext();
+const CartLogicContext = createContext();
 const CART_STORAGE_KEY = 'stopshop-cart';
 
-export const CartProvider = ({ children }) => {
+export const CartLogicProvider = ({ children }) => {
   const [cartItems, setCartItems] = useState([]);
-  const [activeBucket, setActiveBucket] = useState('All');
-  const [activeSub, setActiveSub] = useState(null);
-  const [lastViewedBucket, setLastViewedBucket] = useState('Tops');
-  const [sortBy, setSortBy] = useState('featured');
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [drawerMode, setDrawerMode] = useState('cart');
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [shouldScrollGrid, setShouldScrollGrid] = useState(0);
-  const [isBouncing, setIsBouncing] = useState(false);
-  const [shakeCount, setShakeCount] = useState(0);
 
   useEffect(() => {
     try {
@@ -35,17 +25,6 @@ export const CartProvider = ({ children }) => {
     }
   }, [cartItems]);
 
-  useEffect(() => {
-    if (shakeCount > 0 && !isBouncing) {
-      setIsBouncing(true);
-      const timer = setTimeout(() => {
-        setIsBouncing(false);
-        setShakeCount((prev) => prev - 1);
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [shakeCount, isBouncing]);
-
   const addToCart = (product) => {
     setCartItems((prevItems) => {
       const existingItemIndex = prevItems.findIndex(
@@ -63,7 +42,6 @@ export const CartProvider = ({ children }) => {
         return [...prevItems, { ...product, quantity: 1, cartId: Date.now() }];
       }
     });
-    setShakeCount((prev) => prev + 1);
   };
 
   const removeFromCart = (id, activeColor, selectedSize, cartId = null) => {
@@ -115,13 +93,9 @@ export const CartProvider = ({ children }) => {
     );
   };
 
-  const openDrawer = (mode, product = null) => {
-    setDrawerMode(mode);
-    setSelectedProduct(product);
-    setIsDrawerOpen(true);
+  const clearCart = () => {
+    setCartItems([]);
   };
-
-  const closeDrawer = () => setIsDrawerOpen(false);
 
   const cartCount = useMemo(() => 
     cartItems.reduce((sum, item) => sum + (item.quantity || 1), 0), 
@@ -136,47 +110,27 @@ export const CartProvider = ({ children }) => {
   const value = {
     cartItems,
     cartCount,
+    total,
     addToCart,
     removeFromCart,
     updateQuantity,
     setCartItemOptions,
-    isBouncing,
-    total,
-    isDrawerOpen,
-    drawerMode,
-    selectedProduct,
-    openDrawer,
-    closeDrawer,
-    activeBucket,
-    setActiveBucket: (bucket) => {
-      setActiveBucket(bucket);
-      setShouldScrollGrid(prev => prev + 1);
-    },
-    activeSub,
-    setActiveSub: (sub) => {
-      setActiveSub(sub);
-      setShouldScrollGrid(prev => prev + 1);
-    },
-    lastViewedBucket,
-    setLastViewedBucket,
-    sortBy,
-    setSortBy,
-    shouldScrollGrid,
+    clearCart,
   };
 
   return (
-    <CartContext.Provider value={value}>
+    <CartLogicContext.Provider value={value}>
       {children}
-    </CartContext.Provider>
+    </CartLogicContext.Provider>
   );
 };
 
-export const useCart = () => {
-  const context = useContext(CartContext);
+export const useCartLogic = () => {
+  const context = useContext(CartLogicContext);
   if (!context) {
-    throw new Error('useCart must be used within a CartProvider');
+    throw new Error('useCartLogic must be used within a CartLogicProvider');
   }
   return context;
 };
 
-export default CartContext;
+export default CartLogicContext;

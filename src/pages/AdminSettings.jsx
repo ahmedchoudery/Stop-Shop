@@ -9,10 +9,9 @@ const AdminSettings = () => {
   const [success, setSuccess] = useState(false);
 
   const fetchSettings = async () => {
-    const token = localStorage.getItem('adminToken');
     try {
       const response = await fetch(apiUrl('/api/settings'), {
-        headers: { 'Authorization': `Bearer ${token}` }
+        credentials: 'include'
       });
       if (response.ok) {
         const data = await response.json();
@@ -44,14 +43,11 @@ const AdminSettings = () => {
     e.preventDefault();
     setSaving(true);
     setSuccess(false);
-    const token = localStorage.getItem('adminToken');
     try {
       const response = await fetch(apiUrl('/api/settings'), {
         method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(settings)
       });
       if (response.ok) {

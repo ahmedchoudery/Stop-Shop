@@ -8,18 +8,15 @@ const InventoryTable = () => {
   const [error, setError] = useState(null);
   const [successIds, setSuccessIds] = useState(new Set());
   
-  // Search & Filter State
   const [searchTerm, setSearchTerm] = useState('');
   const [showOutOfStockOnly, setShowOutOfStockOnly] = useState(false);
 
   const fetchProducts = async () => {
-    const token = localStorage.getItem('adminToken');
     try {
       const response = await fetch(apiUrl('/api/admin/products'), {
-        headers: { 'Authorization': `Bearer ${token}` }
+        credentials: 'include'
       });
       if (response.status === 401 || response.status === 403) {
-        localStorage.removeItem('adminToken');
         window.location.href = '/login';
         return;
       }
@@ -38,16 +35,13 @@ const InventoryTable = () => {
   }, []);
 
   const handleQuickUpdate = async (productId, field, value) => {
-    const token = localStorage.getItem('adminToken');
     try {
       const updateData = field === 'quantity' ? { quantity: parseInt(value) } : { price: parseFloat(value) };
       
       const response = await fetch(apiUrl(`/api/admin/products/${productId}`), {
         method: 'PATCH',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updateData),
       });
 

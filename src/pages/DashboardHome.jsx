@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { RefreshCcw, AlertCircle, ArrowRight, Package, ShoppingBag, Users, TrendingUp, Settings } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { RefreshCcw, AlertCircle, ArrowRight, Package, ShoppingBag, Users, TrendingUp, Settings, Wifi, WifiOff } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
 import StatsGrid from '../components/StatsGrid';
 import InventoryHealthChart from '../components/InventoryHealthChart';
@@ -14,44 +14,82 @@ const DashboardHome = () => {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [retryCount, setRetryCount] = useState(0);
 
-  const fetchStats = async () => {
+  const fetchWithRetry = useCallback(async (maxRetries = 3, delay = 1000) => {
     setLoading(true);
     setError(null);
-    const token = localStorage.getItem('adminToken');
+
     try {
-      const headers = { 'Authorization': `Bearer ${token}` };
+      const fetchOptions = {
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' }
+      };
+      
       const [revRes, ordRes, invRes] = await Promise.all([
-        fetch(apiUrl('/api/admin/stats/revenue'), { headers }),
-        fetch(apiUrl('/api/admin/stats/orders'), { headers }),
-        fetch(apiUrl('/api/admin/stats/inventory'), { headers })
+        fetch(apiUrl('/api/admin/stats/revenue'), fetchOptions),
+        fetch(apiUrl('/api/admin/stats/orders'), fetchOptions),
+        fetch(apiUrl('/api/admin/stats/inventory'), fetchOptions)
       ]);
-      if (!revRes.ok || !ordRes.ok || !invRes.ok) throw new Error('Failed to synchronize stats');
+
+      if (!revRes.ok || !ordRes.ok || !invRes.ok) {
+        if (revRes.status === 401 || ordRes.status === 401 || invRes.status === 401) {
+          throw new Error('Session expired. Please login again.');
+        }
+        if (revRes.status === 403 || ordRes.status === 403 || invRes.status === 403) {
+          throw new Error('Access denied. Invalid session.');
+        }
+        throw new Error('Failed to synchronize with server');
+      }
+
       const [revData, ordData, invData] = await Promise.all([
         revRes.json(), ordRes.json(), invRes.json()
       ]);
+
       setData({
-        revenue: { total: revData.totalRevenue, trend: revData.trend, weeklyData: revData.weeklyData },
-        orders: { total: ordData.totalOrders, pending: ordData.pendingOrders },
-        inventory: { total: invData.totalProducts, outOfStock: invData.outOfStock, products: invData.products }
+        revenue: { total: revData.totalRevenue || 0, trend: revData.trend || 0, weeklyData: revData.weeklyData || [] },
+        orders: { total: ordData.totalOrders || 0, pending: ordData.pendingOrders || 0 },
+        inventory: { total: invData.totalProducts || 0, outOfStock: invData.outOfStock || 0, products: invData.products || [] }
       });
+      setRetryCount(0);
     } catch (err) {
-      setError(err.message);
+      console.error('Dashboard fetch error:', err);
+      
+      if (retryCount < maxRetries) {
+        const nextRetry = retryCount + 1;
+        setRetryCount(nextRetry);
+        setTimeout(() => fetchWithRetry(maxRetries, delay * 2), delay * nextRetry);
+        return;
+      }
+      
+      setError(err.message || 'Unable to connect to server');
     } finally {
       setLoading(false);
     }
-  };
+  }, [retryCount]);
 
-  useEffect(() => { fetchStats(); }, []);
+  useEffect(() => { 
+    fetchWithRetry(); 
+  }, []);
+
+  const handleRetry = () => {
+    setRetryCount(0);
+    fetchWithRetry();
+  };
 
   if (error) return (
     <div className="p-10 flex flex-col items-center justify-center text-[#ba1f3d] bg-[#ba1f3d]/5 rounded-none border-2 border-dashed border-[#ba1f3d]/10">
-      <AlertCircle size={48} className="mb-4" />
+      <WifiOff size={48} className="mb-4" />
       <h3 className="font-black uppercase tracking-tighter text-xl text-gray-900">Cloud Sync Failed</h3>
       <p className="text-xs font-bold uppercase tracking-widest mt-2">{error}</p>
-      <button onClick={fetchStats} className="mt-6 px-10 py-4 bg-[#ba1f3d] text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-none hover:bg-black transition-all shadow-2xl">
-        Attempt Reconnection
+      <button 
+        onClick={handleRetry} 
+        className="mt-6 px-10 py-4 bg-[#ba1f3d] text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-none hover:bg-black transition-all shadow-2xl flex items-center space-x-2"
+      >
+        <RefreshCcw size={14} />
+        <span>Attempt Reconnection</span>
       </button>
+      <p className="text-[10px] text-gray-400 mt-4">Retried {retryCount} times</p>
     </div>
   );
 
@@ -70,10 +108,13 @@ const DashboardHome = () => {
         <div className="flex items-center space-x-4">
           <div className="hidden md:flex items-center space-x-2 bg-green-50 border border-green-100 rounded-xl px-4 py-2">
             <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-            <span className="text-[10px] font-black uppercase tracking-widest text-green-600">Live</span>
+            <span className="text-[10px] font-black uppercase tracking-widest text-green-600 flex items-center space-x-1">
+              <Wifi size={10} />
+              <span>Live</span>
+            </span>
           </div>
           <button
-            onClick={fetchStats}
+            onClick={handleRetry}
             disabled={loading}
             className={`p-3 bg-white border border-gray-100 rounded-xl shadow-sm hover:shadow-md transition-all group ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
           >

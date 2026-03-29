@@ -13,16 +13,11 @@ const OrderTable = ({ externalOrders, loading: externalLoading, onStatusUpdated,
 
   const fetchOrders = async () => {
     if (externalOrders) return; // Skip if data is provided externally
-    const token = localStorage.getItem('adminToken');
     try {
-      // Phase 17: Use the dedicated Admin API orders endpoint
-      const response = await fetch(apiUrl('/api/admin/orders'), {
-        headers: { 
-          'Authorization': `Bearer ${token}` 
-        }
+      const response = await fetch(apiUrl('/api/orders'), {
+        credentials: 'include'
       });
       if (response.status === 401 || response.status === 403) {
-        localStorage.removeItem('adminToken');
         window.location.href = '/login';
         return;
       }
@@ -41,29 +36,23 @@ const OrderTable = ({ externalOrders, loading: externalLoading, onStatusUpdated,
   }, [externalOrders]);
 
   const handleStatusChange = async (orderId, newStatus) => {
-    const token = localStorage.getItem('adminToken');
     try {
-      const response = await fetch(apiUrl(`/api/admin/orders/${orderId}`), {
+      const response = await fetch(apiUrl(`/api/orders/${orderId}`), {
         method: 'PATCH',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus }),
       });
       
       if (response.status === 401 || response.status === 403) {
-        localStorage.removeItem('adminToken');
         window.location.href = '/login';
         return;
       }
       if (!response.ok) throw new Error('Failed to update status');
       
-      // Notify parent to refresh if needed
       if (onStatusUpdated) {
         onStatusUpdated();
       } else {
-        // Update local state if no external refresh
         setInternalOrders(orders.map(order => 
           order._id === orderId ? { ...order, status: newStatus } : order
         ));

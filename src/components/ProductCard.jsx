@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Star, Heart, Play } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useWishlist } from '../context/WishlistContext';
@@ -33,27 +33,37 @@ const ProductCard = ({ product, onSelectProduct, onImageLoad }) => {
     setHasLoaded(false);
   }, [currentImage]);
 
-  const handleLoad = () => {
+  const handleLoad = useCallback(() => {
     if (!hasLoaded) {
       setHasLoaded(true);
       if (onImageLoad) onImageLoad();
     }
-  };
+  }, [hasLoaded, onImageLoad]);
 
-  const handleWishlist = (e) => {
+  const handleWishlist = useCallback((e) => {
     e.stopPropagation();
     toggleWishlist(product);
     setWishlistAnim(true);
     setTimeout(() => setWishlistAnim(false), 600);
-  };
+  }, [product, toggleWishlist]);
 
-  const cycleGallery = (direction) => {
+  const cycleGallery = useCallback((direction) => {
     if (!product.gallery?.length) return;
     setGalleryIndex((prev) => {
       const length = product.gallery.length;
       return (prev + direction + length) % length;
     });
-  };
+  }, [product.gallery]);
+
+  const handleColorChange = useCallback((e, color) => {
+    e.stopPropagation();
+    setActiveColor(color);
+  }, []);
+
+  const handleAddToCart = useCallback((e) => {
+    e.stopPropagation();
+    addToCart({ ...product, image: currentImage, activeColor });
+  }, [addToCart, product, currentImage, activeColor]);
 
   const wishlisted = isWishlisted(product.id);
 
@@ -129,10 +139,7 @@ const ProductCard = ({ product, onSelectProduct, onImageLoad }) => {
         <div className="absolute inset-0 flex items-end justify-center pb-8 opacity-0 group-hover:opacity-100 translate-y-4 group-hover:translate-y-0 transition-all duration-500">
           {product.stock > 0 && (
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                addToCart({ ...product, image: currentImage, activeColor });
-              }}
+              onClick={handleAddToCart}
               style={{ backgroundColor: CARDINAL }}
               className="text-white font-black py-4 px-10 shadow-2xl hover:brightness-110 active:scale-95 text-[10px] uppercase tracking-[0.3em] transition-all"
             >
@@ -150,7 +157,7 @@ const ProductCard = ({ product, onSelectProduct, onImageLoad }) => {
             {product.colors.map((color) => (
               <button
                 key={color}
-                onClick={(e) => { e.stopPropagation(); setActiveColor(color); }}
+                onClick={(e) => handleColorChange(e, color)}
                 className={`w-4 h-4 transition-all duration-300 ${activeColor === color ? 'ring-2 ring-offset-2 ring-gray-900 scale-110' : 'hover:scale-125 border border-gray-100'
                   }`}
                 style={

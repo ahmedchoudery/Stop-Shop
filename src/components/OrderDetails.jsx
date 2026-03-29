@@ -10,16 +10,13 @@ const OrderDetails = ({ order, isOpen, onClose, onStatusUpdated }) => {
 
   const handleStatusToggle = async () => {
     const newStatus = order.status === 'Pending' ? 'Shipped' : 'Pending';
-    const token = localStorage.getItem('adminToken');
     
     setIsUpdating(true);
     try {
       const response = await fetch(apiUrl(`/api/orders/${order._id}`), {
         method: 'PATCH',
-        headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus }),
       });
       

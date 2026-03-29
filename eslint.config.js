@@ -14,6 +14,9 @@ export default [
       'seed.js',
       'seed_settings.js',
       'migrate_admins.js',
+      'web-app-next/**',
+      'src/types/**',
+      'src/test/**',
     ],
   },
   {

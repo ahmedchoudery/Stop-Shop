@@ -19,6 +19,7 @@ const LoginPage = () => {
       const response = await fetch(apiUrl('/api/admin/login'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ email, password }),
       });
 
@@ -28,10 +29,6 @@ const LoginPage = () => {
         throw new Error(data.error || 'Login failed');
       }
 
-      // Store JWT
-      localStorage.setItem('adminToken', data.token);
-      
-      // Redirect to Admin Dashboard
       navigate('/admin');
     } catch (err) {
       setError(err.message);

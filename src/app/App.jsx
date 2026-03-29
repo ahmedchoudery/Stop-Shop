@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from '../layout/Layout';
 import UniversalDrawer from '../layout/UniversalDrawer';
@@ -12,14 +12,21 @@ import HomePage from '../pages/HomePage';
 import CheckoutPage from '../pages/CheckoutPage';
 import AdminDashboard from '../pages/AdminDashboard';
 import DashboardHome from '../pages/DashboardHome';
-import AdminOrders from '../pages/AdminOrders';
-import AdminInventory from '../pages/AdminInventory';
-import AdminProducts from '../pages/AdminProducts';
-import AdminUsers from '../pages/AdminUsers';
-import AdminSettings from '../pages/AdminSettings';
-import AdminAuditPanel from '../pages/AdminAuditPanel';
 import LoginPage from '../pages/LoginPage';
 import ProtectedRoute from '../components/ProtectedRoute';
+
+const AdminOrders = lazy(() => import('../pages/AdminOrders'));
+const AdminInventory = lazy(() => import('../pages/AdminInventory'));
+const AdminProducts = lazy(() => import('../pages/AdminProducts'));
+const AdminUsers = lazy(() => import('../pages/AdminUsers'));
+const AdminSettings = lazy(() => import('../pages/AdminSettings'));
+const AdminAuditPanel = lazy(() => import('../pages/AdminAuditPanel'));
+
+const LoadingFallback = () => (
+  <div className="flex items-center justify-center h-64">
+    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#ba1f3d]"></div>
+  </div>
+);
 
 const HomeWithLayout = () => {
   const [liveProducts, setLiveProducts] = useState([]);
@@ -61,12 +68,12 @@ function App() {
                   >
                     <Route index element={<Navigate to="/admin/dashboard" replace />} />
                     <Route path="dashboard" element={<DashboardHome />} />
-                    <Route path="orders" element={<AdminOrders />} />
-                    <Route path="inventory" element={<AdminInventory />} />
-                    <Route path="products" element={<AdminProducts />} />
-                    <Route path="users" element={<AdminUsers />} />
-                    <Route path="audits" element={<AdminAuditPanel />} />
-                    <Route path="settings" element={<AdminSettings />} />
+                    <Route path="orders" element={<Suspense fallback={<LoadingFallback />}><AdminOrders /></Suspense>} />
+                    <Route path="inventory" element={<Suspense fallback={<LoadingFallback />}><AdminInventory /></Suspense>} />
+                    <Route path="products" element={<Suspense fallback={<LoadingFallback />}><AdminProducts /></Suspense>} />
+                    <Route path="users" element={<Suspense fallback={<LoadingFallback />}><AdminUsers /></Suspense>} />
+                    <Route path="audits" element={<Suspense fallback={<LoadingFallback />}><AdminAuditPanel /></Suspense>} />
+                    <Route path="settings" element={<Suspense fallback={<LoadingFallback />}><AdminSettings /></Suspense>} />
                   </Route>
 
                   <Route path="*" element={
