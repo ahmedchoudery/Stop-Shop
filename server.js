@@ -146,17 +146,19 @@ app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 const allowedFromEnv = (process.env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
 const defaultAllowed = [
   'http://localhost:5173', 'http://localhost:3000',
-  'https://stop-shop-gamma.vercel.app'
+  'https://stop-shop-gamma.vercel.app',
+  'https://stop-shop-4da620xej-ahmedchouderys-projects.vercel.app'
 ];
 const allowedOrigins = [...new Set([...defaultAllowed, ...allowedFromEnv])];
 
 app.use(cors({
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(null, false);
-    }
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    // Allow any vercel.app subdomain for this project
+    if (/^https:\/\/stop-shop[^.]*\.vercel\.app$/.test(origin)) return callback(null, true);
+    if (allowedOrigins.includes(origin)) return callback(null, true);
+    callback(null, false);
   },
   credentials: true
 }));
@@ -439,16 +441,16 @@ app.post('/api/admin/login', validateRequest(loginSchema), authLimiter, async (r
     
     res.cookie('auth_token', token, {
       httpOnly: true,
-      secure: isProduction,
-      sameSite: isProduction ? 'strict' : 'lax',
+      secure: true,
+      sameSite: 'none',
       maxAge: 8 * 60 * 60 * 1000,
       path: '/'
     });
 
     res.cookie('csrf_token', csrfToken, {
       httpOnly: true,
-      secure: isProduction,
-      sameSite: isProduction ? 'strict' : 'lax',
+      secure: true,
+      sameSite: 'none',
       maxAge: 60 * 60 * 1000,
       path: '/'
     });
