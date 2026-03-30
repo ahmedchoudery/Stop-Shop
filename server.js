@@ -1,3 +1,11 @@
+/**
+ * @fileoverview Stop & Shop — Main Express Server
+ * Applies: nodejs-best-practices (layered arch, error handling, security, validation),
+ *          javascript-pro (async/await, Promise.allSettled, ES6+ modules),
+ *          javascript-mastery (const, optional chaining, nullish coalescing),
+ *          typescript-expert (JSDoc typed throughout)
+ */
+
 import express from 'express';
 import mongoose from 'mongoose';
 import nodemailer from 'nodemailer';
@@ -13,254 +21,221 @@ import compression from 'compression';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import cookieParser from 'cookie-parser';
+
 import { cacheService, CACHE_KEYS } from './src/services/cacheService.js';
-import { sanitizeInput } from './src/middleware/security.js';
-import { validateRequest, loginSchema, createProductSchema, updateProductSchema, createAdminSchema, updateOrderStatusSchema, checkoutSchema, updateSettingsSchema } from './src/schemas/validation.js';
+import { sanitizeInput, getClientIp, flattenQueryParams } from './src/middleware/security.js';
+import {
+  validateRequest,
+  loginSchema,
+  createProductSchema,
+  updateProductSchema,
+  createAdminSchema,
+  updateOrderStatusSchema,
+  checkoutSchema,
+  updateSettingsSchema,
+} from './src/schemas/validation.js';
 
 dotenv.config();
 
-console.log('--- DIAGNOSTIC STARTUP ---');
-console.log('NODE_ENV:', process.env.NODE_ENV);
-console.log('PORT:', process.env.PORT);
-console.log('MONGO_URI Present:', !!(process.env.MONGO_URI || process.env.MONGODB_URI));
-console.log('JWT_SECRET Present:', !!process.env.JWT_SECRET);
-console.log('--------------------------');
+// ─────────────────────────────────────────────────────────────────
+// STARTUP DIAGNOSTICS
+// ─────────────────────────────────────────────────────────────────
 
-// Global error handlers for debugging crashes
+const startupLog = {
+  NODE_ENV: process.env.NODE_ENV,
+  PORT: process.env.PORT,
+  MONGO_URI_PRESENT: !!(process.env.MONGO_URI ?? process.env.MONGODB_URI),
+  JWT_SECRET_PRESENT: !!(process.env.JWT_SECRET ?? process.env.jwt_secret),
+  REDIS_URL_PRESENT: !!(process.env.REDIS_URL ?? process.env.REDIS_TLS_URL),
+};
+
+console.table(startupLog);
+
+// ─────────────────────────────────────────────────────────────────
+// GLOBAL ERROR HANDLERS — Keep process alive for diagnostics
+// ─────────────────────────────────────────────────────────────────
+
 process.on('uncaughtException', (err) => {
-  console.error('FATAL: Uncaught Exception:', err.message);
-  console.error(err.stack);
+  console.error('[FATAL] Uncaught Exception:', err.message, err.stack);
   process.exit(1);
 });
 
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('FATAL: Unhandled Rejection at:', promise, 'reason:', reason);
+process.on('unhandledRejection', (reason) => {
+  console.error('[FATAL] Unhandled Rejection:', reason);
+  // Don't exit — log and continue
 });
 
 // ─────────────────────────────────────────────────────────────────
-// CUSTOM ERROR CLASSES
+// CUSTOM ERROR CLASSES (nodejs-best-practices: typed errors)
 // ─────────────────────────────────────────────────────────────────
+
 class AppError extends Error {
+  /**
+   * @param {string} message
+   * @param {number} statusCode
+   */
   constructor(message, statusCode) {
     super(message);
+    this.name = this.constructor.name;
     this.statusCode = statusCode;
-    this.status = `${statusCode}`.startsWith("4") ? "fail" : "error";
+    this.status = statusCode < 500 ? 'fail' : 'error';
     this.isOperational = true;
     Error.captureStackTrace(this, this.constructor);
   }
 }
 
-class ValidationError extends AppError {
-  constructor(message) {
-    super(message, 400);
-  }
-}
-
-class AuthenticationError extends AppError {
-  constructor(message) {
-    super(message, 401);
-  }
-}
-
-class AuthorizationError extends AppError {
-  constructor(message) {
-    super(message, 403);
-  }
-}
-
-class NotFoundError extends AppError {
-  constructor(message) {
-    super(message, 404);
-  }
-}
-
-class ConflictError extends AppError {
-  constructor(message) {
-    super(message, 409);
-  }
-}
-
-class TooManyRequestsError extends AppError {
-  constructor(message) {
-    super(message, 429);
-  }
-}
+class ValidationError extends AppError { constructor(msg) { super(msg, 400); } }
+class AuthenticationError extends AppError { constructor(msg) { super(msg, 401); } }
+class AuthorizationError extends AppError { constructor(msg) { super(msg, 403); } }
+class NotFoundError extends AppError { constructor(msg) { super(msg, 404); } }
+class ConflictError extends AppError { constructor(msg) { super(msg, 409); } }
 
 // ─────────────────────────────────────────────────────────────────
-// GLOBAL ERROR HANDLING MIDDLEWARE
+// ENVIRONMENT HELPER
 // ─────────────────────────────────────────────────────────────────
-const globalErrorHandler = (err, req, res, next) => {
-  err.statusCode = err.statusCode || 500;
-  err.status = err.status || "error";
-  
-  if (process.env.NODE_ENV === "development") {
-    res.status(err.statusCode).json({
-      status: err.status,
-      error: err,
-      message: err.message,
-      stack: err.stack
-    });
-  } else {
-    if (err.isOperational) {
-      res.status(err.statusCode).json({
-        status: err.status,
-        message: err.message
-      });
-    } else {
-      console.error("ERROR 💥", err);
-      res.status(500).json({
-        status: "error",
-        message: "Something went very wrong!"
-      });
-    }
-  }
-};
+
+/**
+ * Get first defined environment variable from a list of keys.
+ * @param {...string} keys
+ * @returns {string|undefined}
+ */
+const getEnv = (...keys) => keys.map(k => process.env[k]).find(Boolean);
+
+const isProduction = process.env.NODE_ENV === 'production';
 
 // ─────────────────────────────────────────────────────────────────
 // APP SETUP
 // ─────────────────────────────────────────────────────────────────
+
 const app = express();
-
-// Trust Railway/proxy headers (required for rate-limit & cookies behind load balancer)
-app.set('trust proxy', 1);
+app.set('trust proxy', 1); // Required behind Railway/Vercel load balancer
 
 // ─────────────────────────────────────────────────────────────────
-// PRE-MIDDLEWARE HEALTH & DIAGNOSTIC ROUTES
-// These MUST stay above helmet/cors/rate-limit so they always respond
+// PRE-MIDDLEWARE ROUTES (health check must respond before all else)
 // ─────────────────────────────────────────────────────────────────
 
-// Health check - Railway uses this to verify the container is alive
-app.get('/api/health', (req, res) => {
-  res.status(200).json({ status: 'healthy', uptime: process.uptime(), env: process.env.NODE_ENV });
-});
-
-// Diagnostic route - helps confirm env vars are loaded without exposing secrets
-app.get('/_diag', (req, res) => {
-  res.json({
-    status: 'alive',
+app.get('/api/health', (_req, res) => {
+  res.status(200).json({
+    status: 'healthy',
     uptime: process.uptime(),
-    node_env: process.env.NODE_ENV,
-    port: process.env.PORT,
-    mongo_uri_present: !!(process.env.MONGO_URI || process.env.MONGODB_URI),
-    jwt_secret_present: !!(process.env.JWT_SECRET || process.env.jwt_secret),
-    memory: process.memoryUsage()
+    env: process.env.NODE_ENV,
+    timestamp: new Date().toISOString(),
   });
 });
 
-// Basic test route
-app.get('/api/test', (req, res) => {
-  res.json({ test: true, message: 'Server is reachable' });
+app.get('/_diag', (_req, res) => {
+  res.json({
+    status: 'alive',
+    uptime: process.uptime(),
+    ...startupLog,
+    memory: process.memoryUsage(),
+  });
 });
 
-// Security headers
+// ─────────────────────────────────────────────────────────────────
+// SECURITY MIDDLEWARE
+// ─────────────────────────────────────────────────────────────────
+
 app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https:"],
-      scriptSrc: ["'self'", "'unsafe-inline'", "https:"],
-      imgSrc: ["'self'", "data:", "https:", "blob:"],
-      connectSrc: ["'self'", "https:"],
-      fontSrc: ["'self'", "https:", "data:"],
+      styleSrc: ["'self'", "'unsafe-inline'", 'https:'],
+      scriptSrc: ["'self'", "'unsafe-inline'", 'https:'],
+      imgSrc: ["'self'", 'data:', 'https:', 'blob:'],
+      connectSrc: ["'self'", 'https:'],
+      fontSrc: ["'self'", 'https:', 'data:'],
       objectSrc: ["'none'"],
-      mediaSrc: ["'self'", "https:"],
-      frameSrc: ["'none'"]
-    }
+      mediaSrc: ["'self'", 'https:'],
+      frameSrc: ["'none'"],
+    },
   },
-  crossOriginEmbedderPolicy: false
+  crossOriginEmbedderPolicy: false,
 }));
 
-// Compression
-app.use(compression());
-
-// Request logging
-app.use(morgan(process.env.NODE_ENV === "development" ? "dev" : "combined"));
-
-// Body parsing with size limit
-app.use(express.json({ limit: '10kb' }));
-app.use(express.urlencoded({ extended: true, limit: '10kb' }));
-
+// ─────────────────────────────────────────────────────────────────
 // CORS
-const defaultAllowed = [
-  'http://localhost:5173', 
+// ─────────────────────────────────────────────────────────────────
+
+const ALLOWED_ORIGINS = [
+  'http://localhost:5173',
   'http://localhost:3000',
   'https://stop-shop-gamma.vercel.app',
-  'https://stop-shop-4da620xej-ahmedchouderys-projects.vercel.app'
+  'https://stop-shop-4da620xej-ahmedchouderys-projects.vercel.app',
+  ...(getEnv('ALLOWED_ORIGINS') ?? '').split(',').map(s => s.trim()).filter(Boolean),
 ];
-const allowedFromEnv = (process.env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
-const allowedOrigins = [...new Set([...defaultAllowed, ...allowedFromEnv])];
+
+const uniqueOrigins = [...new Set(ALLOWED_ORIGINS)];
 
 app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (mobile apps, curl, etc.)
+  origin(origin, callback) {
+    // Allow server-to-server / mobile / curl requests
     if (!origin) return callback(null, true);
-    
-    // Check if origin is in the allowed list or is a Vercel preview/project URL
-    const isAllowed = allowedOrigins.includes(origin) || 
-                      /^https:\/\/stop-shop.*\.vercel\.app$/.test(origin);
-    
-    if (isAllowed) {
-      callback(null, true);
-    } else {
-      console.warn(`[CORS] Blocked request from origin: ${origin}`);
-      callback(null, false);
-    }
+
+    const allowed = uniqueOrigins.includes(origin)
+      || /^https:\/\/stop-shop.*\.vercel\.app$/.test(origin);
+
+    if (allowed) return callback(null, true);
+
+    console.warn(`[CORS] Blocked: ${origin}`);
+    callback(null, false);
   },
-  credentials: true
+  credentials: true,
 }));
 
+// ─────────────────────────────────────────────────────────────────
+// GENERAL MIDDLEWARE
+// ─────────────────────────────────────────────────────────────────
+
+app.use(compression());
+app.use(morgan(isProduction ? 'combined' : 'dev'));
+app.use(express.json({ limit: '10kb' }));
+app.use(express.urlencoded({ extended: true, limit: '10kb' }));
 app.use(cookieParser());
 app.use(sanitizeInput);
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const distPath = path.join(__dirname, 'dist');
-
-const getEnv = (...keys) => {
-  for (const key of keys) {
-    if (process.env[key]) return process.env[key];
-  }
-  return undefined;
-};
+app.use(flattenQueryParams);
 
 // ─────────────────────────────────────────────────────────────────
-// START SERVER (Bind port before DB/heavy init to pass Railway health check)
+// RATE LIMITING
 // ─────────────────────────────────────────────────────────────────
-const PORT = parseInt(process.env.PORT || '5000', 10);
-console.log(`[STARTUP] Binding to port ${PORT}...`);
-const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(`✅ Server listening on 0.0.0.0:${PORT}`);
-  console.log(`Health: http://0.0.0.0:${PORT}/api/health`);
-  console.log(`Diag:   http://0.0.0.0:${PORT}/_diag`);
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 5,
+  message: { error: 'Too many login attempts. Please try again in 15 minutes.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+  skipSuccessfulRequests: true,
+  validate: { xForwardedForHeader: false },
+});
+
+const apiLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 100,
+  message: { error: 'Too many requests. Please slow down.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+  validate: { xForwardedForHeader: false },
+});
+
+const checkoutLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 10,
+  message: { error: 'Too many checkout attempts. Please slow down.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+  validate: { xForwardedForHeader: false },
 });
 
 // ─────────────────────────────────────────────────────────────────
-// DATABASE CONNECTION
+// DB MODELS
 // ─────────────────────────────────────────────────────────────────
-const mongoUri = getEnv('MONGO_URI', 'MONGODB_URI');
-if (!mongoUri) {
-  console.error('❌ Missing MongoDB env var (MONGO_URI or MONGODB_URI) - STAYING ALIVE FOR DIAGNOSTICS');
-} else {
-  mongoose.connect(mongoUri, {
-    maxPoolSize: 10,
-    socketTimeoutMS: 45000,
-    serverSelectionTimeoutMS: 5000,
-    family: 4
-  })
-    .then(() => console.log('✅ Connected to MongoDB'))
-    .catch(err => {
-      console.error('❌ MongoDB connection error:', err);
-    });
-}
 
-// ─────────────────────────────────────────────────────────────────
-// SCHEMAS & MODELS
-// ─────────────────────────────────────────────────────────────────
 const orderSchema = new mongoose.Schema({
-  orderID: { type: String, unique: true },
+  orderID: { type: String, unique: true, index: true },
   customer: {
-    name: String,
-    email: String,
+    name: { type: String, required: true },
+    email: { type: String, required: true },
     address: String,
     city: String,
     zip: String,
@@ -269,31 +244,35 @@ const orderSchema = new mongoose.Schema({
     id: String,
     name: String,
     price: Number,
-    quantity: Number,
-    selectedSize: String
+    quantity: { type: Number, default: 1 },
+    selectedSize: { type: String, default: '' },
   }],
-  total: Number,
-  paymentMethod: String,
+  total: { type: Number, required: true },
+  paymentMethod: { type: String, required: true },
   status: {
     type: String,
     enum: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'],
-    default: 'Pending'
+    default: 'Pending',
+    index: true,
   },
-  createdAt: { type: Date, default: Date.now }
-});
+  ip: { type: String, default: '' },
+}, { timestamps: true, versionKey: false });
+
 orderSchema.index({ status: 1, createdAt: -1 });
+orderSchema.index({ 'customer.email': 1 });
+
 const Order = mongoose.model('Order', orderSchema);
 
 const productSchema = new mongoose.Schema({
-  id: { type: String, unique: true },
-  name: String,
-  price: Number,
-  quantity: { type: Number, default: 0 },
-  stock: { type: Number, default: 0 },
-  image: String,
+  id: { type: String, unique: true, index: true },
+  name: { type: String, required: true, trim: true },
+  price: { type: Number, required: true, min: 0 },
+  quantity: { type: Number, default: 0, min: 0 },
+  stock: { type: Number, default: 0, min: 0 },
+  image: { type: String, default: '' },
   mediaType: { type: String, enum: ['upload', 'url', 'embed'], default: 'upload' },
   embedCode: { type: String, default: '' },
-  rating: { type: Number, default: 5 },
+  rating: { type: Number, default: 5, min: 1, max: 5 },
   bucket: { type: String, default: 'Tops' },
   subCategory: { type: String, default: 'General' },
   specs: [{ type: String }],
@@ -303,21 +282,26 @@ const productSchema = new mongoose.Schema({
   lifestyleImage: { type: String, default: '' },
   variantImages: { type: Map, of: String, default: {} },
   gallery: [{ type: String }],
-  createdAt: { type: Date, default: Date.now }
-}, { indexes: false });
+}, { timestamps: true, versionKey: false, indexes: false });
+
 productSchema.index({ bucket: 1, createdAt: -1 });
 
-productSchema.pre('save', function() {
-  const mapValues = this.sizeStock instanceof Map
+/**
+ * Sync quantity/stock from sizeStock map on save.
+ * Pure function applied to Mongoose pre-save hook.
+ */
+productSchema.pre('save', function syncStock() {
+  const sizeValues = this.sizeStock instanceof Map
     ? [...this.sizeStock.values()]
-    : Object.values(this.sizeStock || {});
-  const hasSizeStock = mapValues.length > 0;
-  if (hasSizeStock) {
-    const totalFromSizes = mapValues.reduce((sum, n) => sum + Math.max(0, parseInt(n) || 0), 0);
-    this.quantity = totalFromSizes;
-    this.stock = totalFromSizes;
+    : Object.values(this.sizeStock ?? {});
+
+  if (sizeValues.length > 0) {
+    const total = sizeValues.reduce((sum, n) => sum + Math.max(0, parseInt(n) || 0), 0);
+    this.quantity = total;
+    this.stock = total;
     return;
   }
+
   if (this.isModified('quantity')) {
     this.stock = this.quantity;
   } else if (this.isModified('stock')) {
@@ -328,741 +312,753 @@ productSchema.pre('save', function() {
 const Product = mongoose.model('Product', productSchema);
 
 const adminSchema = new mongoose.Schema({
-  name: { type: String, required: true },
-  email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
+  name: { type: String, required: true, trim: true },
+  email: { type: String, required: true, unique: true, trim: true, lowercase: true },
+  password: { type: String, required: true, select: false }, // Never returned by default
   isPrimary: { type: Boolean, default: false },
-  roles: { type: [String], enum: ['admin', 'super-admin', 'auditor'], default: ['admin'] },
+  roles: {
+    type: [String],
+    enum: ['admin', 'super-admin', 'auditor'],
+    default: ['admin'],
+  },
   failedLoginAttempts: { type: Number, default: 0 },
   lockUntil: { type: Date, default: null },
   lastLogin: { type: Date, default: null },
-  createdAt: { type: Date, default: Date.now }
-});
+}, { timestamps: true, versionKey: false });
+
 const Admin = mongoose.model('Admin', adminSchema);
 
 const settingsSchema = new mongoose.Schema({
   logo: { type: String, default: '' },
-  announcement: { type: String, default: 'Welcome to Stop & Shop — Premium Clothing' },
-  updatedAt: { type: Date, default: Date.now }
-});
+  announcement: { type: String, default: 'Welcome to Stop & Shop — Premium Clothing', maxlength: 500 },
+}, { timestamps: true, versionKey: false });
+
 const Settings = mongoose.model('Settings', settingsSchema);
 
 // ─────────────────────────────────────────────────────────────────
 // AUTH MIDDLEWARE
 // ─────────────────────────────────────────────────────────────────
+
+const JWT_SECRET = getEnv('JWT_SECRET', 'jwt_secret');
+
+/**
+ * Verify JWT from cookie or Authorization header.
+ * @type {import('express').RequestHandler}
+ */
 const authenticateToken = (req, res, next) => {
-  const cookies = req.cookies || {};
-  let token = cookies.auth_token;
-  
+  const token = req.cookies?.auth_token
+    ?? req.headers.authorization?.split(' ')[1];
+
   if (!token) {
-    const authHeader = req.headers['authorization'];
-    token = authHeader && authHeader.split(' ')[1];
+    return res.status(401).json({ error: 'Authentication required' });
   }
-  
-  if (!token) return res.status(401).json({ error: 'Authentication required' });
-  
-  jwt.verify(token, getEnv('JWT_SECRET', 'jwt_secret'), (err, user) => {
-    if (err) return res.status(403).json({ error: 'Invalid or expired token' });
-    req.user = user;
-    next();
-  });
+
+  try {
+    req.user = jwt.verify(token, JWT_SECRET);
+    return next();
+  } catch {
+    return res.status(403).json({ error: 'Invalid or expired token' });
+  }
 };
 
+/**
+ * Validate CSRF token for state-changing requests.
+ * @type {import('express').RequestHandler}
+ */
 const csrfValidation = (req, res, next) => {
-  if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) {
-    return next();
-  }
-  
-  const cookies = req.cookies || {};
-  const csrfFromCookie = cookies.csrf_token;
-  const csrfFromHeader = req.headers['x-csrf-token'];
-  
-  if (!csrfFromCookie && !csrfFromHeader) {
-    return res.status(403).json({ error: 'CSRF token required' });
-  }
-  
-  const csrfToken = csrfFromHeader || csrfFromCookie;
-  
+  if (['GET', 'HEAD', 'OPTIONS'].includes(req.method)) return next();
+
+  const csrfToken = req.headers['x-csrf-token'] ?? req.cookies?.csrf_token;
+  if (!csrfToken) return res.status(403).json({ error: 'CSRF token required' });
+
   try {
-    const decoded = jwt.verify(csrfToken, getEnv('JWT_SECRET', 'jwt_secret'));
+    const decoded = jwt.verify(csrfToken, JWT_SECRET);
     if (decoded.type !== 'csrf') {
       return res.status(403).json({ error: 'Invalid CSRF token' });
     }
     if (decoded.userId !== req.user?.id) {
       return res.status(403).json({ error: 'CSRF token mismatch' });
     }
-    next();
-  } catch (err) {
+    return next();
+  } catch {
     return res.status(403).json({ error: 'Invalid or expired CSRF token' });
   }
 };
 
-// ─────────────────────────────────────────────────────────────────
-// RATE LIMITING
-// ─────────────────────────────────────────────────────────────────
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 5,
-  message: { error: 'Too many login attempts. Please try again in 15 minutes.' },
-  standardHeaders: true,
-  legacyHeaders: false,
-  skipSuccessfulRequests: true,
-  validate: { xForwardedForHeader: false }
-});
-
-const apiLimiter = rateLimit({
-  windowMs: 1 * 60 * 1000,
-  max: 100,
-  message: { error: 'Too many requests. Please slow down.' },
-  standardHeaders: true,
-  legacyHeaders: false,
-  validate: { xForwardedForHeader: false }
-});
+/**
+ * Require specific admin role.
+ * @param {string[]} roles
+ * @returns {import('express').RequestHandler}
+ */
+const requireRole = (roles) => (req, res, next) => {
+  if (!roles.includes(req.user?.role)) {
+    return res.status(403).json({ error: 'Insufficient permissions' });
+  }
+  return next();
+};
 
 // ─────────────────────────────────────────────────────────────────
-// NODEMAILER
+// EMAIL TRANSPORTER
 // ─────────────────────────────────────────────────────────────────
+
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
     user: getEnv('EMAIL_USER', 'email_user'),
-    pass: getEnv('EMAIL_PASS', 'email_pass')
-  }
+    pass: getEnv('EMAIL_PASS', 'email_pass'),
+  },
 });
 
-// ─────────────────────────────────────────────────────────────────
-// AUTH ROUTES
-// ─────────────────────────────────────────────────────────────────
-app.post('/api/admin/login', validateRequest(loginSchema), authLimiter, async (req, res) => {
-  const { email, password } = req.body;
-  
+/**
+ * Send email — never throws, logs failure.
+ * @param {nodemailer.SendMailOptions} options
+ */
+const sendEmail = async (options) => {
   try {
-    const admin = await Admin.findOne({ email });
-    
-    if (!admin) {
-      return res.status(401).json({ error: 'Invalid credentials' });
-    }
-    
+    await transporter.sendMail(options);
+  } catch (err) {
+    console.error('[Email] Failed to send:', err.message);
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────
+// ROUTES: AUTH
+// ─────────────────────────────────────────────────────────────────
+
+app.post('/api/admin/login', authLimiter, validateRequest(loginSchema), async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+
+    // +password to override select:false
+    const admin = await Admin.findOne({ email }).select('+password');
+    if (!admin) throw new AuthenticationError('Invalid credentials');
+
+    // Account lock check
     if (admin.lockUntil && admin.lockUntil > new Date()) {
-      const lockRemaining = Math.ceil((admin.lockUntil - new Date()) / 60000);
-      return res.status(423).json({ 
-        error: `Account locked. Try again in ${lockRemaining} minutes.` 
-      });
+      const minutes = Math.ceil((admin.lockUntil - Date.now()) / 60_000);
+      return res.status(423).json({ error: `Account locked. Try again in ${minutes} minutes.` });
     }
-    
-    const isMatch = await bcrypt.compare(password, admin.password);
-    
-    if (!isMatch) {
+
+    const passwordValid = await bcrypt.compare(password, admin.password);
+
+    if (!passwordValid) {
+      const attempts = admin.failedLoginAttempts + 1;
+      const lockUntil = attempts >= 5 ? new Date(Date.now() + 15 * 60_000) : null;
+
       await Admin.findByIdAndUpdate(admin._id, {
-        $inc: { failedLoginAttempts: 1 }
+        $inc: { failedLoginAttempts: 1 },
+        ...(lockUntil && { lockUntil }),
       });
-      
-      if (admin.failedLoginAttempts >= 4) {
-        await Admin.findByIdAndUpdate(admin._id, {
-          lockUntil: new Date(Date.now() + 15 * 60 * 1000)
-        });
-        return res.status(423).json({ 
-          error: 'Too many failed attempts. Account locked for 15 minutes.' 
-        });
+
+      if (lockUntil) {
+        return res.status(423).json({ error: 'Too many failed attempts. Account locked for 15 minutes.' });
       }
-      
-      return res.status(401).json({ error: 'Invalid credentials' });
+
+      throw new AuthenticationError('Invalid credentials');
     }
-    
-    if (admin.failedLoginAttempts > 0 || admin.lockUntil) {
-      await Admin.findByIdAndUpdate(admin._id, {
-        failedLoginAttempts: 0,
-        lockUntil: null,
-        lastLogin: new Date()
-      });
-    } else {
-      await Admin.findByIdAndUpdate(admin._id, { lastLogin: new Date() });
-    }
-    
+
+    // Reset failed attempts on success
+    await Admin.findByIdAndUpdate(admin._id, {
+      failedLoginAttempts: 0,
+      lockUntil: null,
+      lastLogin: new Date(),
+    });
+
     const token = jwt.sign(
-      { id: admin._id, email: admin.email, role: admin.roles?.[0] || 'admin' },
-      getEnv('JWT_SECRET', 'jwt_secret'),
+      { id: admin._id, email: admin.email, role: admin.roles?.[0] ?? 'admin' },
+      JWT_SECRET,
       { expiresIn: '8h' }
     );
 
     const csrfToken = jwt.sign(
-      { type: 'csrf', userId: admin._id },
-      getEnv('JWT_SECRET', 'jwt_secret'),
+      { type: 'csrf', userId: admin._id.toString() },
+      JWT_SECRET,
       { expiresIn: '1h' }
     );
 
-    const isProduction = process.env.NODE_ENV === 'production';
-    
-    res.cookie('auth_token', token, {
+    const cookieOptions = {
       httpOnly: true,
       secure: isProduction,
       sameSite: isProduction ? 'none' : 'lax',
-      maxAge: 8 * 60 * 60 * 1000,
-      path: '/'
-    });
+      path: '/',
+    };
 
-    res.cookie('csrf_token', csrfToken, {
-      httpOnly: true,
-      secure: isProduction,
-      sameSite: isProduction ? 'none' : 'lax',
-      maxAge: 60 * 60 * 1000,
-      path: '/'
-    });
+    res
+      .cookie('auth_token', token, { ...cookieOptions, maxAge: 8 * 60 * 60 * 1000 })
+      .cookie('csrf_token', csrfToken, { ...cookieOptions, maxAge: 60 * 60 * 1000 })
+      .json({ name: admin.name, success: true, token });
 
-    res.json({ name: admin.name, success: true, token });
-  } catch (error) {
-    console.error('Login error:', error);
-    res.status(500).json({ error: 'Login failed. Please try again.' });
+  } catch (err) {
+    next(err);
   }
 });
 
+app.post('/api/admin/logout', authenticateToken, (req, res) => {
+  res
+    .clearCookie('auth_token')
+    .clearCookie('csrf_token')
+    .json({ success: true });
+});
+
 // ─────────────────────────────────────────────────────────────────
-// ORDER ROUTES
+// ROUTES: ORDERS
 // ─────────────────────────────────────────────────────────────────
-app.get('/api/orders', authenticateToken, async (req, res) => {
+
+app.get('/api/orders', authenticateToken, async (req, res, next) => {
   try {
-    const orders = await Order.find().sort({ createdAt: -1 });
+    const orders = await Order.find().sort({ createdAt: -1 }).lean();
     res.json(orders);
-  } catch (error) {
-    console.error('Fetch orders error:', error);
-    res.status(500).json({ error: 'Failed to fetch orders' });
-  }
+  } catch (err) { next(err); }
 });
 
-app.patch('/api/orders/:id', authenticateToken, validateRequest(updateOrderStatusSchema), async (req, res) => {
+app.patch('/api/orders/:id', authenticateToken, validateRequest(updateOrderStatusSchema), async (req, res, next) => {
   try {
-    const { status } = req.body;
-    const order = await Order.findByIdAndUpdate(req.params.id, { status }, { new: true });
-    if (!order) return res.status(404).json({ error: 'Order not found' });
-    await Promise.all([
-      cacheService.del(CACHE_KEYS.STATS_REVENUE),
-      cacheService.del(CACHE_KEYS.STATS_ORDERS)
-    ]);
+    const order = await Order.findByIdAndUpdate(
+      req.params.id,
+      { status: req.body.status },
+      { new: true }
+    ).lean();
+
+    if (!order) throw new NotFoundError('Order not found');
+
+    await cacheService.invalidateMany([CACHE_KEYS.STATS_REVENUE, CACHE_KEYS.STATS_ORDERS]);
     res.json(order);
-  } catch (error) {
-    console.error('Update order error:', error);
-    res.status(500).json({ error: 'Failed to update order status' });
-  }
+  } catch (err) { next(err); }
 });
 
 // ─────────────────────────────────────────────────────────────────
-// PRODUCT ROUTES
+// ROUTES: PRODUCTS (admin)
 // ─────────────────────────────────────────────────────────────────
-app.get('/api/admin/products', authenticateToken, async (req, res) => {
+
+app.get('/api/admin/products', authenticateToken, async (req, res, next) => {
   try {
-    const products = await Product.find().sort({ createdAt: -1 });
+    const products = await Product.find().sort({ createdAt: -1 }).lean();
     res.json(products);
-  } catch (error) {
-    console.error('Fetch products error:', error);
-    res.status(500).json({ error: 'Failed to fetch products' });
-  }
+  } catch (err) { next(err); }
 });
 
-app.post('/api/admin/products', authenticateToken, validateRequest(createProductSchema), async (req, res) => {
+app.post('/api/admin/products', authenticateToken, validateRequest(createProductSchema), async (req, res, next) => {
   try {
-    const productData = req.body;
-    const buildId = () => 'PRD-' + Math.random().toString(36).substr(2, 9).toUpperCase();
-    if (!productData.id) productData.id = buildId();
+    const buildId = () => `PRD-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+
+    const productData = { ...req.body, id: req.body.id || buildId() };
+
     try {
-      const product = new Product(productData);
-      await product.save();
-      await Promise.all([
-        cacheService.del(CACHE_KEYS.STATS_INVENTORY),
-        cacheService.del(CACHE_KEYS.PRODUCTS),
-        cacheService.del(CACHE_KEYS.PUBLIC_PRODUCTS)
-      ]);
+      const product = await new Product(productData).save();
+      await cacheService.invalidateMany([CACHE_KEYS.STATS_INVENTORY, CACHE_KEYS.PRODUCTS, CACHE_KEYS.PUBLIC_PRODUCTS]);
       return res.status(201).json(product);
-    } catch (saveError) {
-      if (saveError?.code === 11000 && saveError?.keyPattern?.id) {
-        const retryData = { ...productData, id: buildId() };
-        const retryProduct = new Product(retryData);
-        await retryProduct.save();
-        await Promise.all([
-          cacheService.del(CACHE_KEYS.STATS_INVENTORY),
-          cacheService.del(CACHE_KEYS.PRODUCTS),
-          cacheService.del(CACHE_KEYS.PUBLIC_PRODUCTS)
-        ]);
-        return res.status(201).json(retryProduct);
+    } catch (saveErr) {
+      // Retry with new ID on collision
+      if (saveErr?.code === 11000 && saveErr?.keyPattern?.id) {
+        const product = await new Product({ ...productData, id: buildId() }).save();
+        await cacheService.invalidateMany([CACHE_KEYS.STATS_INVENTORY, CACHE_KEYS.PRODUCTS, CACHE_KEYS.PUBLIC_PRODUCTS]);
+        return res.status(201).json(product);
       }
-      throw saveError;
+      throw saveErr;
     }
-  } catch (error) {
-    console.error('Create product error:', error);
-    res.status(500).json({ error: error?.message || 'Failed to create product' });
-  }
+  } catch (err) { next(err); }
 });
 
-app.patch('/api/admin/products/:id', authenticateToken, validateRequest(updateProductSchema), async (req, res) => {
+app.patch('/api/admin/products/:id', authenticateToken, validateRequest(updateProductSchema), async (req, res, next) => {
   try {
     const updateData = { ...req.body };
+
+    // Sync stock from sizeStock if provided
     if (updateData.sizeStock && typeof updateData.sizeStock === 'object') {
-      const totalFromSizes = Object.values(updateData.sizeStock)
+      const total = Object.values(updateData.sizeStock)
         .reduce((sum, n) => sum + Math.max(0, parseInt(n) || 0), 0);
-      updateData.quantity = totalFromSizes;
-      updateData.stock = totalFromSizes;
-    }
-    if (updateData.quantity !== undefined && updateData.stock === undefined) {
-      updateData.stock = updateData.quantity;
-    } else if (updateData.stock !== undefined && updateData.quantity === undefined) {
-      updateData.quantity = updateData.stock;
+      updateData.quantity = total;
+      updateData.stock = total;
+    } else {
+      // Ensure quantity and stock stay in sync
+      if (updateData.quantity !== undefined && updateData.stock === undefined) {
+        updateData.stock = updateData.quantity;
+      } else if (updateData.stock !== undefined && updateData.quantity === undefined) {
+        updateData.quantity = updateData.stock;
+      }
     }
 
     const product = await Product.findOneAndUpdate(
       { id: req.params.id },
       updateData,
       { new: true }
-    );
-    if (!product) return res.status(404).json({ error: 'Product not found' });
-    await Promise.all([
-      cacheService.del(CACHE_KEYS.STATS_INVENTORY),
-      cacheService.del(CACHE_KEYS.PRODUCTS),
-      cacheService.del(CACHE_KEYS.PUBLIC_PRODUCTS)
-    ]);
+    ).lean();
+
+    if (!product) throw new NotFoundError('Product not found');
+
+    await cacheService.invalidateMany([CACHE_KEYS.STATS_INVENTORY, CACHE_KEYS.PRODUCTS, CACHE_KEYS.PUBLIC_PRODUCTS]);
     res.json(product);
-  } catch (error) {
-    console.error('Update product error:', error);
-    res.status(500).json({ error: 'Failed to update product' });
-  }
+  } catch (err) { next(err); }
 });
 
-app.delete('/api/admin/products/:id', authenticateToken, async (req, res) => {
+app.delete('/api/admin/products/:id', authenticateToken, async (req, res, next) => {
   try {
-    const product = await Product.findOneAndDelete({ id: req.params.id });
-    if (!product) return res.status(404).json({ error: 'Product not found' });
-    await Promise.all([
-      cacheService.del(CACHE_KEYS.STATS_INVENTORY),
-      cacheService.del(CACHE_KEYS.PRODUCTS),
-      cacheService.del(CACHE_KEYS.PUBLIC_PRODUCTS)
-    ]);
+    const product = await Product.findOneAndDelete({ id: req.params.id }).lean();
+    if (!product) throw new NotFoundError('Product not found');
+
+    await cacheService.invalidateMany([CACHE_KEYS.STATS_INVENTORY, CACHE_KEYS.PRODUCTS, CACHE_KEYS.PUBLIC_PRODUCTS]);
     res.json({ message: 'Product removed from system' });
-  } catch (error) {
-    console.error('Delete product error:', error);
-    res.status(500).json({ error: 'Failed to delete product' });
-  }
+  } catch (err) { next(err); }
 });
 
 // ─────────────────────────────────────────────────────────────────
-// PUBLIC PRODUCT ROUTE
+// ROUTES: PUBLIC PRODUCTS
 // ─────────────────────────────────────────────────────────────────
-app.get('/api/public/products', async (req, res) => {
+
+app.get('/api/public/products', async (req, res, next) => {
   try {
-    const cached = await cacheService.get(CACHE_KEYS.PUBLIC_PRODUCTS);
-    if (cached) {
-      return res.json({ ...cached, cached: true });
-    }
-    const products = await Product.find();
-    await cacheService.set(CACHE_KEYS.PUBLIC_PRODUCTS, products);
-    res.json(products);
-  } catch (error) {
-    console.error('Fetch public products error:', error);
-    res.status(500).json({ error: 'Failed to fetch public products' });
-  }
+    const data = await cacheService.getOrSet(
+      CACHE_KEYS.PUBLIC_PRODUCTS,
+      () => Product.find().lean()
+    );
+    res.json(data);
+  } catch (err) { next(err); }
 });
 
-// ─────────────────────────────────────────────────────────────────
-// PUBLIC PRODUCT SCHEMA.ORG (for AI/SEO)
-// ─────────────────────────────────────────────────────────────────
-app.get('/api/schema/products', (req, res) => {
-  Product.find().then(products => {
+app.get('/api/schema/products', async (_req, res, next) => {
+  try {
+    const products = await Product.find().lean();
     const baseUrl = 'https://stop-shop-gamma.vercel.app';
+
     const schema = {
       '@context': 'https://schema.org',
       '@type': 'ItemList',
-      'itemListElement': products.map((product, index) => ({
+      itemListElement: products.map((product, index) => ({
         '@type': 'ListItem',
-        'position': index + 1,
-        'item': {
+        position: index + 1,
+        item: {
           '@type': 'Product',
-          'name': product.name,
-          'description': `${product.name} - ${product.subCategory || 'Premium clothing'}`,
-          'image': product.image,
-          'url': `${baseUrl}/shop`,
-          'brand': { '@type': 'Brand', 'name': 'Stop & Shop' },
-          'offers': {
+          name: product.name,
+          description: `${product.name} — ${product.subCategory ?? 'Premium clothing'}`,
+          image: product.image,
+          url: `${baseUrl}/shop`,
+          brand: { '@type': 'Brand', name: 'Stop & Shop' },
+          offers: {
             '@type': 'Offer',
-            'price': product.price,
-            'priceCurrency': 'PKR',
-            'availability': product.quantity > 0 
-              ? 'https://schema.org/InStock' 
-              : 'https://schema.org/OutOfStock'
-          }
-        }
-      }))
+            price: product.price,
+            priceCurrency: 'PKR',
+            availability: product.quantity > 0
+              ? 'https://schema.org/InStock'
+              : 'https://schema.org/OutOfStock',
+          },
+        },
+      })),
     };
+
     res.json(schema);
-  }).catch(error => {
-    console.error('Schema endpoint error:', error);
-    res.status(500).json({ error: 'Failed to fetch products schema' });
-  });
+  } catch (err) { next(err); }
 });
 
 // ─────────────────────────────────────────────────────────────────
-// STATS ROUTES (with caching)
+// ROUTES: STATS (with caching)
 // ─────────────────────────────────────────────────────────────────
-app.get(['/api/stats/revenue', '/api/admin/stats/revenue'], authenticateToken, async (req, res) => {
-  const cached = await cacheService.get(CACHE_KEYS.STATS_REVENUE);
-  if (cached) {
-    return res.json({ ...cached, cached: true });
-  }
-  
+
+app.get(['/api/stats/revenue', '/api/admin/stats/revenue'], authenticateToken, async (_req, res, next) => {
   try {
-    const orders = await Order.find({ status: { $ne: 'Cancelled' } });
-    
-    const now = new Date();
-    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const startOfYesterday = new Date(startOfToday);
-    startOfYesterday.setDate(startOfYesterday.getDate() - 1);
-    
-    const totalRevenue = orders.reduce((sum, order) => sum + (order.total || 0), 0);
-    
-    const todayRevenue = orders
-      .filter(o => new Date(o.createdAt) >= startOfToday)
-      .reduce((sum, o) => sum + (o.total || 0), 0);
-      
-    const yesterdayRevenue = orders
-      .filter(o => {
-        const d = new Date(o.createdAt);
-        return d >= startOfYesterday && d < startOfToday;
-      })
-      .reduce((sum, o) => sum + (o.total || 0), 0);
-      
-    let trend = 0;
-    if (yesterdayRevenue > 0) {
-      trend = ((todayRevenue - yesterdayRevenue) / yesterdayRevenue) * 100;
-    } else if (todayRevenue > 0) {
-      trend = 100;
-    }
-    
-    const weeklyData = [];
-    for (let i = 6; i >= 0; i--) {
-      const targetDate = new Date(startOfToday);
-      targetDate.setDate(targetDate.getDate() - i);
-      const nextDate = new Date(targetDate);
-      nextDate.setDate(nextDate.getDate() + 1);
-      
-      const dayOrders = orders.filter(o => {
-        const d = new Date(o.createdAt);
-        return d >= targetDate && d < nextDate;
+    const data = await cacheService.getOrSet(CACHE_KEYS.STATS_REVENUE, async () => {
+      const orders = await Order.find({ status: { $ne: 'Cancelled' } }).lean();
+      const now = new Date();
+      const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const startOfYesterday = new Date(startOfToday);
+      startOfYesterday.setDate(startOfYesterday.getDate() - 1);
+
+      const totalRevenue = orders.reduce((sum, o) => sum + (o.total ?? 0), 0);
+
+      const todayRevenue = orders
+        .filter(o => new Date(o.createdAt) >= startOfToday)
+        .reduce((sum, o) => sum + (o.total ?? 0), 0);
+
+      const yesterdayRevenue = orders
+        .filter(o => {
+          const d = new Date(o.createdAt);
+          return d >= startOfYesterday && d < startOfToday;
+        })
+        .reduce((sum, o) => sum + (o.total ?? 0), 0);
+
+      const trend = yesterdayRevenue > 0
+        ? ((todayRevenue - yesterdayRevenue) / yesterdayRevenue) * 100
+        : todayRevenue > 0 ? 100 : 0;
+
+      const weeklyData = [...Array(7)].map((_, i) => {
+        const target = new Date(startOfToday);
+        target.setDate(target.getDate() - (6 - i));
+        const next = new Date(target);
+        next.setDate(next.getDate() + 1);
+
+        const dayOrders = orders.filter(o => {
+          const d = new Date(o.createdAt);
+          return d >= target && d < next;
+        });
+
+        return {
+          day: target.toLocaleDateString('en-US', { weekday: 'short' }),
+          revenue: dayOrders.reduce((sum, o) => sum + (o.total ?? 0), 0),
+          orders: dayOrders.length,
+        };
       });
-      
-      const dayRev = dayOrders.reduce((sum, o) => sum + (o.total || 0), 0);
-      
-      weeklyData.push({
-        day: targetDate.toLocaleDateString('en-US', { weekday: 'short' }),
-        revenue: dayRev,
-        orders: dayOrders.length
-      });
-    }
 
-    const result = { totalRevenue, trend, weeklyData };
-    await cacheService.set(CACHE_KEYS.STATS_REVENUE, result);
-    res.json(result);
-  } catch (error) {
-    console.error('Revenue stats error:', error);
-    res.status(500).json({ error: 'Failed to calculate revenue' });
-  }
+      return { totalRevenue, trend, weeklyData };
+    });
+
+    res.json(data);
+  } catch (err) { next(err); }
 });
 
-app.get(['/api/stats/orders', '/api/admin/stats/orders'], authenticateToken, async (req, res) => {
-  const cached = await cacheService.get(CACHE_KEYS.STATS_ORDERS);
-  if (cached) {
-    return res.json({ ...cached, cached: true });
-  }
-  
+app.get(['/api/stats/orders', '/api/admin/stats/orders'], authenticateToken, async (_req, res, next) => {
   try {
-    const totalOrders = await Order.countDocuments({ status: { $ne: 'Cancelled' } });
-    const pendingOrders = await Order.countDocuments({ status: 'Pending' });
-    const result = { totalOrders, pendingOrders };
-    await cacheService.set(CACHE_KEYS.STATS_ORDERS, result);
-    res.json(result);
-  } catch (error) {
-    console.error('Order stats error:', error);
-    res.status(500).json({ error: 'Failed to fetch order stats' });
-  }
+    const data = await cacheService.getOrSet(CACHE_KEYS.STATS_ORDERS, async () => {
+      const [totalOrders, pendingOrders] = await Promise.all([
+        Order.countDocuments({ status: { $ne: 'Cancelled' } }),
+        Order.countDocuments({ status: 'Pending' }),
+      ]);
+      return { totalOrders, pendingOrders };
+    });
+
+    res.json(data);
+  } catch (err) { next(err); }
 });
 
-app.get(['/api/stats/inventory', '/api/admin/stats/inventory'], authenticateToken, async (req, res) => {
-  const cached = await cacheService.get(CACHE_KEYS.STATS_INVENTORY);
-  if (cached) {
-    return res.json({ ...cached, cached: true });
-  }
-  
+app.get(['/api/stats/inventory', '/api/admin/stats/inventory'], authenticateToken, async (_req, res, next) => {
   try {
-    const products = await Product.find();
-    const totalProducts = products.length;
-    const outOfStock = products.filter(p => p.quantity === 0).length;
-    const lowStock = products.filter(p => p.quantity < 5 && p.quantity > 0).length;
-    const result = { totalProducts, outOfStock, lowStock, products };
-    await cacheService.set(CACHE_KEYS.STATS_INVENTORY, result);
-    res.json(result);
-  } catch (error) {
-    console.error('Inventory stats error:', error);
-    res.status(500).json({ error: 'Failed to fetch inventory stats' });
-  }
+    const data = await cacheService.getOrSet(CACHE_KEYS.STATS_INVENTORY, async () => {
+      const products = await Product.find().lean();
+      return {
+        totalProducts: products.length,
+        outOfStock: products.filter(p => p.quantity === 0).length,
+        lowStock: products.filter(p => p.quantity > 0 && p.quantity < 5).length,
+        products,
+      };
+    });
+
+    res.json(data);
+  } catch (err) { next(err); }
 });
 
 // ─────────────────────────────────────────────────────────────────
-// SETTINGS ROUTES
+// ROUTES: SETTINGS
 // ─────────────────────────────────────────────────────────────────
-app.get('/api/settings', authenticateToken, async (req, res) => {
+
+app.get('/api/settings', authenticateToken, async (_req, res, next) => {
   try {
-    let settings = await Settings.findOne();
+    let settings = await Settings.findOne().lean();
     if (!settings) {
-      settings = new Settings();
-      await settings.save();
+      settings = (await new Settings().save()).toObject();
     }
     res.json(settings);
-  } catch (error) {
-    console.error('Fetch settings error:', error);
-    res.status(500).json({ error: 'Failed to fetch settings' });
-  }
+  } catch (err) { next(err); }
 });
 
-app.post('/api/settings', authenticateToken, validateRequest(updateSettingsSchema), async (req, res) => {
+app.post('/api/settings', authenticateToken, validateRequest(updateSettingsSchema), async (req, res, next) => {
   try {
     const { logo, announcement } = req.body;
-    let settings = await Settings.findOne();
-    if (!settings) {
-      settings = new Settings({ logo, announcement });
-    } else {
-      if (logo !== undefined) settings.logo = logo;
-      if (announcement !== undefined) settings.announcement = announcement;
-      settings.updatedAt = Date.now();
-    }
-    await settings.save();
-    res.json({ message: 'Store identity updated successfully' });
-  } catch (error) {
-    console.error('Update settings error:', error);
-    res.status(500).json({ error: 'Failed to update settings' });
-  }
+    const update = {
+      ...(logo !== undefined && { logo }),
+      ...(announcement !== undefined && { announcement }),
+    };
+
+    const settings = await Settings.findOneAndUpdate({}, update, {
+      new: true,
+      upsert: true,
+    }).lean();
+
+    await cacheService.del(CACHE_KEYS.SETTINGS);
+    res.json({ message: 'Settings updated successfully', settings });
+  } catch (err) { next(err); }
 });
 
-app.get('/api/public/settings', async (req, res) => {
+app.get('/api/public/settings', async (_req, res, next) => {
   try {
-    const settings = await Settings.findOne();
-    res.json(settings || { announcement: 'Welcome to Stop & Shop', logo: '' });
-  } catch (error) {
-    console.error('Fetch public settings error:', error);
-    res.status(500).json({ error: 'Failed to fetch public settings' });
-  }
+    const data = await cacheService.getOrSet(
+      CACHE_KEYS.SETTINGS,
+      async () => {
+        const s = await Settings.findOne().lean();
+        return s ?? { announcement: 'Welcome to Stop & Shop', logo: '' };
+      }
+    );
+    res.json(data);
+  } catch (err) { next(err); }
 });
 
 // ─────────────────────────────────────────────────────────────────
-// ADMIN USER MANAGEMENT ROUTES
+// ROUTES: ADMIN USERS
 // ─────────────────────────────────────────────────────────────────
-app.get('/api/admin/users', authenticateToken, async (req, res) => {
+
+app.get('/api/admin/users', authenticateToken, async (_req, res, next) => {
   try {
-    const admins = await Admin.find().select('-password');
+    const admins = await Admin.find().select('-password').lean();
     res.json(admins);
-  } catch (error) {
-    console.error('Fetch admins error:', error);
-    res.status(500).json({ error: 'Failed to fetch admins' });
-  }
+  } catch (err) { next(err); }
 });
 
-app.post('/api/admin/users', authenticateToken, validateRequest(createAdminSchema), async (req, res) => {
+app.post('/api/admin/users', authenticateToken, validateRequest(createAdminSchema), async (req, res, next) => {
   try {
     const { name, email, password, roles } = req.body;
-    const existingAdmin = await Admin.findOne({ email });
-    if (existingAdmin) return res.status(400).json({ error: 'Email already in use' });
+
+    const existing = await Admin.findOne({ email });
+    if (existing) throw new ConflictError('Email already in use');
+
     const hashedPassword = await bcrypt.hash(password, 12);
-    const newAdmin = new Admin({ name, email, password: hashedPassword, roles: roles || ['admin'] });
-    await newAdmin.save();
+    await Admin.create({ name, email, password: hashedPassword, roles: roles ?? ['admin'] });
+
     res.status(201).json({ message: 'Admin account created successfully' });
-  } catch (error) {
-    console.error('Create admin error:', error);
-    res.status(500).json({ error: 'Failed to create admin' });
-  }
+  } catch (err) { next(err); }
 });
 
-app.delete('/api/admin/users/:id', authenticateToken, async (req, res) => {
+app.delete('/api/admin/users/:id', authenticateToken, async (req, res, next) => {
   try {
-    const adminToDelete = await Admin.findById(req.params.id);
-    if (!adminToDelete) return res.status(404).json({ error: 'Admin not found' });
-    if (adminToDelete.isPrimary) return res.status(403).json({ error: 'Primary owner cannot be removed' });
+    const admin = await Admin.findById(req.params.id);
+    if (!admin) throw new NotFoundError('Admin not found');
+    if (admin.isPrimary) throw new AuthorizationError('Primary owner cannot be removed');
+
     await Admin.findByIdAndDelete(req.params.id);
     res.json({ message: 'Access revoked successfully' });
-  } catch (error) {
-    console.error('Delete admin error:', error);
-    res.status(500).json({ error: 'Failed to delete admin' });
-  }
+  } catch (err) { next(err); }
 });
 
 // ─────────────────────────────────────────────────────────────────
-// PUBLIC CHECKOUT ROUTE
+// ROUTES: CHECKOUT
 // ─────────────────────────────────────────────────────────────────
-app.post('/api/checkout', validateRequest(checkoutSchema), async (req, res) => {
+
+app.post('/api/checkout', checkoutLimiter, validateRequest(checkoutSchema), async (req, res, next) => {
   try {
     const { customer, items, total, paymentMethod } = req.body;
+    const clientIp = getClientIp(req);
 
-    const precheckProducts = await Product.find({ id: { $in: items.map(i => i.id) } });
-    const byId = new Map(precheckProducts.map(p => [p.id, p]));
+    // ── Stock pre-check (read, then atomic update) ──────────────
+
+    const productIds = [...new Set(items.map(i => i.id))];
+    const dbProducts = await Product.find({ id: { $in: productIds } });
+    const productMap = new Map(dbProducts.map(p => [p.id, p]));
+
     for (const item of items) {
-      const orderedQty = Math.max(1, parseInt(item.quantity) || 1);
-      const product = byId.get(item.id);
-      if (!product) return res.status(400).json({ error: `Product not found: ${item.id}` });
-      const size = (item.selectedSize || '').trim();
-      
-      if (size && (!product.sizes || !product.sizes.includes(size))) {
-        return res.status(400).json({ error: `Invalid size ${size} for product ${product.name}` });
+      const qty = Math.max(1, parseInt(item.quantity) || 1);
+      const product = productMap.get(item.id);
+      if (!product) {
+        return res.status(400).json({ error: `Product not found: ${item.id}` });
       }
-      
-      if (size && product.sizeStock && product.sizeStock.get(size) !== undefined) {
-        const available = Math.max(0, parseInt(product.sizeStock.get(size)) || 0);
-        if (available < orderedQty) return res.status(400).json({ error: `Insufficient stock for ${product.name} (${size})` });
-      } else if ((product.quantity || 0) < orderedQty) {
-        return res.status(400).json({ error: `Insufficient stock for ${product.name}` });
+
+      const size = (item.selectedSize ?? '').trim();
+
+      if (size && product.sizes?.length && !product.sizes.includes(size)) {
+        return res.status(400).json({ error: `Invalid size ${size} for ${product.name}` });
+      }
+
+      const sizeAvailable = size ? (product.sizeStock?.get?.(size) ?? product.sizeStock?.[size]) : undefined;
+
+      if (size && sizeAvailable !== undefined) {
+        if (sizeAvailable < qty) {
+          return res.status(400).json({ error: `Not enough stock for ${product.name} (${size})` });
+        }
+      } else if ((product.quantity ?? 0) < qty) {
+        return res.status(400).json({ error: `Not enough stock for ${product.name}` });
       }
     }
 
-    const orderID = 'ORD-' + Math.random().toString(36).substr(2, 9).toUpperCase();
+    // ── Atomic stock deduction ───────────────────────────────────
 
+    const orderID = `ORD-${Date.now().toString(36).toUpperCase()}`;
     const lowStockItems = [];
+
     for (const item of items) {
-      const orderedQty = Math.max(1, parseInt(item.quantity) || 1);
-      const size = (item.selectedSize || '').trim();
-      const baseProduct = byId.get(item.id);
-      let product;
-      if (size && baseProduct?.sizeStock && baseProduct.sizeStock.get(size) !== undefined) {
-        const sizePath = `sizeStock.${size}`;
-        product = await Product.findOneAndUpdate(
-          { id: item.id, [sizePath]: { $gte: orderedQty } },
-          { $inc: { quantity: -orderedQty, stock: -orderedQty, [sizePath]: -orderedQty } },
-          { new: true }
-        );
-      } else {
-        product = await Product.findOneAndUpdate(
-          { id: item.id, quantity: { $gte: orderedQty } },
-          { $inc: { quantity: -orderedQty, stock: -orderedQty } },
-          { new: true }
-        );
+      const qty = Math.max(1, parseInt(item.quantity) || 1);
+      const size = (item.selectedSize ?? '').trim();
+      const sizeKey = size ? `sizeStock.${size}` : null;
+
+      const updateQuery = sizeKey
+        ? { $inc: { quantity: -qty, stock: -qty, [sizeKey]: -qty } }
+        : { $inc: { quantity: -qty, stock: -qty } };
+
+      const filterQuery = sizeKey
+        ? { id: item.id, [sizeKey]: { $gte: qty } }
+        : { id: item.id, quantity: { $gte: qty } };
+
+      const updated = await Product.findOneAndUpdate(filterQuery, updateQuery, { new: true });
+
+      if (!updated) {
+        return res.status(400).json({ error: `Could not reserve stock for ${item.name}. Please refresh and try again.` });
       }
-      if (!product) return res.status(400).json({ error: `Unable to reserve stock for ${item.name}` });
-      if (product && product.quantity < 5) lowStockItems.push(product);
+
+      if (updated.quantity < 5) lowStockItems.push(updated);
     }
 
-    const newOrder = new Order({ orderID, customer, items, total, paymentMethod });
-    await newOrder.save();
+    // ── Create order ─────────────────────────────────────────────
+
+    const newOrder = await Order.create({ orderID, customer, items, total, paymentMethod, ip: clientIp });
+
+    // ── Invalidate relevant cache ────────────────────────────────
+
+    await cacheService.invalidateMany([
+      CACHE_KEYS.STATS_REVENUE,
+      CACHE_KEYS.STATS_ORDERS,
+      CACHE_KEYS.STATS_INVENTORY,
+      CACHE_KEYS.PUBLIC_PRODUCTS,
+    ]);
+
+    // ── Send emails (fire and forget — never block response) ─────
+
+    const adminEmail = getEnv('ADMIN_EMAIL', 'admin_email', 'EMAIL_USER', 'email_user');
+    const fromEmail = getEnv('EMAIL_USER', 'email_user');
 
     const itemsHtml = items.map(item => `
       <tr>
         <td style="padding:8px;border:1px solid #ddd">${item.name}</td>
-        <td style="padding:8px;border:1px solid #ddd">${item.quantity || 1}</td>
-        <td style="padding:8px;border:1px solid #ddd">Rs. ${item.price.toFixed(2)}</td>
+        <td style="padding:8px;border:1px solid #ddd;text-align:center">${item.quantity ?? 1}</td>
+        <td style="padding:8px;border:1px solid #ddd">Rs. ${(item.price ?? 0).toFixed(2)}</td>
       </tr>
     `).join('');
 
-    const mainMailOptions = {
-      from: getEnv('EMAIL_USER', 'email_user'),
-      to: getEnv('admin_email', 'admin_email', 'EMAIL_USER', 'email_user'),
-      subject: `New Order: ${orderID}`,
+    sendEmail({
+      from: fromEmail,
+      to: adminEmail,
+      subject: `🛍️ New Order: ${orderID}`,
       html: `
-        <h2 style="color:#F63049">New Order Summary</h2>
+        <h2 style="color:#F63049">New Order Received</h2>
         <p><strong>Order ID:</strong> ${orderID}</p>
         <p><strong>Customer:</strong> ${customer.name} (${customer.email})</p>
-        <p><strong>Address:</strong> ${customer.address}, ${customer.city}, ${customer.zip}</p>
-        <table style="width:100%;border-collapse:collapse;margin-top:20px">
-          <thead>
-            <tr style="background:#f2f2f2">
-              <th style="padding:8px;border:1px solid #ddd;text-align:left">Name</th>
-              <th style="padding:8px;border:1px solid #ddd;text-align:left">Qty</th>
-              <th style="padding:8px;border:1px solid #ddd;text-align:left">Price</th>
-            </tr>
-          </thead>
+        <p><strong>Address:</strong> ${customer.address}, ${customer.city} ${customer.zip}</p>
+        <table style="width:100%;border-collapse:collapse;margin-top:16px">
+          <thead><tr style="background:#f2f2f2">
+            <th style="padding:8px;border:1px solid #ddd;text-align:left">Item</th>
+            <th style="padding:8px;border:1px solid #ddd;text-align:center">Qty</th>
+            <th style="padding:8px;border:1px solid #ddd;text-align:left">Price</th>
+          </tr></thead>
           <tbody>${itemsHtml}</tbody>
-          <tfoot>
-            <tr>
-              <td colspan="2" style="padding:8px;border:1px solid #ddd;text-align:right;font-weight:bold">Total:</td>
-              <td style="padding:8px;border:1px solid #ddd;font-weight:bold">Rs. ${total.toFixed(2)}</td>
-            </tr>
-          </tfoot>
+          <tfoot><tr>
+            <td colspan="2" style="padding:8px;border:1px solid #ddd;text-align:right;font-weight:bold">Total:</td>
+            <td style="padding:8px;border:1px solid #ddd;font-weight:bold">Rs. ${total.toFixed(2)}</td>
+          </tr></tfoot>
         </table>
-      `
-    };
-
-    transporter.sendMail(mainMailOptions).catch(err => console.error('Email error:', err));
+      `,
+    });
 
     if (lowStockItems.length > 0) {
-      const lowStockHtml = lowStockItems.map(p => `<li>${p.name} — Remaining: <b>${p.quantity}</b></li>`).join('');
-      const alertMailOptions = {
-        from: getEnv('EMAIL_USER', 'email_user'),
-        to: getEnv('ADMIN_EMAIL', 'admin_email', 'EMAIL_USER', 'email_user'),
-        subject: `⚠️ LOW STOCK ALERT: ${lowStockItems.length} Items`,
-        html: `<h2>Inventory Alert</h2><p>Low stock after Order <b>${orderID}</b>:</p><ul>${lowStockHtml}</ul>`
-      };
-      transporter.sendMail(alertMailOptions).catch(err => console.error('Stock alert email error:', err));
+      sendEmail({
+        from: fromEmail,
+        to: adminEmail,
+        subject: `⚠️ Low Stock Alert: ${lowStockItems.length} item(s) need restocking`,
+        html: `
+          <h2>Inventory Alert</h2>
+          <p>After order <strong>${orderID}</strong>, the following items are running low:</p>
+          <ul>
+            ${lowStockItems.map(p => `<li><strong>${p.name}</strong> — ${p.quantity} remaining</li>`).join('')}
+          </ul>
+        `,
+      });
     }
 
-    await Promise.all([
-      cacheService.del(CACHE_KEYS.STATS_REVENUE),
-      cacheService.del(CACHE_KEYS.STATS_ORDERS),
-      cacheService.del(CACHE_KEYS.STATS_INVENTORY),
-      cacheService.del(CACHE_KEYS.PUBLIC_PRODUCTS)
-    ]);
-
     res.status(201).json({ message: 'Order placed successfully', orderID });
-  } catch (error) {
-    console.error('Checkout error:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
+
+  } catch (err) { next(err); }
 });
 
 // ─────────────────────────────────────────────────────────────────
-// SERVE STATIC FILES
+// STATIC FILES & SPA FALLBACK
 // ─────────────────────────────────────────────────────────────────
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const distPath = path.join(__dirname, 'dist');
+
 if (fs.existsSync(distPath)) {
-  app.use(express.static(distPath));
+  app.use(express.static(distPath, {
+    maxAge: '1d',
+    etag: true,
+  }));
 }
 
-// 404 handler for API routes
-app.use('/api', (req, res) => {
-  res.status(404).json({ error: 'API endpoint not found', path: req.path });
+// API 404
+app.use('/api', (_req, res) => {
+  res.status(404).json({ error: 'API endpoint not found' });
 });
 
-// SPA catch-all - must be last (only for non-API routes)
-app.use((req, res, next) => {
+// SPA catch-all
+app.use((_req, res) => {
   const indexPath = path.join(distPath, 'index.html');
   if (fs.existsSync(indexPath)) {
     res.sendFile(indexPath);
   } else {
-    res.status(200).json({ status: 'API server running', message: 'Frontend not built' });
+    res.status(200).json({ status: 'API server running', message: 'Frontend not built yet' });
   }
 });
 
-// Global error handler
-app.use(globalErrorHandler);
+// ─────────────────────────────────────────────────────────────────
+// GLOBAL ERROR HANDLER (nodejs-best-practices: centralized)
+// ─────────────────────────────────────────────────────────────────
 
-// app.listen moved to top
+// eslint-disable-next-line no-unused-vars
+app.use((err, _req, res, _next) => {
+  const statusCode = err.statusCode ?? 500;
+  const isOperational = err.isOperational ?? false;
+
+  // Always log server errors
+  if (statusCode >= 500) {
+    console.error('[ERROR]', err.message, err.stack);
+  }
+
+  if (isProduction && !isOperational) {
+    return res.status(500).json({ status: 'error', message: 'Something went wrong. Please try again.' });
+  }
+
+  return res.status(statusCode).json({
+    status: statusCode < 500 ? 'fail' : 'error',
+    message: err.message,
+    ...(isProduction ? {} : { stack: err.stack }),
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────
+// SERVER STARTUP
+// ─────────────────────────────────────────────────────────────────
+
+const PORT = parseInt(process.env.PORT ?? '5000', 10);
+
+const server = app.listen(PORT, '0.0.0.0', () => {
+  console.log(`✅ Server listening on 0.0.0.0:${PORT}`);
+});
+
+// ── Database ─────────────────────────────────────────────────────
+
+const mongoUri = getEnv('MONGO_URI', 'MONGODB_URI');
+if (!mongoUri) {
+  console.error('❌ Missing MONGO_URI — app running in degraded mode (no DB)');
+} else {
+  mongoose
+    .connect(mongoUri, {
+      maxPoolSize: 10,
+      socketTimeoutMS: 45_000,
+      serverSelectionTimeoutMS: 5_000,
+      family: 4,
+    })
+    .then(() => console.log('✅ MongoDB connected'))
+    .catch(err => console.error('❌ MongoDB error:', err.message));
+}
+
+// ── Graceful Shutdown ─────────────────────────────────────────────
 
 const gracefulShutdown = async (signal) => {
-  console.log(`\n${signal} received. Starting graceful shutdown...`);
-  
+  console.log(`\n[Shutdown] ${signal} received — closing server...`);
+
   server.close(async () => {
-    console.log('HTTP server closed');
-    
-    try {
-      await mongoose.connection.close();
-      console.log('MongoDB connection closed');
-    } catch (err) {
-      console.error('Error closing MongoDB:', err);
-    }
-    
-    try {
-      await cacheService.close();
-      console.log('Redis connection closed');
-    } catch (err) {
-      console.error('Error closing Redis:', err);
-    }
-    
-    console.log('Graceful shutdown completed');
+    console.log('[Shutdown] HTTP server closed');
+
+    // Close DB and cache in parallel
+    await Promise.allSettled([
+      mongoose.connection.close().then(() => console.log('[Shutdown] MongoDB closed')),
+      cacheService.close().then(() => console.log('[Shutdown] Redis closed')),
+    ]);
+
+    console.log('[Shutdown] Clean exit');
     process.exit(0);
   });
 
+  // Force exit after 10 seconds
   setTimeout(() => {
-    console.error('Forced shutdown after timeout');
+    console.error('[Shutdown] Forced exit after timeout');
     process.exit(1);
-  }, 10000);
+  }, 10_000).unref();
 };
 
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+
+export default app;

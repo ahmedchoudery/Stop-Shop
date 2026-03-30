@@ -1,70 +1,120 @@
-// Server component for product detail (SSR) in Next.js App Router
-import React from 'react'
-import ProductDetailClient from './ProductDetailClient'
+/**
+ * @fileoverview Next.js Product Detail Page — Server Component with SSG
+ * Applies: nextjs-best-practices (generateStaticParams for SSG, generateMetadata for SEO,
+ *          error.tsx boundary, loading.tsx),
+ *          javascript-pro (async/await, proper null handling)
+ */
 
-// This page SSR fetches all products and selects the one with the matching slug
-export default async function ProductDetailPage({ params }) {
-  const { slug } = params
-  const host = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'
-  let product = null
+import { notFound } from 'next/navigation';
+import ProductDetailClient from './ProductDetailClient.jsx';
+
+// ─────────────────────────────────────────────────────────────────
+// DATA FETCHING
+// ─────────────────────────────────────────────────────────────────
+
+const API_BASE = process.env.NEXT_PUBLIC_API_URL
+  ?? 'https://stop-shop-production.up.railway.app';
+
+/**
+ * Fetch all products for static path generation.
+ * @returns {Promise<Array<{ id: string, name: string }>>}
+ */
+async function getProducts() {
   try {
-    const res = await fetch(`${host}/api/public/products`)
-    if (res.ok) {
-      const products = await res.json()
-      product = (products || []).find(p => (p.slug || p.id) === slug)
-    }
-  } catch (e) {
-    // ignore and render not found fallback
+    const res = await fetch(`${API_BASE}/api/public/products`, {
+      next: { revalidate: 3600 }, // Revalidate product list every hour
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return Array.isArray(data) ? data : [];
+  } catch {
+    return [];
   }
+}
+
+/**
+ * Fetch a single product by slug.
+ * @param {string} slug - product ID
+ * @returns {Promise<Object|null>}
+ */
+async function getProduct(slug) {
+  try {
+    const products = await getProducts();
+    // Match by id or slugified name
+    return products.find(p =>
+      p.id === slug ||
+      p.name.toLowerCase().replace(/\s+/g, '-') === slug
+    ) ?? null;
+  } catch {
+    return null;
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────
+// STATIC PARAMS (SSG)
+// ─────────────────────────────────────────────────────────────────
+
+/**
+ * Generate static routes for all products at build time.
+ * Applies: nextjs-best-practices (pre-render product pages)
+ */
+export async function generateStaticParams() {
+  const products = await getProducts();
+  return products.map(product => ({
+    slug: product.id ?? product.name.toLowerCase().replace(/\s+/g, '-'),
+  }));
+}
+
+// ─────────────────────────────────────────────────────────────────
+// DYNAMIC METADATA
+// ─────────────────────────────────────────────────────────────────
+
+/**
+ * Generate per-product metadata for SEO.
+ * Applies: nextjs-best-practices (generateMetadata for dynamic pages)
+ */
+export async function generateMetadata({ params }) {
+  const product = await getProduct(params.slug);
 
   if (!product) {
-    return (
-      <main className="container" style={{padding:20}}>
-        <h1>Product not found</h1>
-      </main>
-    )
+    return {
+      title: 'Product Not Found — Stop & Shop',
+    };
   }
 
-  // Simple price display helper
-  const price = product.price ?? 0
-  const priceStr = `PKR ${price.toLocaleString()}`
+  const title = `${product.name} — Stop & Shop`;
+  const description = `Buy ${product.name} at Stop & Shop. ${product.specs?.[0] ?? 'Premium quality clothing'}.`;
 
-  // Lightweight layout; interactive parts handled by client component
-  return (
-    <main className="container" style={{display:'grid', gridTemplateColumns:'1fr 1fr', gap:24, padding:20}}>
-      <div>
-        {product.image && (
-          <img src={product.image} alt={product.name} style={{width:'100%', height:'auto', borderRadius:8}} />
-        )}
-        {product.gallery && product.gallery.length > 0 && (
-          <div style={{display:'flex', gap:8, marginTop:8}}>
-            {product.gallery.map((src, idx) => (
-              src && <img key={idx} src={src} alt={`${product.name} ${idx+1}`} style={{width:72, height:72, objectFit:'cover', borderRadius:6}} />
-            ))}
-          </div>
-        )}
-      </div>
-      <section>
-        <h1 style={{fontSize:28, fontWeight:900, marginBottom:8}}>{product.name}</h1>
-        <p style={{color:'#ba1f3d', fontWeight:900, fontSize:18}}>PKR {price.toLocaleString()}</p>
-        {product.subCategory && <p style={{color:'#666', fontSize:12}}>Category: {product.bucket} / {product.subCategory}</p>}
-        {product.sizes && product.sizes.length > 0 && (
-          <p style={{fontSize:12, color:'#555'}}>Available sizes: {product.sizes.join(', ')}</p>
-        )}
-        {product.colors && product.colors.length > 0 && (
-          <div style={{marginTop:6}}>
-            <span style={{fontWeight:900, fontSize:12}}>Colors:</span>
-            <div style={{display:'flex', gap:6, marginTop:6}}>
-              {product.colors.map((c, i) => (
-                <span key={i} style={{width:20, height:20, borderRadius:4, background: c}} />
-              ))}
-            </div>
-          </div>
-        )}
-        <p style={{marginTop:12, lineHeight:1.6}}>{product.description || 'Product description coming soon.'}</p>
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      images: product.image ? [{ url: product.image, alt: product.name }] : [],
+      type: 'website',
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: product.image ? [product.image] : [],
+    },
+  };
+}
 
-        <ProductDetailClient product={product} />
-      </section>
-    </main>
-  )
+// ─────────────────────────────────────────────────────────────────
+// PAGE COMPONENT
+// ─────────────────────────────────────────────────────────────────
+
+export default async function ProductPage({ params }) {
+  const product = await getProduct(params.slug);
+
+  // 404 if product not found
+  if (!product) {
+    notFound();
+  }
+
+  // Server renders product data, client handles interactivity
+  return <ProductDetailClient product={product} />;
 }

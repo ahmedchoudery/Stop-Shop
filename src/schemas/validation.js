@@ -1,95 +1,215 @@
+/**
+ * @fileoverview Zod validation schemas for all API endpoints
+ * Applies: nodejs-best-practices (validate at ALL boundaries, fail fast),
+ *          typescript-expert (type inference from schemas), javascript-pro (ES6+ modules)
+ */
+
 import { z } from 'zod';
 
+// ─────────────────────────────────────────────────────────────────
+// PRIMITIVES & REUSABLE VALIDATORS
+// ─────────────────────────────────────────────────────────────────
+
+const emailSchema = z
+  .string({ required_error: 'Email is required' })
+  .trim()
+  .email('Invalid email address')
+  .max(254, 'Email too long');
+
+const passwordSchema = z
+  .string({ required_error: 'Password is required' })
+  .min(6, 'Password must be at least 6 characters')
+  .max(128, 'Password too long');
+
+const priceSchema = z
+  .number({ invalid_type_error: 'Price must be a number' })
+  .positive('Price must be greater than 0')
+  .max(1_000_000, 'Price exceeds maximum allowed value')
+  .or(z.string().regex(/^\d+(\.\d{1,2})?$/).transform(Number));
+
+const quantitySchema = z
+  .number({ invalid_type_error: 'Quantity must be a number' })
+  .int('Quantity must be a whole number')
+  .min(0, 'Quantity cannot be negative')
+  .max(100_000, 'Quantity too large')
+  .or(z.string().regex(/^\d+$/).transform(Number));
+
+const objectIdSchema = z
+  .string()
+  .regex(/^[a-f\d]{24}$/i, 'Invalid MongoDB ObjectId');
+
+// ─────────────────────────────────────────────────────────────────
+// AUTH SCHEMAS
+// ─────────────────────────────────────────────────────────────────
+
 export const loginSchema = z.object({
-  email: z.string().email('Invalid email format'),
-  password: z.string().min(1, 'Password is required'),
+  email: emailSchema,
+  password: z.string({ required_error: 'Password is required' }).min(1, 'Password required'),
 });
+
+/** @typedef {z.infer<typeof loginSchema>} LoginInput */
+
+// ─────────────────────────────────────────────────────────────────
+// PRODUCT SCHEMAS
+// ─────────────────────────────────────────────────────────────────
+
+const PRODUCT_BUCKETS = ['Tops', 'Bottoms', 'Footwear', 'Accessories'];
+const MEDIA_TYPES = ['upload', 'url', 'embed'];
+
+const sizeStockSchema = z.record(
+  z.string().min(1).max(10),
+  z.number().int().min(0).max(100_000)
+);
 
 export const createProductSchema = z.object({
-  name: z.string().min(1, 'Product name is required').max(200),
-  price: z.number().positive('Price must be positive'),
-  quantity: z.number().int().min(0).optional(),
-  stock: z.number().int().min(0).optional(),
-  image: z.string().url().optional().or(z.string().min(1)),
-  mediaType: z.enum(['upload', 'url', 'embed']).optional(),
-  embedCode: z.string().optional(),
-  rating: z.number().min(0).max(5).optional(),
-  bucket: z.string().min(1).optional(),
-  subCategory: z.string().optional(),
-  specs: z.array(z.string()).optional(),
-  colors: z.array(z.string()).optional(),
-  sizes: z.array(z.string()).optional(),
-  sizeStock: z.record(z.number()).optional(),
-  lifestyleImage: z.string().optional(),
-  gallery: z.array(z.string()).optional(),
+  id: z.string().optional(),
+  name: z
+    .string({ required_error: 'Product name is required' })
+    .trim()
+    .min(2, 'Name must be at least 2 characters')
+    .max(120, 'Name too long'),
+  price: priceSchema,
+  quantity: quantitySchema.optional().default(0),
+  stock: quantitySchema.optional().default(0),
+  image: z.string().url('Invalid image URL').or(z.string().startsWith('data:')).or(z.literal('')),
+  lifestyleImage: z.string().url().or(z.string().startsWith('data:')).or(z.literal('')).optional().default(''),
+  mediaType: z.enum(MEDIA_TYPES).optional().default('upload'),
+  embedCode: z.string().max(5000).optional().default(''),
+  bucket: z.enum(PRODUCT_BUCKETS).optional().default('Tops'),
+  subCategory: z.string().max(60).optional().default('General'),
+  rating: z.number().int().min(1).max(5).optional().default(5),
+  specs: z.array(z.string().max(200)).max(10).optional().default([]),
+  colors: z.array(z.string().max(50)).max(20).optional().default([]),
+  sizes: z.array(z.string().max(20)).max(30).optional().default([]),
+  sizeStock: sizeStockSchema.optional().default({}),
+  gallery: z.array(z.string().url().or(z.string().startsWith('data:'))).max(20).optional().default([]),
+  variantImages: z.record(z.string(), z.string()).optional().default({}),
 });
 
-export const updateProductSchema = createProductSchema.partial();
+export const updateProductSchema = createProductSchema.partial().omit({ id: true });
 
-export const createAdminSchema = z.object({
-  name: z.string().min(1, 'Name is required').max(100),
-  email: z.string().email('Invalid email format'),
-  password: z.string().min(8, 'Password must be at least 8 characters'),
-  roles: z.array(z.enum(['admin', 'super-admin', 'auditor'])).optional(),
-});
+/** @typedef {z.infer<typeof createProductSchema>} CreateProductInput */
+/** @typedef {z.infer<typeof updateProductSchema>} UpdateProductInput */
+
+// ─────────────────────────────────────────────────────────────────
+// ORDER SCHEMAS
+// ─────────────────────────────────────────────────────────────────
+
+const ORDER_STATUSES = ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
 
 export const updateOrderStatusSchema = z.object({
-  status: z.enum(['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled']),
+  status: z.enum(ORDER_STATUSES, {
+    errorMap: () => ({ message: `Status must be one of: ${ORDER_STATUSES.join(', ')}` }),
+  }),
+});
+
+const customerSchema = z.object({
+  name: z.string().trim().min(2, 'Name too short').max(100, 'Name too long'),
+  email: emailSchema,
+  address: z.string().trim().min(5, 'Address too short').max(300, 'Address too long'),
+  city: z.string().trim().min(2, 'City too short').max(100, 'City too long'),
+  zip: z.string().trim().max(20, 'ZIP too long').optional().default(''),
+});
+
+const orderItemSchema = z.object({
+  id: z.string().min(1, 'Product ID required'),
+  name: z.string().min(1, 'Product name required').max(120),
+  price: priceSchema,
+  quantity: z.number().int().min(1, 'Quantity must be at least 1').max(1000),
+  selectedSize: z.string().max(20).optional().default(''),
 });
 
 export const checkoutSchema = z.object({
-  customer: z.object({
-    name: z.string().min(1, 'Customer name is required'),
-    email: z.string().email('Invalid email format'),
-    address: z.string().min(1, 'Address is required'),
-    city: z.string().min(1, 'City is required'),
-    zip: z.string().min(1, 'ZIP code is required'),
-  }),
-  items: z.array(z.object({
-    id: z.string(),
-    name: z.string(),
-    price: z.number().positive(),
-    quantity: z.number().int().positive(),
-    selectedSize: z.string().optional(),
-  })).min(1, 'At least one item is required'),
-  total: z.number().positive('Total must be positive'),
-  paymentMethod: z.string().min(1, 'Payment method is required'),
+  customer: customerSchema,
+  items: z
+    .array(orderItemSchema)
+    .min(1, 'Cart cannot be empty')
+    .max(50, 'Too many items in cart'),
+  total: priceSchema,
+  paymentMethod: z.string().trim().min(1, 'Payment method required').max(50),
 });
+
+/** @typedef {z.infer<typeof checkoutSchema>} CheckoutInput */
+
+// ─────────────────────────────────────────────────────────────────
+// ADMIN USER SCHEMAS
+// ─────────────────────────────────────────────────────────────────
+
+const ADMIN_ROLES = ['admin', 'super-admin', 'auditor'];
+
+export const createAdminSchema = z.object({
+  name: z.string().trim().min(2, 'Name too short').max(100, 'Name too long'),
+  email: emailSchema,
+  password: passwordSchema,
+  roles: z
+    .array(z.enum(ADMIN_ROLES))
+    .min(1, 'At least one role required')
+    .max(3)
+    .optional()
+    .default(['admin']),
+});
+
+/** @typedef {z.infer<typeof createAdminSchema>} CreateAdminInput */
+
+// ─────────────────────────────────────────────────────────────────
+// SETTINGS SCHEMA
+// ─────────────────────────────────────────────────────────────────
 
 export const updateSettingsSchema = z.object({
-  logo: z.string().optional(),
-  announcement: z.string().max(500).optional(),
+  logo: z.string().url('Invalid logo URL').or(z.literal('')).optional(),
+  announcement: z.string().trim().max(500, 'Announcement too long').optional(),
 });
 
-export const validateRequest = (schema) => {
-  return (req, res, next) => {
-    try {
-      const result = schema.safeParse(req.body);
-      if (!result.success) {
-        const errors = result.error.errors.map(err => ({
-          field: err.path.join('.'),
-          message: err.message
-        }));
-        return res.status(400).json({
-          error: 'Validation failed',
-          details: errors
-        });
-      }
-      req.body = result.data;
-      next();
-    } catch (err) {
-      next(err);
-    }
-  };
+// ─────────────────────────────────────────────────────────────────
+// VALIDATION MIDDLEWARE FACTORY
+// ─────────────────────────────────────────────────────────────────
+
+/**
+ * Express middleware factory for Zod schema validation.
+ * Validates req.body and returns 400 with structured errors on failure.
+ *
+ * @param {z.ZodSchema} schema
+ * @returns {import('express').RequestHandler}
+ */
+export const validateRequest = (schema) => (req, res, next) => {
+  const result = schema.safeParse(req.body);
+
+  if (!result.success) {
+    const errors = result.error.errors.map(err => ({
+      field: err.path.join('.'),
+      message: err.message,
+    }));
+
+    return res.status(400).json({
+      status: 'fail',
+      message: 'Validation failed',
+      errors,
+    });
+  }
+
+  // Replace body with parsed/coerced data
+  req.body = result.data;
+  return next();
 };
 
-export default {
-  loginSchema,
-  createProductSchema,
-  updateProductSchema,
-  createAdminSchema,
-  updateOrderStatusSchema,
-  checkoutSchema,
-  updateSettingsSchema,
-  validateRequest,
+/**
+ * Validate and parse data programmatically (non-HTTP use).
+ *
+ * @template T
+ * @param {z.ZodSchema<T>} schema
+ * @param {unknown} data
+ * @returns {{ success: true, data: T } | { success: false, errors: Array<{field: string, message: string}> }}
+ */
+export const validate = (schema, data) => {
+  const result = schema.safeParse(data);
+  if (result.success) {
+    return { success: true, data: result.data };
+  }
+  return {
+    success: false,
+    errors: result.error.errors.map(err => ({
+      field: err.path.join('.'),
+      message: err.message,
+    })),
+  };
 };

@@ -1,28 +1,65 @@
-import React, { useEffect, useState } from 'react';
-import { Navigate } from 'react-router-dom';
-import { fetchApi } from '../utils/auth';
+/**
+ * @fileoverview Protected Route — verifies admin auth before rendering children
+ * Applies: react-patterns (single responsibility), react-ui-patterns (proper loading state),
+ *          nodejs-best-practices (security: actually validate auth token)
+ */
 
+import React, { useEffect, useState } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
+import { authFetch } from '../lib/auth.js';
+import { apiUrl } from '../config/api.js';
+
+/**
+ * Auth state:
+ * - null: still checking
+ * - true: authenticated
+ * - false: not authenticated
+ *
+ * @param {{ children: React.ReactNode }} props
+ */
 const ProtectedRoute = ({ children }) => {
-  const [isAuth, setIsAuth] = useState(null);
+  const [authState, setAuthState] = useState(null); // null = loading
+  const location = useLocation();
 
   useEffect(() => {
-    const checkAuth = async () => {
+    let cancelled = false;
+
+    const verifyAuth = async () => {
       try {
-        const response = await fetchApi('/api/health');
-        setIsAuth(response.ok);
+        // Use an authenticated endpoint rather than /api/health
+        // which doesn't actually verify the token
+        const res = await authFetch(apiUrl('/api/admin/users'));
+
+        if (!cancelled) {
+          setAuthState(res.ok);
+        }
       } catch {
-        setIsAuth(false);
+        if (!cancelled) setAuthState(false);
       }
     };
-    checkAuth();
+
+    verifyAuth();
+
+    return () => { cancelled = true; };
   }, []);
 
-  if (isAuth === null) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  // Loading state — show spinner, not stale content
+  if (authState === null) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#ba1f3d]" />
+          <p className="text-xs font-black uppercase tracking-widest text-gray-400">
+            Verifying access...
+          </p>
+        </div>
+      </div>
+    );
   }
 
-  if (!isAuth) {
-    return <Navigate to="/login" replace />;
+  if (!authState) {
+    // Save attempted URL for post-login redirect
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   return children;

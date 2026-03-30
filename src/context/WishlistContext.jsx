@@ -1,37 +1,105 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+/**
+ * @fileoverview Wishlist Context
+ * Applies: react-patterns (useReducer, stable callbacks, proper memoization),
+ *          javascript-mastery (pure functions, immutability)
+ */
 
-const WishlistContext = createContext();
+import React, { createContext, useContext, useReducer, useMemo, useCallback, useEffect } from 'react';
+import { useLocalStorage } from '../hooks/useUtils.js';
+
+// ─────────────────────────────────────────────────────────────────
+// REDUCER
+// ─────────────────────────────────────────────────────────────────
+
+const ACTIONS = Object.freeze({
+  TOGGLE: 'TOGGLE',
+  CLEAR: 'CLEAR',
+  LOAD: 'LOAD',
+});
+
+/**
+ * Pure wishlist reducer
+ * @param {Array} state
+ * @param {{ type: string, payload?: any }} action
+ * @returns {Array}
+ */
+const wishlistReducer = (state, action) => {
+  switch (action.type) {
+    case ACTIONS.LOAD:
+      return Array.isArray(action.payload) ? action.payload : state;
+
+    case ACTIONS.TOGGLE: {
+      const product = action.payload;
+      const exists = state.some(p => p.id === product.id);
+      return exists
+        ? state.filter(p => p.id !== product.id)
+        : [...state, product];
+    }
+
+    case ACTIONS.CLEAR:
+      return [];
+
+    default:
+      return state;
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────
+// CONTEXT
+// ─────────────────────────────────────────────────────────────────
+
+const WishlistContext = createContext(null);
 
 export const WishlistProvider = ({ children }) => {
-    const [wishlist, setWishlist] = useState(() => {
-        try {
-            const stored = localStorage.getItem('stopshop_wishlist');
-            return stored ? JSON.parse(stored) : [];
-        } catch { return []; }
-    });
+  const [storedWishlist, setStoredWishlist] = useLocalStorage('stopshop_wishlist', []);
+  const [wishlist, dispatch] = useReducer(wishlistReducer, []);
 
-    useEffect(() => {
-        localStorage.setItem('stopshop_wishlist', JSON.stringify(wishlist));
-    }, [wishlist]);
+  // Hydrate from localStorage on mount
+  useEffect(() => {
+    dispatch({ type: ACTIONS.LOAD, payload: storedWishlist });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-    const toggleWishlist = (product) => {
-        setWishlist(prev => {
-            const exists = prev.find(p => p.id === product.id);
-            return exists ? prev.filter(p => p.id !== product.id) : [...prev, product];
-        });
-    };
+  // Persist to localStorage on change
+  useEffect(() => {
+    setStoredWishlist(wishlist);
+  }, [wishlist, setStoredWishlist]);
 
-    const isWishlisted = (id) => wishlist.some(p => p.id === id);
+  // ── Stable action creators ───────────────────────────────────
 
-    return (
-        <WishlistContext.Provider value={{ wishlist, toggleWishlist, isWishlisted, wishlistCount: wishlist.length }}>
-            {children}
-        </WishlistContext.Provider>
-    );
+  const toggleWishlist = useCallback(
+    (product) => dispatch({ type: ACTIONS.TOGGLE, payload: product }),
+    []
+  );
+
+  const clearWishlist = useCallback(
+    () => dispatch({ type: ACTIONS.CLEAR }),
+    []
+  );
+
+  const isWishlisted = useCallback(
+    (id) => wishlist.some(p => p.id === id),
+    [wishlist]
+  );
+
+  // ── Memoized context value ────────────────────────────────────
+
+  const value = useMemo(() => ({
+    wishlist,
+    wishlistCount: wishlist.length,
+    toggleWishlist,
+    clearWishlist,
+    isWishlisted,
+  }), [wishlist, toggleWishlist, clearWishlist, isWishlisted]);
+
+  return (
+    <WishlistContext.Provider value={value}>
+      {children}
+    </WishlistContext.Provider>
+  );
 };
 
 export const useWishlist = () => {
-    const ctx = useContext(WishlistContext);
-    if (!ctx) throw new Error('useWishlist must be used within WishlistProvider');
-    return ctx;
+  const ctx = useContext(WishlistContext);
+  if (!ctx) throw new Error('useWishlist must be used within WishlistProvider');
+  return ctx;
 };

@@ -1,181 +1,311 @@
-import React, { createContext, useContext, useState, useEffect, useMemo } from 'react';
+/**
+ * @fileoverview Cart Context — refactored with useReducer
+ * Applies: react-patterns (useReducer for complex state, stable callbacks),
+ *          javascript-mastery (pure functions, immutability, switch/case),
+ *          react-ui-patterns (predictable state transitions)
+ */
 
-const CartContext = createContext();
+import React, { createContext, useContext, useReducer, useMemo, useCallback, useEffect } from 'react';
+import { useLocalStorage } from '../hooks/useUtils.js';
+
+// ─────────────────────────────────────────────────────────────────
+// TYPES & CONSTANTS
+// ─────────────────────────────────────────────────────────────────
+
 const CART_STORAGE_KEY = 'stopshop-cart';
 
-export const CartProvider = ({ children }) => {
-  const [cartItems, setCartItems] = useState([]);
-  const [activeBucket, setActiveBucket] = useState('All');
-  const [activeSub, setActiveSub] = useState(null);
-  const [lastViewedBucket, setLastViewedBucket] = useState('Tops');
-  const [sortBy, setSortBy] = useState('featured');
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [drawerMode, setDrawerMode] = useState('cart');
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [shouldScrollGrid, setShouldScrollGrid] = useState(0);
-  const [isBouncing, setIsBouncing] = useState(false);
-  const [shakeCount, setShakeCount] = useState(0);
+const ActionTypes = Object.freeze({
+  ADD_ITEM: 'ADD_ITEM',
+  REMOVE_ITEM: 'REMOVE_ITEM',
+  UPDATE_QUANTITY: 'UPDATE_QUANTITY',
+  SET_ITEM_OPTIONS: 'SET_ITEM_OPTIONS',
+  CLEAR_CART: 'CLEAR_CART',
+  LOAD_FROM_STORAGE: 'LOAD_FROM_STORAGE',
+  OPEN_DRAWER: 'OPEN_DRAWER',
+  CLOSE_DRAWER: 'CLOSE_DRAWER',
+  SET_BUCKET: 'SET_BUCKET',
+  SET_SUB: 'SET_SUB',
+  SET_SORT: 'SET_SORT',
+});
 
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(CART_STORAGE_KEY);
-      if (saved) {
-        setCartItems(JSON.parse(saved));
-      }
-    } catch (err) {
-      console.warn('Failed to parse cart from localStorage', err);
+// ─────────────────────────────────────────────────────────────────
+// INITIAL STATE
+// ─────────────────────────────────────────────────────────────────
+
+const initialState = {
+  // Cart items
+  cartItems: [],
+  // UI state
+  isDrawerOpen: false,
+  drawerMode: 'cart',       // 'cart' | 'product' | 'wishlist'
+  selectedProduct: null,
+  // Filter/sort state
+  activeBucket: 'All',
+  activeSub: null,
+  lastViewedBucket: 'Tops',
+  sortBy: 'featured',
+  // Scroll trigger counter (increment to scroll grid into view)
+  scrollGridTick: 0,
+  // Animation
+  shakeCount: 0,
+};
+
+// ─────────────────────────────────────────────────────────────────
+// PURE REDUCER — all state transitions in one place
+// ─────────────────────────────────────────────────────────────────
+
+/**
+ * Find cart item index by composite key (id + color + size) or cartId.
+ * @param {Array} items
+ * @param {Object} params
+ * @returns {number}
+ */
+const findItemIndex = (items, { id, activeColor, selectedSize, cartId }) => {
+  if (cartId) return items.findIndex(item => item.cartId === cartId);
+  return items.findIndex(
+    item => item.id === id && item.activeColor === activeColor && item.selectedSize === selectedSize
+  );
+};
+
+const cartReducer = (state, action) => {
+  switch (action.type) {
+    case ActionTypes.LOAD_FROM_STORAGE:
+      return { ...state, cartItems: action.payload ?? [] };
+
+    case ActionTypes.ADD_ITEM: {
+      const { product } = action.payload;
+      const existingIdx = findItemIndex(state.cartItems, {
+        id: product.id,
+        activeColor: product.activeColor,
+        selectedSize: product.selectedSize,
+      });
+
+      const updatedItems = existingIdx > -1
+        ? state.cartItems.map((item, i) =>
+            i === existingIdx
+              ? { ...item, quantity: (item.quantity ?? 1) + 1 }
+              : item
+          )
+        : [...state.cartItems, { ...product, quantity: 1, cartId: Date.now() }];
+
+      return {
+        ...state,
+        cartItems: updatedItems,
+        shakeCount: state.shakeCount + 1,
+      };
     }
-  }, []);
 
-  useEffect(() => {
-    try {
-      localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cartItems));
-    } catch (err) {
-      console.warn('Failed to persist cart in localStorage', err);
+    case ActionTypes.REMOVE_ITEM: {
+      const idx = findItemIndex(state.cartItems, action.payload);
+      if (idx === -1) return state;
+      return {
+        ...state,
+        cartItems: state.cartItems.filter((_, i) => i !== idx),
+      };
     }
-  }, [cartItems]);
 
-  useEffect(() => {
-    if (shakeCount > 0 && !isBouncing) {
-      setIsBouncing(true);
-      const timer = setTimeout(() => {
-        setIsBouncing(false);
-        setShakeCount((prev) => prev - 1);
-      }, 500);
-      return () => clearTimeout(timer);
-    }
-  }, [shakeCount, isBouncing]);
+    case ActionTypes.UPDATE_QUANTITY: {
+      const { delta, ...key } = action.payload;
+      const idx = findItemIndex(state.cartItems, key);
+      if (idx === -1) return state;
 
-  const addToCart = (product) => {
-    setCartItems((prevItems) => {
-      const existingItemIndex = prevItems.findIndex(
-        (item) => item.id === product.id && item.activeColor === product.activeColor && item.selectedSize === product.selectedSize
-      );
+      const current = state.cartItems[idx];
+      const newQty = (current.quantity ?? 1) + delta;
 
-      if (existingItemIndex > -1) {
-        const newItems = [...prevItems];
-        newItems[existingItemIndex] = {
-          ...newItems[existingItemIndex],
-          quantity: (newItems[existingItemIndex].quantity || 1) + 1,
+      // Remove if quantity drops to 0
+      if (newQty <= 0) {
+        return {
+          ...state,
+          cartItems: state.cartItems.filter((_, i) => i !== idx),
         };
-        return newItems;
-      } else {
-        return [...prevItems, { ...product, quantity: 1, cartId: Date.now() }];
       }
-    });
-    setShakeCount((prev) => prev + 1);
-  };
 
-  const removeFromCart = (id, activeColor, selectedSize, cartId = null) => {
-    setCartItems((prevItems) => 
-      prevItems.filter((item) => {
-        if (cartId) return item.cartId !== cartId;
-        return !(item.id === id && item.activeColor === activeColor && item.selectedSize === selectedSize);
-      })
-    );
-  };
+      return {
+        ...state,
+        cartItems: state.cartItems.map((item, i) =>
+          i === idx ? { ...item, quantity: newQty } : item
+        ),
+      };
+    }
 
-  const updateQuantity = (id, activeColor, selectedSize, delta, cartId = null) => {
-    setCartItems((prevItems) => {
-      const existingItemIndex = cartId
-        ? prevItems.findIndex((item) => item.cartId === cartId)
-        : prevItems.findIndex((item) => item.id === id && item.activeColor === activeColor && item.selectedSize === selectedSize);
+    case ActionTypes.SET_ITEM_OPTIONS: {
+      const { cartId, activeColor, selectedSize } = action.payload;
+      return {
+        ...state,
+        cartItems: state.cartItems.map(item =>
+          item.cartId === cartId
+            ? {
+                ...item,
+                activeColor: activeColor ?? item.activeColor,
+                selectedSize: selectedSize ?? item.selectedSize,
+              }
+            : item
+        ),
+      };
+    }
 
-      if (existingItemIndex > -1) {
-        const newItems = [...prevItems];
-        const currentQty = newItems[existingItemIndex].quantity || 1;
-        const newQty = currentQty + delta;
+    case ActionTypes.CLEAR_CART:
+      return { ...state, cartItems: [] };
 
-        if (newQty <= 0) {
-          return prevItems.filter((_, index) => index !== existingItemIndex);
-        } else {
-          newItems[existingItemIndex] = {
-            ...newItems[existingItemIndex],
-            quantity: newQty,
-          };
-          return newItems;
-        }
-      }
-      return prevItems;
-    });
-  };
+    case ActionTypes.OPEN_DRAWER:
+      return {
+        ...state,
+        isDrawerOpen: true,
+        drawerMode: action.payload.mode,
+        selectedProduct: action.payload.product ?? null,
+      };
 
-  const setCartItemOptions = (cartId, updatedColor, updatedSize) => {
-    setCartItems((prevItems) =>
-      prevItems.map((item) => {
-        if (item.cartId === cartId) {
-          return {
-            ...item,
-            activeColor: updatedColor || item.activeColor,
-            selectedSize: updatedSize || item.selectedSize,
-          };
-        }
-        return item;
-      })
-    );
-  };
+    case ActionTypes.CLOSE_DRAWER:
+      return { ...state, isDrawerOpen: false };
 
-  const openDrawer = (mode, product = null) => {
-    setDrawerMode(mode);
-    setSelectedProduct(product);
-    setIsDrawerOpen(true);
-  };
+    case ActionTypes.SET_BUCKET:
+      return {
+        ...state,
+        activeBucket: action.payload,
+        scrollGridTick: state.scrollGridTick + 1,
+      };
 
-  const closeDrawer = () => setIsDrawerOpen(false);
+    case ActionTypes.SET_SUB:
+      return {
+        ...state,
+        activeSub: action.payload,
+        scrollGridTick: state.scrollGridTick + 1,
+      };
 
-  const cartCount = useMemo(() => 
-    cartItems.reduce((sum, item) => sum + (item.quantity || 1), 0), 
-    [cartItems]
+    case ActionTypes.SET_SORT:
+      return { ...state, sortBy: action.payload };
+
+    default:
+      return state;
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────
+// CONTEXT & PROVIDER
+// ─────────────────────────────────────────────────────────────────
+
+const CartContext = createContext(null);
+
+export const CartProvider = ({ children }) => {
+  const [state, dispatch] = useReducer(cartReducer, initialState);
+  const [storedCart, setStoredCart] = useLocalStorage(CART_STORAGE_KEY, []);
+
+  // Hydrate cart from localStorage on mount
+  useEffect(() => {
+    dispatch({ type: ActionTypes.LOAD_FROM_STORAGE, payload: storedCart });
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Persist cart to localStorage on changes
+  useEffect(() => {
+    setStoredCart(state.cartItems);
+  }, [state.cartItems, setStoredCart]);
+
+  // ── DERIVED STATE ──────────────────────────────────────────────
+
+  const cartCount = useMemo(
+    () => state.cartItems.reduce((sum, item) => sum + (item.quantity ?? 1), 0),
+    [state.cartItems]
   );
 
-  const total = useMemo(() => 
-    cartItems.reduce((sum, item) => sum + (item.price * (item.quantity || 1)), 0), 
-    [cartItems]
+  const total = useMemo(
+    () => state.cartItems.reduce((sum, item) => sum + item.price * (item.quantity ?? 1), 0),
+    [state.cartItems]
   );
 
-  const value = {
-    cartItems,
+  // ── STABLE ACTION CREATORS ─────────────────────────────────────
+
+  const addToCart = useCallback(
+    (product) => dispatch({ type: ActionTypes.ADD_ITEM, payload: { product } }),
+    []
+  );
+
+  const removeFromCart = useCallback(
+    (id, activeColor, selectedSize, cartId = null) =>
+      dispatch({ type: ActionTypes.REMOVE_ITEM, payload: { id, activeColor, selectedSize, cartId } }),
+    []
+  );
+
+  const updateQuantity = useCallback(
+    (id, activeColor, selectedSize, delta, cartId = null) =>
+      dispatch({ type: ActionTypes.UPDATE_QUANTITY, payload: { id, activeColor, selectedSize, delta, cartId } }),
+    []
+  );
+
+  const setCartItemOptions = useCallback(
+    (cartId, activeColor, selectedSize) =>
+      dispatch({ type: ActionTypes.SET_ITEM_OPTIONS, payload: { cartId, activeColor, selectedSize } }),
+    []
+  );
+
+  const clearCart = useCallback(
+    () => dispatch({ type: ActionTypes.CLEAR_CART }),
+    []
+  );
+
+  const openDrawer = useCallback(
+    (mode, product = null) =>
+      dispatch({ type: ActionTypes.OPEN_DRAWER, payload: { mode, product } }),
+    []
+  );
+
+  const closeDrawer = useCallback(
+    () => dispatch({ type: ActionTypes.CLOSE_DRAWER }),
+    []
+  );
+
+  const setActiveBucket = useCallback(
+    (bucket) => dispatch({ type: ActionTypes.SET_BUCKET, payload: bucket }),
+    []
+  );
+
+  const setActiveSub = useCallback(
+    (sub) => dispatch({ type: ActionTypes.SET_SUB, payload: sub }),
+    []
+  );
+
+  const setSortBy = useCallback(
+    (sort) => dispatch({ type: ActionTypes.SET_SORT, payload: sort }),
+    []
+  );
+
+  // ── CONTEXT VALUE ──────────────────────────────────────────────
+
+  const value = useMemo(() => ({
+    // State
+    cartItems: state.cartItems,
     cartCount,
+    total,
+    isDrawerOpen: state.isDrawerOpen,
+    drawerMode: state.drawerMode,
+    selectedProduct: state.selectedProduct,
+    activeBucket: state.activeBucket,
+    activeSub: state.activeSub,
+    lastViewedBucket: state.lastViewedBucket,
+    sortBy: state.sortBy,
+    shouldScrollGrid: state.scrollGridTick,
+    isBouncing: state.shakeCount > 0,
+    // Actions
     addToCart,
     removeFromCart,
     updateQuantity,
     setCartItemOptions,
-    isBouncing,
-    total,
-    isDrawerOpen,
-    drawerMode,
-    selectedProduct,
+    clearCart,
     openDrawer,
     closeDrawer,
-    activeBucket,
-    setActiveBucket: (bucket) => {
-      setActiveBucket(bucket);
-      setShouldScrollGrid(prev => prev + 1);
-    },
-    activeSub,
-    setActiveSub: (sub) => {
-      setActiveSub(sub);
-      setShouldScrollGrid(prev => prev + 1);
-    },
-    lastViewedBucket,
-    setLastViewedBucket,
-    sortBy,
+    setActiveBucket,
+    setActiveSub,
+    setLastViewedBucket: (b) => dispatch({ type: ActionTypes.SET_BUCKET, payload: b }),
     setSortBy,
-    shouldScrollGrid,
-  };
+  }), [state, cartCount, total, addToCart, removeFromCart, updateQuantity,
+      setCartItemOptions, clearCart, openDrawer, closeDrawer,
+      setActiveBucket, setActiveSub, setSortBy]);
 
-  return (
-    <CartContext.Provider value={value}>
-      {children}
-    </CartContext.Provider>
-  );
+  return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 };
 
 export const useCart = () => {
   const context = useContext(CartContext);
-  if (!context) {
-    throw new Error('useCart must be used within a CartProvider');
-  }
+  if (!context) throw new Error('useCart must be used within a CartProvider');
   return context;
 };
 

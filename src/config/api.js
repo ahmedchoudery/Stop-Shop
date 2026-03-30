@@ -1,48 +1,106 @@
+/**
+ * @fileoverview API URL resolver
+ * Applies: javascript-pro (ES6+, module pattern), javascript-mastery (const, nullish coalescing)
+ *          nodejs-best-practices (environment config, no hardcoded secrets)
+ */
+
+// ─────────────────────────────────────────────────────────────────
+// ENVIRONMENT DETECTION
+// ─────────────────────────────────────────────────────────────────
+
 const isBrowser = typeof window !== 'undefined';
-const host = isBrowser ? window.location.hostname : '';
-const isLocalHost = host === 'localhost' || host === '127.0.0.1' || host.endsWith('.local');
-const isProductionHost = isBrowser && !isLocalHost;
+const isDev = import.meta.env.DEV ?? false;
+const isTest = import.meta.env.MODE === 'test';
 
-// The base URL from environment (Vercel/Local)
-let envBase = (import.meta.env.VITE_API_URL || '').trim();
+/**
+ * Detect if currently running on localhost
+ * @returns {boolean}
+ */
+const detectLocalhost = () => {
+  if (!isBrowser) return true;
+  const { hostname } = window.location;
+  return hostname === 'localhost' || hostname === '127.0.0.1' || hostname.endsWith('.local');
+};
 
-// If it's an external URL (contains dots and doesn't have protocol), add https://
-if (envBase && !envBase.startsWith('http') && envBase.includes('.')) {
-  envBase = `https://${envBase}`;
-}
+const isLocalhost = detectLocalhost();
 
-// FORCED OVERRIDE: If the environment variable contains the broken -3860 suffix, strip it.
-// This handles cases where Vercel dashboard environment variables are stale.
-if (envBase.includes('stop-shop-production-3860')) {
-  envBase = envBase.replace('stop-shop-production-3860', 'stop-shop-production');
-  if (isBrowser) console.warn('DIAGNOSTIC: Coring stale -3860 subdomain detected in environment. Overriding to stop-shop-production.');
-}
+// ─────────────────────────────────────────────────────────────────
+// URL RESOLUTION
+// ─────────────────────────────────────────────────────────────────
 
-const envIsFrontendHost = isBrowser && envBase.includes(window.location.host);
-const SAFE_PROD_API = 'https://stop-shop-production.up.railway.app';
-const SECONDARY_SAFE_API = 'https://stop-shop-production.up.railway.app';
+const PROD_API = 'https://stop-shop-production.up.railway.app';
 
-// Choose the actual API base to use
-const rawBaseUrl = isProductionHost
-  ? (envBase && !envIsFrontendHost ? envBase : SAFE_PROD_API)
-  : envBase;
+/**
+ * Normalize and validate the environment API URL.
+ * Handles stale deployment URLs gracefully.
+ *
+ * @param {string} raw - Raw env var value
+ * @returns {string} Cleaned URL or empty string
+ */
+const resolveEnvApiUrl = (raw) => {
+  if (!raw?.trim()) return '';
 
-const API_BASE = (rawBaseUrl || '').trim().replace(/\/+$/, '');
+  let url = raw.trim().replace(/\/+$/, ''); // Strip trailing slashes
 
-if (isBrowser) {
-  console.log('--- API DIAGNOSTICS ---');
-  console.log('VITE_API_URL:', import.meta.env.VITE_API_URL);
-  console.log('isProductionHost:', isProductionHost);
-  console.log('Resolved API_BASE:', API_BASE);
-  console.log('-----------------------');
-}
-
-export const apiUrl = (path) => {
-  if (!path.startsWith('/')) {
-    throw new Error('apiUrl(path) expects a leading slash');
+  // Fix missing protocol
+  if (!url.startsWith('http') && url.includes('.')) {
+    url = `https://${url}`;
   }
-  // Return absolute URL only if API_BASE is set and it's not pointing to the same host
-  return API_BASE ? `${API_BASE}${path}` : path;
+
+  // Guard: Don't use frontend host as API host
+  if (isBrowser && url.includes(window.location.host)) {
+    if (isDev) console.warn('[API] VITE_API_URL points to frontend host — ignoring');
+    return '';
+  }
+
+  // Fix stale Railway deployment suffix
+  if (url.includes('stop-shop-production-3860')) {
+    if (isDev) console.warn('[API] Stale -3860 Railway URL detected — auto-correcting');
+    url = url.replace('stop-shop-production-3860', 'stop-shop-production');
+  }
+
+  return url;
+};
+
+const envBase = resolveEnvApiUrl(import.meta.env.VITE_API_URL ?? '');
+
+/**
+ * Final API base URL.
+ * - Dev/test: empty (Vite proxy handles /api → localhost:5000)
+ * - Production: Railway URL from env or hardcoded fallback
+ */
+export const API_BASE = isLocalhost || isTest
+  ? ''
+  : (envBase || PROD_API);
+
+// ─────────────────────────────────────────────────────────────────
+// DIAGNOSTICS (dev only)
+// ─────────────────────────────────────────────────────────────────
+
+if (isDev && isBrowser) {
+  console.group('[API] Configuration');
+  console.log('Mode:', import.meta.env.MODE);
+  console.log('VITE_API_URL:', import.meta.env.VITE_API_URL);
+  console.log('Resolved API_BASE:', API_BASE || '(empty — using Vite proxy)');
+  console.groupEnd();
+}
+
+// ─────────────────────────────────────────────────────────────────
+// URL BUILDER
+// ─────────────────────────────────────────────────────────────────
+
+/**
+ * Build a full API URL from a path.
+ *
+ * @param {string} path - Must start with '/'
+ * @returns {string} Full URL in production, relative path in dev
+ * @throws {TypeError} If path doesn't start with '/'
+ */
+export const apiUrl = (path) => {
+  if (typeof path !== 'string' || !path.startsWith('/')) {
+    throw new TypeError(`apiUrl() expects a path starting with '/'. Got: ${path}`);
+  }
+  return `${API_BASE}${path}`;
 };
 
 export default API_BASE;
