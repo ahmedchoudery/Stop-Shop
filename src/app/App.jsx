@@ -1,30 +1,41 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react';
+/**
+ * @fileoverview App — Root component with design spells applied globally
+ * Applies: design-spells (custom cursor, smooth scroll),
+ *          react-patterns (ErrorBoundary at root, lazy loading)
+ */
+
+import React, { useState, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Layout from '../layout/Layout';
-import UniversalDrawer from '../layout/UniversalDrawer';
-import SmoothLoader from '../components/SmoothLoader';
-import { CartProvider, useCart } from '../context/CartContext';
-import { WishlistProvider } from '../context/WishlistContext';
-import { RecentlyViewedProvider } from '../components/RecentlyViewedContext';
-import { CurrencyProvider } from '../context/CurrencyContext';
-import { LocaleProvider } from '../context/LocaleContext';
-import HomePage from '../pages/HomePage';
-import CheckoutPage from '../pages/CheckoutPage';
-import AdminDashboard from '../pages/AdminDashboard';
-import DashboardHome from '../pages/DashboardHome';
-import LoginPage from '../pages/LoginPage';
-import ProtectedRoute from '../components/ProtectedRoute';
+import Layout from '../layout/Layout.jsx';
+import UniversalDrawer from '../layout/UniversalDrawer.jsx';
+import SmoothLoader from '../components/SmoothLoader.jsx';
+import CursorFollower from '../components/CursorFollower.jsx';
+import { CartProvider } from '../context/CartContext.jsx';
+import { WishlistProvider } from '../context/WishlistContext.jsx';
+import { RecentlyViewedProvider } from '../components/RecentlyViewedContext.jsx';
+import { CurrencyProvider } from '../context/CurrencyContext.jsx';
+import { LocaleProvider } from '../context/LocaleContext.jsx';
+import ErrorBoundary from '../components/ErrorBoundary.jsx';
+import HomePage from '../pages/HomePage.jsx';
+import CheckoutPage from '../pages/CheckoutPage.jsx';
+import AdminDashboard from '../pages/AdminDashboard.jsx';
+import DashboardHome from '../pages/DashboardHome.jsx';
+import LoginPage from '../pages/LoginPage.jsx';
+import ProtectedRoute from '../components/ProtectedRoute.jsx';
 
-const AdminOrders = lazy(() => import('../pages/AdminOrders'));
-const AdminInventory = lazy(() => import('../pages/AdminInventory'));
-const AdminProducts = lazy(() => import('../pages/AdminProducts'));
-const AdminUsers = lazy(() => import('../pages/AdminUsers'));
-const AdminSettings = lazy(() => import('../pages/AdminSettings'));
-const AdminAuditPanel = lazy(() => import('../pages/AdminAuditPanel'));
+const AdminOrders    = lazy(() => import('../pages/AdminOrders.jsx'));
+const AdminInventory = lazy(() => import('../pages/AdminInventory.jsx'));
+const AdminProducts  = lazy(() => import('../pages/AdminProducts.jsx'));
+const AdminUsers     = lazy(() => import('../pages/AdminUsers.jsx'));
+const AdminSettings  = lazy(() => import('../pages/AdminSettings.jsx'));
+const AdminAuditPanel = lazy(() => import('../pages/AdminAuditPanel.jsx'));
 
-const LoadingFallback = () => (
+const PageLoader = () => (
   <div className="flex items-center justify-center h-64">
-    <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#ba1f3d]"></div>
+    <div className="flex flex-col items-center space-y-3">
+      <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#ba1f3d]" />
+      <p className="text-[9px] font-black uppercase tracking-[0.4em] text-gray-300">Loading</p>
+    </div>
   </div>
 );
 
@@ -41,62 +52,74 @@ function App() {
   const [loading, setLoading] = useState(true);
 
   return (
-    <LocaleProvider>
-      <CurrencyProvider>
-        <RecentlyViewedProvider>
-          <WishlistProvider>
-            <CartProvider>
-              {loading && <SmoothLoader onComplete={() => setLoading(false)} />}
-              <Router>
-                <Routes>
-                  <Route path="/" element={<HomeWithLayout />} />
+    <ErrorBoundary title="Something went wrong">
+      <LocaleProvider>
+        <CurrencyProvider>
+          <RecentlyViewedProvider>
+            <WishlistProvider>
+              <CartProvider>
+                {/* Design Spell: Custom cursor — desktop only */}
+                <CursorFollower />
 
-                  <Route path="/checkout" element={
-                    <Layout>
-                      <CheckoutPage />
-                    </Layout>
-                  } />
+                {/* Luxury preloader */}
+                {loading && <SmoothLoader onComplete={() => setLoading(false)} />}
 
-                  <Route path="/login" element={<LoginPage />} />
-                  <Route
-                    path="/admin"
-                    element={
-                      <ProtectedRoute>
-                        <AdminDashboard />
-                      </ProtectedRoute>
-                    }
-                  >
-                    <Route index element={<Navigate to="/admin/dashboard" replace />} />
-                    <Route path="dashboard" element={<DashboardHome />} />
-                    <Route path="orders" element={<Suspense fallback={<LoadingFallback />}><AdminOrders /></Suspense>} />
-                    <Route path="inventory" element={<Suspense fallback={<LoadingFallback />}><AdminInventory /></Suspense>} />
-                    <Route path="products" element={<Suspense fallback={<LoadingFallback />}><AdminProducts /></Suspense>} />
-                    <Route path="users" element={<Suspense fallback={<LoadingFallback />}><AdminUsers /></Suspense>} />
-                    <Route path="audits" element={<Suspense fallback={<LoadingFallback />}><AdminAuditPanel /></Suspense>} />
-                    <Route path="settings" element={<Suspense fallback={<LoadingFallback />}><AdminSettings /></Suspense>} />
-                  </Route>
+                <Router>
+                  <Routes>
+                    <Route path="/" element={<HomeWithLayout />} />
 
-                  <Route path="*" element={
-                    <div className="min-h-screen bg-white flex items-center justify-center">
-                      <div className="text-center">
-                        <h1 className="text-[180px] font-black text-gray-50 leading-none select-none">404</h1>
-                        <p className="text-xl font-black uppercase tracking-tighter text-gray-900 mt-4">Page Not Found</p>
-                        <p className="text-gray-400 mt-2 text-sm uppercase tracking-widest font-black">The design doesn't exist here.</p>
-                        <a href="/" className="mt-8 inline-flex items-center space-x-2 px-10 py-5 bg-[#ba1f3d] text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-none hover:bg-gray-900 transition-all shadow-xl">
-                          <span>Return Home</span>
-                        </a>
+                    <Route path="/checkout" element={
+                      <Layout>
+                        <CheckoutPage />
+                      </Layout>
+                    } />
+
+                    <Route path="/login" element={<LoginPage />} />
+
+                    <Route
+                      path="/admin"
+                      element={
+                        <ProtectedRoute>
+                          <AdminDashboard />
+                        </ProtectedRoute>
+                      }
+                    >
+                      <Route index element={<Navigate to="/admin/dashboard" replace />} />
+                      <Route path="dashboard" element={<DashboardHome />} />
+                      <Route path="orders"    element={<Suspense fallback={<PageLoader />}><AdminOrders /></Suspense>} />
+                      <Route path="inventory" element={<Suspense fallback={<PageLoader />}><AdminInventory /></Suspense>} />
+                      <Route path="products"  element={<Suspense fallback={<PageLoader />}><AdminProducts /></Suspense>} />
+                      <Route path="users"     element={<Suspense fallback={<PageLoader />}><AdminUsers /></Suspense>} />
+                      <Route path="audits"    element={<Suspense fallback={<PageLoader />}><AdminAuditPanel /></Suspense>} />
+                      <Route path="settings"  element={<Suspense fallback={<PageLoader />}><AdminSettings /></Suspense>} />
+                    </Route>
+
+                    {/* 404 */}
+                    <Route path="*" element={
+                      <div className="min-h-screen bg-white flex items-center justify-center">
+                        <div className="text-center">
+                          <h1 className="text-[180px] font-black text-gray-50 leading-none select-none">404</h1>
+                          <p className="text-xl font-black uppercase tracking-tighter text-gray-900 mt-4">Page Not Found</p>
+                          <p className="text-gray-400 mt-2 text-sm uppercase tracking-widest font-black">The design doesn't exist here.</p>
+                          <a
+                            href="/"
+                            className="mt-8 inline-flex items-center space-x-2 px-10 py-5 bg-[#ba1f3d] text-white text-[10px] font-black uppercase tracking-[0.3em] hover:bg-gray-900 transition-all shadow-xl btn-shimmer"
+                          >
+                            <span>Return Home</span>
+                          </a>
+                        </div>
                       </div>
-                    </div>
-                  } />
-                </Routes>
+                    } />
+                  </Routes>
 
-                <UniversalDrawer />
-              </Router>
-            </CartProvider>
-          </WishlistProvider>
-        </RecentlyViewedProvider>
-      </CurrencyProvider>
-    </LocaleProvider>
+                  <UniversalDrawer />
+                </Router>
+              </CartProvider>
+            </WishlistProvider>
+          </RecentlyViewedProvider>
+        </CurrencyProvider>
+      </LocaleProvider>
+    </ErrorBoundary>
   );
 }
 
