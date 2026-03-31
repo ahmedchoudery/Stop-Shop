@@ -1,473 +1,474 @@
-import React, { useState, useEffect } from 'react';
-import { X, ShoppingBag, Trash2, ArrowRight, Star, Plus, Minus, Heart, Ruler, Maximize2 } from 'lucide-react';
+/**
+ * @fileoverview UniversalDrawer — Cart + Product detail drawer
+ * Applies: animejs-animation (spring slide-in, stagger cart items),
+ *          design-spells (quantity stepper, size selector, smooth exit),
+ *          design-md (Obsidian header, Cardinal Red accents)
+ */
+
+import React, { useEffect, useRef, useCallback } from 'react';
+import {
+  X, ShoppingBag, Plus, Minus, Trash2, ArrowRight,
+  Tag, ChevronRight, Ruler, Star
+} from 'lucide-react';
+import { useCart } from '../context/CartContext.jsx';
+import { useWishlist } from '../context/WishlistContext.jsx';
+import { useCurrency } from '../context/CurrencyContext.jsx';
+import { useLocale } from '../context/LocaleContext.jsx';
+import { useScrollLock } from '../hooks/useUtils.js';
+import { EASING } from '../hooks/useAnime.js';
+import MediaRenderer from '../components/MediaRenderer.jsx';
 import { Link } from 'react-router-dom';
-import { useCart } from '../context/CartContext';
-import { useWishlist } from '../context/WishlistContext';
-import { useRecentlyViewed } from '../components/RecentlyViewedContext';
-import { useCurrency } from '../context/CurrencyContext';
-import { useLocale } from '../context/LocaleContext';
-import SizeChartModal from '../components/SizeChartModal';
-import ProductLightbox from '../components/ProductLightbox';
-import MediaRenderer from '../components/MediaRenderer';
 
-const getPresetSizes = (product) => {
-  const bucket = (product?.bucket || '').toLowerCase();
-  const subCategory = (product?.subCategory || '').toLowerCase();
-  if (bucket === 'accessories') return [];
-  if (bucket === 'footwear') return ['7', '8', '9', '10', '11'];
-  if (bucket === 'bottoms') {
-    if (subCategory === 'jeans') return ['28', '30', '32', '34', '36', '38'];
-    if (subCategory === 'trousers' || subCategory === 'shorts') return ['S', 'M', 'L'];
-    return ['S', 'M', 'L'];
-  }
-  if (bucket === 'tops') return ['S', 'M', 'L', 'XL'];
-  return ['S', 'M', 'L', 'XL'];
-};
-const CARDINAL = '#ba1f3d';
+// ─────────────────────────────────────────────────────────────────
+// CART DRAWER
+// ─────────────────────────────────────────────────────────────────
 
-const UPSELL_PRODUCTS = [
-  { id: 'u1', name: 'Premium Leather Belt', price: 2499, image: 'https://images.unsplash.com/photo-1553062407-98eeb64c6a62?q=80&w=200&auto=format&fit=crop' },
-  { id: 'u2', name: 'Cotton Dress Socks', price: 850, image: 'https://images.unsplash.com/photo-1583744946564-b52ac1c389c8?q=80&w=200&auto=format&fit=crop' },
-  { id: 'u3', name: 'Signature Cap', price: 3450, image: 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?q=80&w=200&auto=format&fit=crop' },
-];
-
-const UniversalDrawer = () => {
-  const { isDrawerOpen, drawerMode, selectedProduct, closeDrawer, cartItems, removeFromCart, updateQuantity, total, addToCart, setCartItemOptions, setActiveBucket, setActiveSub } = useCart();
-  const { toggleWishlist, isWishlisted } = useWishlist();
-  const { addViewed } = useRecentlyViewed();
+const CartDrawer = ({ onClose }) => {
+  const { cartItems, cartCount, total, removeFromCart, updateQuantity, clearCart } = useCart();
   const { formatPrice } = useCurrency();
   const { t } = useLocale();
-
-  const [activeColor, setActiveColor] = useState(null);
-  const [selectedSize, setSelectedSize] = useState('M');
-  const [sizeError, setSizeError] = useState(false);
-  const [sizeChartOpen, setSizeChartOpen] = useState(false);
-  const [lightboxOpen, setLightboxOpen] = useState(false);
-  const [lightboxIndex, setLightboxIndex] = useState(0);
-  const [galleryIndex, setGalleryIndex] = useState(0);
-  const [cartSizeError, setCartSizeError] = useState(false);
+  const listRef = useRef(null);
 
   useEffect(() => {
-    if (drawerMode === 'product' && selectedProduct) {
-      setActiveColor(selectedProduct.colors?.[0] || null);
-      setGalleryIndex(0);
-      const sizes = (selectedProduct.sizes && selectedProduct.sizes.length > 0)
-        ? selectedProduct.sizes
-        : getPresetSizes(selectedProduct);
-      const firstAvailable = sizes.find(s => {
-        const bySize = selectedProduct.sizeStock?.[s];
-        return bySize === undefined || (parseInt(bySize) || 0) > 0;
-      });
-      setSelectedSize(firstAvailable || sizes[0] || null);
-      setSizeError(false);
-      addViewed(selectedProduct);
-    }
-  }, [drawerMode, selectedProduct]);
+    if (!listRef.current || !cartItems.length) return;
+    let anime;
+    try { anime = require('animejs').default ?? require('animejs'); } catch { return; }
 
-  useEffect(() => {
-    if (!isDrawerOpen) return;
+    const items = listRef.current.querySelectorAll('[data-cart-item]');
+    anime.set(items, { opacity: 0, translateX: 30 });
+    anime({
+      targets: items,
+      opacity: [0, 1],
+      translateX: [30, 0],
+      duration: 500,
+      delay: anime.stagger(60),
+      easing: EASING.FABRIC,
+    });
+  }, [cartItems.length]);
 
-    const onKeyDown = (event) => {
-      if (event.key === 'Escape') {
-        closeDrawer();
-      }
-    };
-
-    document.body.style.overflow = 'hidden';
-    window.addEventListener('keydown', onKeyDown);
-
-    return () => {
-      document.body.style.overflow = 'auto';
-      window.removeEventListener('keydown', onKeyDown);
-    };
-  }, [isDrawerOpen, closeDrawer]);
-
-  if (!isDrawerOpen) return null;
-
-  const currentImage = (activeColor && selectedProduct?.variantImages?.[activeColor])
-    ? selectedProduct.variantImages[activeColor]
-    : ((selectedProduct?.gallery?.length > 0)
-      ? selectedProduct.gallery[galleryIndex % selectedProduct.gallery.length]
-      : selectedProduct?.image);
-
-  const buildLightboxImages = () => {
-    if (!selectedProduct) return [];
-    const imgs = [];
-
-    if (selectedProduct.gallery && Array.isArray(selectedProduct.gallery)) {
-      selectedProduct.gallery.forEach((src, index) => {
-        if (!src) return;
-        if (!imgs.find(i => i.src === src)) {
-          imgs.push({ src, alt: `${selectedProduct.name} gallery ${index + 1}`, label: `Gallery ${index + 1}` });
-        }
-      });
-    }
-
-    if (selectedProduct.variantImages) {
-      Object.entries(selectedProduct.variantImages).forEach(([color, src]) => {
-        if (src && !imgs.find(i => i.src === src)) {
-          imgs.push({ src, alt: selectedProduct.name, label: color });
-        }
-      });
-    } else if (selectedProduct.image) {
-      if (!imgs.find(i => i.src === selectedProduct.image)) {
-        imgs.push({ src: selectedProduct.image, alt: selectedProduct.name, label: 'Main' });
-      }
-    }
-    if (selectedProduct.lifestyleImage && !imgs.find(i => i.src === selectedProduct.lifestyleImage)) {
-      imgs.push({ src: selectedProduct.lifestyleImage, alt: `${selectedProduct.name} lifestyle`, label: 'Lifestyle' });
-    }
-    return imgs;
-  };
-
-  const freeShippingThreshold = 5000;
-  const remaining = Math.max(0, freeShippingThreshold - total);
-  const shippingProgress = Math.min(100, (total / freeShippingThreshold) * 100);
-  const sizeChartCategory = selectedProduct?.bucket === 'Bottoms'
-    ? 'Bottoms'
-    : selectedProduct?.bucket === 'Footwear'
-      ? 'Footwear'
-      : 'Tops';
-
-  /* ── CART ─────────────────────────────────────────────────── */
-  const renderCartView = () => (
-    <div className="h-full flex flex-col bg-white shadow-2xl">
-      <div className="flex items-center justify-between p-6 border-b border-gray-100 bg-[#ba1f3d] text-white">
+  return (
+    <div className="flex flex-col h-full">
+      {/* Header */}
+      <div className="flex items-center justify-between px-6 py-5 bg-gray-900 text-white flex-shrink-0">
         <div className="flex items-center space-x-3">
-          <ShoppingBag size={24} />
-          <h2 className="text-xl font-black uppercase tracking-tighter">{t('cart.view')}</h2>
-          {cartItems.length > 0 && (
-            <span className="bg-white text-[#ba1f3d] text-[10px] font-black px-2 py-0.5 rounded-none">
-              {cartItems.reduce((s, i) => s + (i.quantity || 1), 0)}
+          <ShoppingBag size={20} className="text-[#ba1f3d]" />
+          <h2 className="text-base font-black uppercase tracking-tighter">Your Bag</h2>
+          {cartCount > 0 && (
+            <span className="bg-[#ba1f3d] text-white text-[9px] font-black px-2 py-0.5 rounded-full">
+              {cartCount}
             </span>
           )}
         </div>
-        <button onClick={closeDrawer} className="p-2 hover:bg-black/20 rounded-none transition-all hover:rotate-90 transform">
-          <X size={24} />
+        <button
+          onClick={onClose}
+          className="p-2 hover:bg-white/10 rounded-xl transition-all duration-200 hover:rotate-90 transform"
+        >
+          <X size={20} />
         </button>
       </div>
 
-      {cartItems.length > 0 && (
-        <div className="px-6 py-4 bg-gray-50/50 border-b border-gray-100">
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-500 mb-2">
-            {remaining > 0 ? <>Add <span className="text-[#ba1f3d]">{formatPrice(remaining)}</span> more for FREE shipping 🚚</> : '🎉 FREE shipping unlocked!'}
-          </p>
-          <div className="h-1 bg-gray-200 rounded-none overflow-hidden">
-            <div className="h-full bg-[#ba1f3d] transition-all duration-700 ease-out-expo" style={{ width: `${shippingProgress}%` }} />
-          </div>
-        </div>
-      )}
-
-      <div className="flex-grow overflow-y-auto p-6 space-y-6">
+      {/* Items */}
+      <div ref={listRef} className="flex-grow overflow-y-auto px-5 py-4 space-y-3">
         {cartItems.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center space-y-8 animate-fade-up">
-            <ShoppingBag size={80} strokeWidth={0.5} className="text-gray-100" />
-            <div className="text-center">
-              <p className="font-black uppercase tracking-[0.3em] text-sm text-gray-900">Your bag is empty.</p>
-              <p className="text-[10px] font-black tracking-widest text-gray-400 mt-2 uppercase">Collect your first Cardinal piece.</p>
-            </div>
-            <button onClick={() => { setActiveBucket('All'); setActiveSub(null); closeDrawer(); }} className="px-10 py-4 bg-gray-900 text-white text-[10px] font-black uppercase tracking-[0.3em] hover:bg-[#ba1f3d] transition-all">
-              Shop All
-            </button>
-          </div>
+          <EmptyCartState onClose={onClose} />
         ) : (
-          <>
-            {cartItems.map(item => {
-              const currentImage = (item.activeColor && item.variantImages?.[item.activeColor])
-                ? item.variantImages[item.activeColor]
-                : item.image;
-              const computedSizes = (item.availableSizes?.length || 0) > 0 ? item.availableSizes : getPresetSizes(item);
-              const itemRequiresSize = computedSizes.length > 0;
-              const sizeNotSelected = itemRequiresSize && !item.selectedSize;
-
-              return (
-              <div key={`${item.id}-${item.activeColor || 'none'}-${item.selectedSize || 'none'}`} className="flex items-center space-x-5 group animate-fade-up">
-                <div className="w-24 h-28 bg-gray-50 flex-shrink-0 overflow-hidden rounded-none border border-gray-100">
-                  <MediaRenderer src={currentImage} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                </div>
-                <div className="flex-grow min-w-0">
-                  <div className="flex justify-between items-start">
-                    <h3 className="text-xs font-black uppercase tracking-tight text-gray-900 leading-tight truncate pr-2">{item.name}</h3>
-                    <p className="text-[#ba1f3d] font-black text-xs flex-shrink-0">{formatPrice(item.price * (item.quantity || 1))}</p>
-                  </div>
-                  {item.selectedSize && <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest mt-1">Size: {item.selectedSize}</p>}
-                  {sizeNotSelected && <p className="text-[9px] font-black text-[#ba1f3d] uppercase tracking-widest mt-1 animate-pulse">Select Size Below</p>}
-
-                  {(itemRequiresSize || (item.colors?.length || 0) > 0) && (
-                    <div className="mt-3 text-[9px] font-black uppercase tracking-wide text-gray-500">
-                      <div className="flex flex-wrap gap-2 items-center mb-2">
-                        {itemRequiresSize && (
-                          <div className="flex items-center gap-2">
-                            <span className={sizeNotSelected ? 'text-[#ba1f3d]' : ''}>Size</span>
-                            {computedSizes.map((size) => (
-                              <button
-                                key={size}
-                                onClick={() => { setCartItemOptions(item.cartId, item.activeColor, size); setCartSizeError(false); }}
-                                className={`px-2 py-1 border text-xs ${item.selectedSize === size ? 'bg-black text-white' : 'bg-white text-gray-700'} rounded-sm`}
-                              >
-                                {size}
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-
-                      {item.colors?.length > 0 && (
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span>Color</span>
-                          {item.colors.map((color) => (
-                            <button
-                              key={color}
-                              onClick={() => setCartItemOptions(item.cartId, color, item.selectedSize)}
-                              className={`w-5 h-5 rounded-full border ${item.activeColor === color ? 'ring-2 ring-[#ba1f3d] scale-110' : 'border-gray-200'}`}
-                              style={color.includes('|') ? { background: `linear-gradient(to right, ${color.split('|')[0]} 50%, ${color.split('|')[1]} 50%)` } : { backgroundColor: color }}
-                            />
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  <div className="flex items-center mt-3 space-x-4">
-                    <div className="flex items-center border border-gray-100 bg-white">
-                      <button onClick={() => updateQuantity(item.id, item.activeColor, item.selectedSize, -1, item.cartId)} className="px-2 py-1.5 hover:bg-gray-50 text-gray-400 hover:text-gray-900 transition-colors"><Minus size={10} /></button>
-                      <span className="text-[10px] font-black text-gray-900 px-3">{item.quantity || 1}</span>
-                      <button onClick={() => updateQuantity(item.id, item.activeColor, item.selectedSize, 1, item.cartId)} className="px-2 py-1.5 hover:bg-gray-50 text-gray-400 hover:text-gray-900 transition-colors"><Plus size={10} /></button>
-                    </div>
-                    {item.activeColor && <div className="w-3 h-3 rounded-none border border-gray-100" style={{ backgroundColor: item.activeColor }} />}
-                  </div>
-                </div>
-                <button onClick={() => removeFromCart(item.id, item.activeColor, item.selectedSize, item.cartId)} className="p-2 text-gray-200 hover:text-[#ba1f3d] transition-all flex-shrink-0"><Trash2 size={16} /></button>
-              </div>
-              );
-            })}
-
-            <div className="pt-8 border-t border-gray-100">
-              <p className="text-[9px] font-black uppercase tracking-[0.4em] text-gray-300 mb-6">You might also like</p>
-              <div className="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide">
-                {UPSELL_PRODUCTS.map(up => (
-                  <div key={up.id} className="flex-shrink-0 w-32 group">
-                    <div className="w-full aspect-[4/5] bg-gray-50 rounded-none overflow-hidden mb-3">
-                      <MediaRenderer src={up.image} alt={up.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                    </div>
-                    <p className="text-[9px] font-black uppercase tracking-tight text-gray-900 truncate">{up.name}</p>
-                    <p className="text-[9px] text-[#ba1f3d] font-black mt-1">{formatPrice(up.price / 280)}</p>
-                    <button onClick={() => addToCart({ ...up, quantity: 1, cartId: Date.now() })} className="mt-2 w-full text-[8px] font-black uppercase tracking-[0.2em] border border-gray-100 hover:bg-black hover:text-white py-2 transition-all">+ Add To Bag</button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </>
+          cartItems.map(item => (
+            <CartItem
+              key={item.cartId}
+              item={item}
+              formatPrice={formatPrice}
+              onRemove={removeFromCart}
+              onUpdate={updateQuantity}
+            />
+          ))
         )}
       </div>
 
-      {cartItems.length > 0 && (() => {
-        const missingSize = cartItems.some(item => {
-          const computedSizes = (item.availableSizes?.length || 0) > 0 ? item.availableSizes : getPresetSizes(item);
-          return computedSizes.length > 0 && !item.selectedSize;
-        });
-        return (
-        <div className="p-8 border-t border-gray-100 bg-white">
-          <div className="flex justify-between items-center mb-6">
-            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400">{t('cart.total')}</span>
-            <span className="text-2xl font-black text-gray-900 tracking-tighter">{formatPrice(total)}</span>
+      {/* Footer */}
+      {cartItems.length > 0 && (
+        <div className="px-5 pb-6 pt-4 border-t border-gray-100 flex-shrink-0 space-y-3">
+          {/* Total */}
+          <div className="flex justify-between items-center py-2">
+            <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">
+              {t('cart.total')}
+            </span>
+            <span className="text-2xl font-black text-[#ba1f3d] tracking-tighter">
+              {formatPrice(total)}
+            </span>
           </div>
-          {missingSize && (
-            <p className="text-[10px] font-black text-[#ba1f3d] uppercase tracking-[0.2em] mb-4 animate-reveal-up">
-              Please select a size for all items before checkout
-            </p>
-          )}
-          {missingSize ? (
-            <button onClick={() => setCartSizeError(true)} className="flex items-center justify-center space-x-4 w-full bg-gray-300 text-gray-500 py-5 font-black uppercase tracking-[0.3em] cursor-not-allowed text-[11px] mb-4">
-              <span>Select Size to Proceed</span>
-            </button>
-          ) : (
-            <Link to="/checkout" onClick={closeDrawer} className="flex items-center justify-center space-x-4 w-full bg-black text-white py-5 font-black uppercase tracking-[0.3em] hover:bg-[#ba1f3d] transition-all shadow-2xl active:scale-[0.98] text-[11px] mb-4">
-              <span>Secure Checkout</span><ArrowRight size={18} />
-            </Link>
-          )}
-          <button onClick={closeDrawer} className="w-full text-gray-400 py-1 text-[9px] font-black uppercase tracking-[0.4em] hover:text-gray-900 transition-colors">Return to Shop</button>
+
+          {/* Checkout CTA */}
+          <Link
+            to="/checkout"
+            onClick={onClose}
+            className="flex w-full items-center justify-center space-x-3 py-4 bg-[#ba1f3d] text-white text-[10px] font-black uppercase tracking-[0.3em] hover:bg-gray-900 transition-all duration-300 rounded-xl shadow-xl shadow-red-200/40 btn-shimmer group"
+          >
+            <span>Checkout</span>
+            <ArrowRight size={14} className="group-hover:translate-x-1 transition-transform" />
+          </Link>
+
+          <button
+            onClick={clearCart}
+            className="w-full py-2.5 text-[9px] font-black uppercase tracking-widest text-gray-300 hover:text-red-500 transition-colors duration-200"
+          >
+            Clear Bag
+          </button>
         </div>
-        );
-      })()}
+      )}
     </div>
   );
+};
 
-  /* ── PRODUCT ──────────────────────────────────────────────── */
-  const renderProductView = () => {
-    if (!selectedProduct) return null;
-    const wishlisted = isWishlisted(selectedProduct.id);
-    const lightboxImages = buildLightboxImages();
-    const availableSizes = getPresetSizes(selectedProduct);
-    const requiresSize = availableSizes.length > 0;
-    const stockForSize = (size) => {
-      const bySize = selectedProduct.sizeStock?.[size];
-      if (bySize === undefined) return selectedProduct.stock ?? 0;
-      return Math.max(0, parseInt(bySize) || 0);
-    };
+const CartItem = ({ item, formatPrice, onRemove, onUpdate }) => (
+  <div
+    data-cart-item
+    className="flex space-x-3 bg-gray-50/80 rounded-xl p-3 group hover:bg-gray-100/80 transition-colors duration-200"
+  >
+    {/* Thumbnail */}
+    <div className="w-20 h-24 bg-white rounded-lg overflow-hidden flex-shrink-0 shadow-sm">
+      <img src={item.image} alt={item.name} className="w-full h-full object-cover" loading="lazy" />
+    </div>
 
-    return (
-      <div className="h-full flex flex-col bg-white shadow-2xl overflow-y-auto relative scrollbar-hide">
-        {/* Action buttons */}
-        <div className="absolute top-6 right-6 flex flex-col space-y-3 z-10">
-          <button onClick={closeDrawer} className="p-3 bg-white shadow-xl hover:bg-[#ba1f3d] hover:text-white transition-all transform text-gray-900"><X size={20} /></button>
-          <button onClick={() => toggleWishlist(selectedProduct)} className={`p-3 bg-white shadow-xl transition-all ${wishlisted ? 'text-[#ba1f3d]' : 'text-gray-300 hover:text-[#ba1f3d]'}`}><Heart size={20} className={wishlisted ? 'fill-[#ba1f3d]' : ''} /></button>
-          <button onClick={() => { setLightboxIndex(0); setLightboxOpen(true); }} className="p-3 bg-white shadow-xl transition-all text-gray-300 hover:text-gray-900" title="Full screen"><Maximize2 size={20} /></button>
+    {/* Details */}
+    <div className="flex-grow min-w-0">
+      <p className="text-[11px] font-black uppercase tracking-tight text-gray-900 leading-tight mb-0.5 truncate">
+        {item.name}
+      </p>
+      <div className="flex items-center space-x-2 mb-2">
+        {item.selectedSize && (
+          <span className="text-[9px] font-black uppercase tracking-widest text-gray-400 bg-gray-200 px-2 py-0.5 rounded-md">
+            {item.selectedSize}
+          </span>
+        )}
+        {item.activeColor && (
+          <span className="w-3 h-3 rounded-full border border-gray-200 flex-shrink-0" style={{ background: item.activeColor }} />
+        )}
+      </div>
+
+      <div className="flex items-center justify-between">
+        {/* Qty stepper — design spell */}
+        <div className="flex items-center space-x-1 bg-white rounded-lg border border-gray-200 overflow-hidden">
+          <button
+            onClick={() => onUpdate(item.id, item.activeColor, item.selectedSize, -1, item.cartId)}
+            className="w-7 h-7 flex items-center justify-center text-gray-500 hover:text-[#ba1f3d] hover:bg-red-50 transition-colors duration-150"
+          >
+            <Minus size={10} />
+          </button>
+          <span className="w-7 text-center text-[11px] font-black text-gray-900">
+            {item.quantity ?? 1}
+          </span>
+          <button
+            onClick={() => onUpdate(item.id, item.activeColor, item.selectedSize, 1, item.cartId)}
+            className="w-7 h-7 flex items-center justify-center text-gray-500 hover:text-[#ba1f3d] hover:bg-red-50 transition-colors duration-150"
+          >
+            <Plus size={10} />
+          </button>
         </div>
 
-        {/* Main Image */}
-        <div className="w-full aspect-[4/5] bg-gray-50 relative overflow-hidden cursor-zoom-in flex-shrink-0" onClick={() => { setLightboxIndex(0); setLightboxOpen(true); }}>
+        <p className="text-sm font-black text-[#ba1f3d]">
+          {formatPrice(item.price * (item.quantity ?? 1))}
+        </p>
+      </div>
+    </div>
+
+    {/* Remove */}
+    <button
+      onClick={() => onRemove(item.id, item.activeColor, item.selectedSize, item.cartId)}
+      className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1.5 text-gray-300 hover:text-red-500 self-start"
+    >
+      <Trash2 size={13} />
+    </button>
+  </div>
+);
+
+const EmptyCartState = ({ onClose }) => (
+  <div className="h-full flex flex-col items-center justify-center text-center py-16 space-y-6">
+    <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center">
+      <ShoppingBag size={32} strokeWidth={1} className="text-gray-300" />
+    </div>
+    <div>
+      <p className="font-black uppercase tracking-tight text-gray-900 mb-1">Your bag is empty</p>
+      <p className="text-xs text-gray-400">Add pieces you love</p>
+    </div>
+    <button
+      onClick={onClose}
+      className="flex items-center space-x-2 text-[10px] font-black uppercase tracking-widest text-[#ba1f3d] border-b border-[#ba1f3d]/30 pb-0.5 hover:border-[#ba1f3d] transition-colors"
+    >
+      <span>Browse Collection</span>
+      <ArrowRight size={12} />
+    </button>
+  </div>
+);
+
+// ─────────────────────────────────────────────────────────────────
+// PRODUCT DETAIL DRAWER
+// ─────────────────────────────────────────────────────────────────
+
+const ProductDrawer = ({ product, onClose }) => {
+  const { addToCart } = useCart();
+  const { toggleWishlist, isWishlisted } = useWishlist();
+  const { formatPrice } = useCurrency();
+  const [selectedSize, setSelectedSize] = React.useState('');
+  const [selectedColor, setSelectedColor] = React.useState(product?.colors?.[0] ?? '');
+  const [adding, setAdding] = React.useState(false);
+  const contentRef = useRef(null);
+
+  useEffect(() => {
+    if (!contentRef.current) return;
+    let anime;
+    try { anime = require('animejs').default ?? require('animejs'); } catch { return; }
+
+    const children = contentRef.current.querySelectorAll('[data-detail]');
+    anime.set(children, { opacity: 0, translateY: 20 });
+    anime({
+      targets: children,
+      opacity: [0, 1],
+      translateY: [20, 0],
+      duration: 500,
+      delay: anime.stagger(70, { start: 100 }),
+      easing: EASING.FABRIC,
+    });
+  }, [product?.id]);
+
+  if (!product) return null;
+
+  const currentImage = (selectedColor && product.variantImages?.[selectedColor])
+    ? product.variantImages[selectedColor]
+    : product.image;
+
+  const handleAddToCart = async () => {
+    if (product.sizes?.length > 0 && !selectedSize) {
+      // Shake the size selector — design spell
+      let anime;
+      try {
+        anime = require('animejs').default ?? require('animejs');
+        const sizeRow = document.querySelector('[data-size-selector]');
+        anime({ targets: sizeRow, translateX: [-8, 8, -6, 6, -3, 3, 0], duration: 400, easing: 'linear' });
+      } catch { /* ok */ }
+      return;
+    }
+    setAdding(true);
+    addToCart({ ...product, image: currentImage, activeColor: selectedColor, selectedSize });
+    await new Promise(r => setTimeout(r, 300));
+    setAdding(false);
+  };
+
+  return (
+    <div className="flex flex-col h-full">
+      {/* Header */}
+      <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 flex-shrink-0">
+        <p className="text-[9px] font-black uppercase tracking-[0.4em] text-[#ba1f3d]">
+          {product.bucket} / {product.subCategory}
+        </p>
+        <button
+          onClick={onClose}
+          className="p-2 hover:bg-gray-100 rounded-xl transition-all hover:rotate-90 transform text-gray-500"
+        >
+          <X size={18} />
+        </button>
+      </div>
+
+      {/* Scrollable content */}
+      <div ref={contentRef} className="flex-grow overflow-y-auto">
+
+        {/* Product image */}
+        <div className="aspect-[4/3] bg-gray-50 overflow-hidden" data-detail>
           <MediaRenderer
-            src={selectedProduct.mediaType === 'embed' ? null : currentImage}
-            embedCode={selectedProduct.mediaType === 'embed' ? selectedProduct.embedCode : undefined}
-            mediaType={selectedProduct.mediaType}
-            alt={selectedProduct.name}
-            className="w-full h-full object-cover hover:scale-105 transition-transform duration-1000 ease-out"
+            src={product.mediaType === 'embed' ? null : currentImage}
+            embedCode={product.mediaType === 'embed' ? product.embedCode : undefined}
+            mediaType={product.mediaType}
+            alt={product.name}
+            className="w-full h-full object-cover"
           />
-          {selectedProduct.stock > 0 && selectedProduct.stock <= 5 && (
-            <div className="absolute top-6 left-6"><span className="bg-[#ba1f3d] text-white text-[9px] font-black px-4 py-2 uppercase tracking-[0.3em] shadow-2xl">Final Stock: {selectedProduct.stock}</span></div>
-          )}
-
-        {selectedProduct.gallery?.length > 1 && (
-          <div className="absolute inset-x-0 top-3 flex justify-between px-3 pointer-events-auto">
-            <button onClick={() => setGalleryIndex((prev) => (prev - 1 + selectedProduct.gallery.length) % selectedProduct.gallery.length)}
-              className="bg-white/90 text-gray-800 p-2 rounded-full shadow hover:bg-white transition-all">‹</button>
-            <button onClick={() => setGalleryIndex((prev) => (prev + 1) % selectedProduct.gallery.length)}
-              className="bg-white/90 text-gray-800 p-2 rounded-full shadow hover:bg-white transition-all">›</button>
-          </div>
-        )}
-
-          <div className="absolute bottom-6 left-6 pointer-events-none transition-all group-hover:translate-x-2"><span className="bg-white text-gray-900 text-[10px] font-black px-5 py-2 shadow-2xl uppercase tracking-[0.4em]">Cardinal Choice</span></div>
         </div>
 
-        {/* Thumbnail strip */}
-        {lightboxImages.length > 1 && (
-          <div className="flex space-x-3 px-8 py-5 border-b border-gray-50 overflow-x-auto flex-shrink-0 scrollbar-hide bg-gray-50/30">
-            {lightboxImages.map((img, idx) => (
-              <button key={idx} onClick={() => { setLightboxIndex(idx); setLightboxOpen(true); }} className={`flex-shrink-0 w-16 h-20 overflow-hidden border transition-all ${img.src === currentImage ? 'border-[#ba1f3d] shadow-lg' : 'border-transparent grayscale hover:grayscale-0'}`}>
-                <MediaRenderer src={img.src} alt={img.alt} className="w-full h-full object-cover" />
-              </button>
-            ))}
-          </div>
-        )}
-
-        <div className="p-8 md:p-12 flex flex-col flex-grow">
-          {/* Title / Price */}
-          <div className="mb-10">
-            <h2 className="text-3xl font-black text-gray-900 uppercase tracking-tighter mb-4 leading-[0.9]">{selectedProduct.name}</h2>
-            <p className="text-2xl text-[#ba1f3d] font-black tracking-tighter">{formatPrice(selectedProduct.price)}</p>
-            <div className="flex items-center space-x-2 mt-4">
-              {[...Array(5)].map((_, i) => (<Star key={i} size={11} className={i < selectedProduct.rating ? 'fill-[#ba1f3d] text-[#ba1f3d]' : 'text-gray-200'} />))}
-              <span className="text-[10px] font-black uppercase tracking-widest text-gray-300 ml-3">Verified Experience ({selectedProduct.rating}.0)</span>
+        <div className="px-6 py-5 space-y-5">
+          {/* Name + price */}
+          <div data-detail>
+            <h3 className="text-2xl font-black uppercase tracking-tighter text-gray-900 mb-1">
+              {product.name}
+            </h3>
+            <div className="flex items-center justify-between">
+              <p className="text-2xl font-black text-[#ba1f3d]">
+                {formatPrice(product.price)}
+              </p>
+              {/* Stars */}
+              <div className="flex items-center space-x-0.5">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} size={11} className={i < product.rating ? 'fill-[#ba1f3d] text-[#ba1f3d]' : 'text-gray-200'} />
+                ))}
+              </div>
             </div>
           </div>
 
-          {requiresSize && (
-            <div className="mb-10 pt-8 border-t border-gray-100">
-              <div className="flex items-center justify-between mb-5">
-                <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400">Select Dimension</h3>
-                <button onClick={() => setSizeChartOpen(true)} className="flex items-center space-x-2 text-[9px] font-black uppercase tracking-[0.3em] text-[#ba1f3d] hover:text-gray-900 transition-colors">
-                  <Ruler size={14} /><span>Sizing Protocol</span>
-                </button>
-              </div>
-              {sizeError && <p className="text-[10px] font-black text-[#ba1f3d] uppercase tracking-[0.2em] mb-4 animate-reveal-up">Select a size to proceed</p>}
-              <div className="flex flex-wrap gap-2">
-                {availableSizes.map(size => {
-                  const outOfStock = stockForSize(size) <= 0;
-                  return (
-                    <button
-                      key={size}
-                      onClick={() => { if (!outOfStock) { setSelectedSize(size); setSizeError(false); } }}
-                      disabled={outOfStock}
-                      className={`size-btn-premium relative overflow-hidden ${selectedSize === size ? 'active' : ''} ${outOfStock ? 'opacity-50 cursor-not-allowed' : ''}`}
-                    >
-                      <span>{size}</span>
-                      {outOfStock && <span className="absolute inset-0"><span className="absolute left-[-20%] top-1/2 w-[140%] h-[2px] bg-[#ba1f3d] rotate-[-35deg]" /></span>}
-                    </button>
-                  );
-                })}
-              </div>
+          {/* Specs */}
+          {product.specs?.filter(Boolean).length > 0 && (
+            <div data-detail className="space-y-1.5">
+              {product.specs.filter(Boolean).map((spec, i) => (
+                <div key={i} className="flex items-center space-x-2">
+                  <span className="w-1 h-1 rounded-full bg-[#ba1f3d] flex-shrink-0" />
+                  <span className="text-[11px] text-gray-600 font-bold uppercase tracking-wider">{spec}</span>
+                </div>
+              ))}
             </div>
           )}
 
           {/* Colors */}
-          {selectedProduct.colors?.length > 0 && (
-            <div className="mb-10 pt-8 border-t border-gray-100">
-              <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400 mb-5">Palettes</h3>
-              <div className="flex items-center space-x-4">
-                {selectedProduct.colors.map(color => (
+          {product.colors?.length > 0 && (
+            <div data-detail>
+              <p className="text-[9px] font-black uppercase tracking-[0.4em] text-gray-400 mb-3">
+                Color — <span className="text-gray-700">{selectedColor || 'Select'}</span>
+              </p>
+              <div className="flex items-center space-x-2.5">
+                {product.colors.map(color => (
                   <button
                     key={color}
-                    onClick={() => setActiveColor(color)}
-                    className={`w-10 h-10 border transition-all ${activeColor === color ? 'border-gray-900 scale-110 shadow-xl' : 'border-transparent'}`}
-                    style={
-                      color.includes('|')
-                        ? { background: `linear-gradient(to right, ${color.split('|')[0]} 50%, ${color.split('|')[1]} 50%)` }
-                        : { backgroundColor: color }
-                    }
+                    onClick={() => setSelectedColor(color)}
+                    className={`w-8 h-8 rounded-full border-2 transition-all duration-200 ${
+                      selectedColor === color ? 'ring-2 ring-offset-2 ring-[#ba1f3d] scale-110' : 'border-gray-200 hover:scale-110'
+                    }`}
+                    style={{ background: color }}
+                    title={color}
                   />
                 ))}
               </div>
             </div>
           )}
 
-          {/* Specs */}
-          {selectedProduct.specs?.length > 0 && (
-            <div className="mb-10 pt-8 border-t border-gray-100">
-              <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400 mb-5">Technical details</h3>
-              <ul className="text-[10px] uppercase tracking-widest text-gray-500 space-y-3 font-black">
-                {selectedProduct.specs.map((spec, i) => (<li key={i} className="flex items-center space-x-3"><span className="text-[#ba1f3d]">•</span><span>{spec}</span></li>))}
-              </ul>
+          {/* Sizes */}
+          {product.sizes?.length > 0 && (
+            <div data-detail>
+              <div className="flex items-center justify-between mb-3">
+                <p className="text-[9px] font-black uppercase tracking-[0.4em] text-gray-400">
+                  Size{!selectedSize && <span className="text-[#ba1f3d] ml-1">*</span>}
+                </p>
+                <button className="flex items-center space-x-1 text-[9px] font-black uppercase tracking-wider text-gray-400 hover:text-[#ba1f3d] transition-colors">
+                  <Ruler size={11} />
+                  <span>Guide</span>
+                </button>
+              </div>
+              <div data-size-selector className="flex flex-wrap gap-2">
+                {product.sizes.map(size => {
+                  const stock = product.sizeStock?.[size] ?? 0;
+                  const oos = stock === 0 && Object.keys(product.sizeStock ?? {}).length > 0;
+                  return (
+                    <button
+                      key={size}
+                      onClick={() => !oos && setSelectedSize(size)}
+                      disabled={oos}
+                      className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-lg border-2 transition-all duration-200 ${
+                        selectedSize === size
+                          ? 'border-[#ba1f3d] bg-[#ba1f3d]/5 text-[#ba1f3d]'
+                          : oos
+                            ? 'border-gray-100 text-gray-300 line-through cursor-not-allowed'
+                            : 'border-gray-200 text-gray-700 hover:border-gray-900'
+                      }`}
+                    >
+                      {size}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           )}
-
-          <div className="flex-grow" />
-
-          {/* CTAs */}
-          <div className="mt-8 pt-10 border-t border-gray-100 space-y-4">
-            {selectedProduct.stock > 0 ? (
-              <button onClick={() => {
-                if (requiresSize) {
-                  if (!selectedSize) { setSizeError(true); return; }
-                  const inCartForSize = cartItems
-                    .filter(item => item.id === selectedProduct.id && item.selectedSize === selectedSize)
-                    .reduce((sum, item) => sum + (item.quantity || 1), 0);
-                  const available = stockForSize(selectedSize);
-                  if (available <= 0 || inCartForSize >= available) {
-                    setSizeError(true);
-                    return;
-                  }
-                }
-                addToCart({ ...selectedProduct, image: currentImage, activeColor, selectedSize, availableSizes });
-              }} className="w-full bg-[#ba1f3d] text-white font-black py-6 shadow-2xl hover:bg-black active:scale-[0.98] text-[11px] uppercase tracking-[0.4em] transition-all flex justify-center items-center group">
-                <span className="group-hover:mr-4 transition-all">Add To Bag</span>
-                <span className="opacity-0 group-hover:opacity-100 transition-all font-black text-white text-lg leading-none">+</span>
-              </button>
-            ) : (
-              <button disabled className="w-full bg-gray-50 text-gray-300 font-black py-6 text-[10px] uppercase tracking-[0.4em] cursor-not-allowed border border-gray-100">Archived / Sold Out</button>
-            )}
-            <button onClick={() => toggleWishlist(selectedProduct)} className={`w-full flex items-center justify-center space-x-3 py-5 border border-gray-100 font-black uppercase text-[10px] tracking-[0.3em] transition-all ${wishlisted ? 'bg-gray-50 text-[#ba1f3d]' : 'text-gray-400 hover:border-gray-900 hover:text-gray-900'}`}>
-              <Heart size={16} className={wishlisted ? 'fill-[#ba1f3d]' : ''} />
-              <span>{wishlisted ? 'In Collection ✓' : 'Save To Favorites'}</span>
-            </button>
-            <p className="text-center text-[8px] text-gray-300 uppercase tracking-[0.5em] mt-6 italic">Secure Delivery · Global Craft · Cardinal Tier</p>
-          </div>
         </div>
-
-        {/* Modals */}
-        <SizeChartModal isOpen={sizeChartOpen} onClose={() => setSizeChartOpen(false)} defaultCategory={sizeChartCategory} />
-        <ProductLightbox images={lightboxImages} startIndex={lightboxIndex} isOpen={lightboxOpen} onClose={() => setLightboxOpen(false)} />
       </div>
-    );
-  };
+
+      {/* Footer CTA */}
+      <div className="px-5 pb-6 pt-3 border-t border-gray-100 flex-shrink-0 space-y-2.5">
+        {product.stock > 0 ? (
+          <button
+            onClick={handleAddToCart}
+            disabled={adding}
+            className="w-full py-4 bg-[#ba1f3d] text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-xl hover:bg-gray-900 transition-all duration-300 shadow-xl shadow-red-200/40 btn-shimmer flex items-center justify-center space-x-2 disabled:opacity-60"
+          >
+            {adding ? (
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <span>Add to Bag</span>
+            )}
+          </button>
+        ) : (
+          <div className="w-full py-4 bg-gray-100 text-gray-400 text-[10px] font-black uppercase tracking-[0.3em] rounded-xl text-center">
+            Sold Out
+          </div>
+        )}
+
+        <button
+          onClick={() => toggleWishlist(product)}
+          className={`w-full py-3 border-2 text-[10px] font-black uppercase tracking-[0.25em] rounded-xl transition-all duration-300 ${
+            isWishlisted(product.id)
+              ? 'border-[#ba1f3d] text-[#ba1f3d] bg-[#ba1f3d]/5'
+              : 'border-gray-200 text-gray-700 hover:border-gray-900'
+          }`}
+        >
+          {isWishlisted(product.id) ? 'Saved to Wishlist ♥' : 'Save to Wishlist'}
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────
+// UNIVERSAL DRAWER WRAPPER
+// ─────────────────────────────────────────────────────────────────
+
+const UniversalDrawer = () => {
+  const { isDrawerOpen, drawerMode, selectedProduct, closeDrawer } = useCart();
+  const drawerRef = useRef(null);
+
+  useScrollLock(isDrawerOpen);
+
+  useEffect(() => {
+    if (!drawerRef.current) return;
+    let anime;
+    try { anime = require('animejs').default ?? require('animejs'); } catch { return; }
+
+    if (isDrawerOpen) {
+      anime({
+        targets: drawerRef.current,
+        translateX: ['100%', '0%'],
+        duration: 550,
+        easing: EASING.SPRING,
+      });
+    }
+  }, [isDrawerOpen]);
+
+  const handleClose = useCallback(() => {
+    if (!drawerRef.current) { closeDrawer(); return; }
+    let anime;
+    try { anime = require('animejs').default ?? require('animejs'); } catch { closeDrawer(); return; }
+
+    anime({
+      targets: drawerRef.current,
+      translateX: ['0%', '100%'],
+      duration: 400,
+      easing: EASING.SILK,
+      complete: closeDrawer,
+    });
+  }, [closeDrawer]);
+
+  if (!isDrawerOpen) return null;
 
   return (
     <div className="fixed inset-0 z-[100] overflow-hidden">
-      <div className={`absolute inset-0 bg-black/40 backdrop-blur-md transition-opacity duration-700 ${isDrawerOpen ? 'opacity-100' : 'opacity-0'}`} onClick={closeDrawer} />
-      <div className={`absolute inset-y-0 right-0 max-w-full flex transform transition-transform duration-700 ease-out-expo ${isDrawerOpen ? 'translate-x-0' : 'translate-x-full'}`}>
-        <div className="w-screen max-w-md md:max-w-[480px]">
-          {drawerMode === 'product' ? renderProductView() : renderCartView()}
-        </div>
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-black/50 backdrop-blur-sm animate-fade-in"
+        onClick={handleClose}
+      />
+
+      {/* Drawer panel */}
+      <div
+        ref={drawerRef}
+        className="absolute inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl flex flex-col"
+        style={{ transform: 'translateX(100%)', willChange: 'transform' }}
+      >
+        {drawerMode === 'cart' ? (
+          <CartDrawer onClose={handleClose} />
+        ) : (
+          <ProductDrawer product={selectedProduct} onClose={handleClose} />
+        )}
       </div>
     </div>
   );

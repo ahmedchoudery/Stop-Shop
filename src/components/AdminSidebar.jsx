@@ -1,117 +1,177 @@
-import React, { useState, useEffect } from 'react';
-import { NavLink } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  ShoppingBag, 
-  Package, 
-  Settings, 
-  Users,
-  LogOut,
-  ChevronRight,
-  ShieldCheck,
-  ShieldAlert
-} from 'lucide-react';
-import { apiUrl } from '../config/api';
-import { authFetch, clearToken } from '../lib/auth';
+/**
+ * @fileoverview AdminSidebar — Design Spells Edition
+ * Applies: design-spells (gold border-left active state, shimmer on hover),
+ *          animejs-animation (stagger entrance on mount),
+ *          design-md (Administrative Gray bg, Amber Gold accent)
+ */
 
+import React, { useState, useEffect, useRef } from 'react';
+import { NavLink } from 'react-router-dom';
+import {
+  LayoutDashboard, ShoppingBag, Package, Settings,
+  Users, LogOut, ChevronRight, ShieldCheck, ShieldAlert,
+  BarChart3
+} from 'lucide-react';
+import { apiUrl } from '../config/api.js';
+import { authFetch, clearToken } from '../lib/auth.js';
+import { EASING } from '../hooks/useAnime.js';
 
 const AdminSidebar = () => {
   const [role, setRole] = useState('admin');
+  const navRef = useRef(null);
+  const hasAnimated = useRef(false);
 
   useEffect(() => {
-    const fetchUserRole = async () => {
-      try {
-        const response = await authFetch(apiUrl('/api/admin/users'));
-        if (response.ok) {
-          setRole('admin');
-        }
-      } catch {
+    authFetch(apiUrl('/api/admin/users'))
+      .then(r => r.ok ? r.json() : null)
+      .then(users => {
+        // Derive role from current user if possible
         setRole('admin');
-      }
-    };
-    fetchUserRole();
+      })
+      .catch(() => setRole('admin'));
   }, []);
 
+  useEffect(() => {
+    if (hasAnimated.current || !navRef.current) return;
+    hasAnimated.current = true;
+
+    let anime;
+    try { anime = require('animejs').default ?? require('animejs'); } catch { return; }
+
+    const items = navRef.current.querySelectorAll('[data-nav]');
+    anime.set(items, { opacity: 0, translateX: -16 });
+    anime({
+      targets: items,
+      opacity: [0, 1],
+      translateX: [-16, 0],
+      duration: 500,
+      delay: anime.stagger(60, { start: 300 }),
+      easing: EASING.FABRIC,
+    });
+  }, []);
 
   const handleLogout = () => {
     clearToken();
-    // Also clear cookies for backward compatibility
-    document.cookie = 'auth_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/';
-    document.cookie = 'csrf_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/';
     window.location.href = '/login';
   };
 
-
   const navItems = [
-    { to: '/admin/dashboard', label: 'Dashboard', icon: <LayoutDashboard size={20} /> },
-    { to: '/admin/orders', label: 'Orders', icon: <ShoppingBag size={20} /> },
-    { to: '/admin/products', label: 'Products', icon: <Package size={20} /> },
-    { to: '/admin/users', label: 'Team', icon: <Users size={20} /> },
-    ...(role === 'super-admin' || role === 'auditor' ? [{ to: '/admin/audits', label: 'Audits', icon: <ShieldCheck size={20} /> }] : []),
-    ...(role === 'super-admin' ? [{ to: '/admin/settings', label: 'Settings', icon: <Settings size={20} /> }] : []),
+    { to: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+    { to: '/admin/orders', label: 'Orders', icon: ShoppingBag },
+    { to: '/admin/products', label: 'Products', icon: Package },
+    { to: '/admin/inventory', label: 'Inventory', icon: BarChart3 },
+    { to: '/admin/users', label: 'Team', icon: Users },
+    ...(role === 'super-admin' || role === 'auditor'
+      ? [{ to: '/admin/audits', label: 'Audits', icon: ShieldCheck }]
+      : []),
+    ...(role === 'super-admin'
+      ? [{ to: '/admin/settings', label: 'Settings', icon: Settings }]
+      : []),
   ];
 
   return (
-    <aside className="fixed left-0 top-0 bottom-0 w-64 bg-[#8B0000] text-white flex flex-col shadow-2xl z-20">
+    <aside className="fixed left-0 top-0 bottom-0 w-64 bg-[#0d0508] text-white flex flex-col z-20 overflow-hidden">
+
+      {/* Subtle grain texture */}
+      <div
+        className="absolute inset-0 opacity-[0.04] pointer-events-none"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 128 128' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+        }}
+      />
+
+      {/* Cardinal red top accent */}
+      <div className="absolute top-0 left-0 right-0 h-[2px] bg-[#ba1f3d]" />
+
       {/* Brand Header */}
-      <div className="p-8 border-b border-red-900/50">
-        <h1 className="text-2xl font-black italic uppercase tracking-tighter">Stop & Shop</h1>
-        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-red-200/60 mt-2 italic">Control Center</p>
+      <div className="relative px-7 py-8 border-b border-white/6">
+        <div className="flex items-center space-x-3">
+          <div className="w-8 h-8 bg-[#ba1f3d] flex items-center justify-center flex-shrink-0">
+            <span className="text-white text-[10px] font-black">S&S</span>
+          </div>
+          <div>
+            <h1 className="text-base font-black italic uppercase tracking-tighter text-white">
+              Stop & Shop
+            </h1>
+            <p className="text-[8px] font-black uppercase tracking-[0.4em] text-white/25 mt-0.5">
+              Control Center
+            </p>
+          </div>
+        </div>
       </div>
 
-      {/* Navigation Links */}
-      <nav className="flex-grow p-4 mt-6 space-y-2">
-        {navItems.map((item) => (
+      {/* Navigation */}
+      <nav ref={navRef} className="flex-grow px-3 py-5 space-y-0.5 overflow-y-auto">
+        {navItems.map(({ to, label, icon: Icon }) => (
           <NavLink
-            key={item.to}
-            to={item.to}
-            className={({ isActive }) => 
-              `w-full flex items-center justify-between p-4 font-black uppercase tracking-widest text-[11px] transition-all rounded-sm border-l-4 ${
-                isActive 
-                  ? 'bg-red-900/50 text-[#FBBF24] border-[#FBBF24] shadow-inner' 
-                  : 'hover:bg-red-800 text-red-100 border-transparent'
+            key={to}
+            to={to}
+            data-nav
+            className={({ isActive }) =>
+              `w-full flex items-center justify-between px-4 py-3 font-black uppercase tracking-[0.2em] text-[10px] transition-all duration-200 rounded-sm border-l-2 relative overflow-hidden group ${
+                isActive
+                  ? 'bg-white/8 text-[#FBBF24] border-[#FBBF24]'
+                  : 'hover:bg-white/5 text-white/50 border-transparent hover:text-white/80 hover:border-white/20'
               }`
             }
           >
-            <div className="flex items-center space-x-4">
-              {item.icon}
-              <span>{item.label}</span>
-            </div>
-            <ChevronRight size={14} className="opacity-40" />
+            {({ isActive }) => (
+              <>
+                {/* Shimmer on hover */}
+                <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-500 ease-out" />
+
+                <div className="flex items-center space-x-3 relative z-10">
+                  <Icon size={16} className={isActive ? 'text-[#FBBF24]' : ''} />
+                  <span>{label}</span>
+                </div>
+                <ChevronRight
+                  size={12}
+                  className={`relative z-10 transition-all duration-200 ${
+                    isActive ? 'opacity-100 text-[#FBBF24]' : 'opacity-0 group-hover:opacity-40'
+                  }`}
+                />
+              </>
+            )}
           </NavLink>
         ))}
       </nav>
 
-      {/* RBAC Status Banner */}
-      <div className="p-4 mx-4 mb-4 rounded-md border border-red-900/50 bg-black/20">
-        <p className="text-[9px] font-black uppercase tracking-widest text-red-200/60 mb-2">Gate Status</p>
-        <div className="flex items-center space-x-2">
-          {import.meta.env.VITE_RBAC_ENABLED === 'true' ? (
-             <ShieldCheck size={14} className="text-green-500" />
-          ) : (
-             <ShieldAlert size={14} className="text-yellow-500" />
-          )}
-          <span className={`text-[10px] font-black uppercase tracking-widest ${import.meta.env.VITE_RBAC_ENABLED === 'true' ? 'text-green-500' : 'text-yellow-500'}`}>
-            {import.meta.env.VITE_RBAC_ENABLED === 'true' ? `SECURED (${import.meta.env.VITE_RBAC_STAGE || 'PROD'})` : 'DISABLED'}
-          </span>
+      {/* RBAC Gate Status */}
+      <div className="px-3 mb-2">
+        <div className="px-4 py-3 rounded-sm border border-white/8 bg-white/4">
+          <p className="text-[8px] font-black uppercase tracking-[0.35em] text-white/25 mb-2">
+            Security Gate
+          </p>
+          <div className="flex items-center space-x-2">
+            {import.meta.env.VITE_RBAC_ENABLED === 'true' ? (
+              <ShieldCheck size={12} className="text-green-400" />
+            ) : (
+              <ShieldAlert size={12} className="text-yellow-400" />
+            )}
+            <span className={`text-[9px] font-black uppercase tracking-wider ${
+              import.meta.env.VITE_RBAC_ENABLED === 'true' ? 'text-green-400' : 'text-yellow-400'
+            }`}>
+              {import.meta.env.VITE_RBAC_ENABLED === 'true' ? 'SECURED' : 'DISABLED'}
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* Bottom Actions */}
-      <div className="p-4 border-t border-red-900/50">
-        <button 
+      {/* Logout */}
+      <div className="px-3 pb-5 border-t border-white/6 pt-3">
+        <button
           onClick={handleLogout}
-          className="w-full flex items-center space-x-4 p-4 text-[11px] font-black uppercase tracking-widest text-red-200 hover:text-white hover:bg-red-800 transition-all rounded-sm"
+          className="w-full flex items-center space-x-3 px-4 py-3 text-[10px] font-black uppercase tracking-[0.25em] text-white/40 hover:text-white hover:bg-white/5 rounded-sm transition-all duration-200 group"
         >
-          <LogOut size={20} />
+          <LogOut size={15} className="group-hover:rotate-12 transition-transform duration-200" />
           <span>Secure Logout</span>
         </button>
       </div>
-      
-      {/* Footer Decoration */}
-      <div className="p-6 text-center">
-        <p className="text-[8px] font-black uppercase tracking-[0.5em] text-red-400 opacity-40">
-          Gujarat Edition • 2026
+
+      {/* Edition mark */}
+      <div className="px-7 pb-5 text-center">
+        <p className="text-[7px] font-black uppercase tracking-[0.4em] text-white/15">
+          Gujarat · 2026
         </p>
       </div>
     </aside>

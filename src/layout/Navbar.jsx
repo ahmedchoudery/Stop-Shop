@@ -1,269 +1,279 @@
-import React, { useState, useEffect } from 'react';
-import { ShoppingBag, Search, User, Menu, Shield, Heart, ChevronDown } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import MobileDrawer from './MobileDrawer';
-import { useCart } from '../context/CartContext';
-import { useWishlist } from '../context/WishlistContext';
-import { useCurrency } from '../context/CurrencyContext';
-import { useLocale } from '../context/LocaleContext';
-import { apiUrl } from '../config/api';
+/**
+ * @fileoverview Navbar — Design Spells Edition
+ * Applies: design-spells (underline draw, magnetic cart, scroll-shrink),
+ *          animejs-animation (spring entrance, stagger nav links),
+ *          design-md (Cardinal Red system, surgical white, tracking patterns)
+ */
 
-const Navbar = ({ onSearchOpen, onWishlistOpen }) => {
-  const { cartCount, isBouncing, openDrawer, setActiveBucket, setActiveSub, setLastViewedBucket, setSortBy } = useCart();
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import {
+  Search, ShoppingBag, Heart, Globe, DollarSign,
+  Menu, X, ChevronDown, Zap
+} from 'lucide-react';
+import { useCart } from '../context/CartContext.jsx';
+import { useWishlist } from '../context/WishlistContext.jsx';
+import { useCurrency, CURRENCIES } from '../context/CurrencyContext.jsx';
+import { useLocale } from '../context/LocaleContext.jsx';
+import { EASING } from '../hooks/useAnime.js';
+
+const BUCKETS = ['All', 'Tops', 'Bottoms', 'Footwear', 'Accessories'];
+
+const Navbar = ({ onSearchOpen, products = [] }) => {
+  const { cartCount, isBouncing, openDrawer, setActiveBucket } = useCart();
   const { wishlistCount } = useWishlist();
-  const { currency, setCurrency, CURRENCIES } = useCurrency();
-  const { locale, t, setLocale } = useLocale();
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [logo, setLogo] = useState(null);
-  const [isScrolled, setIsScrolled] = useState(false);
-  const [scrollProgress, setScrollProgress] = useState(0);
-  const [hoveredCategory, setHoveredCategory] = useState(null);
+  const { currency, setCurrency } = useCurrency();
+  const { locale, setLocale } = useLocale();
+  const navigate = useNavigate();
 
+  const [scrolled, setScrolled] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [currencyOpen, setCurrencyOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('All');
+
+  const navRef = useRef(null);
+  const cartRef = useRef(null);
+  const linksRef = useRef(null);
+  const hasAnimated = useRef(false);
+
+  // ── Scroll shrink effect ──────────────────────────────────────
   useEffect(() => {
-    const handleScroll = () => {
-      const scrollY = window.scrollY;
-      setIsScrolled(scrollY > 20);
-
-      const doc = document.documentElement;
-      const scrollTop = doc.scrollTop || document.body.scrollTop;
-      const scrollHeight = doc.scrollHeight - doc.clientHeight;
-      const progress = scrollHeight > 0 ? (scrollTop / scrollHeight) * 100 : 0;
-      setScrollProgress(progress);
-    };
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
+    const onScroll = () => setScrolled(window.scrollY > 60);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  // ── Entrance animation ────────────────────────────────────────
   useEffect(() => {
-    fetch(apiUrl('/api/public/settings'))
-      .then(res => res.ok ? res.json() : null)
-      .then(data => { if (data?.logo) setLogo(data.logo); })
-      .catch(() => { });
+    if (hasAnimated.current || !linksRef.current) return;
+    hasAnimated.current = true;
+
+    let anime;
+    try { anime = require('animejs').default ?? require('animejs'); } catch { return; }
+
+    const links = linksRef.current.querySelectorAll('[data-nav-item]');
+    anime.set(links, { opacity: 0, translateY: -12 });
+
+    anime({
+      targets: links,
+      opacity: [0, 1],
+      translateY: [-12, 0],
+      duration: 600,
+      delay: anime.stagger(60, { start: 200 }),
+      easing: EASING.FABRIC,
+    });
   }, []);
 
-  const navLinks = [
-    { name: t('nav.home'), href: '/', bucket: 'All', categories: [] },
-    { 
-      name: t('nav.tops'), 
-      href: '/#trending', 
-      bucket: 'Tops', 
-      categories: ['Shirts', 'T-Shirts', 'SweatShirts', 'Hoodies', 'Sweater', 'Jackets'] 
-    },
-    { 
-      name: t('nav.bottoms'), 
-      href: '/#trending', 
-      bucket: 'Bottoms', 
-      categories: ['Jeans', 'Trousers', 'Shorts'] 
-    },
-    { 
-      name: t('nav.footwear'), 
-      href: '/#trending', 
-      bucket: 'Footwear', 
-      categories: ['Shoes', 'Slippers'] 
-    },
-    { 
-      name: t('nav.accessories'), 
-      href: '/#trending', 
-      bucket: 'Accessories', 
-      categories: ['Watches', 'Glasses', 'Caps', 'Rings', 'Bracelet', 'Chains', 'Bags'] 
-    },
-  ];
+  // ── Cart shake spring animation ───────────────────────────────
+  useEffect(() => {
+    if (!isBouncing || !cartRef.current) return;
+    let anime;
+    try { anime = require('animejs').default ?? require('animejs'); } catch { return; }
 
-  const CARDINAL = '#ba1f3d';
+    anime({
+      targets: cartRef.current,
+      rotate: [0, -18, 14, -10, 8, -4, 2, 0],
+      scale: [1, 1.2, 1.2, 1.15, 1.1, 1.05, 1.02, 1],
+      duration: 600,
+      easing: 'spring(1, 80, 10, 0)',
+    });
+  }, [isBouncing]);
 
-  const handleCategoryClick = (bucket, sub = null) => {
+  const handleBucketClick = useCallback((bucket) => {
+    setActiveTab(bucket);
     setActiveBucket(bucket);
-    setActiveSub(sub);
-    if (bucket === 'All') {
-      setSortBy('popular');
-    } else {
-      setLastViewedBucket(bucket);
-    }
-    setHoveredCategory(null);
-  };
+    navigate('/');
+    const grid = document.getElementById('product-grid');
+    if (grid) grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [setActiveBucket, navigate]);
 
   return (
     <>
-      <nav 
-        onMouseLeave={() => setHoveredCategory(null)}
-        className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${isScrolled ? 'bg-white/95 backdrop-blur-xl py-3 shadow-sm border-b border-gray-100' : 'bg-white py-6'}`}
+      <header
+        ref={navRef}
+        className={`sticky top-0 z-50 bg-white transition-all duration-500 ${
+          scrolled
+            ? 'shadow-[0_2px_30px_rgba(0,0,0,0.08)] py-0'
+            : 'border-b border-gray-100 py-0'
+        }`}
+        style={{ willChange: 'box-shadow' }}
       >
-        {/* Scroll progress bar */}
-        <div
-          className="absolute bottom-0 left-0 h-[3px] transition-all duration-100 z-10"
-          style={{ width: `${scrollProgress}%`, backgroundColor: CARDINAL }}
-        />
+        {/* ── Top Bar ─────────────────────────────────────────── */}
+        <div className={`flex items-center justify-between transition-all duration-500 ${
+          scrolled ? 'px-6 sm:px-8 h-14' : 'px-6 sm:px-8 lg:px-12 h-16'
+        }`}>
 
-        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
-          <div className="flex justify-between items-center">
-            {/* Logo & Hamburger */}
-            <div className="flex items-center space-x-6">
+          {/* Logo */}
+          <Link
+            to="/"
+            className="flex-shrink-0 group"
+            data-nav-item
+          >
+            <span
+              className={`font-black italic uppercase tracking-tighter text-[#ba1f3d] transition-all duration-500 ${
+                scrolled ? 'text-xl' : 'text-2xl'
+              }`}
+            >
+              Stop<span className="text-gray-900 not-italic font-black mx-0.5">&</span>Shop
+            </span>
+          </Link>
+
+          {/* Center Nav Links — desktop */}
+          <nav ref={linksRef} className="hidden lg:flex items-center space-x-1">
+            {BUCKETS.map(bucket => (
               <button
-                onClick={() => setIsDrawerOpen(true)}
-                className="lg:hidden p-2 hover:bg-gray-50 rounded-full transition-all"
+                key={bucket}
+                data-nav-item
+                onClick={() => handleBucketClick(bucket)}
+                className={`relative px-4 py-2 text-[10px] font-black uppercase tracking-[0.25em] transition-colors duration-200 group ${
+                  activeTab === bucket ? 'text-[#ba1f3d]' : 'text-gray-600 hover:text-gray-900'
+                }`}
               >
-                <Menu size={24} className="text-gray-900" />
+                {bucket}
+                {/* Underline draw — design spell */}
+                <span className={`absolute bottom-0 left-4 right-4 h-[2px] bg-[#ba1f3d] transition-transform duration-300 origin-left ${
+                  activeTab === bucket ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
+                }`} />
+              </button>
+            ))}
+          </nav>
+
+          {/* Right Actions */}
+          <div className="flex items-center space-x-1" data-nav-item>
+
+            {/* Search */}
+            <button
+              onClick={onSearchOpen}
+              className="p-2.5 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-xl transition-all duration-200 group"
+              title="Search"
+            >
+              <Search size={18} className="group-hover:scale-110 transition-transform duration-200" />
+            </button>
+
+            {/* Currency Picker */}
+            <div className="relative hidden sm:block">
+              <button
+                onClick={() => setCurrencyOpen(o => !o)}
+                className="flex items-center space-x-1 p-2.5 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-xl transition-all duration-200 text-[10px] font-black uppercase tracking-wider"
+              >
+                <DollarSign size={14} />
+                <span>{currency}</span>
+                <ChevronDown size={10} className={`transition-transform duration-200 ${currencyOpen ? 'rotate-180' : ''}`} />
               </button>
 
-              <Link
-                to="/"
-                onClick={() => handleCategoryClick('All')}
-                className="flex-shrink-0 flex items-center cursor-pointer group h-12 sm:h-14"
-              >
-                {logo ? (
-                  <img src={logo} alt="STOP & SHOP" className="h-full w-auto object-contain transition-transform group-hover:scale-105" />
-                ) : (
-                  <span className="text-2xl font-black tracking-tighter transition-all duration-500 flex items-center" style={{ color: CARDINAL }}>
-                    STOP<span className="text-gray-900 ml-1">&</span>SHOP
-                  </span>
-                )}
-              </Link>
-            </div>
-
-            {/* Desktop Links */}
-            <div className="hidden lg:flex items-center space-x-12 text-[10px] font-black uppercase tracking-[0.25em]">
-              {navLinks.map((link) => (
-                <div 
-                  key={link.name} 
-                  className="relative h-20 flex items-center"
-                  onMouseEnter={() => setHoveredCategory(link.categories.length > 0 ? link : null)}
-                >
-                  <Link
-                    to={link.href}
-                    onClick={() => handleCategoryClick(link.bucket)}
-                    className="text-gray-500 hover:text-black transition-all relative group flex items-center"
-                  >
-                    <span className="relative z-10">{link.name}</span>
-                    {link.categories.length > 0 && (
-                      <ChevronDown size={14} className="ml-1 relative z-10 transition-transform group-hover:rotate-180" />
-                    )}
-                    <span className="absolute bottom-[-4px] left-0 w-0 h-[2px] bg-[#ba1f3d] transition-all duration-300 group-hover:w-full" />
-                  </Link>
-                </div>
-              ))}
-            </div>
-
-            {/* Right Icons */}
-            <div className="flex items-center space-x-2 sm:space-x-4">
-              {/* Currency & Locale Selectors (Desktop) */}
-              <div className="hidden xl:flex items-center space-x-4 border-r border-gray-100 pr-4 mr-2">
-                <div className="relative group/curr">
-                  <button className="flex items-center space-x-1 text-[9px] font-black uppercase tracking-widest text-gray-400 hover:text-black transition-colors">
-                    <span>{currency}</span>
-                    <ChevronDown size={10} className="group-hover/curr:rotate-180 transition-transform" />
-                  </button>
-                  <div className="absolute top-full right-0 mt-2 bg-white shadow-2xl border border-gray-100 py-2 min-w-[80px] opacity-0 invisible group-hover/curr:opacity-100 group-hover/curr:visible transition-all z-[60]">
-                    {Object.keys(CURRENCIES).map(code => (
-                      <button 
-                        key={code}
-                        onClick={() => setCurrency(code)}
-                        className={`w-full text-left px-4 py-2 text-[9px] font-black uppercase tracking-widest hover:bg-gray-50 transition-colors ${currency === code ? 'text-[#ba1f3d]' : 'text-gray-500'}`}
-                      >
-                        {code}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <button 
-                  onClick={() => setLocale(locale === 'en-US' ? 'ur-PK' : 'en-US')}
-                  className="text-[9px] font-black uppercase tracking-widest text-[#ba1f3d] hover:text-black transition-colors"
-                >
-                  {locale === 'en-US' ? 'Urdu' : 'English'}
-                </button>
-              </div>
-
-              <button
-                onClick={onSearchOpen}
-                className="p-3 hover:bg-gray-50 rounded-full transition-all group lg:flex items-center"
-                title="Search"
-              >
-                <Search size={20} className="text-gray-800 group-hover:scale-110 transition-transform" />
-              </button>
-
-              <button
-                onClick={onWishlistOpen}
-                className="p-2.5 hover:bg-gray-50 rounded-full transition-all relative hidden sm:flex items-center"
-                title="Wishlist"
-              >
-                <Heart size={20} className={wishlistCount > 0 ? 'fill-[#ba1f3d] text-[#ba1f3d]' : 'text-gray-800'} />
-                {wishlistCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-[#ba1f3d] text-white text-[9px] font-black w-4 h-4 rounded-full flex items-center justify-center">
-                    {wishlistCount}
-                  </span>
-                )}
-              </button>
-
-              {/* Admin */}
-              <Link
-                to="/admin"
-                className="p-2.5 hover:bg-gray-50 rounded-full transition-all hidden sm:flex items-center text-gray-800"
-                title="Admin Dashboard"
-              >
-                <Shield size={20} />
-              </Link>
-
-              {/* Cart */}
-              <button
-                onClick={() => openDrawer('cart')}
-                className="p-3 bg-gray-900 text-white rounded-full transition-all relative hover:bg-[#ba1f3d] hover:shadow-xl hover:-translate-y-0.5"
-              >
-                <ShoppingBag
-                  size={20}
-                  className={isBouncing ? 'animate-cart-shake' : ''}
-                />
-                {cartCount > 0 && (
-                  <span className={`absolute -top-1 -right-1 bg-white text-[#ba1f3d] text-[10px] font-black px-1.5 py-0.5 rounded-full shadow-lg transform transition-all duration-300 border border-[#ba1f3d]/10 ${isBouncing ? 'scale-125' : 'scale-100'}`}>
-                    {cartCount}
-                  </span>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Mega Menu Overlay */}
-        <div 
-          className={`absolute top-full left-0 w-full bg-white border-b border-gray-100 shadow-2xl transition-all duration-500 overflow-hidden ${hoveredCategory ? 'max-h-[400px] opacity-100 visible' : 'max-h-0 opacity-0 invisible'}`}
-        >
-          <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-12">
-            <div className="grid grid-cols-4 gap-12">
-              <div className="col-span-1">
-                <p className="text-[10px] font-black text-[#ba1f3d] uppercase tracking-[0.4em] mb-4">Discovery</p>
-                <h3 className="text-3xl font-black uppercase tracking-tighter text-gray-900 leading-none">
-                  Explore<br />{hoveredCategory?.name}
-                </h3>
-                <p className="text-xs text-gray-400 mt-6 font-bold uppercase tracking-widest leading-relaxed">
-                  Bespoke collections<br />Curated for Pakistan.
-                </p>
-              </div>
-
-              <div className="col-span-3">
-                <div className="grid grid-cols-3 gap-y-6 gap-x-12">
-                  {hoveredCategory?.categories.map((sub) => (
+              {currencyOpen && (
+                <div className="absolute right-0 top-full mt-2 bg-white border border-gray-100 shadow-2xl shadow-gray-200/60 rounded-xl overflow-hidden z-50 min-w-[140px]">
+                  {Object.keys(CURRENCIES).map(code => (
                     <button
-                      key={sub}
-                      onClick={() => handleCategoryClick(hoveredCategory.bucket, sub)}
-                      className="group flex items-center space-x-4 text-left"
+                      key={code}
+                      onClick={() => { setCurrency(code); setCurrencyOpen(false); }}
+                      className={`w-full flex items-center justify-between px-4 py-3 text-[10px] font-black uppercase tracking-widest transition-colors duration-150 ${
+                        currency === code
+                          ? 'bg-[#ba1f3d]/5 text-[#ba1f3d]'
+                          : 'text-gray-600 hover:bg-gray-50'
+                      }`}
                     >
-                      <div className="w-1.5 h-1.5 bg-gray-100 group-hover:bg-[#ba1f3d] transition-colors rounded-full" />
-                      <div>
-                        <p className="text-[11px] font-black uppercase tracking-widest text-gray-400 group-hover:text-black transition-colors">{sub}</p>
-                        <p className="text-[8px] font-bold text-gray-300 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all -translate-x-2 group-hover:translate-x-0">View Collection</p>
-                      </div>
+                      <span>{code}</span>
+                      <span className="text-gray-400">{CURRENCIES[code].symbol}</span>
                     </button>
                   ))}
                 </div>
-              </div>
+              )}
             </div>
+
+            {/* Locale Toggle */}
+            <button
+              onClick={() => setLocale(locale === 'en-US' ? 'ur-PK' : 'en-US')}
+              className="hidden sm:flex items-center space-x-1 p-2.5 text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded-xl transition-all duration-200 text-[10px] font-black"
+              title="Toggle Language"
+            >
+              <Globe size={14} />
+              <span className="uppercase tracking-wider">{locale === 'en-US' ? 'EN' : 'UR'}</span>
+            </button>
+
+            {/* Wishlist */}
+            <button
+              onClick={() => openDrawer('wishlist')}
+              className="relative p-2.5 text-gray-600 hover:text-[#ba1f3d] hover:bg-red-50 rounded-xl transition-all duration-200 group"
+            >
+              <Heart size={18} className="group-hover:scale-110 transition-transform duration-200" />
+              {wishlistCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[#ba1f3d] text-white text-[8px] font-black rounded-full flex items-center justify-center animate-scale-in">
+                  {wishlistCount > 9 ? '9+' : wishlistCount}
+                </span>
+              )}
+            </button>
+
+            {/* Cart — magnetic + shake */}
+            <button
+              ref={cartRef}
+              onClick={() => openDrawer('cart')}
+              className="relative p-2.5 text-gray-900 hover:text-[#ba1f3d] hover:bg-red-50 rounded-xl transition-colors duration-200 group"
+              style={{ willChange: 'transform' }}
+            >
+              <ShoppingBag size={20} className="group-hover:scale-110 transition-transform duration-200" />
+              {cartCount > 0 && (
+                <span className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-[#ba1f3d] text-white text-[8px] font-black rounded-full flex items-center justify-center">
+                  {cartCount > 9 ? '9+' : cartCount}
+                </span>
+              )}
+            </button>
+
+            {/* Admin link */}
+            <Link
+              to="/admin"
+              className="hidden md:flex items-center space-x-2 ml-2 px-4 py-2 bg-gray-900 text-white text-[9px] font-black uppercase tracking-[0.3em] rounded-xl hover:bg-[#ba1f3d] transition-all duration-300 group"
+            >
+              <Zap size={11} className="group-hover:scale-110 transition-transform" />
+              <span>Admin</span>
+            </Link>
+
+            {/* Mobile menu toggle */}
+            <button
+              onClick={() => setMobileOpen(o => !o)}
+              className="lg:hidden p-2.5 text-gray-700 hover:bg-gray-50 rounded-xl transition-all"
+            >
+              {mobileOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
           </div>
         </div>
-      </nav>
 
-      <MobileDrawer
-        isOpen={isDrawerOpen}
-        onClose={() => setIsDrawerOpen(false)}
-      />
+        {/* ── Mobile Drawer ────────────────────────────────────── */}
+        {mobileOpen && (
+          <div className="lg:hidden border-t border-gray-100 bg-white animate-slide-up">
+            <nav className="px-6 py-4 space-y-1">
+              {BUCKETS.map(bucket => (
+                <button
+                  key={bucket}
+                  onClick={() => { handleBucketClick(bucket); setMobileOpen(false); }}
+                  className={`w-full text-left px-4 py-3 text-[11px] font-black uppercase tracking-[0.3em] rounded-xl transition-all ${
+                    activeTab === bucket
+                      ? 'bg-[#ba1f3d]/5 text-[#ba1f3d]'
+                      : 'text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  {bucket}
+                </button>
+              ))}
+              <div className="pt-2 border-t border-gray-100">
+                <Link
+                  to="/admin"
+                  className="flex items-center space-x-2 px-4 py-3 text-[11px] font-black uppercase tracking-[0.3em] text-gray-700 hover:text-[#ba1f3d]"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  <Zap size={13} />
+                  <span>Admin Portal</span>
+                </Link>
+              </div>
+            </nav>
+          </div>
+        )}
+      </header>
+
+      {/* Currency dropdown backdrop */}
+      {currencyOpen && (
+        <div className="fixed inset-0 z-40" onClick={() => setCurrencyOpen(false)} />
+      )}
     </>
   );
 };
