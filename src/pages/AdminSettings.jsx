@@ -19,7 +19,7 @@ const AdminSettings = () => {
         setSettings({ logo: data.logo || '', announcement: data.announcement || '' });
       }
     } catch (err) {
-      console.error(err);
+      console.error('[AdminSettings] Failed to fetch settings:', err.message);
     } finally {
       setLoading(false);
     }

@@ -318,7 +318,7 @@ const MediaSection = memo(({ form, mediaTab, onTabSwitch, onImageUpload, injectT
           <Link2 className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
           <input type="text" placeholder="https://example.com/product-image.jpg"
             value={form.image.startsWith('data:') ? '' : form.image}
-            onChange={e => setForm(f => ({ ...f, image: e.target.value, mediaType: 'url' }))} // eslint-disable-line no-undef
+            onChange={e => setForm(f => ({ ...f, image: e.target.value, mediaType: 'url' }))}
             className="w-full border-2 border-gray-200 rounded-xl pl-11 pr-4 py-3 text-sm font-bold focus:border-red-600 outline-none transition-colors" />
         </div>
         {form.image && !form.image.startsWith('data:') && (
@@ -345,7 +345,7 @@ const MediaSection = memo(({ form, mediaTab, onTabSwitch, onImageUpload, injectT
         </div>
         <div className="relative">
           <textarea value={form.embedCode}
-            onChange={e => setForm(f => ({ ...f, embedCode: e.target.value, mediaType: 'embed' }))} // eslint-disable-line no-undef
+            onChange={e => setForm(f => ({ ...f, embedCode: e.target.value, mediaType: 'embed' }))}
             placeholder="Paste embed code or URL..."
             rows={5}
             className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-sm font-mono focus:border-red-600 outline-none transition-colors resize-none bg-gray-50" />

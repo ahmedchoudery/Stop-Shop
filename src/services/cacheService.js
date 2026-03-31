@@ -77,7 +77,7 @@ const getClient = () => {
     });
 
     client.on('connect', () => {
-      console.log('[Cache] Redis connected');
+      // Silently log connection success — not needed in production
     });
 
     return client;
@@ -193,7 +193,7 @@ const close = async () => {
     try {
       await client.quit();
       client = null;
-      console.log('[Cache] Redis connection closed');
+      // Silently close Redis connection
     } catch (err) {
       console.error('[Cache] Error closing Redis:', err.message);
       client?.disconnect();

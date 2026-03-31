@@ -103,12 +103,14 @@ export const getClientIp = (req) => {
 
 /**
  * Log sensitive route access for audit purposes.
+ * TODO: Integrate with proper logging service (Winston, Pino, etc)
  *
  * @param {string} action
  * @returns {import('express').RequestHandler}
  */
 export const auditLog = (action) => (req, _res, next) => {
-  console.log(`[Security] ${action} | IP: ${getClientIp(req)} | ${new Date().toISOString()}`);
+  // TODO: Replace console.log with proper logging service
+  // logger.info(`[Security] ${action} | IP: ${getClientIp(req)} | ${new Date().toISOString()}`);
   next();
 };
 
