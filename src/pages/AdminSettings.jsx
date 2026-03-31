@@ -54,7 +54,6 @@ const AdminSettings = () => {
       if (handleAuthError(response.status)) return;
       if (response.ok) {
         setSuccess(true);
-        setTimeout(() => setSuccess(false), 3000);
       }
     } catch (err) {
       alert('Failed to save settings');
@@ -62,6 +61,13 @@ const AdminSettings = () => {
       setSaving(false);
     }
   };
+
+  // Clear success message after 3 seconds
+  useEffect(() => {
+    if (!success) return;
+    const timer = setTimeout(() => setSuccess(false), 3000);
+    return () => clearTimeout(timer);
+  }, [success]);
 
 
   if (loading) return <div className="p-10 text-center font-black uppercase tracking-widest text-gray-400">Syncing Identity Engine...</div>;

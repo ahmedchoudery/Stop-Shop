@@ -53,7 +53,8 @@ const HomePage = ({ onProductsLoaded }) => {
         if (onProductsLoaded) onProductsLoaded(data);
         setIsFetching(false);
         setFetchError(false);
-      } catch {
+      } catch (err) {
+        console.error('[Products API] Failed to fetch:', err.message);
         // Fallback to static products after timeout or error
         setProducts(staticProducts);
         if (onProductsLoaded) onProductsLoaded(staticProducts);

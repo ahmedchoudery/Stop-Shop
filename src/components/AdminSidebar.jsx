@@ -28,7 +28,10 @@ const AdminSidebar = () => {
         // Derive role from current user if possible
         setRole('admin');
       })
-      .catch(() => setRole('admin'));
+      .catch((err) => {
+        console.error('[Admin] Failed to fetch user role:', err.message);
+        setRole('admin');
+      });
   }, []);
 
   useEffect(() => {

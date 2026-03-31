@@ -5,7 +5,7 @@
  *          javascript-pro (async/await, clean error propagation)
  */
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { Plus, AlertCircle } from 'lucide-react';
 import ProductTable from '../components/ProductTable.jsx';
 import ProductFilters from '../components/ProductFilters.jsx';
@@ -31,7 +31,6 @@ const useProductForm = (onSave) => {
 
   const showToast = useCallback((message, type = 'success') => {
     setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
   }, []);
 
   const openCreate = useCallback(() => {
@@ -150,6 +149,13 @@ const AdminProducts = () => {
   const [searchRaw, setSearchRaw] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [stockFilter, setStockFilter] = useState('all');
+
+  // ── Auto-clear toast after 3 seconds ──────────────────────
+  useEffect(() => {
+    if (!formState.toast) return;
+    const timer = setTimeout(() => formState.setToast(null), 3000);
+    return () => clearTimeout(timer);
+  }, [formState.toast]);
 
   // Debounce search to avoid filtering on every keystroke
   const searchTerm = useDebounce(searchRaw, 250);

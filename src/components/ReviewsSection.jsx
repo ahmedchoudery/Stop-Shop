@@ -88,9 +88,11 @@ const ReviewsSection = () => {
     const prev = () => goTo((activeIdx - 1 + REVIEWS.length) % REVIEWS.length);
 
     useEffect(() => {
-        intervalRef.current = setInterval(next, 8000);
+        intervalRef.current = setInterval(() => {
+            setActiveIdx(idx => (idx + 1) % REVIEWS.length);
+        }, 8000);
         return () => clearInterval(intervalRef.current);
-    }, [activeIdx]);
+    }, []);
 
     const review = REVIEWS[activeIdx];
 

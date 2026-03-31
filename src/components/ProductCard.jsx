@@ -35,6 +35,20 @@ const ProductCard = ({ product, onSelectProduct, onImageLoad }) => {
   // ── Design Spell: Text Scramble on product name hover ────────
   const { ref: nameRef, scramble } = useAnimeTextScramble(product.name.toUpperCase());
 
+  // ── Cleanup cart burst animation after duration ──────────
+  useEffect(() => {
+    if (!cartBurst) return;
+    const timer = setTimeout(() => setCartBurst(false), 600);
+    return () => clearTimeout(timer);
+  }, [cartBurst]);
+
+  // ── Cleanup wishlist animation after duration ─────────────
+  useEffect(() => {
+    if (!wishlistAnim) return;
+    const timer = setTimeout(() => setWishlistAnim(false), 600);
+    return () => clearTimeout(timer);
+  }, [wishlistAnim]);
+
   // ── Current image ─────────────────────────────────────────────
   const currentImage = (activeColor && product.variantImages?.[activeColor])
     ? product.variantImages[activeColor]
