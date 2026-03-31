@@ -161,7 +161,8 @@ const cartReducer = (state, action) => {
     case ActionTypes.SET_BUCKET:
       return {
         ...state,
-        activeBucket: action.payload,
+        activeBucket: typeof action.payload === 'object' ? action.payload.bucket : action.payload,
+        activeSub: typeof action.payload === 'object' ? action.payload.sub : null,
         scrollGridTick: state.scrollGridTick + 1,
       };
 
@@ -254,7 +255,7 @@ export const CartProvider = ({ children }) => {
   );
 
   const setActiveBucket = useCallback(
-    (bucket) => dispatch({ type: ActionTypes.SET_BUCKET, payload: bucket }),
+    (bucket, sub = null) => dispatch({ type: ActionTypes.SET_BUCKET, payload: { bucket, sub } }),
     []
   );
 

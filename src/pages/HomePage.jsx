@@ -21,7 +21,7 @@ import { EASING } from '../hooks/useAnime.js';
 
 const BUCKETS = ['All', 'Tops', 'Bottoms', 'Footwear', 'Accessories'];
 
-const CategoryBar = ({ active, onChange, products }) => {
+const CategoryBar = ({ active, activeSub, onChange, products }) => {
   const pillRef = useRef(null);
   const tabRefs = useRef({});
   const containerRef = useRef(null);
@@ -49,6 +49,15 @@ const CategoryBar = ({ active, onChange, products }) => {
   useEffect(() => {
     movePill(active);
   }, [active, movePill]);
+
+  // Filter subcategories for the active bucket
+  const subCategories = useMemo(() => {
+    if (active === 'All') return [];
+    return [...new Set(products
+      .filter(p => p.bucket === active && p.subCategory && p.subCategory.toLowerCase() !== 'general')
+      .map(p => p.subCategory)
+    )].sort();
+  }, [active, products]);
 
   // Count per bucket
   const counts = BUCKETS.reduce((acc, b) => {
@@ -88,6 +97,31 @@ const CategoryBar = ({ active, onChange, products }) => {
             </button>
           ))}
         </div>
+
+        {/* Subcategories — design spell: slide-in from right */}
+        {subCategories.length > 0 && (
+          <div className="flex items-center space-x-2 py-3 border-t border-gray-50 overflow-x-auto scrollbar-hide animate-slide-right">
+            <button
+              onClick={() => onChange(active, null)}
+              className={`px-4 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-full transition-all whitespace-nowrap ${
+                !activeSub ? 'bg-gray-900 text-white shadow-lg' : 'bg-gray-50 text-gray-400 hover:bg-gray-100'
+              }`}
+            >
+              All {active}
+            </button>
+            {subCategories.map(sub => (
+              <button
+                key={sub}
+                onClick={() => onChange(active, sub)}
+                className={`px-4 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-full transition-all whitespace-nowrap ${
+                  activeSub === sub ? 'bg-gray-900 text-white shadow-lg' : 'bg-gray-50 text-gray-400 hover:bg-gray-100'
+                }`}
+              >
+                {sub}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -121,7 +155,7 @@ const ProductSkeleton = () => (
 
 const HomePage = ({ onProductsLoaded }) => {
   const { products, loading, error } = usePublicProducts();
-  const { activeBucket, setActiveBucket, shouldScrollGrid } = useCart();
+  const { activeBucket, activeSubCategory, setActiveBucket, shouldScrollGrid } = useCart();
 
   // Notify parent of loaded products (for search overlay)
   useEffect(() => {
@@ -151,6 +185,7 @@ const HomePage = ({ onProductsLoaded }) => {
       {!loading && products.length > 0 && (
         <CategoryBar
           active={activeBucket}
+          activeSub={activeSubCategory}
           onChange={setActiveBucket}
           products={products}
         />
@@ -170,6 +205,7 @@ const HomePage = ({ onProductsLoaded }) => {
         <ProductGrid
           products={products}
           activeBucket={activeBucket}
+          activeSubCategory={activeSubCategory}
         />
       )}
 

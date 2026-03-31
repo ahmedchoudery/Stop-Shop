@@ -423,6 +423,13 @@ app.post('/api/admin/logout', authenticateToken, (req, res) => {
   res.clearCookie('auth_token').clearCookie('csrf_token').json({ success: true });
 });
 
+app.get('/api/admin/users', authenticateToken, async (req, res, next) => {
+  try {
+    const users = await Admin.find().sort({ createdAt: -1 }).select('-password').lean();
+    res.json(users);
+  } catch (err) { next(err); }
+});
+
 app.get('/api/orders', authenticateToken, async (req, res, next) => {
   try {
     const orders = await Order.find().sort({ createdAt: -1 }).lean();

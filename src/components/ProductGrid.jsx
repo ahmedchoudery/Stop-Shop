@@ -21,7 +21,13 @@ const ProductGrid = ({ products, activeBucket = 'All', activeSubCategory = null 
   const { openDrawer, sortBy, setSortBy } = useCart();
   const gridRef = useRef(null);
   const headingRef = useRef(null);
+  const [visibleCount, setVisibleCount] = useState(20);
   const prevBucket = useRef(activeBucket);
+
+  // Reset pagination when filter changes
+  useEffect(() => {
+    setVisibleCount(20);
+  }, [activeBucket, activeSubCategory]);
 
   const handleSelectProduct = useCallback((product) => {
     openDrawer('product', product);
@@ -128,25 +134,39 @@ const ProductGrid = ({ products, activeBucket = 'All', activeSubCategory = null 
           </div>
         </div>
 
-        {/* Product Grid */}
         {sortedProducts.length > 0 ? (
-          <div
-            ref={gridRef}
-            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 sm:gap-14"
-          >
-            {sortedProducts.map((product) => (
-              <div
-                key={product.id}
-                className="product-card-wrap"
-                style={{ opacity: 0, willChange: 'transform, opacity' }}
-              >
-                <ProductCard
-                  product={product}
-                  onSelectProduct={() => handleSelectProduct(product)}
-                />
+          <>
+            <div
+              ref={gridRef}
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 sm:gap-14"
+            >
+              {sortedProducts.slice(0, visibleCount).map((product) => (
+                <div
+                  key={product.id}
+                  className="product-card-wrap"
+                  style={{ opacity: 0, willChange: 'transform, opacity' }}
+                >
+                  <ProductCard
+                    product={product}
+                    onSelectProduct={() => handleSelectProduct(product)}
+                  />
+                </div>
+              ))}
+            </div>
+
+            {/* Load More Button */}
+            {visibleCount < sortedProducts.length && (
+              <div className="flex justify-center mt-20">
+                <button
+                  onClick={() => setVisibleCount(c => c + 20)}
+                  className="px-10 py-4 bg-gray-900 hover:bg-[#ba1f3d] text-white text-[10px] font-black uppercase tracking-[0.4em] rounded-xl shadow-2xl transition-all active:scale-95 flex items-center space-x-4 group"
+                >
+                  <span>Load More Pieces</span>
+                  <div className="h-[2px] w-4 bg-white/30 group-hover:w-8 transition-all duration-300" />
+                </button>
               </div>
-            ))}
-          </div>
+            )}
+          </>
         ) : (
           <EmptyGrid activeBucket={activeBucket} activeSubCategory={activeSubCategory} />
         )}

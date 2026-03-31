@@ -29,6 +29,7 @@ const Navbar = ({ onSearchOpen, products = [] }) => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [currencyOpen, setCurrencyOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('All');
+  const [expandedBucket, setExpandedBucket] = useState(null); // For mobile tiered nav
 
   const navRef = useRef(null);
   const cartRef = useRef(null);
@@ -71,12 +72,30 @@ const Navbar = ({ onSearchOpen, products = [] }) => {
     });
   }, [isBouncing]);
 
-  const handleBucketClick = useCallback((bucket) => {
+  // ── Derived Hierarchy ────────────────────────────────────────
+  const categoryMap = useMemo(() => {
+    const map = {};
+    BUCKETS.forEach(b => {
+      if (b === 'All') return;
+      const subs = [...new Set(products
+        .filter(p => p.bucket === b && p.subCategory && p.subCategory.toLowerCase() !== 'general')
+        .map(p => p.subCategory)
+      )].sort();
+      map[b] = subs;
+    });
+    return map;
+  }, [products]);
+
+  const handleBucketClick = useCallback((bucket, sub = null) => {
     setActiveTab(bucket);
-    setActiveBucket(bucket);
+    setActiveBucket(bucket, sub);
     navigate('/');
     const grid = document.getElementById('product-grid');
-    if (grid) grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (grid) {
+      setTimeout(() => {
+        grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
+    }
   }, [setActiveBucket, navigate]);
 
   return (
@@ -110,23 +129,62 @@ const Navbar = ({ onSearchOpen, products = [] }) => {
             </span>
           </Link>
 
-          {/* Center Nav Links — desktop */}
           <nav ref={linksRef} className="hidden lg:flex items-center space-x-1">
-            {BUCKETS.map(bucket => (
-              <button
-                key={bucket}
-                data-nav-item
-                onClick={() => handleBucketClick(bucket)}
-                className={`relative px-4 py-2 text-[10px] font-black uppercase tracking-[0.25em] transition-colors duration-200 group ${
-                  activeTab === bucket ? 'text-[#ba1f3d]' : 'text-gray-600 hover:text-gray-900'
-                }`}
-              >
-                {bucket}
-                {/* Underline draw — design spell */}
-                <span className={`absolute bottom-0 left-4 right-4 h-[2px] bg-[#ba1f3d] transition-transform duration-300 origin-left ${
-                  activeTab === bucket ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
-                }`} />
-              </button>
+            <button
+              data-nav-item
+              onClick={() => handleBucketClick('All')}
+              className={`relative px-4 py-2 text-[10px] font-black uppercase tracking-[0.25em] transition-colors duration-200 group ${
+                activeTab === 'All' ? 'text-[#ba1f3d]' : 'text-gray-600 hover:text-gray-900'
+              }`}
+            >
+              All
+              <span className={`absolute bottom-0 left-4 right-4 h-[2px] bg-[#ba1f3d] transition-transform duration-300 origin-left ${
+                activeTab === 'All' ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
+              }`} />
+            </button>
+
+            {BUCKETS.filter(b => b !== 'All').map(bucket => (
+              <div key={bucket} className="relative group/parent">
+                <button
+                  data-nav-item
+                  onClick={() => handleBucketClick(bucket)}
+                  className={`relative px-4 py-2 text-[10px] font-black uppercase tracking-[0.25em] transition-colors duration-200 flex items-center space-x-1 group ${
+                    activeTab === bucket ? 'text-[#ba1f3d]' : 'text-gray-600 hover:text-gray-900'
+                  }`}
+                >
+                  <span>{bucket}</span>
+                  {categoryMap[bucket]?.length > 0 && <ChevronDown size={10} className="group-hover/parent:rotate-180 transition-transform duration-300" />}
+                  <span className={`absolute bottom-0 left-4 right-4 h-[2px] bg-[#ba1f3d] transition-transform duration-300 origin-left ${
+                    activeTab === bucket ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
+                  }`} />
+                </button>
+
+                {/* Subcategory Dropdown */}
+                {categoryMap[bucket]?.length > 0 && (
+                  <div className="absolute top-full left-0 bg-white border border-gray-100 shadow-2xl rounded-xl py-3 min-w-[200px] opacity-0 translate-y-2 pointer-events-none group-hover/parent:opacity-100 group-hover/parent:translate-y-0 group-hover/parent:pointer-events-auto transition-all duration-300 z-50">
+                    <div className="px-4 mb-2">
+                            <p className="text-[8px] font-black text-gray-300 uppercase tracking-widest border-b border-gray-50 pb-2">By Style</p>
+                    </div>
+                    {categoryMap[bucket].map(sub => (
+                      <button
+                        key={sub}
+                        onClick={() => handleBucketClick(bucket, sub)}
+                        className="w-full text-left px-5 py-2.5 text-[9px] font-black uppercase tracking-[0.2em] text-gray-500 hover:text-[#ba1f3d] hover:bg-red-50 transition-colors"
+                      >
+                        {sub}
+                      </button>
+                    ))}
+                    <div className="mt-2 pt-2 border-t border-gray-50 px-4">
+                      <button
+                        onClick={() => handleBucketClick(bucket)}
+                        className="text-[8px] font-black text-[#ba1f3d] uppercase tracking-widest hover:underline"
+                      >
+                        View All {bucket}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             ))}
           </nav>
 
@@ -233,19 +291,60 @@ const Navbar = ({ onSearchOpen, products = [] }) => {
         {/* ── Mobile Drawer ────────────────────────────────────── */}
         {mobileOpen && (
           <div className="lg:hidden border-t border-gray-100 bg-white animate-slide-up">
-            <nav className="px-6 py-4 space-y-1">
-              {BUCKETS.map(bucket => (
-                <button
-                  key={bucket}
-                  onClick={() => { handleBucketClick(bucket); setMobileOpen(false); }}
-                  className={`w-full text-left px-4 py-3 text-[11px] font-black uppercase tracking-[0.3em] rounded-xl transition-all ${
-                    activeTab === bucket
-                      ? 'bg-[#ba1f3d]/5 text-[#ba1f3d]'
-                      : 'text-gray-700 hover:bg-gray-50'
-                  }`}
-                >
-                  {bucket}
-                </button>
+            <nav className="px-6 py-6 space-y-2 max-h-[80vh] overflow-y-auto">
+              <button
+                onClick={() => { handleBucketClick('All'); setMobileOpen(false); }}
+                className={`w-full text-left px-4 py-4 text-[11px] font-black uppercase tracking-[0.3em] rounded-xl transition-all ${
+                  activeTab === 'All' ? 'bg-[#ba1f3d] text-white shadow-xl' : 'text-gray-700 hover:bg-gray-50'
+                }`}
+              >
+                All Collections
+              </button>
+
+              {BUCKETS.filter(b => b !== 'All').map(bucket => (
+                <div key={bucket} className="space-y-1">
+                  <button
+                    onClick={() => {
+                                      if (categoryMap[bucket]?.length > 0) {
+                                          setExpandedBucket(expandedBucket === bucket ? null : bucket);
+                                      } else {
+                                          handleBucketClick(bucket);
+                                          setMobileOpen(false);
+                                      }
+                                  }}
+                    className={`w-full flex items-center justify-between px-4 py-4 text-[11px] font-black uppercase tracking-[0.3em] rounded-xl transition-all ${
+                      activeTab === bucket
+                        ? 'bg-[#ba1f3d]/5 text-[#ba1f3d]'
+                        : 'text-gray-700 hover:bg-gray-50'
+                    }`}
+                  >
+                    <span>{bucket}</span>
+                    {categoryMap[bucket]?.length > 0 && (
+                                          <ChevronDown size={14} className={`transition-transform duration-300 ${expandedBucket === bucket ? 'rotate-180' : ''}`} />
+                                      )}
+                  </button>
+
+                  {/* Mobile Sub-categories Accordion */}
+                  {expandedBucket === bucket && categoryMap[bucket]?.length > 0 && (
+                                      <div className="pl-6 space-y-1 animate-slide-right">
+                                          {categoryMap[bucket].map(sub => (
+                                              <button
+                                                  key={sub}
+                                                  onClick={() => { handleBucketClick(bucket, sub); setMobileOpen(false); }}
+                                                  className="w-full text-left px-4 py-3 text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 hover:text-[#ba1f3d]"
+                                              >
+                                                  {sub}
+                                              </button>
+                                          ))}
+                                          <button
+                                              onClick={() => { handleBucketClick(bucket); setMobileOpen(false); }}
+                                              className="w-full text-left px-4 py-3 text-[9px] font-black uppercase tracking-[0.2em] text-[#ba1f3d] italic"
+                                          >
+                                              View All {bucket}
+                                          </button>
+                                      </div>
+                                  )}
+                </div>
               ))}
               <div className="pt-2 border-t border-gray-100">
                 <Link
