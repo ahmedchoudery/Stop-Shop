@@ -1,29 +1,55 @@
-import React from 'react';
+/**
+ * @fileoverview AdminDashboard — Design Spells Edition
+ * Applies: animejs-animation (page entrance), design-md (admin dark theme)
+ */
+
+import React, { useEffect, useRef } from 'react';
 import { Outlet } from 'react-router-dom';
-import AdminSidebar from '../components/AdminSidebar';
+import AdminSidebar from '../components/AdminSidebar.jsx';
+import { EASING } from '../hooks/useAnime.js';
 
 const AdminDashboard = () => {
+  const mainRef = useRef(null);
+
+  useEffect(() => {
+    if (!mainRef.current) return;
+    let anime;
+    try { anime = require('animejs').default ?? require('animejs'); } catch { return; }
+
+    anime.set(mainRef.current, { opacity: 0 });
+    anime({
+      targets: mainRef.current,
+      opacity: [0, 1],
+      duration: 500,
+      easing: EASING.FABRIC,
+    });
+  }, []);
+
   return (
     <div className="flex min-h-screen bg-gray-50">
-      {/* Persistent Sidebar */}
       <AdminSidebar />
 
-      {/* Main Content Area */}
-      <main className="flex-grow ml-64 bg-white flex flex-col min-w-0 min-h-screen">
-        <section className="flex-grow p-10 bg-white">
-          <Outlet />
-        </section>
-        
-        {/* Global Admin Footer */}
-        <footer className="p-8 border-t border-gray-50 bg-white text-center">
-          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-300">
-            Stop & Shop Logistics Infrastructure • Verified Secure
+      {/* Main content area */}
+      <main
+        ref={mainRef}
+        className="flex-1 ml-64 min-h-screen overflow-y-auto"
+        style={{ opacity: 0, willChange: 'opacity' }}
+      >
+        {/* Top bar */}
+        <div className="sticky top-0 z-10 bg-white/90 backdrop-blur-sm border-b border-gray-100 px-8 py-4 flex items-center justify-between">
+          <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" title="System Online" />
+          <p className="text-[9px] font-black uppercase tracking-[0.4em] text-gray-300">
+            {new Date().toLocaleDateString('en-PK', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
           </p>
-        </footer>
+        </div>
+
+        {/* Page content */}
+        <div className="p-8 lg:p-10">
+          <Outlet />
+        </div>
       </main>
     </div>
   );
 };
 
 export default AdminDashboard;
-;
