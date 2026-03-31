@@ -3,7 +3,7 @@
  * Fix: replaced require('animejs') with ESM import — entrance & cart shake now work
  */
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import anime from 'animejs';
 import { Link, useNavigate } from 'react-router-dom';
 import {

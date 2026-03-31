@@ -3,7 +3,7 @@
  * Fix: replaced require('animejs') with ESM import — category pill animation now works
  */
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import anime from 'animejs';
 import PowerOfChoiceHero from '../components/PowerOfChoiceHero.jsx';
 import MarqueeBar from '../components/MarqueeBar.jsx';
