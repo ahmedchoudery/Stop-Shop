@@ -1,3 +1,0 @@
-name,price,stock,slug,bucket,subCategory,sizes,colors,description
-BulkA,10,5,bulk-a,Tops,Shirt,S;M;L,#000;#fff,Bulk import item A
-BulkB,12,8,bulk-b,Bottoms,Jeans,32;34;36,#111;#333,Bulk import item B
