@@ -1,190 +1,194 @@
-import React, { useState, useEffect } from 'react';
-import { Upload, Megaphone, Save, CheckCircle, RefreshCcw } from 'lucide-react';
-import { apiUrl } from '../config/api';
-import { authFetch, handleAuthError } from '../lib/auth';
+/**
+ * @fileoverview AdminSettings — Store settings page
+ * Applies: react-ui-patterns (loading, optimistic save), design-spells (preview live update)
+ */
 
+import React, { useState, useEffect } from 'react';
+import { Save, Eye, Zap, Image, Megaphone, AlertCircle, CheckCircle } from 'lucide-react';
+import { useSettings } from '../hooks/useDomain.js';
+import { AsyncContent } from '../components/ErrorBoundary.jsx';
 
 const AdminSettings = () => {
-  const [settings, setSettings] = useState({ logo: '', announcement: '' });
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [success, setSuccess] = useState(false);
-
-  const fetchSettings = async () => {
-    try {
-      const response = await authFetch(apiUrl('/api/settings'));
-      if (handleAuthError(response.status)) return;
-      if (response.ok) {
-        const data = await response.json();
-        setSettings({ logo: data.logo || '', announcement: data.announcement || '' });
-      }
-    } catch (err) {
-      console.error('[AdminSettings] Failed to fetch settings:', err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  const { data: settings, loading, error, updating, updateSettings, refetch } = useSettings(true);
+  const [form, setForm] = useState({ logo: '', announcement: '' });
+  const [toast, setToast] = useState(null);
+  const [preview, setPreview] = useState(false);
 
   useEffect(() => {
-    fetchSettings();
-  }, []);
-
-  const handleLogoUpload = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setSettings({ ...settings, logo: reader.result });
-      };
-      reader.readAsDataURL(file);
+    if (settings) {
+      setForm({ logo: settings.logo ?? '', announcement: settings.announcement ?? '' });
     }
+  }, [settings]);
+
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3000);
   };
 
-  const handleSave = async (e) => {
-    e.preventDefault();
-    setSaving(true);
-    setSuccess(false);
+  const handleSave = async () => {
     try {
-      const response = await authFetch(apiUrl('/api/settings'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(settings)
-      });
-      if (handleAuthError(response.status)) return;
-      if (response.ok) {
-        setSuccess(true);
-      }
+      await updateSettings(form);
+      showToast('Settings updated successfully');
     } catch (err) {
-      alert('Failed to save settings');
-    } finally {
-      setSaving(false);
+      showToast(err.message ?? 'Failed to update settings', 'error');
     }
   };
 
-  // Clear success message after 3 seconds
-  useEffect(() => {
-    if (!success) return;
-    const timer = setTimeout(() => setSuccess(false), 3000);
-    return () => clearTimeout(timer);
-  }, [success]);
-
-
-  if (loading) return <div className="p-10 text-center font-black uppercase tracking-widest text-gray-400">Syncing Identity Engine...</div>;
+  const inputCls = `w-full border-b-2 border-gray-100 focus:border-[#ba1f3d] py-3 text-sm font-bold bg-transparent outline-none transition-all placeholder:text-gray-300`;
 
   return (
-    <div className="max-w-4xl animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <header className="mb-12">
-        <h2 className="text-4xl font-black uppercase tracking-tighter text-gray-900 border-l-8 border-[#ba1f3d] pl-6">
-          Store Identity
-        </h2>
-        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400 mt-2 ml-6">
-          Global Branding & Marquee Configuration
-        </p>
-      </header>
-
-      <form onSubmit={handleSave} className="space-y-12">
-        {/* Branding Section */}
-        <section className="bg-white border border-gray-100 p-10 rounded-sm shadow-2xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-4 opacity-5">
-            <Upload size={120} />
-          </div>
-          
-          <h3 className="text-xs font-black uppercase tracking-[0.3em] text-gray-400 mb-8 flex items-center space-x-3">
-            <div className="w-2 h-2 bg-[#ba1f3d] rounded-full"></div>
-            <span>Visual Branding</span>
-          </h3>
-
-          <div className="flex flex-col md:flex-row items-center gap-12">
-            <div className="w-48 h-48 bg-gray-50 border-2 border-dashed border-gray-200 rounded-sm flex items-center justify-center overflow-hidden group relative">
-              {settings.logo ? (
-                <img src={settings.logo} alt="Site Logo" className="max-w-full max-h-full object-contain p-4" />
-              ) : (
-                <div className="text-center p-6">
-                  <Upload className="mx-auto text-gray-300 mb-2" size={32} />
-                  <p className="text-[8px] font-black uppercase tracking-widest text-gray-400 leading-tight">No logo<br/>detected</p>
-                </div>
-              )}
-              <label className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
-                <span className="text-white text-[9px] font-black uppercase tracking-widest">Update Logo</span>
-                <input type="file" className="hidden" accept="image/*" onChange={handleLogoUpload} />
-              </label>
-            </div>
-            
-            <div className="flex-grow">
-              <p className="text-sm font-black uppercase tracking-tighter text-gray-900 mb-2">Primary Site Logo</p>
-              <p className="text-xs text-gray-400 font-bold uppercase tracking-widest leading-loose">
-                Upload your brand mark. This will appear in the navigation bar and checkout screens across all platforms.
-              </p>
-              <div className="mt-6 flex space-x-4">
-                <label className="bg-gray-900 text-white px-6 py-3 text-[9px] font-black uppercase tracking-widest cursor-pointer hover:bg-red-900 transition-colors rounded-sm">
-                  Upload Asset
-                  <input type="file" className="hidden" accept="image/*" onChange={handleLogoUpload} />
-                </label>
-                {settings.logo && (
-                  <button 
-                    type="button"
-                    onClick={() => setSettings({ ...settings, logo: '' })}
-                    className="px-6 py-3 text-[9px] font-black uppercase tracking-widest border border-gray-200 text-gray-400 hover:text-red-900 hover:border-red-900 transition-all rounded-sm"
-                  >
-                    Reset to Text
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* Messaging Section */}
-        <section className="bg-white border border-gray-100 p-10 rounded-sm shadow-2xl relative overflow-hidden">
-          <h3 className="text-xs font-black uppercase tracking-[0.3em] text-gray-400 mb-8 flex items-center space-x-3">
-            <div className="w-2 h-2 bg-[#ba1f3d] rounded-full"></div>
-            <span>Global Messaging</span>
-          </h3>
-
-          <div className="space-y-6">
-            <div>
-              <label className="text-[10px] font-black uppercase tracking-widest text-gray-900 mb-3 block">
-                Announcement Bar Text
-              </label>
-              <div className="relative">
-                <Megaphone className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
-                <input 
-                  type="text" 
-                  placeholder="e.g. Free Delivery on orders over PKR 5000!"
-                  className="w-full bg-gray-50 border border-gray-100 rounded-sm py-5 pl-12 pr-6 text-sm font-bold focus:border-[#ba1f3d] outline-none transition-all shadow-inner"
-                  value={settings.announcement}
-                  onChange={(e) => setSettings({ ...settings, announcement: e.target.value })}
-                />
-              </div>
-              <p className="text-[9px] text-gray-400 font-black uppercase tracking-widest mt-4 italic">
-                Pro Tip: Keep it short for better mobile visibility
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* Save Footer */}
-        <div className="flex items-center space-x-6">
-          <button 
-            type="submit"
-            disabled={saving}
-            className={`flex items-center space-x-4 px-12 py-5 rounded-sm shadow-2xl transition-all ${
-              saving ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#ba1f3d] hover:bg-black text-white'
+    <div>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-10">
+        <div>
+          <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-2">Store Identity</p>
+          <h1 className="text-3xl font-black uppercase tracking-tighter text-gray-900">Settings</h1>
+        </div>
+        <div className="flex items-center space-x-3">
+          <button
+            onClick={() => setPreview(p => !p)}
+            className={`flex items-center space-x-2 px-4 py-2.5 border-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all duration-200 ${
+              preview ? 'border-[#ba1f3d] text-[#ba1f3d] bg-[#ba1f3d]/5' : 'border-gray-200 text-gray-600 hover:border-gray-900'
             }`}
           >
-            {saving ? <RefreshCcw className="animate-spin" size={20} /> : <Save size={20} />}
-            <span className="text-[11px] font-black uppercase tracking-[0.4em]">Apply Identity Updates</span>
+            <Eye size={13} />
+            <span>Preview</span>
           </button>
-
-          {success && (
-            <div className="flex items-center space-x-3 text-green-600 animate-in fade-in slide-in-from-left-4">
-              <CheckCircle size={20} />
-              <span className="text-[10px] font-black uppercase tracking-widest">Changes are now live!</span>
-            </div>
-          )}
+          <button
+            onClick={handleSave}
+            disabled={updating}
+            className="flex items-center space-x-2 px-6 py-2.5 bg-[#ba1f3d] text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:brightness-110 transition-all disabled:opacity-50 shadow-xl shadow-red-200/40 btn-shimmer"
+          >
+            {updating ? (
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <><Save size={13} /><span>Save Changes</span></>
+            )}
+          </button>
         </div>
-      </form>
+      </div>
+
+      {/* Toast */}
+      {toast && (
+        <div className={`mb-6 p-4 rounded-xl flex items-center space-x-3 animate-fade-up ${
+          toast.type === 'error' ? 'bg-red-50 border border-red-200 text-red-700' : 'bg-green-50 border border-green-200 text-green-700'
+        }`}>
+          {toast.type === 'error' ? <AlertCircle size={14} /> : <CheckCircle size={14} />}
+          <p className="text-xs font-bold">{toast.message}</p>
+        </div>
+      )}
+
+      <AsyncContent loading={loading} error={error} data={settings} onRetry={refetch}>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+          {/* Logo setting */}
+          <div className="bg-white border border-gray-100 rounded-2xl p-8 shadow-sm">
+            <div className="flex items-center space-x-3 mb-8">
+              <div className="w-9 h-9 bg-red-50 rounded-xl flex items-center justify-center">
+                <Image size={16} className="text-[#ba1f3d]" />
+              </div>
+              <div>
+                <h3 className="text-sm font-black uppercase tracking-widest text-gray-900">Store Logo</h3>
+                <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">URL to image</p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="text-[9px] font-black uppercase tracking-widest text-gray-400">Logo URL</label>
+                <input
+                  type="url"
+                  value={form.logo}
+                  onChange={e => setForm(p => ({ ...p, logo: e.target.value }))}
+                  placeholder="https://your-logo.com/logo.png"
+                  className={inputCls}
+                />
+              </div>
+
+              {/* Live preview */}
+              {(preview || form.logo) && (
+                <div className="mt-4 p-4 bg-gray-50 rounded-xl border border-gray-100">
+                  <p className="text-[9px] font-black uppercase tracking-widest text-gray-400 mb-3">Preview</p>
+                  {form.logo ? (
+                    <img
+                      src={form.logo}
+                      alt="Logo preview"
+                      className="max-h-16 object-contain"
+                      onError={e => { e.target.style.display = 'none'; }}
+                    />
+                  ) : (
+                    <div className="flex items-center space-x-2">
+                      <span className="text-2xl font-black italic text-[#ba1f3d]">Stop</span>
+                      <span className="text-gray-900 font-black text-2xl">&</span>
+                      <span className="text-2xl font-black italic text-[#ba1f3d]">Shop</span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Announcement setting */}
+          <div className="bg-white border border-gray-100 rounded-2xl p-8 shadow-sm">
+            <div className="flex items-center space-x-3 mb-8">
+              <div className="w-9 h-9 bg-yellow-50 rounded-xl flex items-center justify-center">
+                <Megaphone size={16} className="text-yellow-600" />
+              </div>
+              <div>
+                <h3 className="text-sm font-black uppercase tracking-widest text-gray-900">Announcement Bar</h3>
+                <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Scrolling marquee text</p>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="text-[9px] font-black uppercase tracking-widest text-gray-400">
+                  Announcement Text
+                  <span className="ml-2 text-gray-300">({form.announcement.length}/500)</span>
+                </label>
+                <textarea
+                  value={form.announcement}
+                  onChange={e => setForm(p => ({ ...p, announcement: e.target.value }))}
+                  placeholder="Welcome to Stop & Shop — Premium Clothing"
+                  maxLength={500}
+                  rows={3}
+                  className="w-full border-b-2 border-gray-100 focus:border-[#ba1f3d] py-3 text-sm font-bold bg-transparent outline-none transition-all placeholder:text-gray-300 resize-none mt-2"
+                />
+              </div>
+
+              {/* Live preview */}
+              {preview && form.announcement && (
+                <div className="mt-4 bg-[#FBBF24] py-2.5 px-4 rounded-lg overflow-hidden">
+                  <p className="text-[10px] font-black uppercase tracking-[0.35em] text-red-950 truncate">
+                    ✦ {form.announcement.toUpperCase()}
+                  </p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* System info card */}
+          <div className="lg:col-span-2 bg-gray-900 text-white rounded-2xl p-8">
+            <div className="flex items-center space-x-3 mb-6">
+              <Zap size={16} className="text-[#FBBF24]" />
+              <h3 className="text-sm font-black uppercase tracking-widest">System Status</h3>
+            </div>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
+              {[
+                { label: 'Environment', value: import.meta.env.MODE ?? 'production' },
+                { label: 'API URL', value: import.meta.env.VITE_API_URL ? 'Configured' : 'Proxy' },
+                { label: 'RBAC', value: import.meta.env.VITE_RBAC_ENABLED === 'true' ? 'Enabled' : 'Disabled' },
+                { label: 'Stage', value: import.meta.env.VITE_RBAC_STAGE ?? 'local' },
+              ].map(item => (
+                <div key={item.label}>
+                  <p className="text-[9px] font-black uppercase tracking-widest text-gray-500 mb-1">{item.label}</p>
+                  <p className="text-sm font-black text-white uppercase tracking-tight">{item.value}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </AsyncContent>
     </div>
   );
 };

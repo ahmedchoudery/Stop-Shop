@@ -1,154 +1,194 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { useCart } from '../context/CartContext';
-import PowerOfChoiceHero from '../components/PowerOfChoiceHero';
-import ProductGrid from '../components/ProductGrid';
-import Newsletter from '../components/Newsletter';
-import ReviewsSection from '../components/ReviewsSection';
-import RecentlyViewedSection from '../components/RecentlyViewedSection';
-import { products as staticProducts } from '../data/products';
-import { apiUrl } from '../config/api';
+/**
+ * @fileoverview HomePage — Main storefront
+ * Applies: react-patterns (composition, custom hooks),
+ *          animejs-animation (section entrance orchestration),
+ *          design-spells (category filter morphing, bucket pill animation)
+ */
 
-const HomePage = ({ onProductsLoaded }) => {
-  const [products, setProducts] = useState([]);
-  const [isFetching, setIsFetching] = useState(navigator.onLine);
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [fetchError, setFetchError] = useState(false);
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import PowerOfChoiceHero from '../components/PowerOfChoiceHero.jsx';
+import MarqueeBar from '../components/MarqueeBar.jsx';
+import ProductGrid from '../components/ProductGrid.jsx';
+import ReviewsSection from '../components/ReviewsSection.jsx';
+import Newsletter from '../components/Newsletter.jsx';
+import RecentlyViewedSection from '../components/RecentlyViewedSection.jsx';
+import { usePublicProducts } from '../hooks/useDomain.js';
+import { useCart } from '../context/CartContext.jsx';
+import { EASING } from '../hooks/useAnime.js';
 
-  const { activeBucket, setActiveBucket, activeSub, setActiveSub, lastViewedBucket, setLastViewedBucket, shouldScrollGrid, sortBy, setSortBy } = useCart();
+// ─────────────────────────────────────────────────────────────────
+// CATEGORY FILTER BAR — Design Spell: morphing active pill
+// ─────────────────────────────────────────────────────────────────
 
-  useEffect(() => {
-    const handleOnline = () => { setIsOnline(true); setIsFetching(true); setFetchError(false); };
-    const handleOffline = () => setIsOnline(false);
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-    return () => { window.removeEventListener('online', handleOnline); window.removeEventListener('offline', handleOffline); };
+const BUCKETS = ['All', 'Tops', 'Bottoms', 'Footwear', 'Accessories'];
+
+const CategoryBar = ({ active, onChange, products }) => {
+  const pillRef = useRef(null);
+  const tabRefs = useRef({});
+  const containerRef = useRef(null);
+
+  // Animate the sliding pill indicator — design spell
+  const movePill = useCallback((bucket) => {
+    const tab = tabRefs.current[bucket];
+    const container = containerRef.current;
+    const pill = pillRef.current;
+    if (!tab || !container || !pill) return;
+
+    const tabRect = tab.getBoundingClientRect();
+    const containerRect = container.getBoundingClientRect();
+    const left = tabRect.left - containerRect.left;
+
+    let anime;
+    try { anime = require('animejs').default ?? require('animejs'); } catch {
+      pill.style.left = `${left}px`;
+      pill.style.width = `${tabRect.width}px`;
+      return;
+    }
+    anime({
+      targets: pill,
+      left: [pill.offsetLeft, left],
+      width: [pill.offsetWidth, tabRect.width],
+      duration: 350,
+      easing: EASING.SPRING,
+    });
   }, []);
 
-  // Smooth Scroll Trigger
+  useEffect(() => {
+    movePill(active);
+  }, [active, movePill]);
+
+  // Count per bucket
+  const counts = BUCKETS.reduce((acc, b) => {
+    acc[b] = b === 'All' ? products.length : products.filter(p => p.bucket === b).length;
+    return acc;
+  }, {});
+
+  return (
+    <div className="sticky top-14 z-40 bg-white/95 backdrop-blur-sm border-b border-gray-100 shadow-sm">
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
+        <div ref={containerRef} className="flex items-center space-x-1 py-3 relative overflow-x-auto scrollbar-hide">
+
+          {/* Sliding pill background — design spell */}
+          <div
+            ref={pillRef}
+            className="absolute h-8 bg-[#ba1f3d] rounded-lg pointer-events-none transition-none"
+            style={{ top: '50%', transform: 'translateY(-50%)', willChange: 'left, width' }}
+          />
+
+          {BUCKETS.map(bucket => (
+            <button
+              key={bucket}
+              ref={el => { tabRefs.current[bucket] = el; }}
+              onClick={() => onChange(bucket)}
+              className={`relative z-10 flex items-center space-x-1.5 px-4 py-1.5 text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-colors duration-200 rounded-lg flex-shrink-0 ${
+                active === bucket ? 'text-white' : 'text-gray-500 hover:text-gray-900'
+              }`}
+            >
+              <span>{bucket}</span>
+              {counts[bucket] > 0 && (
+                <span className={`text-[8px] font-black transition-colors duration-200 ${
+                  active === bucket ? 'text-white/70' : 'text-gray-300'
+                }`}>
+                  {counts[bucket]}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────
+// PRODUCT SKELETON LOADING STATE
+// ─────────────────────────────────────────────────────────────────
+
+const ProductSkeleton = () => (
+  <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-24">
+    <div className="mb-16">
+      <div className="h-3 w-32 bg-gray-100 rounded animate-shimmer mb-4" />
+      <div className="h-10 w-64 bg-gray-100 rounded animate-shimmer" />
+    </div>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10">
+      {[...Array(8)].map((_, i) => (
+        <div key={i} className="space-y-4" style={{ animationDelay: `${i * 80}ms` }}>
+          <div className="aspect-[4/5] bg-gray-100 rounded-sm animate-shimmer" />
+          <div className="h-3 w-3/4 bg-gray-100 rounded animate-shimmer" />
+          <div className="h-5 w-1/2 bg-gray-100 rounded animate-shimmer" />
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+// ─────────────────────────────────────────────────────────────────
+// HOME PAGE
+// ─────────────────────────────────────────────────────────────────
+
+const HomePage = ({ onProductsLoaded }) => {
+  const { products, loading, error } = usePublicProducts();
+  const { activeBucket, setActiveBucket, shouldScrollGrid } = useCart();
+
+  // Notify parent of loaded products (for search overlay)
+  useEffect(() => {
+    if (products.length > 0 && onProductsLoaded) {
+      onProductsLoaded(products);
+    }
+  }, [products, onProductsLoaded]);
+
+  // Scroll to grid when bucket changes from navbar
   useEffect(() => {
     if (shouldScrollGrid > 0) {
-      const element = document.getElementById('product-grid');
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      const grid = document.getElementById('product-grid');
+      if (grid) {
+        setTimeout(() => {
+          grid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 100);
       }
     }
   }, [shouldScrollGrid]);
 
-  useEffect(() => {
-    if (!isOnline) return;
-    const fetchCloudInventory = async () => {
-      try {
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 5000); // 5 second timeout
-    
-        const response = await fetch(
-          `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/public/products`,
-          { signal: controller.signal }
-        );
-        clearTimeout(timeout);
-    
-        if (!response.ok) throw new Error('Cloud fetch failed');
-        const data = await response.json();
-        setProducts(data);
-        if (onProductsLoaded) onProductsLoaded(data);
-        setIsFetching(false);
-        setFetchError(false);
-      } catch (err) {
-        console.error('[Products API] Failed to fetch:', err.message);
-        // Fallback to static products after timeout or error
-        setProducts(staticProducts);
-        if (onProductsLoaded) onProductsLoaded(staticProducts);
-        setFetchError(true);
-        setIsFetching(false);
-      }
-    };
-    fetchCloudInventory();
-  }, [isOnline]);
-
-  const subCategoryMap = useMemo(() => {
-    const map = products.reduce((acc, product) => {
-      if (!product.bucket) return acc;
-      if (!acc[product.bucket]) acc[product.bucket] = new Set();
-      if (product.subCategory) acc[product.bucket].add(product.subCategory);
-      return acc;
-    }, {});
-    Object.keys(map).forEach(key => { map[key] = Array.from(map[key]); });
-    return map;
-  }, [products]);
-
-  const buckets = ['All', 'Tops', 'Bottoms', 'Footwear', 'Accessories'];
-
-  const DEFAULT_SUB_CATEGORIES = {
-    'Tops': ['Shirts', 'T-Shirts', 'SweatShirts', 'Hoodies', 'Sweater', 'Jackets'],
-    'Bottoms': ['Jeans', 'Trousers', 'Shorts'],
-    'Accessories': ['Watches', 'Glasses', 'Caps', 'Rings', 'Bracelet', 'Chains', 'Bags'],
-    'Footwear': []
-  };
-
-  const handleBucketClick = (bucket) => {
-    setActiveBucket(bucket);
-    setActiveSub(null);
-    if (bucket !== 'All') setLastViewedBucket(bucket);
-  };
-
-  const visibleSubCategories = useMemo(() => {
-    const fromDB = subCategoryMap[lastViewedBucket] || [];
-    const defaults = DEFAULT_SUB_CATEGORIES[lastViewedBucket] || [];
-    // Combine and unique
-    return Array.from(new Set([...defaults, ...fromDB]));
-  }, [subCategoryMap, lastViewedBucket]);
-
   return (
-    <>
-      <div id="tops" />
+    <div>
+      {/* Hero */}
       <PowerOfChoiceHero />
 
-      {/* Enhanced Sort Bar */}
-      <div className="bg-white border-b border-gray-100 sticky top-[72px] z-40 shadow-sm">
-        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 flex items-center justify-between h-20">
-          <div className="flex items-center space-x-3">
-            <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.4em]">View:</span>
-            <span className="text-[10px] font-black text-[#ba1f3d] uppercase tracking-[0.4em]">
-              {activeBucket} {activeSub ? `· ${activeSub}` : ''}
-            </span>
-          </div>
-          
-          <div className="flex items-center space-x-4">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Sort By:</label>
-            <select 
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value)}
-              className="bg-transparent text-[11px] font-black text-[#ba1f3d] outline-none cursor-pointer border-b border-transparent hover:border-[#ba1f3d] transition-all uppercase tracking-widest pb-1"
-            >
-              <option value="featured">Newest</option>
-              <option value="popular">Popular</option>
-              <option value="price-high">Price: High to Low</option>
-              <option value="price-low">Price: Low to High</option>
-            </select>
-          </div>
-        </div>
-      </div>
-
-      <div id="product-grid" />
+      {/* Category filter — sticky below navbar */}
+      {!loading && products.length > 0 && (
+        <CategoryBar
+          active={activeBucket}
+          onChange={setActiveBucket}
+          products={products}
+        />
+      )}
 
       {/* Products */}
-      <div id="trending">
-        {isFetching && !fetchError ? (
-          <div className="bg-[#F5F5F5] py-16 flex flex-col justify-center items-center h-64">
-            <div className="animate-spin h-6 w-6 border-t-2 border-gray-400 rounded-full mb-4" />
-            {!isOnline && <p className="text-[10px] uppercase font-black tracking-widest text-gray-400">Waiting for network...</p>}
-          </div>
-        ) : (
-          <ProductGrid products={products} activeBucket={activeBucket} activeSubCategory={activeSub} />
-        )}
-      </div>
+      {loading ? (
+        <ProductSkeleton />
+      ) : error ? (
+        <div className="max-w-7xl mx-auto px-6 py-24 text-center">
+          <p className="text-gray-400 font-black uppercase tracking-widest text-sm mb-4">
+            Could not load products
+          </p>
+          <p className="text-gray-300 text-xs">{error}</p>
+        </div>
+      ) : (
+        <ProductGrid
+          products={products}
+          activeBucket={activeBucket}
+        />
+      )}
 
-      {/* Recently Viewed — only shows once user has browsed at least 1 product */}
+      {/* Reviews */}
+      <ReviewsSection />
+
+      {/* Recently Viewed */}
       <RecentlyViewedSection />
 
       {/* Newsletter */}
       <Newsletter />
-    </>
+    </div>
   );
 };
 

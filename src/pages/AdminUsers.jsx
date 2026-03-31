@@ -1,215 +1,219 @@
-import React, { useState, useEffect } from 'react';
-import { UserPlus, Trash2, X, Shield, Mail, Lock, User } from 'lucide-react';
-import { apiUrl } from '../config/api';
-import { authFetch, handleAuthError } from '../lib/auth';
+/**
+ * @fileoverview AdminUsers — Team management page
+ * Applies: react-ui-patterns (loading/error/empty states), design-spells (card hover, delete confirm)
+ */
 
+import React, { useState, useCallback } from 'react';
+import { Plus, UserCheck, UserX, Shield, Clock, AlertCircle, X, Save } from 'lucide-react';
+import { AsyncContent } from '../components/ErrorBoundary.jsx';
+import { useAdminUsers } from '../hooks/useDomain.js';
+import { EASING } from '../hooks/useAnime.js';
+
+const ROLES = ['admin', 'super-admin', 'auditor'];
 
 const AdminUsers = () => {
-  const [admins, setAdmins] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [formData, setFormData] = useState({ name: '', email: '', password: '' });
-  const [error, setError] = useState(null);
+  const { users, loading, error, creating, deleting, createUser, deleteUser, refetch } = useAdminUsers();
+  const [showForm, setShowForm] = useState(false);
+  const [toast, setToast] = useState(null);
+  const [form, setForm] = useState({ name: '', email: '', password: '', roles: ['admin'] });
+  const [formErrors, setFormErrors] = useState({});
 
-  const fetchAdmins = async () => {
+  const showToast = (message, type = 'success') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 3500);
+  };
+
+  const validateForm = () => {
+    const e = {};
+    if (!form.name.trim()) e.name = 'Required';
+    if (!form.email.trim()) e.email = 'Required';
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = 'Invalid email';
+    if (!form.password) e.password = 'Required';
+    else if (form.password.length < 6) e.password = 'Min 6 characters';
+    setFormErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const handleCreate = async () => {
+    if (!validateForm()) return;
     try {
-      const response = await authFetch(apiUrl('/api/admin/users'));
-      if (handleAuthError(response.status)) return;
-      if (!response.ok) throw new Error('Failed to fetch team members');
-      const data = await response.json();
-      setAdmins(data);
+      await createUser(form);
+      showToast('Admin account created');
+      setForm({ name: '', email: '', password: '', roles: ['admin'] });
+      setShowForm(false);
     } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+      showToast(err.message ?? 'Failed to create admin', 'error');
     }
   };
 
-
-  useEffect(() => {
-    fetchAdmins();
-  }, []);
-
-  const handleAddMember = async (e) => {
-    e.preventDefault();
+  const handleDelete = useCallback(async (user) => {
+    if (!window.confirm(`Remove ${user.name}'s access? This cannot be undone.`)) return;
     try {
-      const response = await authFetch(apiUrl('/api/admin/users'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      });
-      if (handleAuthError(response.status)) return;
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to add member');
-      }
-      setIsModalOpen(false);
-      setFormData({ name: '', email: '', password: '' });
-      fetchAdmins();
+      await deleteUser(user._id);
+      showToast('Access revoked');
     } catch (err) {
-      alert(err.message);
+      showToast(err.message ?? 'Failed to remove user', 'error');
     }
-  };
+  }, [deleteUser]);
 
-
-  const handleDelete = async (adminId) => {
-    if (!window.confirm('Are you sure you want to revoke this user\'s administrative access?')) return;
-    try {
-      const response = await authFetch(apiUrl(`/api/admin/users/${adminId}`), { method: 'DELETE' });
-      if (handleAuthError(response.status)) return;
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to revoke access');
-      }
-      fetchAdmins();
-    } catch (err) {
-      alert(err.message);
-    }
-  };
-
-
-  if (loading) return <div className="p-10 text-center font-black uppercase tracking-widest text-gray-400 italic">Syncing Team Registry...</div>;
+  const inputCls = (field) =>
+    `w-full border-b-2 py-3 text-sm font-bold bg-transparent outline-none transition-all placeholder:text-gray-300 ${
+      formErrors[field] ? 'border-red-400' : 'border-gray-100 focus:border-[#ba1f3d]'
+    }`;
 
   return (
-    <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <header className="flex justify-between items-center mb-12">
+    <div>
+      {/* Header */}
+      <div className="flex items-center justify-between mb-10">
         <div>
-          <h2 className="text-4xl font-black uppercase tracking-tighter text-gray-900 border-l-8 border-[#ba1f3d] pl-6">
-            Team Management
-          </h2>
-          <p className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400 mt-2 ml-6">
-            Administrative Access Control & Security
-          </p>
+          <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-2">Access Control</p>
+          <h1 className="text-3xl font-black uppercase tracking-tighter text-gray-900">Team</h1>
         </div>
-        
-        <button 
-          onClick={() => setIsModalOpen(true)}
-          className="flex items-center space-x-3 bg-[#ba1f3d] px-6 py-3 rounded-sm shadow-xl shadow-[#ba1f3d]/10 hover:bg-black transition-all text-white group"
+        <button
+          onClick={() => setShowForm(s => !s)}
+          className="flex items-center space-x-2 px-6 py-3 bg-[#ba1f3d] text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-gray-900 transition-all duration-300 shadow-xl shadow-red-200/40 btn-shimmer"
         >
-          <UserPlus size={18} className="group-hover:scale-110 transition-transform" />
-          <span className="text-[10px] font-black uppercase tracking-widest">Add New Member</span>
+          {showForm ? <X size={14} /> : <Plus size={14} />}
+          <span>{showForm ? 'Cancel' : 'Add Admin'}</span>
         </button>
-      </header>
-
-      <div className="bg-white border border-gray-100 shadow-2xl rounded-sm overflow-hidden">
-        <table className="w-full text-left">
-          <thead>
-            <tr className="bg-gray-50 border-b border-gray-100">
-              <th className="p-6 text-[10px] font-black uppercase tracking-widest text-gray-400">Identity</th>
-              <th className="p-6 text-[10px] font-black uppercase tracking-widest text-gray-400">Email Address</th>
-              <th className="p-6 text-[10px] font-black uppercase tracking-widest text-gray-400">Security Level</th>
-              <th className="p-6 text-[10px] font-black uppercase tracking-widest text-gray-400 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-50">
-            {admins.map((admin) => (
-              <tr key={admin._id} className="hover:bg-gray-50/50 transition-colors">
-                <td className="p-6">
-                  <div className="flex items-center space-x-4">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-black text-xs ${admin.isPrimary ? 'bg-[#ba1f3d] text-white' : 'bg-gray-100 text-gray-600'}`}>
-                      {admin.name.charAt(0)}
-                    </div>
-                    <div>
-                      <p className="text-sm font-black uppercase tracking-tight text-gray-900">{admin.name}</p>
-                      <p className="text-[9px] font-bold text-gray-400 mt-0.5">Joined: {new Date(admin.createdAt).toLocaleDateString()}</p>
-                    </div>
-                  </div>
-                </td>
-                <td className="p-6">
-                  <p className="text-xs font-bold text-gray-600">{admin.email}</p>
-                </td>
-                <td className="p-6">
-                  {admin.isPrimary ? (
-                    <span className="flex items-center space-x-2 text-[#ba1f3d]">
-                      <Shield size={14} />
-                      <span className="text-[9px] font-black uppercase tracking-widest italic">Primary Owner</span>
-                    </span>
-                  ) : (
-                    <span className="flex items-center space-x-2 text-gray-400">
-                      <User size={14} />
-                      <span className="text-[9px] font-black uppercase tracking-widest italic">Standard Admin</span>
-                    </span>
-                  )}
-                </td>
-                <td className="p-6 text-right">
-                  {!admin.isPrimary && (
-                    <button 
-                      onClick={() => handleDelete(admin._id)}
-                      className="p-2 text-gray-300 hover:text-[#ba1f3d] transition-colors"
-                    >
-                      <Trash2 size={18} />
-                    </button>
-                  )}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
       </div>
 
-      {/* Add Member Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-red-950/20 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="bg-white w-full max-w-md rounded-sm shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
-            <div className="bg-[#ba1f3d] p-6 flex justify-between items-center">
-              <h3 className="text-white text-xs font-black uppercase tracking-[0.3em]">Issue New Access</h3>
-              <button onClick={() => setIsModalOpen(false)} className="text-white/60 hover:text-white transition-colors">
-                <X size={20} />
-              </button>
-            </div>
-            
-            <form onSubmit={handleAddMember} className="p-8 space-y-6">
-              <div className="space-y-4">
-                <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                  <input 
-                    type="text" 
-                    placeholder="FULL NAME"
-                    required
-                    className="w-full bg-gray-50 border border-gray-200 rounded-sm py-3 pl-10 pr-4 text-xs font-bold focus:border-[#ba1f3d] outline-none transition-all"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  />
-                </div>
-                <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                  <input 
-                    type="email" 
-                    placeholder="EMAIL ADDRESS"
-                    required
-                    className="w-full bg-gray-50 border border-gray-200 rounded-sm py-3 pl-10 pr-4 text-xs font-bold focus:border-[#ba1f3d] outline-none transition-all"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  />
-                </div>
-                <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-                  <input 
-                    type="password" 
-                    placeholder="TEMPORARY PASSWORD"
-                    required
-                    className="w-full bg-gray-50 border border-gray-200 rounded-sm py-3 pl-10 pr-4 text-xs font-bold focus:border-[#ba1f3d] outline-none transition-all"
-                    value={formData.password}
-                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  />
-                </div>
-              </div>
-
-              <div className="pt-4">
-                <button 
-                  type="submit"
-                  className="w-full bg-[#ba1f3d] text-white py-4 text-[10px] font-black uppercase tracking-[0.3em] rounded-sm hover:bg-black transition-all shadow-xl shadow-[#ba1f3d]/10"
-                >
-                  Confirm Registration
-                </button>
-                <p className="text-center text-[8px] font-bold text-gray-400 uppercase tracking-widest mt-4">
-                  Security Protocol: Access is Immediate Upon Confirmation
-                </p>
-              </div>
-            </form>
-          </div>
+      {/* Toast */}
+      {toast && (
+        <div className={`mb-6 p-4 rounded-xl flex items-center space-x-3 animate-fade-up ${
+          toast.type === 'error' ? 'bg-red-50 border border-red-200 text-red-700' : 'bg-green-50 border border-green-200 text-green-700'
+        }`}>
+          <AlertCircle size={14} />
+          <p className="text-xs font-bold">{toast.message}</p>
         </div>
       )}
+
+      {/* Create form */}
+      {showForm && (
+        <div className="mb-8 bg-white border border-gray-100 rounded-2xl p-8 shadow-xl animate-slide-up">
+          <h3 className="text-sm font-black uppercase tracking-widest text-gray-900 mb-8">New Admin Account</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-6">
+            <div>
+              <label className="text-[9px] font-black uppercase tracking-widest text-gray-400">Full Name</label>
+              <input
+                value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))}
+                placeholder="Ahmed Khan"
+                className={inputCls('name')}
+              />
+              {formErrors.name && <p className="text-[9px] text-red-500 mt-1">{formErrors.name}</p>}
+            </div>
+            <div>
+              <label className="text-[9px] font-black uppercase tracking-widest text-gray-400">Email</label>
+              <input
+                type="email" value={form.email}
+                onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
+                placeholder="admin@stopshop.com"
+                className={inputCls('email')}
+              />
+              {formErrors.email && <p className="text-[9px] text-red-500 mt-1">{formErrors.email}</p>}
+            </div>
+            <div>
+              <label className="text-[9px] font-black uppercase tracking-widest text-gray-400">Password</label>
+              <input
+                type="password" value={form.password}
+                onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
+                placeholder="Min 6 characters"
+                className={inputCls('password')}
+              />
+              {formErrors.password && <p className="text-[9px] text-red-500 mt-1">{formErrors.password}</p>}
+            </div>
+            <div>
+              <label className="text-[9px] font-black uppercase tracking-widest text-gray-400">Role</label>
+              <select
+                value={form.roles[0]}
+                onChange={e => setForm(p => ({ ...p, roles: [e.target.value] }))}
+                className="w-full border-b-2 border-gray-100 focus:border-[#ba1f3d] py-3 text-sm font-bold bg-transparent outline-none transition-all"
+              >
+                {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
+              </select>
+            </div>
+          </div>
+          <button
+            onClick={handleCreate}
+            disabled={creating}
+            className="flex items-center space-x-2 px-8 py-3 bg-[#ba1f3d] text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:brightness-110 transition-all disabled:opacity-50"
+          >
+            {creating ? (
+              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <><Save size={13} /><span>Create Account</span></>
+            )}
+          </button>
+        </div>
+      )}
+
+      {/* Users list */}
+      <AsyncContent loading={loading} error={error} data={users} onRetry={refetch}
+        empty={
+          <div className="p-16 text-center border-2 border-dashed border-gray-100 rounded-xl">
+            <p className="text-xs font-black uppercase tracking-[0.4em] text-gray-300">No team members yet</p>
+          </div>
+        }
+      >
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {(users ?? []).map(user => (
+            <div
+              key={user._id}
+              className="group bg-white border border-gray-100 rounded-2xl p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-400 relative overflow-hidden"
+            >
+              {/* Shimmer on hover */}
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-gray-50/50 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out pointer-events-none" />
+
+              <div className="flex items-start justify-between mb-5 relative z-10">
+                <div className="w-12 h-12 bg-[#ba1f3d] rounded-xl flex items-center justify-center text-white font-black text-sm flex-shrink-0">
+                  {user.name?.charAt(0)?.toUpperCase() ?? 'A'}
+                </div>
+                {!user.isPrimary && (
+                  <button
+                    onClick={() => handleDelete(user)}
+                    disabled={deleting}
+                    className="opacity-0 group-hover:opacity-100 p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all duration-200"
+                    title="Remove access"
+                  >
+                    <UserX size={15} />
+                  </button>
+                )}
+                {user.isPrimary && (
+                  <span className="text-[8px] font-black uppercase tracking-widest text-[#FBBF24] bg-yellow-50 border border-yellow-200 px-2 py-1 rounded-lg">
+                    Owner
+                  </span>
+                )}
+              </div>
+
+              <div className="relative z-10">
+                <p className="font-black uppercase tracking-tight text-gray-900 mb-0.5">{user.name}</p>
+                <p className="text-[10px] text-gray-400 font-bold lowercase mb-3">{user.email}</p>
+
+                <div className="flex items-center space-x-2 flex-wrap gap-1">
+                  {user.roles?.map(role => (
+                    <span key={role} className={`flex items-center space-x-1 px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest ${
+                      role === 'super-admin' ? 'bg-red-50 text-[#ba1f3d]' :
+                      role === 'auditor' ? 'bg-blue-50 text-blue-600' : 'bg-gray-100 text-gray-600'
+                    }`}>
+                      <Shield size={9} />
+                      <span>{role}</span>
+                    </span>
+                  ))}
+                </div>
+
+                {user.lastLogin && (
+                  <div className="flex items-center space-x-1.5 mt-3">
+                    <Clock size={10} className="text-gray-300" />
+                    <p className="text-[9px] font-bold text-gray-300 uppercase tracking-widest">
+                      Last login: {new Date(user.lastLogin).toLocaleDateString()}
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </AsyncContent>
     </div>
   );
 };
