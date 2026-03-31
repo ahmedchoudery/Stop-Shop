@@ -23,10 +23,6 @@ jobs:
         ports:
           - 27017:27017
 
-    defaults:
-      run:
-        working-directory: ./web-app-next/railway-admin-api
-
     steps:
     - uses: actions/checkout@v4
 
@@ -35,7 +31,7 @@ jobs:
       with:
         node-version: 20.x
         cache: 'npm'
-        cache-dependency-path: web-app-next/railway-admin-api/package-lock.json
+        cache-dependency-path: package-lock.json
 
     - name: Install Dependencies
       run: npm install

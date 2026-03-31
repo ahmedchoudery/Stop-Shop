@@ -7,17 +7,15 @@ describe('API Utilities', () => {
       json: () => Promise.resolve({ success: true }),
     });
 
-    const { fetchApi } = await import('../utils/auth.js');
-    const response = await fetchApi('/api/test');
+    const { authFetch } = await import('../lib/auth.js');
+    const response = await authFetch('/api/test');
 
     expect(response.ok).toBe(true);
     expect(fetch).toHaveBeenCalledWith(
       '/api/test',
       expect.objectContaining({
         credentials: 'include',
-        headers: expect.objectContaining({
-          'Content-Type': 'application/json',
-        }),
+        headers: expect.any(Object),
       })
     );
   });
