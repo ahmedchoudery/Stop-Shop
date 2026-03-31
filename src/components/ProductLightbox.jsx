@@ -1,10 +1,12 @@
 /**
  * @fileoverview ProductLightbox — Design Spells Edition
+ * Fix: replaced require('animejs') with ESM import — lightbox animations are now functional
  * Applies: animejs-animation (spring open, swipe transition, thumbnail stagger),
  *          design-spells (zoom cursor, swipe gesture, keyboard shortcut hints)
  */
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import anime from 'animejs';
 import { X, ZoomIn, ZoomOut, ChevronLeft, ChevronRight, Maximize2 } from 'lucide-react';
 import { EASING } from '../hooks/useAnime.js';
 import { useScrollLock } from '../hooks/useUtils.js';
@@ -26,8 +28,6 @@ const ProductLightbox = ({ images = [], startIndex = 0, isOpen, onClose }) => {
   // Spring open animation
   useEffect(() => {
     if (!isOpen || !overlayRef.current) return;
-    let anime;
-    try { anime = require('animejs').default ?? require('animejs'); } catch { return; }
 
     anime.set(overlayRef.current, { opacity: 0 });
     anime({
@@ -57,8 +57,6 @@ const ProductLightbox = ({ images = [], startIndex = 0, isOpen, onClose }) => {
   // Thumbnail stagger on open
   useEffect(() => {
     if (!isOpen || !thumbsRef.current) return;
-    let anime;
-    try { anime = require('animejs').default ?? require('animejs'); } catch { return; }
 
     const thumbs = thumbsRef.current.querySelectorAll('[data-thumb]');
     anime.set(thumbs, { opacity: 0, translateY: 10 });
@@ -88,8 +86,6 @@ const ProductLightbox = ({ images = [], startIndex = 0, isOpen, onClose }) => {
 
   const handleClose = useCallback(() => {
     if (!overlayRef.current) { onClose(); return; }
-    let anime;
-    try { anime = require('animejs').default ?? require('animejs'); } catch { onClose(); return; }
     anime({
       targets: overlayRef.current,
       opacity: [1, 0],
@@ -101,8 +97,6 @@ const ProductLightbox = ({ images = [], startIndex = 0, isOpen, onClose }) => {
 
   const animateImgSwitch = useCallback((dir) => {
     if (!imgRef.current) return;
-    let anime;
-    try { anime = require('animejs').default ?? require('animejs'); } catch { return; }
     anime({
       targets: imgRef.current,
       opacity: [0, 1],

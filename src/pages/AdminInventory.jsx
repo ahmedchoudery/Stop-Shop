@@ -1,10 +1,12 @@
 /**
  * @fileoverview AdminInventory — Stock management page
+ * Fix: replaced require('animejs') with ESM import — success flash and stock indicators now animate correctly
  * Applies: react-ui-patterns (inline edit, optimistic update feedback),
  *          design-spells (success flash, stock level color coding, search with debounce)
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
+import anime from 'animejs';
 import { Search, Package, AlertTriangle, X, Filter } from 'lucide-react';
 import { AsyncContent } from '../components/ErrorBoundary.jsx';
 import InventoryHealthChart from '../components/InventoryHealthChart.jsx';
@@ -59,8 +61,6 @@ const AdminInventory = () => {
       }, 2000);
 
       // Spring bounce on the saved indicator
-      let anime;
-      try { anime = require('animejs').default ?? require('animejs'); } catch { return; }
       const el = document.querySelector(`[data-saved="${productId}"]`);
       if (el) anime({ targets: el, scale: [0, 1.2, 1], opacity: [0, 1], duration: 400, easing: EASING.SPRING });
 

@@ -1,14 +1,16 @@
 /**
  * @fileoverview SearchOverlay — Design Spells Edition
+ * Fix: replaced require('animejs') with ESM import — search entrance/results animations are now functional
  * Applies: animejs-animation (backdrop scale, result stagger),
  *          design-spells (full-screen takeover, live search magic)
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import anime from 'animejs';
 import { X, Search, ArrowRight, TrendingUp, Tag } from 'lucide-react';
 import { useCart } from '../context/CartContext.jsx';
 import { useCurrency } from '../context/CurrencyContext.jsx';
-import { useDebounce } from '../hooks/useUtils.js';
+import { useDebounce, useScrollLock } from '../hooks/useUtils.js';
 import { EASING } from '../hooks/useAnime.js';
 
 const TRENDING = ['Polo Shirts', 'Linen Shirts', 'Canvas Sneakers', 'Slim Denim', 'Hoodies'];
@@ -25,7 +27,7 @@ const SearchOverlay = ({ isOpen, onClose, products = [] }) => {
 
   const results = debouncedQuery.trim().length > 0
     ? products.filter(p =>
-        p.name.toLowerCase().includes(debouncedQuery.toLowerCase()) ||
+        p.name?.toLowerCase().includes(debouncedQuery.toLowerCase()) ||
         p.bucket?.toLowerCase().includes(debouncedQuery.toLowerCase()) ||
         p.subCategory?.toLowerCase().includes(debouncedQuery.toLowerCase())
       ).slice(0, 7)
@@ -35,15 +37,17 @@ const SearchOverlay = ({ isOpen, onClose, products = [] }) => {
   useEffect(() => {
     if (!isOpen || !overlayRef.current) return;
 
-    let anime;
-    try { anime = require('animejs').default ?? require('animejs'); } catch { return; }
-
-    anime.set(overlayRef.current, { opacity: 0 });
-    anime({
-      targets: overlayRef.current,
-      opacity: [0, 1],
-      duration: 250,
-      easing: 'easeOutQuad',
+    // Small delay to ensure DOM is reflowed and painted
+    requestAnimationFrame(() => {
+      if (!overlayRef.current) return;
+      
+      anime.set(overlayRef.current, { opacity: 0 });
+      anime({
+        targets: overlayRef.current,
+        opacity: [0, 1],
+        duration: 250,
+        easing: 'easeOutQuad',
+      });
     });
 
     setTimeout(() => inputRef.current?.focus(), 100);
@@ -52,8 +56,6 @@ const SearchOverlay = ({ isOpen, onClose, products = [] }) => {
   // ── Results stagger ───────────────────────────────────────────
   useEffect(() => {
     if (!resultsRef.current || !results.length) return;
-    let anime;
-    try { anime = require('animejs').default ?? require('animejs'); } catch { return; }
 
     const items = resultsRef.current.querySelectorAll('[data-result]');
     anime.set(items, { opacity: 0, translateY: 10 });
@@ -78,10 +80,7 @@ const SearchOverlay = ({ isOpen, onClose, products = [] }) => {
   }, [isOpen, onClose]);
 
   // ── Body scroll lock ──────────────────────────────────────────
-  useEffect(() => {
-    document.body.style.overflow = isOpen ? 'hidden' : '';
-    return () => { document.body.style.overflow = ''; };
-  }, [isOpen]);
+  useScrollLock(isOpen);
 
   if (!isOpen) return null;
 
@@ -105,11 +104,11 @@ const SearchOverlay = ({ isOpen, onClose, products = [] }) => {
           <Search className="absolute left-5 text-white/40" size={20} />
           <input
             ref={inputRef}
-            type="text"
+            type="search"
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Search collection..."
-            className="w-full bg-white/8 backdrop-blur-sm border border-white/15 text-white placeholder:text-white/30 text-xl font-medium py-5 pl-14 pr-14 rounded-2xl outline-none focus:border-white/35 focus:bg-white/12 transition-all duration-300 font-bold tracking-tight"
+            className="w-full bg-white/8 backdrop-blur-sm border border-white/15 text-white placeholder:text-white/30 text-xl py-5 pl-14 pr-14 rounded-2xl outline-none focus:border-white/35 focus:bg-white/12 transition-all duration-300 font-bold tracking-tight"
           />
           {query && (
             <button

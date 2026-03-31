@@ -1,10 +1,12 @@
 /**
  * @fileoverview RevenueChart — Design Spells Edition
+ * Fix: replaced require('animejs') with ESM import — chart entrance animations are now functional
  * Applies: animejs-animation (chart entrance, mode switch transition),
  *          design-spells (toggle pill animation, active dot glow, peak highlight)
  */
 
 import React, { useState, useEffect, useRef } from 'react';
+import anime from 'animejs';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer,
@@ -53,9 +55,6 @@ const RevenueChart = ({ chartData = [] }) => {
   useEffect(() => {
     if (!isIntersecting || hasAnimated.current || !chartRef.current) return;
     hasAnimated.current = true;
-
-    let anime;
-    try { anime = require('animejs').default ?? require('animejs'); } catch { return; }
 
     anime.set(chartRef.current, { opacity: 0, translateY: 20 });
     anime({

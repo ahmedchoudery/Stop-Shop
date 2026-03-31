@@ -12,7 +12,7 @@ import SmoothLoader from '../components/SmoothLoader.jsx';
 import CursorFollower from '../components/CursorFollower.jsx';
 import { CartProvider } from '../context/CartContext.jsx';
 import { WishlistProvider } from '../context/WishlistContext.jsx';
-import { RecentlyViewedProvider } from '../components/RecentlyViewedContext.jsx';
+import { RecentlyViewedProvider } from '../context/RecentlyViewedContext.jsx';
 import { CurrencyProvider } from '../context/CurrencyContext.jsx';
 import { LocaleProvider } from '../context/LocaleContext.jsx';
 import ErrorBoundary from '../components/ErrorBoundary.jsx';

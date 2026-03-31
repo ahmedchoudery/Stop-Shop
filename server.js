@@ -282,7 +282,7 @@ const productSchema = new mongoose.Schema({
   lifestyleImage: { type: String, default: '' },
   variantImages: { type: Map, of: String, default: {} },
   gallery: [{ type: String }],
-}, { timestamps: true, versionKey: false, indexes: false });
+}, { timestamps: true, versionKey: false, autoIndex: true });
 
 productSchema.index({ bucket: 1, createdAt: -1 });
 
@@ -334,6 +334,22 @@ const settingsSchema = new mongoose.Schema({
 }, { timestamps: true, versionKey: false });
 
 const Settings = mongoose.model('Settings', settingsSchema);
+
+const auditLogSchema = new mongoose.Schema({
+  action: { type: String, required: true, index: true },
+  details: { type: mongoose.Schema.Types.Mixed },
+  adminEmail: { type: String, required: true, index: true },
+  ip: { type: String },
+  timestamp: { type: Date, default: Date.now, index: true },
+}, { timestamps: true, versionKey: false });
+
+const AuditLog = mongoose.model('AuditLog', auditLogSchema);
+
+const subscriberSchema = new mongoose.Schema({
+  email: { type: String, required: true, unique: true, lowercase: true, trim: true },
+}, { timestamps: true, versionKey: false });
+
+const Subscriber = mongoose.model('Subscriber', subscriberSchema);
 
 // ─────────────────────────────────────────────────────────────────
 // AUTH MIDDLEWARE
@@ -418,6 +434,26 @@ const sendEmail = async (options) => {
     await transporter.sendMail(options);
   } catch (err) {
     console.error('[Email] Failed to send:', err.message);
+  }
+};
+
+/**
+ * Append an audit entry to MongoDB.
+ * @param {string} action
+ * @param {any} details
+ * @param {import('express').Request} [req]
+ */
+const logAudit = async (action, details, req) => {
+  try {
+    await AuditLog.create({
+      action,
+      details,
+      adminEmail: req?.user?.email ?? 'system',
+      ip: getClientIp(req),
+      timestamp: new Date(),
+    });
+  } catch (err) {
+    console.error('[Audit] Failed to log:', err.message);
   }
 };
 
@@ -521,6 +557,7 @@ app.patch('/api/orders/:id', authenticateToken, validateRequest(updateOrderStatu
 
     if (!order) throw new NotFoundError('Order not found');
 
+    await logAudit('ORDER_STATUS_UPDATE', { id: req.params.id, status: req.body.status }, req);
     await cacheService.invalidateMany([CACHE_KEYS.STATS_REVENUE, CACHE_KEYS.STATS_ORDERS]);
     res.json(order);
   } catch (err) { next(err); }
@@ -539,18 +576,20 @@ app.get('/api/admin/products', authenticateToken, async (req, res, next) => {
 
 app.post('/api/admin/products', authenticateToken, validateRequest(createProductSchema), async (req, res, next) => {
   try {
-    const buildId = () => `PRD-${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+    const buildId = () => `PRD-${Math.random().toString(36).substring(2, 11).toUpperCase()}`;
 
     const productData = { ...req.body, id: req.body.id || buildId() };
 
     try {
       const product = await new Product(productData).save();
+      await logAudit('PRODUCT_CREATE', { id: product.id, name: product.name }, req);
       await cacheService.invalidateMany([CACHE_KEYS.STATS_INVENTORY, CACHE_KEYS.PRODUCTS, CACHE_KEYS.PUBLIC_PRODUCTS]);
       return res.status(201).json(product);
     } catch (saveErr) {
       // Retry with new ID on collision
       if (saveErr?.code === 11000 && saveErr?.keyPattern?.id) {
         const product = await new Product({ ...productData, id: buildId() }).save();
+        await logAudit('PRODUCT_CREATE_RETRY', { id: product.id, name: product.name }, req);
         await cacheService.invalidateMany([CACHE_KEYS.STATS_INVENTORY, CACHE_KEYS.PRODUCTS, CACHE_KEYS.PUBLIC_PRODUCTS]);
         return res.status(201).json(product);
       }
@@ -586,6 +625,7 @@ app.patch('/api/admin/products/:id', authenticateToken, validateRequest(updatePr
 
     if (!product) throw new NotFoundError('Product not found');
 
+    await logAudit('PRODUCT_UPDATE', { id: req.params.id, changes: Object.keys(req.body) }, req);
     await cacheService.invalidateMany([CACHE_KEYS.STATS_INVENTORY, CACHE_KEYS.PRODUCTS, CACHE_KEYS.PUBLIC_PRODUCTS]);
     res.json(product);
   } catch (err) { next(err); }
@@ -596,6 +636,7 @@ app.delete('/api/admin/products/:id', authenticateToken, async (req, res, next) 
     const product = await Product.findOneAndDelete({ id: req.params.id }).lean();
     if (!product) throw new NotFoundError('Product not found');
 
+    await logAudit('PRODUCT_DELETE', { id: req.params.id, name: product.name }, req);
     await cacheService.invalidateMany([CACHE_KEYS.STATS_INVENTORY, CACHE_KEYS.PRODUCTS, CACHE_KEYS.PUBLIC_PRODUCTS]);
     res.json({ message: 'Product removed from system' });
   } catch (err) { next(err); }
@@ -761,6 +802,7 @@ app.post('/api/settings', authenticateToken, validateRequest(updateSettingsSchem
       upsert: true,
     }).lean();
 
+    await logAudit('SETTINGS_UPDATE', { changedKeys: Object.keys(update) }, req);
     await cacheService.del(CACHE_KEYS.SETTINGS);
     res.json({ message: 'Settings updated successfully', settings });
   } catch (err) { next(err); }
@@ -812,6 +854,50 @@ app.delete('/api/admin/users/:id', authenticateToken, async (req, res, next) => 
 
     await Admin.findByIdAndDelete(req.params.id);
     res.json({ message: 'Access revoked successfully' });
+  } catch (err) { next(err); }
+});
+
+// ─────────────────────────────────────────────────────────────────
+// ROUTES: AUDIT LOGS
+// ─────────────────────────────────────────────────────────────────
+
+// Audit logging logic moved to top of file for global availability
+
+app.get('/api/audits', authenticateToken, async (_req, res, next) => {
+  try {
+    const logs = await AuditLog.find().sort({ timestamp: -1 }).limit(100).lean();
+    res.json(logs);
+  } catch (err) { next(err); }
+});
+
+app.post('/api/newsletter/subscribe', apiLimiter, async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ error: 'Valid email address required.' });
+    }
+
+    const normalised = email.toLowerCase().trim();
+    
+    // Check MongoDB for existing subscriber
+    const existing = await Subscriber.findOne({ email: normalised });
+    if (existing) {
+      return res.json({ message: 'Already subscribed! You are on the list.' });
+    }
+
+    await Subscriber.create({ email: normalised });
+
+    // Notify admin
+    const adminEmail = getEnv('ADMIN_EMAIL', 'admin_email', 'EMAIL_USER', 'email_user');
+    const fromEmail  = getEnv('EMAIL_USER', 'email_user');
+    sendEmail({
+      from: fromEmail,
+      to: adminEmail,
+      subject: '📧 New Newsletter Subscriber',
+      html: `<p>New subscriber: <strong>${normalised}</strong></p>`,
+    });
+
+    res.json({ message: 'Subscribed! Thank you for joining.' });
   } catch (err) { next(err); }
 });
 
@@ -985,7 +1071,6 @@ app.use((_req, res) => {
 // GLOBAL ERROR HANDLER (nodejs-best-practices: centralized)
 // ─────────────────────────────────────────────────────────────────
 
-// eslint-disable-next-line no-unused-vars
 app.use((err, _req, res, _next) => {
   const statusCode = err.statusCode ?? 500;
   const isOperational = err.isOperational ?? false;
@@ -1012,9 +1097,12 @@ app.use((err, _req, res, _next) => {
 
 const PORT = parseInt(process.env.PORT ?? '5000', 10);
 
-const server = app.listen(PORT, '0.0.0.0', () => {
-  console.log(`✅ Server listening on 0.0.0.0:${PORT}`);
-});
+let server;
+if (process.env.NODE_ENV !== 'test' && !process.env.VERCEL) {
+  server = app.listen(PORT, '0.0.0.0', () => {
+    console.log(`✅ Server listening on 0.0.0.0:${PORT}`);
+  });
+}
 
 // ── Database ─────────────────────────────────────────────────────
 

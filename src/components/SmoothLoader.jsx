@@ -1,11 +1,13 @@
 /**
  * @fileoverview SmoothLoader — Luxury branded preloader
+ * Fix: replaced require('animejs') with ESM import — preloader animations are now functional
  * Applies: animejs-animation (timeline choreography, spring physics),
  *          design-spells (text scramble on brand name, fabric reveal transition),
  *          design-md (Cardinal Red, gold accent, surgical white)
  */
 
 import React, { useEffect, useRef, useState } from 'react';
+import anime from 'animejs';
 import { EASING } from '../hooks/useAnime.js';
 
 const BRAND_CHARS = 'STOP & SHOP';
@@ -25,15 +27,6 @@ const SmoothLoader = ({ onComplete }) => {
   const percentObj = useRef({ value: 0 });
 
   useEffect(() => {
-    let anime;
-    try {
-      anime = require('animejs').default ?? require('animejs');
-    } catch {
-      // CSS fallback — just count up
-      startBasicLoader();
-      return;
-    }
-
     // ── Initial entrance ─────────────────────────────────────
     anime.set([textRef.current, taglineRef.current, percentRef.current], {
       opacity: 0,
@@ -117,21 +110,6 @@ const SmoothLoader = ({ onComplete }) => {
       progressAnim.pause();
     };
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const startBasicLoader = () => {
-    let p = 0;
-    const interval = setInterval(() => {
-      p = Math.min(p + Math.random() * 12 + 3, 100);
-      setPercent(Math.round(p));
-      if (p >= 100) {
-        clearInterval(interval);
-        setTimeout(() => {
-          setIsExiting(true);
-          setTimeout(onComplete, 800);
-        }, 400);
-      }
-    }, 120);
-  };
 
   return (
     <div

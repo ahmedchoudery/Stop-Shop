@@ -66,12 +66,12 @@ const envBase = resolveEnvApiUrl(import.meta.env.VITE_API_URL ?? '');
 
 /**
  * Final API base URL.
- * - Dev/test: empty (Vite proxy handles /api → localhost:5000)
- * - Production: Railway URL from env or hardcoded fallback
+ * - Same Domain: empty (Vercel/Cloud handles /api → backend)
+ * - Different Domain: use envBase
  */
-export const API_BASE = isLocalhost || isTest
+export const API_BASE = (isLocalhost || isTest)
   ? ''
-  : (envBase || PROD_API);
+  : (envBase || ''); // Default to relative for Vercel unified deployment
 
 // ─────────────────────────────────────────────────────────────────
 // DIAGNOSTICS (dev only)

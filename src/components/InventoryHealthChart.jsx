@@ -1,9 +1,11 @@
 /**
  * @fileoverview InventoryHealthChart — Design Spells Edition
+ * Fix: replaced require('animejs') with ESM import — percentage count-up and score now animate correctly
  * Applies: animejs-animation (percentage count-up on scroll), design-spells (radial progress ring)
  */
 
 import React, { useEffect, useRef } from 'react';
+import anime from 'animejs';
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 import { useIntersectionObserver } from '../hooks/useUtils.js';
 import { EASING } from '../hooks/useAnime.js';
@@ -22,9 +24,6 @@ const InventoryHealthChart = ({ products = [] }) => {
   useEffect(() => {
     if (!isIntersecting || hasAnimated.current) return;
     hasAnimated.current = true;
-
-    let anime;
-    try { anime = require('animejs').default ?? require('animejs'); } catch { return; }
 
     const pObj = { value: 0 };
     anime({

@@ -1,10 +1,12 @@
 /**
  * @fileoverview AnimatedCounter — Design Spell component
+ * Fix: replaced require('animejs') with ESM import — counters now animate correctly
  * Applies: design-spells (numbers count up on first view, spring easing),
  *          animejs-animation (anime.js counter, intersection-triggered)
  */
 
 import React, { useEffect, useRef } from 'react';
+import anime from 'animejs';
 import { EASING } from '../hooks/useAnime.js';
 
 /**
@@ -31,17 +33,6 @@ const AnimatedCounter = ({
       ([entry]) => {
         if (!entry.isIntersecting || hasRun.current) return;
         hasRun.current = true;
-
-        let anime;
-        try {
-          anime = require('animejs').default ?? require('animejs');
-        } catch {
-          // Fallback: just show the value
-          if (spanRef.current) {
-            spanRef.current.textContent = `${prefix}${formatter(value)}${suffix}`;
-          }
-          return;
-        }
 
         objRef.current.value = 0;
 

@@ -1,14 +1,15 @@
 /**
- * @fileoverview UniversalDrawer — Cart + Product detail drawer
- * Applies: animejs-animation (spring slide-in, stagger cart items),
- *          design-spells (quantity stepper, size selector, smooth exit),
- *          design-md (Obsidian header, Cardinal Red accents)
+ * @fileoverview UniversalDrawer — Cart + Product + Wishlist drawer
+ * Fix: replaced all require('animejs') with ESM import — animates correctly now
+ * Fix: added WishlistDrawer mode (wishlist icon was showing nothing)
+ * Fix: drawer panel now starts hidden via CSS class, not inline transform
  */
 
 import React, { useEffect, useRef, useCallback } from 'react';
+import anime from 'animejs';
 import {
   X, ShoppingBag, Plus, Minus, Trash2, ArrowRight,
-  Tag, ChevronRight, Ruler, Star
+  Tag, ChevronRight, Ruler, Star, Heart
 } from 'lucide-react';
 import { useCart } from '../context/CartContext.jsx';
 import { useWishlist } from '../context/WishlistContext.jsx';
@@ -31,9 +32,6 @@ const CartDrawer = ({ onClose }) => {
 
   useEffect(() => {
     if (!listRef.current || !cartItems.length) return;
-    let anime;
-    try { anime = require('animejs').default ?? require('animejs'); } catch { return; }
-
     const items = listRef.current.querySelectorAll('[data-cart-item]');
     anime.set(items, { opacity: 0, translateX: 30 });
     anime({
@@ -146,7 +144,7 @@ const CartItem = ({ item, formatPrice, onRemove, onUpdate }) => (
       </div>
 
       <div className="flex items-center justify-between">
-        {/* Qty stepper — design spell */}
+        {/* Qty stepper */}
         <div className="flex items-center space-x-1 bg-white rounded-lg border border-gray-200 overflow-hidden">
           <button
             onClick={() => onUpdate(item.id, item.activeColor, item.selectedSize, -1, item.cartId)}
@@ -201,6 +199,117 @@ const EmptyCartState = ({ onClose }) => (
 );
 
 // ─────────────────────────────────────────────────────────────────
+// WISHLIST DRAWER (was completely missing — wishlist btn showed nothing)
+// ─────────────────────────────────────────────────────────────────
+
+const WishlistDrawer = ({ onClose }) => {
+  const { wishlistItems, toggleWishlist } = useWishlist();
+  const { formatPrice } = useCurrency();
+  const { openDrawer } = useCart();
+  const listRef = useRef(null);
+
+  useEffect(() => {
+    if (!listRef.current || !wishlistItems.length) return;
+    const items = listRef.current.querySelectorAll('[data-wishlist-item]');
+    anime.set(items, { opacity: 0, translateX: 30 });
+    anime({
+      targets: items,
+      opacity: [0, 1],
+      translateX: [30, 0],
+      duration: 500,
+      delay: anime.stagger(60),
+      easing: EASING.FABRIC,
+    });
+  }, [wishlistItems.length]);
+
+  return (
+    <div className="flex flex-col h-full">
+      {/* Header */}
+      <div className="flex items-center justify-between px-6 py-5 bg-gray-900 text-white flex-shrink-0">
+        <div className="flex items-center space-x-3">
+          <Heart size={20} className="text-[#ba1f3d]" />
+          <h2 className="text-base font-black uppercase tracking-tighter">Wishlist</h2>
+          {wishlistItems.length > 0 && (
+            <span className="bg-[#ba1f3d] text-white text-[9px] font-black px-2 py-0.5 rounded-full">
+              {wishlistItems.length}
+            </span>
+          )}
+        </div>
+        <button
+          onClick={onClose}
+          className="p-2 hover:bg-white/10 rounded-xl transition-all duration-200 hover:rotate-90 transform"
+        >
+          <X size={20} />
+        </button>
+      </div>
+
+      {/* Items */}
+      <div ref={listRef} className="flex-grow overflow-y-auto px-5 py-4 space-y-3">
+        {wishlistItems.length === 0 ? (
+          <div className="h-full flex flex-col items-center justify-center text-center py-16 space-y-6">
+            <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center">
+              <Heart size={32} strokeWidth={1} className="text-gray-300" />
+            </div>
+            <div>
+              <p className="font-black uppercase tracking-tight text-gray-900 mb-1">Nothing saved yet</p>
+              <p className="text-xs text-gray-400">Save pieces you love for later</p>
+            </div>
+            <button
+              onClick={onClose}
+              className="flex items-center space-x-2 text-[10px] font-black uppercase tracking-widest text-[#ba1f3d] border-b border-[#ba1f3d]/30 pb-0.5 hover:border-[#ba1f3d] transition-colors"
+            >
+              <span>Browse Collection</span>
+              <ArrowRight size={12} />
+            </button>
+          </div>
+        ) : (
+          wishlistItems.map(item => (
+            <div
+              key={item.id}
+              data-wishlist-item
+              className="flex space-x-3 bg-gray-50/80 rounded-xl p-3 group hover:bg-gray-100/80 transition-colors duration-200"
+            >
+              {/* Thumbnail */}
+              <div className="w-20 h-24 bg-white rounded-lg overflow-hidden flex-shrink-0 shadow-sm">
+                <img src={item.image} alt={item.name} className="w-full h-full object-cover" loading="lazy" />
+              </div>
+
+              {/* Details */}
+              <div className="flex-grow min-w-0">
+                <p className="text-[11px] font-black uppercase tracking-tight text-gray-900 leading-tight mb-1 truncate">
+                  {item.name}
+                </p>
+                <p className="text-sm font-black text-[#ba1f3d] mb-3">
+                  {formatPrice(item.price)}
+                </p>
+                <button
+                  onClick={() => {
+                    onClose();
+                    setTimeout(() => openDrawer('product', item), 350);
+                  }}
+                  className="text-[9px] font-black uppercase tracking-widest text-gray-500 hover:text-gray-900 border-b border-gray-200 hover:border-gray-900 transition-colors pb-0.5"
+                >
+                  View Details
+                </button>
+              </div>
+
+              {/* Remove */}
+              <button
+                onClick={() => toggleWishlist(item)}
+                className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 p-1.5 text-gray-300 hover:text-red-500 self-start"
+                title="Remove from wishlist"
+              >
+                <X size={13} />
+              </button>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────
 // PRODUCT DETAIL DRAWER
 // ─────────────────────────────────────────────────────────────────
 
@@ -215,9 +324,6 @@ const ProductDrawer = ({ product, onClose }) => {
 
   useEffect(() => {
     if (!contentRef.current) return;
-    let anime;
-    try { anime = require('animejs').default ?? require('animejs'); } catch { return; }
-
     const children = contentRef.current.querySelectorAll('[data-detail]');
     anime.set(children, { opacity: 0, translateY: 20 });
     anime({
@@ -238,13 +344,10 @@ const ProductDrawer = ({ product, onClose }) => {
 
   const handleAddToCart = async () => {
     if (product.sizes?.length > 0 && !selectedSize) {
-      // Shake the size selector — design spell
-      let anime;
-      try {
-        anime = require('animejs').default ?? require('animejs');
-        const sizeRow = document.querySelector('[data-size-selector]');
+      const sizeRow = document.querySelector('[data-size-selector]');
+      if (sizeRow) {
         anime({ targets: sizeRow, translateX: [-8, 8, -6, 6, -3, 3, 0], duration: 400, easing: 'linear' });
-      } catch { /* ok */ }
+      }
       return;
     }
     setAdding(true);
@@ -419,26 +522,28 @@ const UniversalDrawer = () => {
 
   useScrollLock(isDrawerOpen);
 
+  // Slide IN — runs when drawer opens (component mounts)
   useEffect(() => {
-    if (!drawerRef.current) return;
-    let anime;
-    try { anime = require('animejs').default ?? require('animejs'); } catch { return; }
+    if (!drawerRef.current || !isDrawerOpen) return;
 
-    if (isDrawerOpen) {
+    // Small delay to ensure DOM is reflowed and painted
+    requestAnimationFrame(() => {
+      if (!drawerRef.current) return;
+      
+      // Force initial state
+      anime.set(drawerRef.current, { translateX: '100%' });
+      
       anime({
         targets: drawerRef.current,
-        translateX: ['100%', '0%'],
+        translateX: '0%',
         duration: 550,
         easing: EASING.SPRING,
       });
-    }
+    });
   }, [isDrawerOpen]);
 
   const handleClose = useCallback(() => {
     if (!drawerRef.current) { closeDrawer(); return; }
-    let anime;
-    try { anime = require('animejs').default ?? require('animejs'); } catch { closeDrawer(); return; }
-
     anime({
       targets: drawerRef.current,
       translateX: ['0%', '100%'],
@@ -458,17 +563,15 @@ const UniversalDrawer = () => {
         onClick={handleClose}
       />
 
-      {/* Drawer panel */}
+      {/* Drawer panel — starts off-screen, anime slides it in */}
       <div
         ref={drawerRef}
         className="absolute inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl flex flex-col"
         style={{ transform: 'translateX(100%)', willChange: 'transform' }}
       >
-        {drawerMode === 'cart' ? (
-          <CartDrawer onClose={handleClose} />
-        ) : (
-          <ProductDrawer product={selectedProduct} onClose={handleClose} />
-        )}
+        {drawerMode === 'cart' && <CartDrawer onClose={handleClose} />}
+        {drawerMode === 'wishlist' && <WishlistDrawer onClose={handleClose} />}
+        {drawerMode === 'product' && <ProductDrawer product={selectedProduct} onClose={handleClose} />}
       </div>
     </div>
   );

@@ -53,13 +53,17 @@ export function useAsync(asyncFn, options = {}) {
     async (...args) => {
       const callId = ++callIdRef.current;
 
-      setState(prev => ({
-        ...prev,
-        // Only show full loading spinner when we have no data
-        loading: prev.data === null,
-        refreshing: prev.data !== null,
-        error: null,
-      }));
+      setState(prev => {
+        // Show full loading spinner when: null OR empty array (nothing yet loaded)
+        const hasNoData = prev.data === null
+          || (Array.isArray(prev.data) && prev.data.length === 0);
+        return {
+          ...prev,
+          loading: hasNoData,
+          refreshing: !hasNoData,
+          error: null,
+        };
+      });
 
       try {
         const result = await asyncFn(...args);

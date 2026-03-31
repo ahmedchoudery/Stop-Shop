@@ -1,11 +1,13 @@
 /**
  * @fileoverview AdminSidebar — Design Spells Edition
+ * Fix: replaced require('animejs') with ESM import — stagger entrance animations are now functional
  * Applies: design-spells (gold border-left active state, shimmer on hover),
  *          animejs-animation (stagger entrance on mount),
  *          design-md (Administrative Gray bg, Amber Gold accent)
  */
 
 import React, { useState, useEffect, useRef } from 'react';
+import anime from 'animejs';
 import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, ShoppingBag, Package, Settings,
@@ -37,9 +39,6 @@ const AdminSidebar = () => {
   useEffect(() => {
     if (hasAnimated.current || !navRef.current) return;
     hasAnimated.current = true;
-
-    let anime;
-    try { anime = require('animejs').default ?? require('animejs'); } catch { return; }
 
     const items = navRef.current.querySelectorAll('[data-nav]');
     anime.set(items, { opacity: 0, translateX: -16 });

@@ -1,10 +1,12 @@
 /**
  * @fileoverview MagneticButton — Design Spell component
+ * Fix: replaced require('animejs') with ESM import — button ahora works correctly
  * Applies: design-spells (magnetic hover, physics-based attraction),
  *          animejs-animation (spring easing, GPU-accelerated transform)
  */
 
 import React, { useRef, useCallback } from 'react';
+import anime from 'animejs';
 import { EASING } from '../hooks/useAnime.js';
 
 /**
@@ -34,8 +36,6 @@ const MagneticButton = ({
     const dist = Math.sqrt(dx * dx + dy * dy);
 
     if (dist < radius) {
-      let anime;
-      try { anime = require('animejs').default ?? require('animejs'); } catch { return; }
       anime({
         targets: ref.current,
         translateX: dx * strength,
@@ -47,8 +47,6 @@ const MagneticButton = ({
   }, [strength, radius]);
 
   const handleMouseLeave = useCallback(() => {
-    let anime;
-    try { anime = require('animejs').default ?? require('animejs'); } catch { return; }
     anime({
       targets: ref.current,
       translateX: 0,

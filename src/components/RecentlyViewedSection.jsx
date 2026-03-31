@@ -1,12 +1,14 @@
 /**
  * @fileoverview RecentlyViewedSection — Design Spells Edition
+ * Fix: replaced require('animejs') with ESM import — animations are now functional
  * Applies: animejs-animation (horizontal slide stagger, scroll trigger),
  *          design-spells (add-to-cart hover reveal, wishlist pulse)
  */
 
 import React, { useRef, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Clock, X, Star } from 'lucide-react';
-import { useRecentlyViewed } from './RecentlyViewedContext.jsx';
+import anime from 'animejs';
+import { ChevronLeft, ChevronRight, Clock, X, Star, Heart } from 'lucide-react';
+import { useRecentlyViewed } from '../context/RecentlyViewedContext.jsx';
 import { useCart } from '../context/CartContext.jsx';
 import { useWishlist } from '../context/WishlistContext.jsx';
 import { useCurrency } from '../context/CurrencyContext.jsx';
@@ -30,9 +32,6 @@ const RecentlyViewedSection = () => {
   useEffect(() => {
     if (!isIntersecting || hasAnimated.current || !cardsRef.current) return;
     hasAnimated.current = true;
-
-    let anime;
-    try { anime = require('animejs').default ?? require('animejs'); } catch { return; }
 
     const cards = cardsRef.current.querySelectorAll('[data-rv-card]');
     if (!cards.length) return;
@@ -196,12 +195,5 @@ const RecentlyViewedSection = () => {
     </section>
   );
 };
-
-// Missing import fix
-const Heart = ({ size, className }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={className}>
-    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-  </svg>
-);
 
 export default RecentlyViewedSection;

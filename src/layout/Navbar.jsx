@@ -1,11 +1,10 @@
 /**
  * @fileoverview Navbar — Design Spells Edition
- * Applies: design-spells (underline draw, magnetic cart, scroll-shrink),
- *          animejs-animation (spring entrance, stagger nav links),
- *          design-md (Cardinal Red system, surgical white, tracking patterns)
+ * Fix: replaced require('animejs') with ESM import — entrance & cart shake now work
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import anime from 'animejs';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   Search, ShoppingBag, Heart, Globe, DollarSign,
@@ -48,12 +47,8 @@ const Navbar = ({ onSearchOpen, products = [] }) => {
     if (hasAnimated.current || !linksRef.current) return;
     hasAnimated.current = true;
 
-    let anime;
-    try { anime = require('animejs').default ?? require('animejs'); } catch { return; }
-
     const links = linksRef.current.querySelectorAll('[data-nav-item]');
     anime.set(links, { opacity: 0, translateY: -12 });
-
     anime({
       targets: links,
       opacity: [0, 1],
@@ -67,9 +62,6 @@ const Navbar = ({ onSearchOpen, products = [] }) => {
   // ── Cart shake spring animation ───────────────────────────────
   useEffect(() => {
     if (!isBouncing || !cartRef.current) return;
-    let anime;
-    try { anime = require('animejs').default ?? require('animejs'); } catch { return; }
-
     anime({
       targets: cartRef.current,
       rotate: [0, -18, 14, -10, 8, -4, 2, 0],

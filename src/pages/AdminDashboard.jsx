@@ -1,9 +1,11 @@
 /**
  * @fileoverview AdminDashboard — Design Spells Edition
+ * Fix: replaced require('animejs') with ESM import — page entrance animations are now functional
  * Applies: animejs-animation (page entrance), design-md (admin dark theme)
  */
 
 import React, { useEffect, useRef } from 'react';
+import anime from 'animejs';
 import { Outlet } from 'react-router-dom';
 import AdminSidebar from '../components/AdminSidebar.jsx';
 import { EASING } from '../hooks/useAnime.js';
@@ -13,8 +15,6 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     if (!mainRef.current) return;
-    let anime;
-    try { anime = require('animejs').default ?? require('animejs'); } catch { return; }
 
     anime.set(mainRef.current, { opacity: 0 });
     anime({

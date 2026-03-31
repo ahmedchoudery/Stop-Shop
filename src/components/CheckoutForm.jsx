@@ -1,11 +1,13 @@
 /**
  * @fileoverview CheckoutForm — Design Spells Edition
+ * Fix: replaced require('animejs') with ESM import — step transitions, validation shakes, and promo reveals are now functional
  * Applies: animejs-animation (step transition, progress stagger, spring validation shake),
  *          design-spells (floating labels, progress morphing, promo reveal),
  *          design-md (surgical form aesthetic, Cardinal Red focus states)
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import anime from 'animejs';
 import { useCart } from '../context/CartContext.jsx';
 import {
   CreditCard, Truck, CheckCircle, ArrowRight, ArrowLeft,
@@ -160,8 +162,6 @@ const CheckoutForm = ({ onComplete, stockWarnings = [], isSubmitting = false }) 
   // ── Step transition animation ─────────────────────────────────
   const animateStepIn = useCallback((dir = 1) => {
     if (!stepContentRef.current) return;
-    let anime;
-    try { anime = require('animejs').default ?? require('animejs'); } catch { return; }
 
     anime({
       targets: stepContentRef.current,
@@ -198,8 +198,6 @@ const CheckoutForm = ({ onComplete, stockWarnings = [], isSubmitting = false }) 
 
     // Shake animation on error — design spell
     if (Object.keys(e).length > 0) {
-      let anime;
-      try { anime = require('animejs').default ?? require('animejs'); } catch { return false; }
       const errorFields = Object.keys(e).map(k => document.querySelector(`[name="${k}"]`)).filter(Boolean);
       anime({
         targets: errorFields,
@@ -235,8 +233,6 @@ const CheckoutForm = ({ onComplete, stockWarnings = [], isSubmitting = false }) 
       setAppliedPromo({ code, ...PROMO_CODES[code] });
       setPromoError('');
       // Success spring animation
-      let anime;
-      try { anime = require('animejs').default ?? require('animejs'); } catch { return; }
       const el = document.querySelector('[data-promo-success]');
       if (el) anime({ targets: el, scale: [0.8, 1.05, 1], duration: 500, easing: EASING.SPRING });
     } else {
@@ -476,14 +472,14 @@ const CheckoutForm = ({ onComplete, stockWarnings = [], isSubmitting = false }) 
                     </div>
                   ) : (
                     <div className="flex space-x-2">
-                      <input
-                        type="text"
-                        value={promoInput}
-                        onChange={e => { setPromoInput(e.target.value.toUpperCase()); setPromoError(''); }}
-                        onKeyDown={e => e.key === 'Enter' && applyPromo()}
-                        placeholder="CARDINAL20"
-                        className={`flex-grow border-2 ${promoError ? 'border-red-300' : 'border-gray-200'} focus:border-[#ba1f3d] rounded-xl px-4 py-3 text-xs font-bold uppercase tracking-widest outline-none transition-colors`}
-                      />
+                        <input
+                            type="text"
+                            value={promoInput}
+                            onChange={e => { setPromoInput(e.target.value.toUpperCase()); setPromoError(''); }}
+                            onKeyDown={e => e.key === 'Enter' && applyPromo()}
+                            placeholder="CARDINAL20"
+                            className={`flex-grow border-2 ${promoError ? 'border-red-300' : 'border-gray-200'} focus:border-[#ba1f3d] rounded-xl px-4 py-3 text-xs font-bold uppercase tracking-widest outline-none transition-colors`}
+                        />
                       <button
                         onClick={applyPromo}
                         className="px-5 py-3 bg-gray-900 text-white text-[9px] font-black uppercase tracking-widest rounded-xl hover:bg-[#ba1f3d] transition-all duration-300"

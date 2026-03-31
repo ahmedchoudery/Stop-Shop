@@ -1,10 +1,12 @@
 /**
  * @fileoverview Footer — Design Spells Edition
+ * Fix: replaced require('animejs') with ESM import — animations are now functional
  * Applies: animejs-animation (scroll-triggered reveal), design-spells (underline draw on links),
  *          design-md (Cardinal Red system, editorial spacing, brand voice)
  */
 
 import React, { useEffect, useRef } from 'react';
+import anime from 'animejs';
 import { Link } from 'react-router-dom';
 import { Facebook, Instagram, MapPin, Phone, Mail, ShieldCheck } from 'lucide-react';
 import { EASING } from '../hooks/useAnime.js';
@@ -19,9 +21,6 @@ const Footer = () => {
   useEffect(() => {
     if (!isIntersecting || hasAnimated.current || !colsRef.current) return;
     hasAnimated.current = true;
-
-    let anime;
-    try { anime = require('animejs').default ?? require('animejs'); } catch { return; }
 
     const cols = colsRef.current.querySelectorAll('[data-footer-col]');
     anime.set(cols, { opacity: 0, translateY: 30 });

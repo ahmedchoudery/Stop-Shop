@@ -1,11 +1,10 @@
 /**
  * @fileoverview ProductGrid — Stagger reveal with anime.js
- * Applies: animejs-animation (ScrollTrigger stagger, spring entrance),
- *          design-spells (category filter transitions, smooth re-sort),
- *          design-md (editorial headings, curated spacing)
+ * Fix: replaced require('animejs') with ESM import — card stagger animations now work
  */
 
 import React, { useState, useEffect, useMemo, memo, useCallback, useRef } from 'react';
+import anime from 'animejs';
 import ProductCard from './ProductCard.jsx';
 import { useCart } from '../context/CartContext.jsx';
 import { SlidersHorizontal } from 'lucide-react';
@@ -48,15 +47,11 @@ const ProductGrid = ({ products, activeBucket = 'All', activeSubCategory = null 
   useEffect(() => {
     if (!gridRef.current || sortedProducts.length === 0) return;
 
-    let anime;
-    try { anime = require('animejs').default ?? require('animejs'); } catch { return; }
-
     const cards = gridRef.current.querySelectorAll('.product-card-wrap');
     const bucketChanged = prevBucket.current !== activeBucket;
     prevBucket.current = activeBucket;
 
     if (bucketChanged) {
-      // Instant hide before re-reveal
       anime.set(cards, { opacity: 0, translateY: 40, scale: 0.96 });
     }
 
@@ -72,7 +67,6 @@ const ProductGrid = ({ products, activeBucket = 'All', activeSubCategory = null 
       });
     };
 
-    // Intersection observer to trigger on scroll
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -90,10 +84,6 @@ const ProductGrid = ({ products, activeBucket = 'All', activeSubCategory = null 
   // ── Heading stagger ───────────────────────────────────────────
   useEffect(() => {
     if (!headingRef.current) return;
-
-    let anime;
-    try { anime = require('animejs').default ?? require('animejs'); } catch { return; }
-
     anime({
       targets: headingRef.current,
       opacity: [0, 1],

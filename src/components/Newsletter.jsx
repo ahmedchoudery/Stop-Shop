@@ -1,18 +1,20 @@
 /**
  * @fileoverview Newsletter — Design Spells Edition
- * Applies: animejs-animation (timeline orchestration, spring, stagger),
- *          design-spells (floating label, shimmer CTA, text reveal clip),
- *          design-md (Cardinal Red, surgical white, editorial typography)
+ * Fix: replaced require('animejs') with ESM import
+ * Fix: wired actual /api/newsletter/subscribe endpoint (was simulating with setTimeout)
  */
 
 import React, { useState, useEffect, useRef } from 'react';
+import anime from 'animejs';
 import { ArrowRight, CheckCircle, Sparkles } from 'lucide-react';
 import { EASING } from '../hooks/useAnime.js';
 import { useIntersectionObserver } from '../hooks/useUtils.js';
+import { API_BASE } from '../config/api.js';
 
 const Newsletter = () => {
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState('idle'); // idle | loading | success | error
+  const [errorMsg, setErrorMsg] = useState('');
   const [isFocused, setIsFocused] = useState(false);
 
   const sectionRef = useRef(null);
@@ -37,9 +39,6 @@ const Newsletter = () => {
     if (!isIntersecting || hasAnimated.current) return;
     hasAnimated.current = true;
 
-    let anime;
-    try { anime = require('animejs').default ?? require('animejs'); } catch { return; }
-
     const badge = badgeRef.current;
     const headline = headlineRef.current;
     const form = formRef.current;
@@ -49,12 +48,10 @@ const Newsletter = () => {
     anime.set(badge, { translateY: 20 });
     anime.set(form, { translateY: 30 });
 
-    // Headline words — clip reveal
     const words = headline.querySelectorAll('[data-word]');
     anime.set(words, { translateY: 60, opacity: 0 });
 
     const tl = anime.timeline({ easing: EASING.FABRIC });
-
     tl
       .add({
         targets: badge,
@@ -79,25 +76,38 @@ const Newsletter = () => {
       }, '-=600');
   }, [isIntersecting]);
 
+  // ── Submit ────────────────────────────────────────────────────
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email || !email.includes('@')) return;
 
     setStatus('loading');
+    setErrorMsg('');
 
-    // Animate button
-    let anime;
+    // Animate button press
+    const btn = formRef.current?.querySelector('button[type="submit"]');
+    if (btn) anime({ targets: btn, scale: [1, 0.95, 1], duration: 300, easing: EASING.SPRING });
+
     try {
-      anime = require('animejs').default ?? require('animejs');
-      const btn = formRef.current?.querySelector('button[type="submit"]');
-      if (btn) {
-        anime({ targets: btn, scale: [1, 0.95, 1], duration: 300, easing: EASING.SPRING });
-      }
-    } catch { /* ok */ }
+      const res = await fetch(`${API_BASE}/api/newsletter/subscribe`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
 
-    // Simulate API (replace with supabaseService.subscribeNewsletter(email))
-    await new Promise(r => setTimeout(r, 1000));
-    setStatus('success');
+      const data = await res.json();
+
+      if (!res.ok) {
+        setErrorMsg(data.error ?? 'Something went wrong. Please try again.');
+        setStatus('error');
+        return;
+      }
+
+      setStatus('success');
+    } catch {
+      setErrorMsg('Connection error. Please check your internet and try again.');
+      setStatus('error');
+    }
   };
 
   return (
@@ -167,6 +177,11 @@ const Newsletter = () => {
           Join Pakistan's elite fashion community. First access to limited drops and private collections.
         </p>
 
+        {/* Error message */}
+        {status === 'error' && errorMsg && (
+          <p className="text-red-500 text-xs font-bold mb-4">{errorMsg}</p>
+        )}
+
         {/* Form / Success */}
         {status === 'success' ? (
           <div className="flex flex-col items-center space-y-6 animate-fade-up">
@@ -189,10 +204,8 @@ const Newsletter = () => {
             className="max-w-xl mx-auto"
             style={{ opacity: 0 }}
           >
-            {/* Floating label input — design spell */}
             <div className="relative flex items-stretch border-2 border-gray-900 shadow-[0_20px_60px_rgba(0,0,0,0.08)] group hover:shadow-[0_25px_70px_rgba(0,0,0,0.12)] transition-shadow duration-500">
 
-              {/* Input with floating label */}
               <div className="relative flex-grow">
                 <input
                   type="email"
@@ -205,7 +218,6 @@ const Newsletter = () => {
                   placeholder="your@email.com"
                   id="newsletter-email"
                 />
-                {/* Floating label — design spell */}
                 <label
                   htmlFor="newsletter-email"
                   className={`absolute left-8 pointer-events-none font-black uppercase transition-all duration-300 ${
@@ -218,7 +230,6 @@ const Newsletter = () => {
                 </label>
               </div>
 
-              {/* Submit button with shimmer */}
               <button
                 type="submit"
                 disabled={status === 'loading'}
@@ -232,7 +243,6 @@ const Newsletter = () => {
                     <ArrowRight size={16} className="group-hover/btn:translate-x-1 transition-transform duration-200" />
                   </>
                 )}
-                {/* Shimmer sweep */}
                 <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-600 ease-out" />
               </button>
             </div>

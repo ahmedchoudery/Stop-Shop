@@ -1,11 +1,13 @@
 /**
  * @fileoverview ProductCard — Design Spells Edition
+ * Fix: replaced require('animejs') with ESM import — card stagger animations now work
  * Applies: design-spells (text scramble, magnetic cart, shimmer reveal, depth tilt),
  *          animejs-animation (spring physics, stagger, timeline),
  *          3d-web-experience (CSS 3D perspective tilt — no WebGL needed for cards)
  */
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import anime from 'animejs';
 import { Star, Heart, ShoppingCart } from 'lucide-react';
 import { useCart } from '../context/CartContext.jsx';
 import { useWishlist } from '../context/WishlistContext.jsx';
@@ -115,16 +117,14 @@ const ProductCard = ({ product, onSelectProduct, onImageLoad }) => {
     setTimeout(() => setCartBurst(false), 600);
 
     // Anime.js ripple on the button
-    let anime;
-    try {
-      anime = require('animejs').default ?? require('animejs');
+    if (cartBtnRef.current) {
       anime({
         targets: cartBtnRef.current,
         scale: [1, 1.3, 1],
         duration: 500,
         easing: EASING.SPRING,
       });
-    } catch { /* GSAP fallback happens naturally */ }
+    }
 
     addToCart({ ...product, image: currentImage, activeColor });
   }, [addToCart, product, currentImage, activeColor]);

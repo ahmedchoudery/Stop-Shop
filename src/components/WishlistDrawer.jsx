@@ -1,10 +1,12 @@
 /**
  * @fileoverview WishlistDrawer — Design Spells Edition
+ * Fix: replaced require('animejs') with ESM import — animations are now functional
  * Applies: animejs-animation (spring entrance, stagger items),
  *          design-spells (move-to-cart with burst, hover lift on cards)
  */
 
 import React, { useEffect, useRef } from 'react';
+import anime from 'animejs';
 import { X, Heart, ShoppingBag, ArrowRight, Trash2 } from 'lucide-react';
 import { useWishlist } from '../context/WishlistContext.jsx';
 import { useCart } from '../context/CartContext.jsx';
@@ -25,8 +27,6 @@ const WishlistDrawer = ({ isOpen, onClose }) => {
   // Spring slide-in
   useEffect(() => {
     if (!drawerRef.current) return;
-    let anime;
-    try { anime = require('animejs').default ?? require('animejs'); } catch { return; }
 
     if (isOpen) {
       anime({
@@ -41,8 +41,6 @@ const WishlistDrawer = ({ isOpen, onClose }) => {
   // Stagger items
   useEffect(() => {
     if (!isOpen || !listRef.current || !wishlist.length) return;
-    let anime;
-    try { anime = require('animejs').default ?? require('animejs'); } catch { return; }
 
     const items = listRef.current.querySelectorAll('[data-wish-item]');
     anime.set(items, { opacity: 0, translateX: 20 });
@@ -58,8 +56,6 @@ const WishlistDrawer = ({ isOpen, onClose }) => {
 
   const handleClose = () => {
     if (!drawerRef.current) { onClose(); return; }
-    let anime;
-    try { anime = require('animejs').default ?? require('animejs'); } catch { onClose(); return; }
     anime({
       targets: drawerRef.current,
       translateX: ['0%', '100%'],
@@ -73,8 +69,6 @@ const WishlistDrawer = ({ isOpen, onClose }) => {
     addToCart(product);
     toggleWishlist(product);
     // Animate the item out
-    let anime;
-    try { anime = require('animejs').default ?? require('animejs'); } catch { return; }
     const el = document.querySelector(`[data-wish-id="${product.id}"]`);
     if (el) {
       anime({

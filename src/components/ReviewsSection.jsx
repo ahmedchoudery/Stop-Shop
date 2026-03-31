@@ -1,11 +1,13 @@
 /**
  * @fileoverview ReviewsSection — Design Spells Edition
+ * Fix: replaced require('animejs') with ESM import — testimonial carousel is now functional
  * Applies: animejs-animation (slide transition, stagger avatars),
  *          design-spells (progress bar auto-play, hover pause, avatar pulse),
  *          design-md (editorial layout, Cardinal Red system)
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import anime from 'animejs';
 import { Star, ChevronLeft, ChevronRight, Quote } from 'lucide-react';
 import { EASING } from '../hooks/useAnime.js';
 import { useIntersectionObserver } from '../hooks/useUtils.js';
@@ -102,8 +104,6 @@ const ReviewsSection = () => {
   useEffect(() => {
     if (!isIntersecting || hasAnimated.current) return;
     hasAnimated.current = true;
-    let anime;
-    try { anime = require('animejs').default ?? require('animejs'); } catch { return; }
 
     const heading = sectionRef.current?.querySelector('[data-heading]');
     const rating = sectionRef.current?.querySelector('[data-rating]');
@@ -126,8 +126,6 @@ const ReviewsSection = () => {
   // ── Auto-play progress bar ───────────────────────────────────
   const startProgress = useCallback(() => {
     setProgress(0);
-    let anime;
-    try { anime = require('animejs').default ?? require('animejs'); } catch { return; }
 
     progressAnim.current?.pause();
     const obj = { value: 0 };
@@ -143,13 +141,6 @@ const ReviewsSection = () => {
   const goTo = useCallback((idx) => {
     if (isTransitioning) return;
     setIsTransitioning(true);
-
-    let anime;
-    try { anime = require('animejs').default ?? require('animejs'); } catch {
-      setActiveIdx(idx);
-      setIsTransitioning(false);
-      return;
-    }
 
     // Slide out current
     if (cardRef.current) {

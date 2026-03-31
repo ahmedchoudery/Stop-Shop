@@ -1,11 +1,10 @@
 /**
  * @fileoverview HomePage — Main storefront
- * Applies: react-patterns (composition, custom hooks),
- *          animejs-animation (section entrance orchestration),
- *          design-spells (category filter morphing, bucket pill animation)
+ * Fix: replaced require('animejs') with ESM import — category pill animation now works
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
+import anime from 'animejs';
 import PowerOfChoiceHero from '../components/PowerOfChoiceHero.jsx';
 import MarqueeBar from '../components/MarqueeBar.jsx';
 import ProductGrid from '../components/ProductGrid.jsx';
@@ -38,12 +37,6 @@ const CategoryBar = ({ active, onChange, products }) => {
     const containerRect = container.getBoundingClientRect();
     const left = tabRect.left - containerRect.left;
 
-    let anime;
-    try { anime = require('animejs').default ?? require('animejs'); } catch {
-      pill.style.left = `${left}px`;
-      pill.style.width = `${tabRect.width}px`;
-      return;
-    }
     anime({
       targets: pill,
       left: [pill.offsetLeft, left],

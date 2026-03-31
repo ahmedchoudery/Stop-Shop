@@ -1,12 +1,10 @@
 /**
  * @fileoverview useAnime — anime.js React hooks
- * Applies: animejs-animation skill (spring easing, stagger, timeline orchestration),
- *          react-patterns (custom hooks, cleanup on unmount)
- *
- * INSTALL: npm install animejs
+ * Fix: replaced all require('animejs') with ESM import — hooks now work correctly in ESM env
  */
 
 import { useEffect, useRef, useCallback } from 'react';
+import anime from 'animejs';
 
 // ─────────────────────────────────────────────────────────────────
 // EASING PRESETS (design-spells: expensive, natural motion)
@@ -33,26 +31,13 @@ export const EASING = {
 
 /**
  * Create and manage an anime.js timeline tied to component lifecycle.
- *
- * @param {function(anime: Object): Object} buildTimeline - Receives anime instance, returns timeline
- * @param {Array} deps - Dependencies to re-run timeline
- * @returns {{ play: function, pause: function, restart: function, timelineRef: Object }}
  */
 export const useAnimeTimeline = (buildTimeline, deps = []) => {
   const timelineRef = useRef(null);
 
   useEffect(() => {
-    let anime;
-    try {
-      anime = require('animejs').default ?? require('animejs');
-    } catch {
-      console.warn('[useAnime] animejs not installed. Run: npm install animejs');
-      return;
-    }
-
     // Kill previous timeline
     timelineRef.current?.pause();
-
     timelineRef.current = buildTimeline(anime);
 
     return () => {
@@ -73,16 +58,6 @@ export const useAnimeTimeline = (buildTimeline, deps = []) => {
 
 /**
  * Staggered entrance animation for a container's children.
- * Applies the "fabric settling" easing from the design system.
- *
- * @param {Object} [options]
- * @param {string} [options.childSelector=':scope > *'] - CSS selector for children
- * @param {number} [options.translateY=60] - Start Y offset in px
- * @param {number} [options.duration=900]
- * @param {number} [options.stagger=80]
- * @param {number} [options.delay=0]
- * @param {string} [options.easing=EASING.FABRIC]
- * @returns {React.RefObject} Attach to container element
  */
 export const useAnimeEntrance = ({
   childSelector = ':scope > *',
@@ -96,13 +71,6 @@ export const useAnimeEntrance = ({
 
   useEffect(() => {
     if (!containerRef.current) return;
-
-    let anime;
-    try {
-      anime = require('animejs').default ?? require('animejs');
-    } catch {
-      return;
-    }
 
     const targets = containerRef.current.querySelectorAll(childSelector);
     if (!targets.length) return;
@@ -128,11 +96,6 @@ export const useAnimeEntrance = ({
 
 /**
  * Magnetic button effect — element follows cursor when nearby.
- * Design Spell: replaces standard hover with physics-based attraction.
- *
- * @param {number} [strength=0.4] - How strongly the element is attracted (0–1)
- * @param {number} [radius=80] - Distance in px that triggers magnetism
- * @returns {React.RefObject}
  */
 export const useAnimeMagnetic = (strength = 0.4, radius = 80) => {
   const ref = useRef(null);
@@ -140,13 +103,6 @@ export const useAnimeMagnetic = (strength = 0.4, radius = 80) => {
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-
-    let anime;
-    try {
-      anime = require('animejs').default ?? require('animejs');
-    } catch {
-      return;
-    }
 
     const onMouseMove = (e) => {
       const rect = el.getBoundingClientRect();
@@ -195,14 +151,6 @@ export const useAnimeMagnetic = (strength = 0.4, radius = 80) => {
 
 /**
  * Animate a number from 0 to target value.
- * Design Spell: dashboard stats "count up" on first view.
- *
- * @param {number} target - The final value
- * @param {Object} [options]
- * @param {number} [options.duration=1400]
- * @param {string} [options.easing=EASING.EXPO_OUT]
- * @param {function} [options.formatter] - Format the number (e.g., add commas)
- * @returns {React.RefObject}
  */
 export const useAnimeCounter = (target, {
   duration = 1400,
@@ -214,14 +162,6 @@ export const useAnimeCounter = (target, {
 
   useEffect(() => {
     if (!ref.current || target === undefined) return;
-
-    let anime;
-    try {
-      anime = require('animejs').default ?? require('animejs');
-    } catch {
-      if (ref.current) ref.current.textContent = formatter(target);
-      return;
-    }
 
     const anim = anime({
       targets: objRef.current,
@@ -248,10 +188,6 @@ export const useAnimeCounter = (target, {
 
 /**
  * Text scramble effect — letters randomize then resolve to final text.
- * Design Spell: product names scramble briefly on card hover.
- *
- * @param {string} finalText - The text to resolve to
- * @returns {{ ref: React.RefObject, scramble: function }}
  */
 export const useAnimeTextScramble = (finalText) => {
   const ref = useRef(null);

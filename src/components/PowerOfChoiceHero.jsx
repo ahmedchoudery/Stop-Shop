@@ -1,11 +1,13 @@
 /**
  * @fileoverview PowerOfChoiceHero — Fashion-forward hero with clothing 3D
+ * Fix: replaced require('animejs') with ESM import — entrance animations are now functional
  * Applies: animejs-animation (spring timeline, stagger entrance),
  *          design-spells (fabric motion, magnetic CTA),
  *          3d-web-experience (purposeful clothing 3D, mobile fallback)
  */
 
 import React, { useEffect, useRef } from 'react';
+import anime from 'animejs';
 import { ArrowRight } from 'lucide-react';
 import ClothingHeroScene from './ClothingHeroScene.jsx';
 import { useAnimeMagnetic } from '../hooks/useAnime.js';
@@ -18,21 +20,6 @@ const PowerOfChoiceHero = () => {
   const ctaRef = useAnimeMagnetic(0.35, 100);
 
   useEffect(() => {
-    let anime;
-    try {
-      anime = require('animejs').default ?? require('animejs');
-    } catch {
-      // Fallback: use CSS classes if anime.js not installed
-      if (containerRef.current) {
-        containerRef.current.querySelectorAll('[data-anime]').forEach((el, i) => {
-          el.style.transition = `opacity 0.8s ease ${i * 0.15}s, transform 0.8s ease ${i * 0.15}s`;
-          el.style.opacity = '1';
-          el.style.transform = 'translateY(0)';
-        });
-      }
-      return;
-    }
-
     // Set initial hidden state
     const items = containerRef.current?.querySelectorAll('[data-anime]');
     if (!items?.length) return;

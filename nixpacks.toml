@@ -1,9 +1,0 @@
-[variables]
-NIXPACKS_NODE_VERSION = "20"
-NODE_ENV = "production"
-
-[phases.install]
-cmds = ["npm ci"]
-
-[phases.build]
-cmds = ["npm run build", "npm prune --omit=dev"]
