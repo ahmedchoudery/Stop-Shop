@@ -615,12 +615,16 @@ const PORT = parseInt(process.env.PORT ?? '5000', 10);
 let server;
 
 if (!process.env.VERCEL) {
-  server = app.listen(PORT, '0.0.0.0', () => console.log(`✅ Server on ${PORT}`));
+  server = app.listen(PORT, '0.0.0.0', () => {
+    console.log(`✅ Server on ${PORT}`);
+    console.log(`[Diagnostic] Health check: http://0.0.0.0:${PORT}/api/health`);
+  });
 }
 
 // ── Database ──
 const mongoUri = getEnv('MONGO_URI', 'MONGODB_URI');
 if (mongoUri) {
+  console.log('🔌 Connecting to MongoDB...');
   mongoose.connect(mongoUri, { maxPoolSize: 10, socketTimeoutMS: 45000, family: 4 })
     .then(() => console.log('✅ MongoDB connected'))
     .catch(err => console.error('❌ DB error:', err.message));
