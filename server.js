@@ -430,6 +430,35 @@ app.get('/api/admin/users', authenticateToken, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
+// ── Admin Stats ────────────────────────────────────────────────
+app.get('/api/stats/revenue', authenticateToken, async (req, res, next) => {
+  try {
+    const total = await Order.aggregate([
+      { $match: { status: 'completed' } },
+      { $group: { _id: null, total: { $sum: '$totalAmount' } } }
+    ]);
+    res.json({ total: total[0]?.total || 0, growth: 0 });
+  } catch (err) { next(err); }
+});
+
+app.get('/api/stats/orders', authenticateToken, async (req, res, next) => {
+  try {
+    const counts = await Order.aggregate([
+      { $group: { _id: '$status', count: { $sum: 1 } } }
+    ]);
+    const total = counts.reduce((acc, c) => acc + c.count, 0);
+    res.json({ total, counts: counts.reduce((acc, c) => ({ ...acc, [c._id]: c.count }), {}) });
+  } catch (err) { next(err); }
+});
+
+app.get('/api/stats/inventory', authenticateToken, async (req, res, next) => {
+  try {
+    const total = await Product.countDocuments();
+    const lowStock = await Product.countDocuments({ stock: { $lt: 5 } });
+    res.json({ total, lowStock });
+  } catch (err) { next(err); }
+});
+
 app.get('/api/orders', authenticateToken, async (req, res, next) => {
   try {
     const orders = await Order.find().sort({ createdAt: -1 }).lean();
