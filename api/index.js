@@ -46,8 +46,10 @@ const startupLog = {
   JWT_SECRET_PRESENT: !!(process.env.JWT_SECRET ?? process.env.jwt_secret),
   REDIS_URL_PRESENT: !!(process.env.REDIS_URL ?? process.env.REDIS_TLS_URL),
   VERCEL: !!process.env.VERCEL,
+  RAILWAY: !!process.env.RAILWAY_STATIC_URL || !!process.env.RAILWAY_ENVIRONMENT,
 };
 
+console.log('🚀 Starting API Diagnostics...');
 console.table(startupLog);
 
 // ─────────────────────────────────────────────────────────────────
@@ -558,23 +560,41 @@ app.get('/api/audits', authenticateToken, async (_req, res, next) => {
 });
 
 // ─────────────────────────────────────────────────────────────────
-// STATIC FILES
+// STATIC FILES & SPA ROUTING
 // ─────────────────────────────────────────────────────────────────
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const distPath = path.join(__dirname, '../dist');
+const distPath = path.resolve(__dirname, '../dist');
+
+console.log(`[Static] Checking for dist at: ${distPath}`);
 
 if (fs.existsSync(distPath)) {
-  app.use(express.static(distPath, { maxAge: '1d' }));
+  console.log('✅ Static assets found. Serving from /dist');
+  app.use(express.static(distPath, { 
+    maxAge: '1d',
+    setHeaders: (res, path) => {
+      if (path.endsWith('.html')) res.setHeader('Cache-Control', 'no-cache');
+    }
+  }));
+} else {
+  console.warn('⚠️ Static assets NOT found. Frontend might not be built yet.');
 }
 
 app.use('/api', (_req, res) => res.status(404).json({ error: 'API not found' }));
 
-app.use((_req, res) => {
+// SPA Fallback: Serve index.html for all non-API routes
+app.get('*', (req, res) => {
   const index = path.join(distPath, 'index.html');
-  if (fs.existsSync(index)) res.sendFile(index);
-  else res.status(200).json({ message: 'API running — Frontend not built' });
+  if (fs.existsSync(index)) {
+    res.sendFile(index);
+  } else if (!req.path.startsWith('/api')) {
+    res.status(200).json({ 
+      message: 'API running — Frontend not built',
+      path: req.path,
+      timestamp: new Date().toISOString()
+    });
+  }
 });
 
 // ─────────────────────────────────────────────────────────────────
