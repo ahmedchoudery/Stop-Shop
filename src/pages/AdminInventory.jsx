@@ -77,12 +77,15 @@ const AdminInventory = () => {
 
   const filtered = products.filter(p => {
     const q = searchTerm.toLowerCase();
-    const matchSearch = !searchTerm || p.name.toLowerCase().includes(q) || p.id?.toLowerCase().includes(q);
+    const matchSearch = !searchTerm 
+      || p.name?.toLowerCase().includes(q) 
+      || p.id?.toLowerCase().includes(q);
+    
     const matchStock =
       stockFilter === 'all' ? true :
-      stockFilter === 'out' ? p.quantity === 0 :
-      stockFilter === 'low' ? p.quantity > 0 && p.quantity < 5 :
-      p.quantity >= 5;
+      stockFilter === 'out' ? (p.quantity === 0) :
+      stockFilter === 'low' ? (p.quantity > 0 && p.quantity < 5) :
+      (p.quantity >= 5);
     return matchSearch && matchStock;
   });
 

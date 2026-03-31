@@ -21,8 +21,9 @@ export function useProducts() {
   const fetchProducts = useCallback(async () => {
     const res = await authFetch(apiUrl('/api/admin/products'));
     handleAuthError(res.status);
-    if (!res.ok) throw new Error('Failed to fetch products');
-    return res.json();
+    if (!res.ok) throw new Error('Failed to load administrative product catalog');
+    const data = await res.json();
+    return Array.isArray(data) ? data : (data.products ?? []);
   }, []);
 
   const [{ data: products, loading, refreshing, error }, { execute: refetch }] = useAsync(
@@ -40,8 +41,12 @@ export function useProducts() {
         body: JSON.stringify(productData),
       });
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error ?? 'Failed to create product');
+        let errMsg = 'Failed to create product';
+        try {
+          const errData = await res.json();
+          errMsg = errData.message || errData.error || (errData.errors?.[0]?.message) || errMsg;
+        } catch { /* fallback to default */ }
+        throw new Error(errMsg);
       }
       return res.json();
     },

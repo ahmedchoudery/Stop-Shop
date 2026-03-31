@@ -170,10 +170,11 @@ const AdminProducts = () => {
 
     return products.filter(p => {
       const matchesSearch = !searchTerm
-        || p.name.toLowerCase().includes(lower)
+        || p.name?.toLowerCase().includes(lower)
         || p.id?.toLowerCase().includes(lower);
 
-      const matchesCategory = categoryFilter === 'all' || p.bucket === categoryFilter;
+      const matchesCategory = categoryFilter === 'all' 
+        || p.bucket?.toLowerCase() === categoryFilter.toLowerCase();
 
       const matchesStock = stockFilter === 'all'
         || (stockFilter === 'in-stock' && p.quantity > 0)

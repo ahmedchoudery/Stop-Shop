@@ -173,8 +173,8 @@ app.use(cors({
 
 app.use(compression());
 app.use(morgan(isProduction ? 'combined' : 'dev'));
-app.use(express.json({ limit: '10kb' }));
-app.use(express.urlencoded({ extended: true, limit: '10kb' }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 app.use(cookieParser());
 app.use(sanitizeInput);
 app.use(flattenQueryParams);
@@ -479,7 +479,12 @@ app.patch('/api/orders/:id', authenticateToken, validateRequest(updateOrderStatu
 app.get('/api/admin/products', authenticateToken, async (req, res, next) => {
   try {
     const products = await Product.find().sort({ createdAt: -1 }).lean();
-    res.json(products);
+    // Professional Fallback: ensure every record has useable ID for frontend
+    const docs = products.map(p => ({
+      ...p,
+      id: p.id || p._id?.toString() || `GEN-${Math.random().toString(36).substr(2, 9)}`
+    }));
+    res.json(docs);
   } catch (err) { next(err); }
 });
 
@@ -532,7 +537,15 @@ app.delete('/api/admin/products/:id', authenticateToken, async (req, res, next) 
 
 app.get('/api/public/products', async (req, res, next) => {
   try {
-    const data = await cacheService.getOrSet(CACHE_KEYS.PUBLIC_PRODUCTS, () => Product.find().lean());
+    const data = await cacheService.getOrSet(CACHE_KEYS.PUBLIC_PRODUCTS, async () => {
+      const products = await Product.find().lean();
+      return products.map(p => ({
+        ...p,
+        id: p.id || p._id?.toString() || `GEN-${Math.random().toString(36).substr(2, 9)}`,
+        bucket: p.bucket || 'General',
+        subCategory: p.subCategory || 'General'
+      }));
+    });
     res.json(data);
   } catch (err) { next(err); }
 });
