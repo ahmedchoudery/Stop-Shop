@@ -19,9 +19,9 @@ import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import cookieParser from 'cookie-parser';
 
-// Updated imports to reflect api/ directory depth
-import { cacheService, CACHE_KEYS } from '../src/services/cacheService.js';
-import { sanitizeInput, getClientIp, flattenQueryParams } from '../src/middleware/security.js';
+// Updated imports to reflect root-level position
+import { cacheService, CACHE_KEYS } from './src/services/cacheService.js';
+import { sanitizeInput, getClientIp, flattenQueryParams } from './src/middleware/security.js';
 import {
   validateRequest,
   loginSchema,
@@ -31,7 +31,7 @@ import {
   updateOrderStatusSchema,
   checkoutSchema,
   updateSettingsSchema,
-} from '../src/schemas/validation.js';
+} from './src/schemas/validation.js';
 
 dotenv.config();
 
@@ -565,7 +565,7 @@ app.get('/api/audits', authenticateToken, async (_req, res, next) => {
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const distPath = path.resolve(__dirname, '../dist');
+const distPath = path.resolve(__dirname, './dist');
 
 console.log(`[Static] Checking for dist at: ${distPath}`);
 
