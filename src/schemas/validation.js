@@ -24,7 +24,7 @@ const passwordSchema = z
 const priceSchema = z
   .number({ invalid_type_error: 'Price must be a number' })
   .positive('Price must be greater than 0')
-  .max(1_000_000, 'Price exceeds maximum allowed value')
+  .max(1_000_000_000, 'Price exceeds maximum allowed value')
   .or(z.string().regex(/^\d+(\.\d{1,2})?$/).transform(Number));
 
 const quantitySchema = z
@@ -69,21 +69,24 @@ export const createProductSchema = z.object({
     .min(2, 'Name must be at least 2 characters')
     .max(120, 'Name too long'),
   price: priceSchema,
-  quantity: quantitySchema.optional().default(0),
-  stock: quantitySchema.optional().default(0),
-  image: z.string().url('Invalid image URL').or(z.string().startsWith('data:')).or(z.literal('')),
-  lifestyleImage: z.string().url().or(z.string().startsWith('data:')).or(z.literal('')).optional().default(''),
+  quantity: quantitySchema.optional().default(0).or(z.literal('').transform(() => 0)),
+  stock: quantitySchema.optional().default(0).or(z.literal('').transform(() => 0)),
+  image: z.string().url('Invalid image URL').or(z.string().startsWith('data:')).or(z.literal('')).or(z.null()).transform(v => v ?? ''),
+  lifestyleImage: z.string().url().or(z.string().startsWith('data:')).or(z.literal('')).or(z.null()).optional().default('').transform(v => v ?? ''),
   mediaType: z.enum(MEDIA_TYPES).optional().default('upload'),
-  embedCode: z.string().max(5000).optional().default(''),
-  bucket: z.enum(PRODUCT_BUCKETS).optional().default('Tops'),
-  subCategory: z.string().max(60).optional().default('General'),
+  embedCode: z.string().max(5000).optional().default('').or(z.null()).transform(v => v ?? ''),
+  bucket: z.string().transform(v => {
+    const t = v.trim().toLowerCase();
+    return t.charAt(0).toUpperCase() + t.slice(1);
+  }).pipe(z.enum(PRODUCT_BUCKETS)).optional().default('Tops'),
+  subCategory: z.string().max(60).optional().default('General').or(z.null()).transform(v => v ?? 'General'),
   rating: z.number().int().min(1).max(5).optional().default(5),
-  specs: z.array(z.string().max(200)).max(10).optional().default([]),
-  colors: z.array(z.string().max(50)).max(20).optional().default([]),
-  sizes: z.array(z.string().max(20)).max(30).optional().default([]),
-  sizeStock: sizeStockSchema.optional().default({}),
-  gallery: z.array(z.string().url().or(z.string().startsWith('data:'))).max(20).optional().default([]),
-  variantImages: z.record(z.string(), z.string()).optional().default({}),
+  specs: z.array(z.string().max(200)).max(10).optional().default([]).or(z.null()).transform(v => v ?? []),
+  colors: z.array(z.string().max(50)).max(20).optional().default([]).or(z.null()).transform(v => v ?? []),
+  sizes: z.array(z.string().max(20)).max(30).optional().default([]).or(z.null()).transform(v => v ?? []),
+  sizeStock: sizeStockSchema.optional().default({}).or(z.null()).transform(v => v ?? {}),
+  gallery: z.array(z.string().url().or(z.string().startsWith('data:'))).max(20).optional().default([]).or(z.null()).transform(v => v ?? []),
+  variantImages: z.record(z.string(), z.string()).optional().default({}).or(z.null()).transform(v => v ?? {}),
 });
 
 export const updateProductSchema = createProductSchema.partial().omit({ id: true });
