@@ -509,6 +509,12 @@ app.post('/api/admin/products', authenticateToken, validateRequest(createProduct
   } catch (err) { next(err); }
 });
 
+const buildIdQuery = (idParam) => {
+  return mongoose.isValidObjectId(idParam)
+    ? { $or: [{ id: idParam }, { _id: idParam }] }
+    : { id: idParam };
+};
+
 app.patch('/api/admin/products/:id', authenticateToken, validateRequest(updateProductSchema), async (req, res, next) => {
   try {
     const updateData = { ...req.body };
@@ -517,7 +523,7 @@ app.patch('/api/admin/products/:id', authenticateToken, validateRequest(updatePr
       updateData.quantity = total;
       updateData.stock = total;
     }
-    const product = await Product.findOneAndUpdate({ id: req.params.id }, updateData, { new: true }).lean();
+    const product = await Product.findOneAndUpdate(buildIdQuery(req.params.id), updateData, { new: true }).lean();
     if (!product) throw new NotFoundError('Product not found');
     await logAudit('PRODUCT_UPDATE', { id: req.params.id, changes: Object.keys(req.body) }, req);
     await cacheService.invalidateMany([CACHE_KEYS.STATS_INVENTORY, CACHE_KEYS.PRODUCTS, CACHE_KEYS.PUBLIC_PRODUCTS]);
@@ -527,7 +533,7 @@ app.patch('/api/admin/products/:id', authenticateToken, validateRequest(updatePr
 
 app.delete('/api/admin/products/:id', authenticateToken, async (req, res, next) => {
   try {
-    const product = await Product.findOneAndDelete({ id: req.params.id }).lean();
+    const product = await Product.findOneAndDelete(buildIdQuery(req.params.id)).lean();
     if (!product) throw new NotFoundError('Product not found');
     await logAudit('PRODUCT_DELETE', { id: req.params.id, name: product.name }, req);
     await cacheService.invalidateMany([CACHE_KEYS.STATS_INVENTORY, CACHE_KEYS.PRODUCTS, CACHE_KEYS.PUBLIC_PRODUCTS]);
