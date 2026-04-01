@@ -1,14 +1,12 @@
 /**
  * @fileoverview Checkout Page
- * Applies: react-ui-patterns (button disabled during submit, error surfaced),
- *          javascript-pro (async/await, proper error handling),
- *          react-patterns (composition with CheckoutForm)
+ * Updated: items now carry selectedColor, category, subCategory so
+ *          MongoDB orders collection stores a full product snapshot.
  */
 
 import React, { useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { ShoppingBag, ArrowLeft } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import CheckoutForm from '../components/CheckoutForm.jsx';
 import { useCart } from '../context/CartContext.jsx';
 import { apiUrl } from '../config/api.js';
@@ -24,19 +22,33 @@ const CheckoutPage = () => {
   const { mutate: placeOrder, loading: placing, error: checkoutError } = useMutation(
     async (formData) => {
       const customer = {
-        name: `${formData.firstName} ${formData.lastName}`.trim(),
-        email: formData.email,
+        name:    `${formData.firstName} ${formData.lastName}`.trim(),
+        email:   formData.email,
         address: formData.address,
-        city: formData.city,
-        zip: formData.zip ?? '',
+        city:    formData.city,
+        zip:     formData.zip ?? '',
       };
 
+      /**
+       * Build enriched items array.
+       * Each item carries a full product snapshot so MongoDB always stores:
+       *   - Product ID, Name, Price, Qty
+       *   - selectedSize  (chosen by customer)
+       *   - selectedColor (chosen by customer, if applicable)
+       *   - category      (bucket, e.g. "Tops")
+       *   - subCategory   (e.g. "T-Shirt")
+       * The server further enriches category/subCategory from the live product
+       * record, so this data is always accurate even if the cart is stale.
+       */
       const items = cartItems.map(item => ({
-        id: item.id,
-        name: item.name,
-        price: item.price,
-        quantity: item.quantity ?? 1,
-        selectedSize: item.selectedSize ?? '',
+        id:            item.id,
+        name:          item.name,
+        price:         item.price,
+        quantity:      item.quantity ?? 1,
+        selectedSize:  item.selectedSize  ?? '',
+        selectedColor: item.selectedColor ?? '',  // ← color variant
+        category:      item.bucket        ?? '',  // ← product category
+        subCategory:   item.subCategory   ?? '',  // ← product sub-category
       }));
 
       const res = await fetch(apiUrl('/api/checkout'), {
@@ -45,7 +57,7 @@ const CheckoutPage = () => {
         body: JSON.stringify({
           customer,
           items,
-          total: formData.finalTotal ?? total,
+          total:         formData.finalTotal ?? total,
           paymentMethod: formData.paymentMethod,
         }),
       });
@@ -63,7 +75,6 @@ const CheckoutPage = () => {
         navigate(`/order-success?orderID=${data.orderID}`, { replace: true });
       },
       onError: (err) => {
-        // Surface stock warnings from error message
         if (err.message.includes('stock')) {
           setStockWarnings([err.message]);
         }

@@ -1,6 +1,12 @@
 /**
- * @fileoverview Stop & Shop — Vercel Serverless Entry Point
- * Migrated from server.js to support both Railway (standalone) and Vercel (serverless).
+ * @fileoverview Stop & Shop — Express API
+ * MongoDB Collections: products, orders, inventories, admins, settings, auditlogs, subscribers
+ *
+ * Auto-sync rules:
+ *  - Product created/updated  → inventories document upserted automatically
+ *  - Product deleted          → inventories document deleted automatically
+ *  - Customer buys product    → product stock decremented + inventory movement logged
+ *  - Admin edits inventory    → product stock updated + inventory synced
  */
 
 import express from 'express';
@@ -19,7 +25,6 @@ import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import cookieParser from 'cookie-parser';
 
-// Updated imports to reflect root-level position
 import { cacheService, CACHE_KEYS } from './src/services/cacheService.js';
 import { sanitizeInput, getClientIp, flattenQueryParams } from './src/middleware/security.js';
 import {
@@ -49,7 +54,7 @@ const startupLog = {
   RAILWAY: !!process.env.RAILWAY_STATIC_URL || !!process.env.RAILWAY_ENVIRONMENT,
 };
 
-console.log('🚀 Starting API Diagnostics...');
+console.log('🚀 Starting API...');
 console.table(startupLog);
 
 // ─────────────────────────────────────────────────────────────────
@@ -81,14 +86,14 @@ class AppError extends Error {
   }
 }
 
-class ValidationError extends AppError { constructor(msg) { super(msg, 400); } }
+class ValidationError  extends AppError { constructor(msg) { super(msg, 400); } }
 class AuthenticationError extends AppError { constructor(msg) { super(msg, 401); } }
-class AuthorizationError extends AppError { constructor(msg) { super(msg, 403); } }
-class NotFoundError extends AppError { constructor(msg) { super(msg, 404); } }
-class ConflictError extends AppError { constructor(msg) { super(msg, 409); } }
+class AuthorizationError  extends AppError { constructor(msg) { super(msg, 403); } }
+class NotFoundError    extends AppError { constructor(msg) { super(msg, 404); } }
+class ConflictError    extends AppError { constructor(msg) { super(msg, 409); } }
 
 // ─────────────────────────────────────────────────────────────────
-// ENVIRONMENT HELPER
+// ENVIRONMENT HELPERS
 // ─────────────────────────────────────────────────────────────────
 
 const getEnv = (...keys) => keys.map(k => process.env[k]).find(Boolean);
@@ -102,7 +107,7 @@ const app = express();
 app.set('trust proxy', 1);
 
 // ─────────────────────────────────────────────────────────────────
-// PRE-MIDDLEWARE ROUTES
+// PRE-MIDDLEWARE HEALTH ROUTES
 // ─────────────────────────────────────────────────────────────────
 
 app.get('/api/health', (_req, res) => {
@@ -116,12 +121,7 @@ app.get('/api/health', (_req, res) => {
 });
 
 app.get('/_diag', (_req, res) => {
-  res.json({
-    status: 'alive',
-    uptime: process.uptime(),
-    ...startupLog,
-    memory: process.memoryUsage(),
-  });
+  res.json({ status: 'alive', uptime: process.uptime(), ...startupLog, memory: process.memoryUsage() });
 });
 
 // ─────────────────────────────────────────────────────────────────
@@ -132,14 +132,14 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'", 'https:'],
-      scriptSrc: ["'self'", "'unsafe-inline'", 'https:'],
-      imgSrc: ["'self'", 'data:', 'https:', 'blob:'],
+      styleSrc:   ["'self'", "'unsafe-inline'", 'https:'],
+      scriptSrc:  ["'self'", "'unsafe-inline'", 'https:'],
+      imgSrc:     ["'self'", 'data:', 'https:', 'blob:'],
       connectSrc: ["'self'", 'https:'],
-      fontSrc: ["'self'", 'https:', 'data:'],
-      objectSrc: ["'none'"],
-      mediaSrc: ["'self'", 'https:'],
-      frameSrc: ["'none'"],
+      fontSrc:    ["'self'", 'https:', 'data:'],
+      objectSrc:  ["'none'"],
+      mediaSrc:   ["'self'", 'https:'],
+      frameSrc:   ["'none'"],
     },
   },
   crossOriginEmbedderPolicy: false,
@@ -184,92 +184,102 @@ app.use(flattenQueryParams);
 // ─────────────────────────────────────────────────────────────────
 
 const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 5,
+  windowMs: 15 * 60 * 1000, max: 5,
   message: { error: 'Too many login attempts. Please try again in 15 minutes.' },
-  standardHeaders: true,
-  legacyHeaders: false,
-  skipSuccessfulRequests: true,
+  standardHeaders: true, legacyHeaders: false, skipSuccessfulRequests: true,
   validate: { xForwardedForHeader: false },
 });
 
 const apiLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 100,
+  windowMs: 60 * 1000, max: 100,
   message: { error: 'Too many requests. Please slow down.' },
-  standardHeaders: true,
-  legacyHeaders: false,
+  standardHeaders: true, legacyHeaders: false,
   validate: { xForwardedForHeader: false },
 });
 
 const checkoutLimiter = rateLimit({
-  windowMs: 10 * 60 * 1000,
-  max: 10,
+  windowMs: 10 * 60 * 1000, max: 10,
   message: { error: 'Too many checkout attempts. Please slow down.' },
-  standardHeaders: true,
-  legacyHeaders: false,
+  standardHeaders: true, legacyHeaders: false,
   validate: { xForwardedForHeader: false },
 });
 
 // ─────────────────────────────────────────────────────────────────
-// DB MODELS
+// ██████  ███████     MONGODB SCHEMAS & MODELS
 // ─────────────────────────────────────────────────────────────────
+
+// ── 1. ORDERS ─────────────────────────────────────────────────────
+//    Each order captures full product snapshot at time of purchase:
+//    productId, name, price, qty, size, color, category, subCategory
+
+const orderItemSchema = new mongoose.Schema({
+  id:            { type: String, required: true },   // Product SKU / ID
+  name:          { type: String, required: true },
+  price:         { type: Number, required: true, min: 0 },
+  quantity:      { type: Number, default: 1, min: 1 },
+  selectedSize:  { type: String, default: '' },
+  selectedColor: { type: String, default: '' },      // ← Color variant chosen by customer
+  category:      { type: String, default: '' },      // ← Product bucket (Tops, Bottoms…)
+  subCategory:   { type: String, default: '' },      // ← e.g. T-Shirt, Jeans
+}, { _id: false });
+
+const PAYMENT_METHODS = ['COD', 'ATM Card', 'Bank Transfer', 'Easypaisa', 'JazzCash'];
 
 const orderSchema = new mongoose.Schema({
   orderID: { type: String, unique: true, index: true },
   customer: {
-    name: { type: String, required: true },
-    email: { type: String, required: true },
+    name:    { type: String, required: true },
+    email:   { type: String, required: true },
     address: String,
-    city: String,
-    zip: String,
+    city:    String,
+    zip:     String,
   },
-  items: [{
-    id: String,
-    name: String,
-    price: Number,
-    quantity: { type: Number, default: 1 },
-    selectedSize: { type: String, default: '' },
-  }],
-  total: { type: Number, required: true },
-  paymentMethod: { type: String, required: true },
+  items:         [orderItemSchema],
+  total:         { type: Number, required: true, min: 0 },
+  paymentMethod: { type: String, required: true, enum: PAYMENT_METHODS },
   status: {
     type: String,
     enum: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'],
     default: 'Pending',
     index: true,
   },
-  ip: { type: String, default: '' },
+  ip:            { type: String, default: '' },
 }, { timestamps: true, versionKey: false });
 
 orderSchema.index({ status: 1, createdAt: -1 });
 orderSchema.index({ 'customer.email': 1 });
+orderSchema.index({ orderID: 1, createdAt: -1 });
 
 const Order = mongoose.models.Order || mongoose.model('Order', orderSchema);
 
+// ── 2. PRODUCTS ───────────────────────────────────────────────────
+//    Master product catalogue. All admin changes write here.
+//    Post-save/delete hooks keep the Inventory collection in sync.
+
 const productSchema = new mongoose.Schema({
-  id: { type: String, unique: true, index: true },
-  name: { type: String, required: true, trim: true },
-  price: { type: Number, required: true, min: 0 },
-  quantity: { type: Number, default: 0, min: 0 },
-  stock: { type: Number, default: 0, min: 0 },
-  image: { type: String, default: '' },
-  mediaType: { type: String, enum: ['upload', 'url', 'embed'], default: 'upload' },
-  embedCode: { type: String, default: '' },
-  rating: { type: Number, default: 5, min: 1, max: 5 },
-  bucket: { type: String, default: 'Tops', trim: true },
-  subCategory: { type: String, default: 'General', trim: true },
-  specs: [{ type: String }],
-  colors: [{ type: String }],
-  sizes: [{ type: String }],
-  sizeStock: { type: Map, of: Number, default: {} },
+  id:            { type: String, unique: true, index: true },
+  name:          { type: String, required: true, trim: true },
+  price:         { type: Number, required: true, min: 0 },
+  quantity:      { type: Number, default: 0, min: 0 },  // total available
+  stock:         { type: Number, default: 0, min: 0 },  // mirrors quantity
+  image:         { type: String, default: '' },
+  mediaType:     { type: String, enum: ['upload', 'url', 'embed'], default: 'upload' },
+  embedCode:     { type: String, default: '' },
+  rating:        { type: Number, default: 5, min: 1, max: 5 },
+  bucket:        { type: String, default: 'Tops', trim: true },      // category
+  subCategory:   { type: String, default: 'General', trim: true },
+  specs:         [{ type: String }],
+  colors:        [{ type: String }],
+  sizes:         [{ type: String }],
+  sizeStock:     { type: Map, of: Number, default: {} },  // { S: 10, M: 5, L: 3 }
   lifestyleImage: { type: String, default: '' },
-  variantImages: { type: Map, of: String, default: {} },
-  gallery: [{ type: String }],
+  variantImages: { type: Map, of: String, default: {} },  // { 'Red': 'url', 'Blue': 'url' }
+  gallery:       [{ type: String }],
 }, { timestamps: true, versionKey: false, autoIndex: true });
 
 productSchema.index({ bucket: 1, createdAt: -1 });
 
+// Keep quantity + stock always in sync
 productSchema.pre('save', function syncStock() {
   const sizeValues = this.sizeStock instanceof Map
     ? [...this.sizeStock.values()]
@@ -289,47 +299,235 @@ productSchema.pre('save', function syncStock() {
   }
 });
 
+// ── Post-save: auto-sync Inventory ─────────────────────────────
+productSchema.post('save', async function (doc) {
+  try {
+    await syncInventory(doc, 'ADMIN_UPDATE', 'Product saved by admin');
+  } catch (err) {
+    console.error('[Inventory] post-save sync failed:', err.message);
+  }
+});
+
+// ── Post-delete: remove from Inventory ─────────────────────────
+productSchema.post('findOneAndDelete', async function (doc) {
+  if (!doc) return;
+  try {
+    await Inventory.deleteOne({ productId: doc.id });
+    console.log(`[Inventory] Removed inventory entry for deleted product: ${doc.id}`);
+  } catch (err) {
+    console.error('[Inventory] post-delete cleanup failed:', err.message);
+  }
+});
+
 const Product = mongoose.models.Product || mongoose.model('Product', productSchema);
 
-const adminSchema = new mongoose.Schema({
-  name: { type: String, required: true, trim: true },
-  email: { type: String, required: true, unique: true, trim: true, lowercase: true },
-  password: { type: String, required: true, select: false },
-  isPrimary: { type: Boolean, default: false },
-  roles: {
-    type: [String],
-    enum: ['admin', 'super-admin', 'auditor'],
-    default: ['admin'],
+// ── 3. INVENTORY ──────────────────────────────────────────────────
+//    Dedicated collection for stock management.
+//    Auto-maintained by Product hooks + checkout endpoint.
+//    Includes a movement log (last 100 events) for full audit trail.
+
+const inventoryMovementSchema = new mongoose.Schema({
+  type: {
+    type: String,
+    enum: ['RESTOCK', 'SALE', 'ADMIN_UPDATE', 'ADMIN_DELETE', 'INITIAL'],
+    required: true,
   },
-  failedLoginAttempts: { type: Number, default: 0 },
-  lockUntil: { type: Date, default: null },
-  lastLogin: { type: Date, default: null },
+  quantityDelta:   { type: Number, required: true },  // +10 = restock, -2 = sale
+  previousStock:   { type: Number, default: 0 },
+  newStock:        { type: Number, default: 0 },
+  note:            { type: String, default: '' },
+  triggeredBy:     { type: String, default: 'system' }, // 'admin' | 'customer' | 'system'
+  orderId:         { type: String, default: null },
+  timestamp:       { type: Date, default: Date.now },
+}, { _id: false });
+
+const inventorySchema = new mongoose.Schema({
+  // ── Identity ──────────────────────────────────────────────────
+  productId:     { type: String, required: true, unique: true, index: true },
+  sku:           { type: String, required: true, index: true },
+
+  // ── Product snapshot (mirrored from products collection) ──────
+  name:          { type: String, required: true, trim: true },
+  category:      { type: String, required: true, trim: true },    // = bucket
+  subCategory:   { type: String, required: true, trim: true },
+  price:         { type: Number, required: true, min: 0 },
+  image:         { type: String, default: '' },
+  rating:        { type: Number, default: 5 },
+  colorVariants: [{ type: String }],                              // = colors array
+  sizes:         [{ type: String }],
+
+  // ── Stock levels ──────────────────────────────────────────────
+  totalStock:          { type: Number, default: 0, min: 0 },     // aggregate across all sizes
+  sizeStock:           { type: Map, of: Number, default: {} },   // per-size breakdown
+  lowStockThreshold:   { type: Number, default: 5 },
+
+  // ── Status (computed from totalStock) ─────────────────────────
+  status: {
+    type: String,
+    enum: ['In Stock', 'Low Stock', 'Out of Stock'],
+    default: 'In Stock',
+    index: true,
+  },
+
+  // ── Timestamps of last events ─────────────────────────────────
+  lastRestocked:   { type: Date, default: null },
+  lastSold:        { type: Date, default: null },
+  lastAdminEdit:   { type: Date, default: null },
+
+  // ── Movement history (rolling last 100 events) ────────────────
+  movements: {
+    type: [inventoryMovementSchema],
+    default: [],
+  },
+
+}, { timestamps: true, versionKey: false });
+
+inventorySchema.index({ category: 1, status: 1 });
+inventorySchema.index({ totalStock: 1 });
+inventorySchema.index({ category: 1, totalStock: 1 });
+
+const Inventory = mongoose.models.Inventory || mongoose.model('Inventory', inventorySchema);
+
+// ── 4. ADMINS ──────────────────────────────────────────────────────
+
+const adminSchema = new mongoose.Schema({
+  name:                 { type: String, required: true, trim: true },
+  email:                { type: String, required: true, unique: true, trim: true, lowercase: true },
+  password:             { type: String, required: true, select: false },
+  isPrimary:            { type: Boolean, default: false },
+  roles:                { type: [String], enum: ['admin', 'super-admin', 'auditor'], default: ['admin'] },
+  failedLoginAttempts:  { type: Number, default: 0 },
+  lockUntil:            { type: Date, default: null },
+  lastLogin:            { type: Date, default: null },
 }, { timestamps: true, versionKey: false });
 
 const Admin = mongoose.models.Admin || mongoose.model('Admin', adminSchema);
 
+// ── 5. SETTINGS ────────────────────────────────────────────────────
+
 const settingsSchema = new mongoose.Schema({
-  logo: { type: String, default: '' },
+  logo:         { type: String, default: '' },
   announcement: { type: String, default: 'Welcome to Stop & Shop — Premium Clothing', maxlength: 500 },
 }, { timestamps: true, versionKey: false });
 
 const Settings = mongoose.models.Settings || mongoose.model('Settings', settingsSchema);
 
+// ── 6. AUDIT LOGS ──────────────────────────────────────────────────
+
 const auditLogSchema = new mongoose.Schema({
-  action: { type: String, required: true, index: true },
-  details: { type: mongoose.Schema.Types.Mixed },
+  action:     { type: String, required: true, index: true },
+  details:    { type: mongoose.Schema.Types.Mixed },
   adminEmail: { type: String, required: true, index: true },
-  ip: { type: String },
-  timestamp: { type: Date, default: Date.now, index: true },
+  ip:         { type: String },
+  timestamp:  { type: Date, default: Date.now, index: true },
 }, { timestamps: true, versionKey: false });
 
 const AuditLog = mongoose.models.AuditLog || mongoose.model('AuditLog', auditLogSchema);
+
+// ── 7. SUBSCRIBERS ─────────────────────────────────────────────────
 
 const subscriberSchema = new mongoose.Schema({
   email: { type: String, required: true, unique: true, lowercase: true, trim: true },
 }, { timestamps: true, versionKey: false });
 
 const Subscriber = mongoose.models.Subscriber || mongoose.model('Subscriber', subscriberSchema);
+
+// ─────────────────────────────────────────────────────────────────
+// INVENTORY SYNC HELPER
+// ─────────────────────────────────────────────────────────────────
+
+/**
+ * Upsert an Inventory document from a Product document.
+ * Calculates status, appends movement log entry.
+ *
+ * @param {Object} product    - Mongoose Product document or plain object
+ * @param {string} moveType   - Movement type: RESTOCK | SALE | ADMIN_UPDATE | INITIAL
+ * @param {string} [note]     - Human-readable note for this movement
+ * @param {string} [orderId]  - Order ID if triggered by a sale
+ */
+const syncInventory = async (product, moveType = 'ADMIN_UPDATE', note = '', orderId = null) => {
+  try {
+    const totalStock = product.quantity ?? 0;
+
+    // Determine status
+    const status = totalStock === 0
+      ? 'Out of Stock'
+      : totalStock < (5)
+        ? 'Low Stock'
+        : 'In Stock';
+
+    // Resolve sizeStock to a plain object (handles both Map and plain objects)
+    const sizeStockPlain =
+      product.sizeStock instanceof Map
+        ? Object.fromEntries(product.sizeStock)
+        : (product.sizeStock ?? {});
+
+    // Fetch previous state for delta calculation
+    const existing = await Inventory.findOne({ productId: product.id }).lean();
+    const previousStock = existing?.totalStock ?? 0;
+    const quantityDelta = totalStock - previousStock;
+
+    // Build movement entry
+    const movement = {
+      type:          moveType,
+      quantityDelta,
+      previousStock,
+      newStock:      totalStock,
+      note:          note || `${moveType} — stock changed by ${quantityDelta > 0 ? '+' : ''}${quantityDelta}`,
+      triggeredBy:   moveType === 'SALE' ? 'customer' : 'admin',
+      orderId:       orderId ?? null,
+      timestamp:     new Date(),
+    };
+
+    // Timestamp fields for last event
+    const timeFields = {};
+    if (moveType === 'RESTOCK' || (moveType === 'ADMIN_UPDATE' && quantityDelta > 0)) {
+      timeFields.lastRestocked = new Date();
+    }
+    if (moveType === 'SALE') {
+      timeFields.lastSold = new Date();
+    }
+    if (['ADMIN_UPDATE', 'RESTOCK'].includes(moveType)) {
+      timeFields.lastAdminEdit = new Date();
+    }
+
+    // Upsert inventory document — keeps rolling 100-entry movement log
+    await Inventory.findOneAndUpdate(
+      { productId: product.id },
+      {
+        $set: {
+          productId:    product.id,
+          sku:          product.id,
+          name:         product.name,
+          category:     product.bucket || 'General',
+          subCategory:  product.subCategory || 'General',
+          price:        product.price,
+          image:        product.image || '',
+          rating:       product.rating ?? 5,
+          colorVariants: product.colors ?? [],
+          sizes:        product.sizes ?? [],
+          totalStock,
+          sizeStock:    sizeStockPlain,
+          status,
+          ...timeFields,
+        },
+        $push: {
+          movements: {
+            $each:  [movement],
+            $slice: -100,           // Keep last 100 movements
+            $position: 0,           // Newest first
+          },
+        },
+      },
+      { upsert: true, new: true }
+    );
+
+    console.log(`[Inventory] Synced: ${product.id} | ${product.name} | Stock: ${previousStock} → ${totalStock} | ${status}`);
+  } catch (err) {
+    // Never let inventory sync crash the main operation
+    console.error('[Inventory] Sync failed for product', product.id, ':', err.message);
+  }
+};
 
 // ─────────────────────────────────────────────────────────────────
 // UTILITIES
@@ -343,8 +541,8 @@ const logAudit = async (action, details, req) => {
       action,
       details,
       adminEmail: req?.user?.email ?? 'system',
-      ip: getClientIp(req),
-      timestamp: new Date(),
+      ip:         getClientIp(req),
+      timestamp:  new Date(),
     });
   } catch (err) {
     console.error('[Audit] Failed to log:', err.message);
@@ -368,13 +566,12 @@ const sendEmail = async (options) => {
 };
 
 // ─────────────────────────────────────────────────────────────────
-// MIDDLEWARE
+// AUTH MIDDLEWARE
 // ─────────────────────────────────────────────────────────────────
 
 const authenticateToken = (req, res, next) => {
   const token = req.cookies?.auth_token ?? req.headers.authorization?.split(' ')[1];
   if (!token) return res.status(401).json({ error: 'Authentication required' });
-
   try {
     req.user = jwt.verify(token, JWT_SECRET);
     return next();
@@ -384,8 +581,10 @@ const authenticateToken = (req, res, next) => {
 };
 
 // ─────────────────────────────────────────────────────────────────
-// ROUTES
+// ██████  ██████████  ROUTES
 // ─────────────────────────────────────────────────────────────────
+
+// ── Auth ────────────────────────────────────────────────────────────
 
 app.post('/api/admin/login', authLimiter, validateRequest(loginSchema), async (req, res, next) => {
   try {
@@ -409,12 +608,12 @@ app.post('/api/admin/login', authLimiter, validateRequest(loginSchema), async (r
 
     await Admin.findByIdAndUpdate(admin._id, { failedLoginAttempts: 0, lockUntil: null, lastLogin: new Date() });
 
-    const token = jwt.sign({ id: admin._id, email: admin.email, role: admin.roles?.[0] ?? 'admin' }, JWT_SECRET, { expiresIn: '8h' });
-    const csrfToken = jwt.sign({ type: 'csrf', userId: admin._id.toString() }, JWT_SECRET, { expiresIn: '1h' });
+    const token      = jwt.sign({ id: admin._id, email: admin.email, role: admin.roles?.[0] ?? 'admin' }, JWT_SECRET, { expiresIn: '8h' });
+    const csrfToken  = jwt.sign({ type: 'csrf', userId: admin._id.toString() }, JWT_SECRET, { expiresIn: '1h' });
 
     const cookieOptions = { httpOnly: true, secure: isProduction, sameSite: isProduction ? 'none' : 'lax', path: '/' };
-    res.cookie('auth_token', token, { ...cookieOptions, maxAge: 8 * 60 * 60 * 1000 })
-       .cookie('csrf_token', csrfToken, { ...cookieOptions, maxAge: 60 * 60 * 1000 })
+    res.cookie('auth_token',  token,     { ...cookieOptions, maxAge: 8 * 60 * 60 * 1000 })
+       .cookie('csrf_token',  csrfToken, { ...cookieOptions, maxAge: 60 * 60 * 1000 })
        .json({ name: admin.name, success: true, token });
   } catch (err) { next(err); }
 });
@@ -430,34 +629,46 @@ app.get('/api/admin/users', authenticateToken, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-// ── Admin Stats ────────────────────────────────────────────────
+// ── Stats ────────────────────────────────────────────────────────────
+
 app.get('/api/stats/revenue', authenticateToken, async (req, res, next) => {
   try {
-    const total = await Order.aggregate([
-      { $match: { status: 'completed' } },
-      { $group: { _id: null, total: { $sum: '$totalAmount' } } }
-    ]);
-    res.json({ total: total[0]?.total || 0, growth: 0 });
+    const data = await cacheService.getOrSet(CACHE_KEYS.STATS_REVENUE, async () => {
+      const [result] = await Order.aggregate([
+        { $match: { status: { $in: ['Pending', 'Processing', 'Shipped', 'Delivered'] } } },
+        { $group: { _id: null, totalRevenue: { $sum: '$total' } } },
+      ]);
+      return { totalRevenue: result?.totalRevenue ?? 0, trend: 0 };
+    });
+    res.json(data);
   } catch (err) { next(err); }
 });
 
 app.get('/api/stats/orders', authenticateToken, async (req, res, next) => {
   try {
-    const counts = await Order.aggregate([
-      { $group: { _id: '$status', count: { $sum: 1 } } }
-    ]);
-    const total = counts.reduce((acc, c) => acc + c.count, 0);
-    res.json({ total, counts: counts.reduce((acc, c) => ({ ...acc, [c._id]: c.count }), {}) });
+    const data = await cacheService.getOrSet(CACHE_KEYS.STATS_ORDERS, async () => {
+      const counts = await Order.aggregate([{ $group: { _id: '$status', count: { $sum: 1 } } }]);
+      const totalOrders = counts.reduce((acc, c) => acc + c.count, 0);
+      const pendingOrders = counts.find(c => c._id === 'Pending')?.count ?? 0;
+      return { totalOrders, pendingOrders, counts: counts.reduce((acc, c) => ({ ...acc, [c._id]: c.count }), {}) };
+    });
+    res.json(data);
   } catch (err) { next(err); }
 });
 
 app.get('/api/stats/inventory', authenticateToken, async (req, res, next) => {
   try {
-    const total = await Product.countDocuments();
-    const lowStock = await Product.countDocuments({ stock: { $lt: 5 } });
-    res.json({ total, lowStock });
+    const data = await cacheService.getOrSet(CACHE_KEYS.STATS_INVENTORY, async () => {
+      const total    = await Product.countDocuments();
+      const lowStock = await Product.countDocuments({ stock: { $gt: 0, $lt: 5 } });
+      const outStock = await Product.countDocuments({ stock: 0 });
+      return { total, lowStock, outStock };
+    });
+    res.json(data);
   } catch (err) { next(err); }
 });
+
+// ── Orders ───────────────────────────────────────────────────────────
 
 app.get('/api/orders', authenticateToken, async (req, res, next) => {
   try {
@@ -476,13 +687,14 @@ app.patch('/api/orders/:id', authenticateToken, validateRequest(updateOrderStatu
   } catch (err) { next(err); }
 });
 
+// ── Products (Admin) ──────────────────────────────────────────────────
+
 app.get('/api/admin/products', authenticateToken, async (req, res, next) => {
   try {
     const products = await Product.find().sort({ createdAt: -1 }).lean();
-    // Professional Fallback: ensure every record has useable ID for frontend
     const docs = products.map(p => ({
       ...p,
-      id: p.id || p._id?.toString() || `GEN-${Math.random().toString(36).substr(2, 9)}`
+      id: p.id || p._id?.toString() || `GEN-${Math.random().toString(36).substr(2, 9)}`,
     }));
     res.json(docs);
   } catch (err) { next(err); }
@@ -492,20 +704,24 @@ app.post('/api/admin/products', authenticateToken, validateRequest(createProduct
   try {
     const buildId = () => `PRD-${Math.random().toString(36).substring(2, 11).toUpperCase()}`;
     const productData = { ...req.body, id: req.body.id || buildId() };
+
+    let product;
     try {
-      const product = await new Product(productData).save();
-      await logAudit('PRODUCT_CREATE', { id: product.id, name: product.name }, req);
-      await cacheService.invalidateMany([CACHE_KEYS.STATS_INVENTORY, CACHE_KEYS.PRODUCTS, CACHE_KEYS.PUBLIC_PRODUCTS]);
-      return res.status(201).json(product);
+      product = await new Product(productData).save();
     } catch (saveErr) {
       if (saveErr?.code === 11000 && saveErr?.keyPattern?.id) {
-        const product = await new Product({ ...productData, id: buildId() }).save();
-        await logAudit('PRODUCT_CREATE_RETRY', { id: product.id, name: product.name }, req);
-        await cacheService.invalidateMany([CACHE_KEYS.STATS_INVENTORY, CACHE_KEYS.PRODUCTS, CACHE_KEYS.PUBLIC_PRODUCTS]);
-        return res.status(201).json(product);
+        product = await new Product({ ...productData, id: buildId() }).save();
+      } else {
+        throw saveErr;
       }
-      throw saveErr;
     }
+
+    // Sync to inventory (post-save hook fires, but also log as INITIAL)
+    await syncInventory(product, 'INITIAL', 'Product created by admin');
+    await logAudit('PRODUCT_CREATE', { id: product.id, name: product.name }, req);
+    await cacheService.invalidateMany([CACHE_KEYS.STATS_INVENTORY, CACHE_KEYS.PRODUCTS, CACHE_KEYS.PUBLIC_PRODUCTS]);
+
+    return res.status(201).json(product);
   } catch (err) { next(err); }
 });
 
@@ -518,28 +734,98 @@ const buildIdQuery = (idParam) => {
 app.patch('/api/admin/products/:id', authenticateToken, validateRequest(updateProductSchema), async (req, res, next) => {
   try {
     const updateData = { ...req.body };
+
+    // Recalculate totals if sizeStock is being updated
     if (updateData.sizeStock && typeof updateData.sizeStock === 'object') {
-      const total = Object.values(updateData.sizeStock).reduce((sum, n) => sum + Math.max(0, parseInt(n) || 0), 0);
+      const total = Object.values(updateData.sizeStock)
+        .reduce((sum, n) => sum + Math.max(0, parseInt(n) || 0), 0);
       updateData.quantity = total;
-      updateData.stock = total;
+      updateData.stock    = total;
     }
-    const product = await Product.findOneAndUpdate(buildIdQuery(req.params.id), updateData, { new: true }).lean();
+
+    const product = await Product.findOneAndUpdate(
+      buildIdQuery(req.params.id),
+      updateData,
+      { new: true }
+    );
     if (!product) throw new NotFoundError('Product not found');
+
+    // Determine movement type: if stock increased it's a restock, decreased = adjustment
+    const prevProduct = await Inventory.findOne({ productId: req.params.id }).lean();
+    const prevStock   = prevProduct?.totalStock ?? 0;
+    const moveType    = product.quantity > prevStock ? 'RESTOCK' : 'ADMIN_UPDATE';
+
+    await syncInventory(product, moveType, `Admin updated: ${Object.keys(req.body).join(', ')}`);
     await logAudit('PRODUCT_UPDATE', { id: req.params.id, changes: Object.keys(req.body) }, req);
     await cacheService.invalidateMany([CACHE_KEYS.STATS_INVENTORY, CACHE_KEYS.PRODUCTS, CACHE_KEYS.PUBLIC_PRODUCTS]);
+
     res.json(product);
   } catch (err) { next(err); }
 });
 
 app.delete('/api/admin/products/:id', authenticateToken, async (req, res, next) => {
   try {
-    const product = await Product.findOneAndDelete(buildIdQuery(req.params.id)).lean();
+    const product = await Product.findOneAndDelete(buildIdQuery(req.params.id));
     if (!product) throw new NotFoundError('Product not found');
+
+    // Inventory cleanup is handled by the post('findOneAndDelete') hook on productSchema
     await logAudit('PRODUCT_DELETE', { id: req.params.id, name: product.name }, req);
     await cacheService.invalidateMany([CACHE_KEYS.STATS_INVENTORY, CACHE_KEYS.PRODUCTS, CACHE_KEYS.PUBLIC_PRODUCTS]);
     res.json({ message: 'Product removed' });
   } catch (err) { next(err); }
 });
+
+// ── Inventory (Admin) ──────────────────────────────────────────────────
+//    Read-focused endpoint. Mutations happen via /api/admin/products routes
+//    which auto-sync the inventory collection.
+
+app.get('/api/admin/inventory', authenticateToken, async (req, res, next) => {
+  try {
+    const inventory = await Inventory
+      .find()
+      .sort({ updatedAt: -1 })
+      .lean();
+
+    res.json(inventory);
+  } catch (err) { next(err); }
+});
+
+// Inventory summary — for charts / dashboard widgets
+app.get('/api/admin/inventory/summary', authenticateToken, async (req, res, next) => {
+  try {
+    const [summary] = await Inventory.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalProducts:  { $sum: 1 },
+          totalStock:     { $sum: '$totalStock' },
+          inStock:        { $sum: { $cond: [{ $eq: ['$status', 'In Stock'] }, 1, 0] } },
+          lowStock:       { $sum: { $cond: [{ $eq: ['$status', 'Low Stock'] }, 1, 0] } },
+          outOfStock:     { $sum: { $cond: [{ $eq: ['$status', 'Out of Stock'] }, 1, 0] } },
+        },
+      },
+    ]);
+
+    // Category breakdown
+    const byCategory = await Inventory.aggregate([
+      { $group: { _id: '$category', count: { $sum: 1 }, totalStock: { $sum: '$totalStock' } } },
+      { $sort: { totalStock: -1 } },
+    ]);
+
+    res.json({ ...(summary ?? {}), byCategory });
+  } catch (err) { next(err); }
+});
+
+// Single inventory entry (with full movement history)
+app.get('/api/admin/inventory/:productId', authenticateToken, async (req, res, next) => {
+  try {
+    const entry = await Inventory.findOne({ productId: req.params.productId }).lean();
+    if (!entry) throw new NotFoundError('Inventory entry not found');
+    res.json(entry);
+  } catch (err) { next(err); }
+});
+
+// ── Public Products ────────────────────────────────────────────────────
 
 app.get('/api/public/products', async (req, res, next) => {
   try {
@@ -547,46 +833,125 @@ app.get('/api/public/products', async (req, res, next) => {
       const products = await Product.find().lean();
       return products.map(p => ({
         ...p,
-        id: p.id || p._id?.toString() || `GEN-${Math.random().toString(36).substr(2, 9)}`,
-        bucket: p.bucket || 'General',
-        subCategory: p.subCategory || 'General'
+        id:          p.id || p._id?.toString(),
+        bucket:      p.bucket || 'General',
+        subCategory: p.subCategory || 'General',
       }));
     });
     res.json(data);
   } catch (err) { next(err); }
 });
 
+// ── Checkout ──────────────────────────────────────────────────────────
+//    1. Validates cart against live stock
+//    2. Decrements product stock
+//    3. Logs inventory movement (SALE) per product
+//    4. Creates order with full product snapshot (color, category, subCategory)
+//    5. Sends confirmation email (fire-and-forget)
+
 app.post('/api/checkout', checkoutLimiter, validateRequest(checkoutSchema), async (req, res, next) => {
   try {
     const { customer, items, total, paymentMethod } = req.body;
-    const clientIp = getClientIp(req);
+    const clientIp   = getClientIp(req);
     const productIds = [...new Set(items.map(i => i.id))];
+
+    // Fetch all products in one query
     const dbProducts = await Product.find({ id: { $in: productIds } });
-    const productMap = new Map(dbProducts.map(p => [p.id, p]));
+    const productMap  = new Map(dbProducts.map(p => [p.id, p]));
 
+    // ── Stock validation ───────────────────────────────────────
     for (const item of items) {
-      const product = productMap.get(item.id);
-      if (!product) return res.status(400).json({ error: `Product not found: ${item.id}` });
-      const qty = Math.max(1, parseInt(item.quantity) || 1);
-      const size = (item.selectedSize ?? '').trim();
-      const available = size ? (product.sizeStock?.get?.(size) ?? product.sizeStock?.[size]) : product.quantity;
-      if (available < qty) return res.status(400).json({ error: `Not enough stock for ${product.name}` });
+      const product  = productMap.get(item.id);
+      if (!product)  return res.status(400).json({ error: `Product not found: ${item.id}` });
+
+      const qty      = Math.max(1, parseInt(item.quantity) || 1);
+      const size     = (item.selectedSize ?? '').trim();
+      const available = size
+        ? (product.sizeStock?.get?.(size) ?? product.sizeStock?.[size] ?? 0)
+        : product.quantity;
+
+      if (available < qty) {
+        return res.status(400).json({
+          error: `Not enough stock for ${product.name}${size ? ` (size ${size})` : ''}. Available: ${available}`,
+        });
+      }
     }
 
+    // ── Generate order ID ──────────────────────────────────────
     const orderID = `ORD-${Date.now().toString(36).toUpperCase()}`;
+
+    // ── Decrement stock + sync inventory per product ───────────
     for (const item of items) {
-      const qty = Math.max(1, parseInt(item.quantity) || 1);
-      const size = (item.selectedSize ?? '').trim();
+      const qty    = Math.max(1, parseInt(item.quantity) || 1);
+      const size   = (item.selectedSize ?? '').trim();
       const sizeKey = size ? `sizeStock.${size}` : null;
-      const update = sizeKey ? { $inc: { quantity: -qty, stock: -qty, [sizeKey]: -qty } } : { $inc: { quantity: -qty, stock: -qty } };
-      await Product.findOneAndUpdate({ id: item.id }, update);
+
+      const stockUpdate = sizeKey
+        ? { $inc: { quantity: -qty, stock: -qty, [sizeKey]: -qty } }
+        : { $inc: { quantity: -qty, stock: -qty } };
+
+      const updatedProduct = await Product.findOneAndUpdate(
+        { id: item.id },
+        stockUpdate,
+        { new: true }
+      );
+
+      if (updatedProduct) {
+        // Log inventory movement as SALE
+        await syncInventory(
+          updatedProduct,
+          'SALE',
+          `Sold ${qty}x ${updatedProduct.name}${size ? ` (${size})` : ''} via order ${orderID}`,
+          orderID
+        );
+      }
     }
 
-    await Order.create({ orderID, customer, items, total, paymentMethod, ip: clientIp });
-    await cacheService.invalidateMany([CACHE_KEYS.STATS_REVENUE, CACHE_KEYS.STATS_ORDERS, CACHE_KEYS.STATS_INVENTORY, CACHE_KEYS.PUBLIC_PRODUCTS]);
+    // ── Build enriched order items (full snapshot) ─────────────
+    const enrichedItems = items.map(item => {
+      const product = productMap.get(item.id);
+      return {
+        id:            item.id,
+        name:          item.name,
+        price:         item.price,
+        quantity:      Math.max(1, parseInt(item.quantity) || 1),
+        selectedSize:  (item.selectedSize ?? '').trim(),
+        selectedColor: (item.selectedColor ?? '').trim(),
+        category:      product?.bucket      || item.category    || '',
+        subCategory:   product?.subCategory || item.subCategory || '',
+      };
+    });
+
+    // ── Create order ───────────────────────────────────────────
+    await Order.create({ orderID, customer, items: enrichedItems, total, paymentMethod, ip: clientIp });
+
+    // ── Invalidate caches ──────────────────────────────────────
+    await cacheService.invalidateMany([
+      CACHE_KEYS.STATS_REVENUE,
+      CACHE_KEYS.STATS_ORDERS,
+      CACHE_KEYS.STATS_INVENTORY,
+      CACHE_KEYS.PUBLIC_PRODUCTS,
+    ]);
+
+    // ── Fire-and-forget confirmation email ─────────────────────
+    sendEmail({
+      from:    `"Stop & Shop" <${getEnv('EMAIL_USER', 'email_user')}>`,
+      to:      customer.email,
+      subject: `Order Confirmed — ${orderID}`,
+      html:    `
+        <h2>Thank you, ${customer.name}!</h2>
+        <p>Your order <strong>${orderID}</strong> has been placed successfully.</p>
+        <p><strong>Total:</strong> PKR ${total.toLocaleString()}</p>
+        <p><strong>Payment:</strong> ${paymentMethod}</p>
+        <p>We'll update you when your order ships. Thank you for shopping with Stop & Shop.</p>
+      `,
+    });
+
     res.status(201).json({ message: 'Order placed', orderID });
   } catch (err) { next(err); }
 });
+
+// ── Settings ──────────────────────────────────────────────────────────
 
 app.get('/api/public/settings', async (_req, res, next) => {
   try {
@@ -607,53 +972,59 @@ app.post('/api/settings', authenticateToken, validateRequest(updateSettingsSchem
   } catch (err) { next(err); }
 });
 
-app.get('/api/audits', authenticateToken, async (_req, res, next) => {
+// ── Audit Logs ─────────────────────────────────────────────────────────
+
+app.get('/api/admin/audits', authenticateToken, async (_req, res, next) => {
   try {
     const logs = await AuditLog.find().sort({ timestamp: -1 }).limit(100).lean();
-    res.json(logs);
+    res.json({ logs, total: logs.length });
+  } catch (err) { next(err); }
+});
+
+// ── Newsletter ─────────────────────────────────────────────────────────
+
+app.post('/api/newsletter', async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    if (!email) return res.status(400).json({ error: 'Email required' });
+    await Subscriber.findOneAndUpdate({ email }, { email }, { upsert: true });
+    res.json({ message: 'Subscribed successfully' });
   } catch (err) { next(err); }
 });
 
 // ─────────────────────────────────────────────────────────────────
-// STATIC FILES & SPA ROUTING
+// STATIC FILES & SPA FALLBACK
 // ─────────────────────────────────────────────────────────────────
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const distPath = path.resolve(__dirname, './dist');
-
-console.log(`[Static] Checking for dist at: ${distPath}`);
+const __dirname  = path.dirname(__filename);
+const distPath   = path.resolve(__dirname, './dist');
 
 if (fs.existsSync(distPath)) {
-  console.log('✅ Static assets found. Serving from /dist');
-  app.use(express.static(distPath, { 
+  console.log('✅ Serving static assets from /dist');
+  app.use(express.static(distPath, {
     maxAge: '1d',
-    setHeaders: (res, path) => {
-      if (path.endsWith('.html')) res.setHeader('Cache-Control', 'no-cache');
-    }
+    setHeaders: (res, filePath) => {
+      if (filePath.endsWith('.html')) res.setHeader('Cache-Control', 'no-cache');
+    },
   }));
 } else {
-  console.warn('⚠️ Static assets NOT found. Frontend might not be built yet.');
+  console.warn('⚠️ /dist not found — frontend not built yet.');
 }
 
-app.use('/api', (_req, res) => res.status(404).json({ error: 'API not found' }));
+app.use('/api', (_req, res) => res.status(404).json({ error: 'API route not found' }));
 
-// SPA Fallback: Serve index.html for all non-API routes
 app.get('*', (req, res) => {
   const index = path.join(distPath, 'index.html');
   if (fs.existsSync(index)) {
     res.sendFile(index);
   } else if (!req.path.startsWith('/api')) {
-    res.status(200).json({ 
-      message: 'API running — Frontend not built',
-      path: req.path,
-      timestamp: new Date().toISOString()
-    });
+    res.status(200).json({ message: 'API running — Frontend not built', path: req.path });
   }
 });
 
 // ─────────────────────────────────────────────────────────────────
-// ERROR HANDLER
+// CENTRALIZED ERROR HANDLER
 // ─────────────────────────────────────────────────────────────────
 
 app.use((err, _req, res, _next) => {
@@ -671,29 +1042,22 @@ let server;
 
 if (!process.env.VERCEL) {
   server = app.listen(PORT, '0.0.0.0', () => {
-    console.log(`✅ Server on ${PORT}`);
-    console.log(`[Diagnostic] Health check: http://0.0.0.0:${PORT}/api/health`);
+    console.log(`✅ Server running on port ${PORT}`);
   });
 }
 
-// ── Database ──
+// MongoDB
 const mongoUri = getEnv('MONGO_URI', 'MONGODB_URI');
 if (mongoUri) {
-  console.log('🔌 Connecting to MongoDB (Database: stopshop)...');
-  mongoose.connect(mongoUri, { 
-    dbName: 'stopshop', // Explicitly route data securely to 'stopshop' namespace
-    maxPoolSize: 10, 
-    socketTimeoutMS: 45000, 
-    family: 4 
-  })
-    .then(() => console.log('✅ MongoDB connected'))
-    .catch(err => console.error('❌ DB error:', err.message));
+  mongoose.connect(mongoUri, { dbName: 'stopshop', maxPoolSize: 10, socketTimeoutMS: 45000, family: 4 })
+    .then(() => console.log('✅ MongoDB connected (db: stopshop)'))
+    .catch(err => console.error('❌ MongoDB error:', err.message));
 }
 
-// ── Shutdown ──
+// Graceful shutdown
 const shutdown = async (sig) => {
   console.log(`[Shutdown] ${sig}`);
-  if (server && typeof server.close === 'function') {
+  if (server?.close) {
     server.close(async () => {
       await Promise.allSettled([mongoose.connection.close(), cacheService.close()]);
       process.exit(0);
@@ -705,6 +1069,6 @@ const shutdown = async (sig) => {
 };
 
 process.on('SIGTERM', () => shutdown('SIGTERM'));
-process.on('SIGINT', () => shutdown('SIGINT'));
+process.on('SIGINT',  () => shutdown('SIGINT'));
 
 export default app;

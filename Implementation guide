@@ -1,0 +1,183 @@
+# MongoDB Professional Setup — Implementation Guide
+## Stop & Shop · April 2026
+
+---
+
+## What Changes (4 files)
+
+| File | Action | What Changed |
+|------|--------|--------------|
+| `server.js` | **REPLACE** | Inventory schema + model, auto-sync hooks, enriched order items, 3 new inventory endpoints |
+| `src/schemas/validation.js` | **REPLACE** | `orderItemSchema` now accepts `selectedColor`, `category`, `subCategory`; `paymentMethod` validated as enum |
+| `src/pages/CheckoutPage.jsx` | **REPLACE** | `items` array now sends `selectedColor`, `category`, `subCategory` to the server |
+| `scripts/sync-inventory.js` | **NEW FILE** | One-time migration to populate `inventories` from existing products |
+
+---
+
+## Step-by-Step Deployment
+
+### Step 1 — Replace the 3 existing files
+
+```
+server.js                     ← replace with server.js from this folder
+src/schemas/validation.js     ← replace with validation.js from this folder
+src/pages/CheckoutPage.jsx    ← replace with CheckoutPage.jsx from this folder
+```
+
+### Step 2 — Add the migration script
+
+```
+scripts/sync-inventory.js     ← copy sync-inventory.js from this folder
+```
+
+### Step 3 — Run the one-time migration
+
+```bash
+node scripts/sync-inventory.js
+```
+
+This reads all existing products from MongoDB and creates a document
+in the `inventories` collection for each one. Run this only once.
+After this, the inventories collection stays in sync automatically.
+
+### Step 4 — Deploy
+
+```bash
+npm run build
+# Railway auto-deploys on git push
+```
+
+---
+
+## MongoDB Structure After Migration
+
+You will see exactly 3 main data collections in MongoDB Compass / Atlas:
+
+```
+stopshop (database)
+├── products        ← master catalogue
+├── orders          ← every customer order
+├── inventories     ← stock management
+├── admins          ← admin accounts
+├── settings        ← store settings
+├── auditlogs       ← audit trail
+└── subscribers     ← newsletter
+```
+
+---
+
+## What Each Collection Contains
+
+### `products`
+Every product the admin creates/edits. Fields:
+- `id`, `name`, `price`, `quantity`, `stock`
+- `bucket` (category), `subCategory`
+- `specs`, `colors`, `sizes`, `sizeStock`
+- `image`, `gallery`, `lifestyleImage`, `variantImages`
+- `rating`, `mediaType`, `embedCode`
+
+**Auto-updates when:** Admin creates, edits, or deletes a product via the admin panel.
+
+---
+
+### `orders`
+Every customer purchase. Fields:
+- `orderID` (e.g. `ORD-LX8K2A`)
+- `customer.name`, `customer.email`, `customer.address`, `customer.city`, `customer.zip`
+- `items[]` — **full product snapshot at time of purchase:**
+  - `id`, `name`, `price`, `quantity`
+  - `selectedSize` (what size the customer chose)
+  - `selectedColor` (what color the customer chose) ← NEW
+  - `category` (e.g. Tops) ← NEW
+  - `subCategory` (e.g. T-Shirt) ← NEW
+- `total`
+- `paymentMethod` — one of: `COD`, `ATM Card`, `Bank Transfer`, `Easypaisa`, `JazzCash`
+- `status` — `Pending` → `Processing` → `Shipped` → `Delivered`
+
+**Auto-creates when:** A customer completes checkout.
+
+---
+
+### `inventories`
+Stock management layer. Fields:
+- `productId`, `sku` — links back to `products.id`
+- `name`, `category`, `subCategory`, `price`, `image`, `rating`
+- `colorVariants[]`, `sizes[]`
+- `totalStock` — aggregate across all sizes
+- `sizeStock` — `{ S: 10, M: 5, L: 3 }` breakdown
+- `status` — `In Stock` / `Low Stock` / `Out of Stock` (auto-computed)
+- `lowStockThreshold` — default 5
+- `lastRestocked`, `lastSold`, `lastAdminEdit`
+- `movements[]` — rolling 100-entry history of stock changes:
+  - `type`: `INITIAL | RESTOCK | SALE | ADMIN_UPDATE`
+  - `quantityDelta`: `+10` (restock) or `-2` (sale)
+  - `previousStock`, `newStock`
+  - `note` — human-readable description
+  - `triggeredBy`: `admin` or `customer`
+  - `orderId` — links to the order that triggered the sale
+
+**Auto-updates when:**
+- Admin creates/edits/deletes a product → inventory syncs immediately
+- Customer buys a product → stock decrements + SALE movement logged
+- Admin edits quantity in Inventory page → syncs to both collections
+
+---
+
+## Auto-Sync Events Table
+
+| Event | products updated | inventories updated | orders updated |
+|-------|-----------------|--------------------|-|
+| Admin adds product | ✅ Created | ✅ Created (INITIAL) | — |
+| Admin edits product | ✅ Updated | ✅ Updated (ADMIN_UPDATE or RESTOCK) | — |
+| Admin deletes product | ✅ Deleted | ✅ Deleted automatically | — |
+| Admin edits inventory qty | ✅ Synced | ✅ Updated (RESTOCK/ADMIN_UPDATE) | — |
+| Customer buys product | ✅ Stock decremented | ✅ Updated (SALE, with orderId) | ✅ Created |
+| Customer buys multiple items | ✅ All products decremented | ✅ All inventories updated | ✅ 1 order with all items |
+
+---
+
+## Payment Methods
+
+The 5 supported Pakistan payment methods are validated at the schema level:
+
+```
+COD           — Cash on Delivery
+ATM Card      — Debit/Credit card payment
+Bank Transfer — Direct bank transfer
+Easypaisa     — Mobile wallet
+JazzCash      — Mobile wallet
+```
+
+Any other value will return a `400 Validation failed` error.
+
+---
+
+## New API Endpoints
+
+| Method | Route | Description |
+|--------|-------|-------------|
+| `GET` | `/api/admin/inventory` | All inventory entries (sorted by last updated) |
+| `GET` | `/api/admin/inventory/summary` | Summary stats + by-category breakdown |
+| `GET` | `/api/admin/inventory/:productId` | Single entry with full 100-entry movement history |
+
+---
+
+## How to Add `selectedColor` to Cart
+
+Currently when a customer clicks "Add to Cart" on a product, the `selectedColor` defaults to `''`.
+To capture it, update `ProductCard.jsx` `handleAddToCart` to also pass `activeColor`:
+
+```jsx
+// In ProductCard.jsx, update handleAddToCart:
+const handleAddToCart = (e) => {
+  e.stopPropagation();
+  // ... existing size logic ...
+  addToCart({
+    ...product,
+    selectedSize:  product.sizes?.[0] ?? '',   // or your current logic
+    selectedColor: activeColor ?? '',           // ← add this line
+  });
+};
+```
+
+The `activeColor` state already exists in ProductCard — it just wasn't being passed to the cart.
