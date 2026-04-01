@@ -673,9 +673,9 @@ if (!process.env.VERCEL) {
 // ── Database ──
 const mongoUri = getEnv('MONGO_URI', 'MONGODB_URI');
 if (mongoUri) {
-  console.log('🔌 Connecting to MongoDB (Database: stop-shop)...');
+  console.log('🔌 Connecting to MongoDB (Database: stopshop)...');
   mongoose.connect(mongoUri, { 
-    dbName: 'stop-shop', // Explicitly route data to 'stop-shop' instead of the default 'test'
+    dbName: 'stopshop', // Explicitly route data securely to 'stopshop' namespace
     maxPoolSize: 10, 
     socketTimeoutMS: 45000, 
     family: 4 

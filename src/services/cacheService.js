@@ -40,6 +40,7 @@ const TTL = Object.freeze({
 // ─────────────────────────────────────────────────────────────────
 
 let client = null;
+let warnLogged = false;
 
 /**
  * Initialize Redis client lazily with reconnect strategy.
@@ -52,7 +53,10 @@ const getClient = () => {
 
   const redisUrl = process.env.REDIS_URL ?? process.env.REDIS_TLS_URL;
   if (!redisUrl) {
-    console.warn('[Cache] REDIS_URL not set — running without cache');
+    if (!warnLogged) {
+      console.warn('⚠️ [Cache] REDIS_URL not set — running in stateless memory fallback mode. (This is normal for single instances)');
+      warnLogged = true;
+    }
     return null;
   }
 
