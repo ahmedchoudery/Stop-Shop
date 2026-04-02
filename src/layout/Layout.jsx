@@ -1,7 +1,7 @@
 /**
  * @fileoverview Layout — Main site wrapper
- * Applies: react-patterns (composition, single responsibility),
- *          design-spells (search overlay, smooth page transitions)
+ * Updated: Added WhatsAppButton globally — appears on all storefront pages,
+ *          hidden automatically on /admin and /login routes.
  */
 
 import React, { useState } from 'react';
@@ -9,6 +9,7 @@ import Navbar from './Navbar.jsx';
 import Footer from './Footer.jsx';
 import SearchOverlay from '../components/SearchOverlay.jsx';
 import MarqueeBar from '../components/MarqueeBar.jsx';
+import WhatsAppButton from '../components/WhatsAppButton.jsx';
 import { useSettings } from '../hooks/useDomain.js';
 
 const Layout = ({ children, products = [] }) => {
@@ -40,6 +41,9 @@ const Layout = ({ children, products = [] }) => {
         onClose={() => setSearchOpen(false)}
         products={products}
       />
+
+      {/* WhatsApp floating button — auto-hidden on admin/login pages */}
+      <WhatsAppButton />
     </div>
   );
 };

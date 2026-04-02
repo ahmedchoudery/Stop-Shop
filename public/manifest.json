@@ -1,0 +1,36 @@
+{
+  "name": "Stop & Shop — Premium Clothing",
+  "short_name": "Stop & Shop",
+  "description": "Premium clothing, shoes, and fashion accessories. Pakistan's finest.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ba1f3d",
+  "orientation": "portrait-primary",
+  "categories": ["shopping", "lifestyle"],
+  "lang": "en-PK",
+  "icons": [
+    {
+      "src": "/vite.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Track Order",
+      "short_name": "Track",
+      "url": "/track",
+      "description": "Track your order status"
+    },
+    {
+      "name": "New Arrivals",
+      "short_name": "Shop",
+      "url": "/?category=new",
+      "description": "Browse new arrivals"
+    }
+  ],
+  "screenshots": [],
+  "prefer_related_applications": false
+}

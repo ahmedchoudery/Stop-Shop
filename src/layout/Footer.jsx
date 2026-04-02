@@ -1,8 +1,8 @@
 /**
- * @fileoverview Footer — Design Spells Edition
- * Fix: replaced require('animejs') with ESM import — animations are now functional
- * Applies: animejs-animation (scroll-triggered reveal), design-spells (underline draw on links),
- *          design-md (Cardinal Red system, editorial spacing, brand voice)
+ * @fileoverview Footer — Updated
+ * Fixed: "Track Order" now links to /track
+ * Added: "Returns & Exchange" links to /returns
+ * Added: ATM Card and Bank Transfer to payment methods
  */
 
 import React, { useEffect, useRef } from 'react';
@@ -94,19 +94,25 @@ const Footer = () => {
             </ul>
           </div>
 
-          {/* Experience */}
+          {/* Experience — fixed links */}
           <div data-footer-col style={{ opacity: 0 }}>
             <h4 className="text-[9px] font-black uppercase tracking-[0.4em] text-[#ba1f3d] mb-8">
               Experience
             </h4>
             <ul className="space-y-4">
-              {['Track Order', 'Returns & Exchange', 'Size Guide', 'Care Instructions'].map(item => (
-                <li key={item}>
+              {[
+                { label: 'Track Order',         to: '/track' },       // ← FIXED
+                { label: 'Returns & Exchange',  to: '/returns' },     // ← FIXED
+                { label: 'Search Products',     to: '/search' },      // ← NEW
+                { label: 'Size Guide',          to: '/returns' },
+                { label: 'Care Instructions',   to: '/returns' },
+              ].map(({ label, to }) => (
+                <li key={label}>
                   <Link
-                    to="/"
-                    className="text-xs font-black text-gray-400 hover:text-gray-900 transition-colors uppercase tracking-[0.2em] underline-draw"
+                    to={to}
+                    className="text-xs font-black text-gray-400 hover:text-gray-900 transition-colors uppercase tracking-[0.2em]"
                   >
-                    {item}
+                    {label}
                   </Link>
                 </li>
               ))}
@@ -125,7 +131,7 @@ const Footer = () => {
             <div className="space-y-5">
               {[
                 { Icon: MapPin, text: 'Zaib Market, Near Glorious Mall, Gujrat' },
-                { Icon: Phone, text: '0306-84586556' },
+                { Icon: Phone, text: '0306-8458655' },
                 { Icon: Mail, text: 'concierge@stop-shop.pk' },
               ].map(({ Icon, text }) => (
                 <div key={text} className="flex items-start space-x-3">
@@ -153,9 +159,13 @@ const Footer = () => {
             </div>
           </div>
 
-          <div className="flex items-center space-x-4 opacity-50 grayscale">
-            {['JazzCash', 'EasyPaisa', 'COD'].map(method => (
-              <span key={method} className="text-[8px] font-black uppercase tracking-widest text-gray-600 border border-gray-300 px-2 py-1">
+          {/* Payment methods — updated to match server */}
+          <div className="flex items-center space-x-2 flex-wrap gap-y-2">
+            {['JazzCash', 'Easypaisa', 'ATM Card', 'Bank Transfer', 'COD'].map(method => (
+              <span
+                key={method}
+                className="text-[7px] font-black uppercase tracking-widest text-gray-500 border border-gray-200 px-2 py-1"
+              >
                 {method}
               </span>
             ))}

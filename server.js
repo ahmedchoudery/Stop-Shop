@@ -432,6 +432,46 @@ const subscriberSchema = new mongoose.Schema({
 
 const Subscriber = mongoose.models.Subscriber || mongoose.model('Subscriber', subscriberSchema);
 
+// ── 8. COUPONS ──────────────────────────────────────────────────────
+//    Discount codes. Supports percentage (%) and fixed (PKR) types.
+//    CARDINAL20 = 20% off — matches newsletter promise.
+
+const couponSchema = new mongoose.Schema({
+  code:          { type: String, required: true, unique: true, uppercase: true, trim: true },
+  type:          { type: String, enum: ['percentage', 'fixed'], default: 'percentage' },
+  value:         { type: Number, required: true, min: 0 },   // 20 = 20% off | 500 = Rs.500 off
+  minOrderValue: { type: Number, default: 0 },               // min cart total to qualify
+  maxUses:       { type: Number, default: null },             // null = unlimited
+  usedCount:     { type: Number, default: 0 },
+  isActive:      { type: Boolean, default: true },
+  expiresAt:     { type: Date, default: null },               // null = never expires
+}, { timestamps: true, versionKey: false });
+
+const Coupon = mongoose.models.Coupon || mongoose.model('Coupon', couponSchema);
+
+// ── 9. REVIEWS ──────────────────────────────────────────────────────
+//    Customer reviews submitted via the storefront ReviewsSection.
+//    Status 'pending' by default — admin approves before going public.
+
+const reviewSchema = new mongoose.Schema({
+  customerName:  { type: String, required: true, trim: true, maxlength: 100 },
+  customerEmail: { type: String, required: true, trim: true, lowercase: true },
+  rating:        { type: Number, required: true, min: 1, max: 5 },
+  title:         { type: String, required: true, trim: true, maxlength: 120 },
+  body:          { type: String, required: true, trim: true, maxlength: 2000 },
+  status: {
+    type: String,
+    enum: ['pending', 'approved', 'rejected'],
+    default: 'pending',
+    index: true,
+  },
+  productId:     { type: String, default: '' }, // optional — if review is for a specific product
+}, { timestamps: true, versionKey: false });
+
+reviewSchema.index({ status: 1, createdAt: -1 });
+
+const Review = mongoose.models.Review || mongoose.model('Review', reviewSchema);
+
 // ─────────────────────────────────────────────────────────────────
 // INVENTORY SYNC HELPER
 // ─────────────────────────────────────────────────────────────────
@@ -563,6 +603,90 @@ const sendEmail = async (options) => {
   } catch (err) {
     console.error('[Email] Failed to send:', err.message);
   }
+};
+
+// ─────────────────────────────────────────────────────────────────
+// LOW STOCK EMAIL ALERT
+// Fires after every sale. Checks if any purchased product is now
+// low (< 5) or out of stock, and emails admin once per product.
+// ─────────────────────────────────────────────────────────────────
+
+const ADMIN_EMAIL = getEnv('ADMIN_EMAIL', 'EMAIL_USER', 'email_user');
+
+const sendLowStockAlert = async (products) => {
+  const lowItems  = products.filter(p => p.quantity > 0 && p.quantity < 5);
+  const outItems  = products.filter(p => p.quantity === 0);
+
+  if (!lowItems.length && !outItems.length) return;
+
+  const rows = [
+    ...outItems.map(p => `
+      <tr style="background:#fff5f5">
+        <td style="padding:10px 14px;font-family:monospace;font-size:12px;color:#ba1f3d">${p.id}</td>
+        <td style="padding:10px 14px;font-weight:bold;font-size:13px">${p.name}</td>
+        <td style="padding:10px 14px;text-align:center">
+          <span style="background:#ba1f3d;color:#fff;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:bold">
+            SOLD OUT
+          </span>
+        </td>
+      </tr>`),
+    ...lowItems.map(p => `
+      <tr>
+        <td style="padding:10px 14px;font-family:monospace;font-size:12px;color:#ba1f3d">${p.id}</td>
+        <td style="padding:10px 14px;font-weight:bold;font-size:13px">${p.name}</td>
+        <td style="padding:10px 14px;text-align:center">
+          <span style="background:#fff3cd;color:#856404;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:bold">
+            LOW · ${p.quantity} LEFT
+          </span>
+        </td>
+      </tr>`),
+  ].join('');
+
+  await sendEmail({
+    from:    `"Stop & Shop Alerts" <${ADMIN_EMAIL}>`,
+    to:      ADMIN_EMAIL,
+    subject: `⚠️ Stock Alert — ${outItems.length} sold out, ${lowItems.length} low`,
+    html: `
+      <div style="font-family:system-ui,sans-serif;max-width:600px;margin:0 auto">
+        <div style="background:#ba1f3d;padding:24px 32px">
+          <h1 style="color:#fff;margin:0;font-size:22px;font-weight:900;letter-spacing:-0.5px">
+            STOP &amp; SHOP — STOCK ALERT
+          </h1>
+        </div>
+        <div style="padding:32px">
+          <p style="color:#374151;margin:0 0 24px;font-size:14px">
+            The following products need restocking after a recent order:
+          </p>
+          <table style="width:100%;border-collapse:collapse;border:1px solid #e5e7eb">
+            <thead>
+              <tr style="background:#f9fafb">
+                <th style="padding:10px 14px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:#6b7280">SKU</th>
+                <th style="padding:10px 14px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:#6b7280">Product</th>
+                <th style="padding:10px 14px;text-align:center;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:#6b7280">Status</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+          <div style="margin-top:28px;padding:16px;background:#f9fafb;border-left:4px solid #ba1f3d">
+            <p style="margin:0;font-size:12px;color:#6b7280">
+              Log in to the admin panel to restock:
+              <a href="https://stop-shop-gamma.vercel.app/admin/inventory"
+                 style="color:#ba1f3d;font-weight:bold;display:block;margin-top:4px">
+                stop-shop-gamma.vercel.app/admin/inventory
+              </a>
+            </p>
+          </div>
+        </div>
+        <div style="background:#111827;padding:16px 32px;text-align:center">
+          <p style="color:#6b7280;margin:0;font-size:11px;font-weight:bold;letter-spacing:0.1em;text-transform:uppercase">
+            Stop &amp; Shop · Automated Stock Alert · ${new Date().toLocaleDateString('en-PK')}
+          </p>
+        </div>
+      </div>
+    `,
+  });
+
+  console.log(`[Stock Alert] Sent — ${outItems.length} sold out, ${lowItems.length} low`);
 };
 
 // ─────────────────────────────────────────────────────────────────
@@ -825,6 +949,64 @@ app.get('/api/admin/inventory/:productId', authenticateToken, async (req, res, n
   } catch (err) { next(err); }
 });
 
+// ── Public Order Tracking ──────────────────────────────────────────────
+//    No auth required. Rate limited to prevent order ID enumeration.
+
+const trackingLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 20,
+  message: { error: 'Too many tracking requests. Please wait a moment.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+  validate: { xForwardedForHeader: false },
+});
+
+app.get('/api/public/track/:orderID', trackingLimiter, async (req, res, next) => {
+  try {
+    const { orderID } = req.params;
+
+    if (!orderID || !orderID.toUpperCase().startsWith('ORD-')) {
+      return res.status(400).json({ error: 'Invalid order ID format. Must start with ORD-' });
+    }
+
+    const order = await Order
+      .findOne({ orderID: orderID.toUpperCase() })
+      .select('orderID customer items total paymentMethod status createdAt updatedAt')
+      .lean();
+
+    if (!order) {
+      return res.status(404).json({ error: `Order ${orderID} not found` });
+    }
+
+    // Return sanitized order — email and IP deliberately omitted for privacy
+    res.json({
+      orderID:       order.orderID,
+      status:        order.status,
+      paymentMethod: order.paymentMethod,
+      total:         order.total,
+      createdAt:     order.createdAt,
+      updatedAt:     order.updatedAt,
+      customer: {
+        name:    order.customer?.name    ?? '',
+        address: order.customer?.address ?? '',
+        city:    order.customer?.city    ?? '',
+        zip:     order.customer?.zip     ?? '',
+      },
+      items: (order.items ?? []).map(item => ({
+        id:            item.id,
+        name:          item.name,
+        price:         item.price,
+        quantity:      item.quantity ?? 1,
+        selectedSize:  item.selectedSize  ?? '',
+        selectedColor: item.selectedColor ?? '',
+        category:      item.category      ?? '',
+        subCategory:   item.subCategory   ?? '',
+      })),
+    });
+
+  } catch (err) { next(err); }
+});
+
 // ── Public Products ────────────────────────────────────────────────────
 
 app.get('/api/public/products', async (req, res, next) => {
@@ -839,6 +1021,19 @@ app.get('/api/public/products', async (req, res, next) => {
       }));
     });
     res.json(data);
+  } catch (err) { next(err); }
+});
+
+// Single product by ID — for /product/:id page
+app.get('/api/public/products/:id', async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const product = await Product.findOne(buildIdQuery(id)).lean();
+    if (!product) return res.status(404).json({ error: 'Product not found' });
+    res.json({
+      ...product,
+      id: product.id || product._id?.toString(),
+    });
   } catch (err) { next(err); }
 });
 
@@ -925,6 +1120,14 @@ app.post('/api/checkout', checkoutLimiter, validateRequest(checkoutSchema), asyn
     // ── Create order ───────────────────────────────────────────
     await Order.create({ orderID, customer, items: enrichedItems, total, paymentMethod, ip: clientIp });
 
+    // ── Increment coupon usage if one was applied ──────────────
+    if (req.body.couponCode) {
+      await Coupon.findOneAndUpdate(
+        { code: req.body.couponCode.trim().toUpperCase() },
+        { $inc: { usedCount: 1 } }
+      );
+    }
+
     // ── Invalidate caches ──────────────────────────────────────
     await cacheService.invalidateMany([
       CACHE_KEYS.STATS_REVENUE,
@@ -933,7 +1136,9 @@ app.post('/api/checkout', checkoutLimiter, validateRequest(checkoutSchema), asyn
       CACHE_KEYS.PUBLIC_PRODUCTS,
     ]);
 
-    // ── Fire-and-forget confirmation email ─────────────────────
+    // ── Fire-and-forget: customer confirmation + stock alert ───
+    const updatedProducts = await Product.find({ id: { $in: productIds } }).lean();
+
     sendEmail({
       from:    `"Stop & Shop" <${getEnv('EMAIL_USER', 'email_user')}>`,
       to:      customer.email,
@@ -943,9 +1148,13 @@ app.post('/api/checkout', checkoutLimiter, validateRequest(checkoutSchema), asyn
         <p>Your order <strong>${orderID}</strong> has been placed successfully.</p>
         <p><strong>Total:</strong> PKR ${total.toLocaleString()}</p>
         <p><strong>Payment:</strong> ${paymentMethod}</p>
-        <p>We'll update you when your order ships. Thank you for shopping with Stop & Shop.</p>
+        <p>Track your order: <a href="https://stop-shop-gamma.vercel.app/track?orderID=${orderID}">Click here</a></p>
+        <p>Thank you for shopping with Stop & Shop.</p>
       `,
     });
+
+    // Low stock / out-of-stock alert to admin
+    sendLowStockAlert(updatedProducts);
 
     res.status(201).json({ message: 'Order placed', orderID });
   } catch (err) { next(err); }
@@ -969,6 +1178,322 @@ app.post('/api/settings', authenticateToken, validateRequest(updateSettingsSchem
     await logAudit('SETTINGS_UPDATE', { changed: Object.keys(req.body) }, req);
     await cacheService.del(CACHE_KEYS.SETTINGS);
     res.json({ message: 'Settings updated', settings });
+  } catch (err) { next(err); }
+});
+
+// ── Coupons (Public) ────────────────────────────────────────────────────
+// Validate a coupon code — called from checkout form
+
+app.post('/api/public/coupons/validate', async (req, res, next) => {
+  try {
+    const { code, cartTotal } = req.body;
+
+    if (!code?.trim()) {
+      return res.status(400).json({ error: 'Coupon code is required' });
+    }
+    if (!cartTotal || isNaN(parseFloat(cartTotal))) {
+      return res.status(400).json({ error: 'Cart total is required' });
+    }
+
+    const total  = parseFloat(cartTotal);
+    const coupon = await Coupon.findOne({
+      code:     code.trim().toUpperCase(),
+      isActive: true,
+    }).lean();
+
+    if (!coupon) {
+      return res.status(404).json({ error: 'Invalid coupon code' });
+    }
+    if (coupon.expiresAt && new Date(coupon.expiresAt) < new Date()) {
+      return res.status(400).json({ error: 'This coupon has expired' });
+    }
+    if (coupon.maxUses !== null && coupon.usedCount >= coupon.maxUses) {
+      return res.status(400).json({ error: 'This coupon has reached its usage limit' });
+    }
+    if (total < coupon.minOrderValue) {
+      return res.status(400).json({
+        error: `Minimum order of PKR ${coupon.minOrderValue.toLocaleString()} required for this coupon`,
+      });
+    }
+
+    const discount   = coupon.type === 'percentage'
+      ? Math.round((total * coupon.value) / 100)
+      : Math.min(coupon.value, total);
+
+    res.json({
+      valid:      true,
+      code:       coupon.code,
+      type:       coupon.type,
+      value:      coupon.value,
+      discount,
+      finalTotal: Math.max(0, total - discount),
+      message:    coupon.type === 'percentage'
+        ? `${coupon.value}% off applied — you save PKR ${discount.toLocaleString()}`
+        : `PKR ${discount.toLocaleString()} off applied`,
+    });
+  } catch (err) { next(err); }
+});
+
+// ── Coupons (Admin) ─────────────────────────────────────────────────────
+
+app.get('/api/admin/coupons', authenticateToken, async (req, res, next) => {
+  try {
+    const coupons = await Coupon.find().sort({ createdAt: -1 }).lean();
+    res.json(coupons);
+  } catch (err) { next(err); }
+});
+
+app.post('/api/admin/coupons', authenticateToken, async (req, res, next) => {
+  try {
+    const { code, type, value, minOrderValue, maxUses, expiresAt } = req.body;
+    if (!code || !value) return res.status(400).json({ error: 'Code and value are required' });
+
+    const coupon = await Coupon.create({
+      code:          code.trim().toUpperCase(),
+      type:          type ?? 'percentage',
+      value:         parseFloat(value),
+      minOrderValue: parseFloat(minOrderValue) || 0,
+      maxUses:       maxUses ? parseInt(maxUses) : null,
+      expiresAt:     expiresAt ? new Date(expiresAt) : null,
+      isActive:      true,
+    });
+
+    await logAudit('COUPON_CREATE', { code: coupon.code, type: coupon.type, value: coupon.value }, req);
+    res.status(201).json(coupon);
+  } catch (err) {
+    if (err.code === 11000) return res.status(409).json({ error: 'Coupon code already exists' });
+    next(err);
+  }
+});
+
+app.patch('/api/admin/coupons/:id', authenticateToken, async (req, res, next) => {
+  try {
+    const coupon = await Coupon.findByIdAndUpdate(req.params.id, req.body, { new: true }).lean();
+    if (!coupon) return res.status(404).json({ error: 'Coupon not found' });
+    await logAudit('COUPON_UPDATE', { id: req.params.id }, req);
+    res.json(coupon);
+  } catch (err) { next(err); }
+});
+
+app.delete('/api/admin/coupons/:id', authenticateToken, async (req, res, next) => {
+  try {
+    const coupon = await Coupon.findByIdAndDelete(req.params.id).lean();
+    if (!coupon) return res.status(404).json({ error: 'Coupon not found' });
+    await logAudit('COUPON_DELETE', { code: coupon.code }, req);
+    res.json({ message: 'Coupon deleted' });
+  } catch (err) { next(err); }
+});
+
+// ── Reviews (Public) ────────────────────────────────────────────────────
+
+// Get approved reviews
+app.get('/api/public/reviews', async (_req, res, next) => {
+  try {
+    const reviews = await Review
+      .find({ status: 'approved' })
+      .sort({ createdAt: -1 })
+      .limit(50)
+      .lean();
+    res.json(reviews);
+  } catch (err) { next(err); }
+});
+
+// Submit a new review
+app.post('/api/public/reviews', async (req, res, next) => {
+  try {
+    const { name, email, rating, title, body, productId } = req.body;
+
+    if (!name?.trim())  return res.status(400).json({ error: 'Name is required' });
+    if (!email?.trim()) return res.status(400).json({ error: 'Email is required' });
+    if (!title?.trim()) return res.status(400).json({ error: 'Title is required' });
+    if (!body?.trim())  return res.status(400).json({ error: 'Review text is required' });
+    if (!rating || rating < 1 || rating > 5) return res.status(400).json({ error: 'Rating must be 1–5' });
+
+    const review = await Review.create({
+      customerName:  name.trim(),
+      customerEmail: email.trim().toLowerCase(),
+      rating:        parseInt(rating),
+      title:         title.trim(),
+      body:          body.trim(),
+      productId:     productId ?? '',
+      status:        'pending',
+    });
+
+    res.status(201).json({ message: 'Review submitted. It will appear after moderation.', id: review._id });
+  } catch (err) { next(err); }
+});
+
+// ── Reviews (Admin) ──────────────────────────────────────────────────────
+
+app.get('/api/admin/reviews', authenticateToken, async (_req, res, next) => {
+  try {
+    const reviews = await Review.find().sort({ createdAt: -1 }).lean();
+    res.json(reviews);
+  } catch (err) { next(err); }
+});
+
+app.patch('/api/admin/reviews/:id', authenticateToken, async (req, res, next) => {
+  try {
+    const { status } = req.body;
+    if (!['pending', 'approved', 'rejected'].includes(status)) {
+      return res.status(400).json({ error: 'Invalid status' });
+    }
+    const review = await Review.findByIdAndUpdate(req.params.id, { status }, { new: true }).lean();
+    if (!review) return res.status(404).json({ error: 'Review not found' });
+    await logAudit(`REVIEW_${status.toUpperCase()}`, { id: req.params.id }, req);
+    res.json(review);
+  } catch (err) { next(err); }
+});
+
+app.delete('/api/admin/reviews/:id', authenticateToken, async (req, res, next) => {
+  try {
+    const review = await Review.findByIdAndDelete(req.params.id).lean();
+    if (!review) return res.status(404).json({ error: 'Review not found' });
+    res.json({ message: 'Review deleted' });
+  } catch (err) { next(err); }
+});
+
+// ── Analytics ─────────────────────────────────────────────────────────────
+// Real MongoDB aggregations powering the Analytics dashboard
+
+app.get('/api/admin/analytics', authenticateToken, async (_req, res, next) => {
+  try {
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const yesterday     = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+    // Run all aggregations in parallel
+    const [
+      revenueResult,
+      revenueYesterday,
+      ordersResult,
+      ordersYesterday,
+      productCount,
+      outOfStockCount,
+      revenueOverTime,
+      revenueByCategory,
+      paymentMethods,
+      bestSellers,
+      ordersByStatusArr,
+    ] = await Promise.all([
+
+      // Total revenue (non-cancelled)
+      Order.aggregate([
+        { $match: { status: { $ne: 'Cancelled' } } },
+        { $group: { _id: null, total: { $sum: '$total' }, count: { $sum: 1 } } },
+      ]),
+
+      // Yesterday's revenue for trend
+      Order.aggregate([
+        { $match: { status: { $ne: 'Cancelled' }, createdAt: { $gte: yesterday } } },
+        { $group: { _id: null, total: { $sum: '$total' } } },
+      ]),
+
+      // Order counts
+      Order.aggregate([
+        { $group: { _id: '$status', count: { $sum: 1 } } },
+      ]),
+
+      // Yesterday order count for trend
+      Order.countDocuments({ createdAt: { $gte: yesterday } }),
+
+      // Product count
+      Product.countDocuments(),
+
+      // Out of stock
+      Product.countDocuments({ quantity: 0 }),
+
+      // Revenue over last 30 days (grouped by day)
+      Order.aggregate([
+        { $match: { status: { $ne: 'Cancelled' }, createdAt: { $gte: thirtyDaysAgo } } },
+        {
+          $group: {
+            _id: {
+              $dateToString: { format: '%m/%d', date: '$createdAt' }
+            },
+            revenue: { $sum: '$total' },
+            orders:  { $sum: 1 },
+          },
+        },
+        { $sort: { _id: 1 } },
+        { $project: { date: '$_id', revenue: 1, orders: 1, _id: 0 } },
+      ]),
+
+      // Revenue by product category (from order items)
+      Order.aggregate([
+        { $match: { status: { $ne: 'Cancelled' } } },
+        { $unwind: '$items' },
+        {
+          $group: {
+            _id: '$items.category',
+            revenue: { $sum: { $multiply: ['$items.price', '$items.quantity'] } },
+            units:   { $sum: '$items.quantity' },
+          },
+        },
+        { $match: { _id: { $ne: null, $ne: '' } } },
+        { $sort: { revenue: -1 } },
+        { $project: { category: '$_id', revenue: 1, units: 1, _id: 0 } },
+        { $limit: 8 },
+      ]),
+
+      // Payment method breakdown
+      Order.aggregate([
+        { $group: { _id: '$paymentMethod', count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+        { $project: { method: '$_id', count: 1, _id: 0 } },
+      ]),
+
+      // Best sellers (by units sold)
+      Order.aggregate([
+        { $match: { status: { $ne: 'Cancelled' } } },
+        { $unwind: '$items' },
+        {
+          $group: {
+            _id:      '$items.id',
+            name:     { $first: '$items.name' },
+            category: { $first: '$items.category' },
+            unitsSold:{ $sum: '$items.quantity' },
+            revenue:  { $sum: { $multiply: ['$items.price', '$items.quantity'] } },
+          },
+        },
+        { $sort: { unitsSold: -1 } },
+        { $limit: 10 },
+        { $project: { productId: '$_id', name: 1, category: 1, unitsSold: 1, revenue: 1, _id: 0 } },
+      ]),
+
+      // Orders by status
+      Order.aggregate([
+        { $group: { _id: '$status', count: { $sum: 1 } } },
+      ]),
+    ]);
+
+    // Compute derived values
+    const totalRevenue    = revenueResult[0]?.total  ?? 0;
+    const totalOrders     = revenueResult[0]?.count  ?? 0;
+    const avgOrderValue   = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+    const pendingOrders   = ordersResult.find(o => o._id === 'Pending')?.count ?? 0;
+    const yesterdayRev    = revenueYesterday[0]?.total ?? 0;
+    const revenueTrend    = yesterdayRev > 0 ? ((totalRevenue - yesterdayRev) / yesterdayRev) * 100 : 0;
+    const ordersByStatus  = ordersByStatusArr.reduce((acc, o) => ({ ...acc, [o._id]: o.count }), {});
+
+    res.json({
+      // KPIs
+      totalRevenue,
+      totalOrders,
+      avgOrderValue,
+      pendingOrders,
+      revenueTrend,
+      ordersTrend: ordersYesterday,
+      totalProducts: productCount,
+      outOfStock:    outOfStockCount,
+
+      // Charts
+      revenueOverTime,
+      revenueByCategory,
+      paymentMethods,
+      bestSellers,
+      ordersByStatus,
+    });
+
   } catch (err) { next(err); }
 });
 
@@ -1050,7 +1575,18 @@ if (!process.env.VERCEL) {
 const mongoUri = getEnv('MONGO_URI', 'MONGODB_URI');
 if (mongoUri) {
   mongoose.connect(mongoUri, { dbName: 'stopshop', maxPoolSize: 10, socketTimeoutMS: 45000, family: 4 })
-    .then(() => console.log('✅ MongoDB connected (db: stopshop)'))
+    .then(async () => {
+      console.log('✅ MongoDB connected (db: stopshop)');
+      // Seed the CARDINAL20 coupon promised in the newsletter if it doesn't exist yet
+      const exists = await Coupon.findOne({ code: 'CARDINAL20' }).lean();
+      if (!exists) {
+        await Coupon.create({
+          code: 'CARDINAL20', type: 'percentage', value: 20,
+          minOrderValue: 0, maxUses: null, isActive: true, expiresAt: null,
+        });
+        console.log('✅ CARDINAL20 coupon seeded (20% off)');
+      }
+    })
     .catch(err => console.error('❌ MongoDB error:', err.message));
 }
 

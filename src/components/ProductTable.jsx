@@ -1,112 +1,200 @@
+/**
+ * @fileoverview ProductTable.jsx
+ * Renders the products list table with Edit and Delete action buttons.
+ * Delete triggers a confirmation modal in AdminProducts.
+ * Edit opens the product form pre-filled.
+ */
+
 import React, { memo } from 'react';
-import { Pencil, Trash2, ExternalLink } from 'lucide-react';
+import { Edit3, Trash2, AlertTriangle } from 'lucide-react';
+import MediaRenderer from './MediaRenderer.jsx';
 
-const ProductTable = memo(({
-  products,
-  loading,
-  onEdit,
-  onDelete,
-  onView,
-}) => {
-  if (loading) {
+const StockBadge = ({ qty }) => {
+  if (qty === 0) {
     return (
-      <div className="p-10 text-center font-black uppercase tracking-widest text-gray-400 animate-pulse">
-        Syncing Product Registry...
-      </div>
+      <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-[8px] font-black uppercase tracking-widest bg-red-600 text-white">
+        <span>Sold Out</span>
+      </span>
     );
   }
-
-  if (!products || products.length === 0) {
+  if (qty < 5) {
     return (
-      <div className="p-10 text-center border-2 border-dashed border-gray-200 rounded-sm">
-        <p className="text-gray-400 font-black uppercase tracking-widest text-xs">
-          No products found
-        </p>
-      </div>
+      <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-[8px] font-black uppercase tracking-widest bg-orange-100 text-orange-700">
+        <AlertTriangle size={8} />
+        <span>Low · {qty}</span>
+      </span>
     );
   }
+  return (
+    <span className="inline-flex px-2.5 py-1 rounded-full text-[8px] font-black uppercase tracking-widest bg-green-100 text-green-700">
+      In Stock · {qty}
+    </span>
+  );
+};
+
+const ProductTable = memo(({ products = [], onEdit, onDelete }) => {
+  if (!products.length) return null;
 
   return (
     <div className="overflow-x-auto">
-      <table className="w-full text-left border-collapse">
+      <table className="w-full text-left">
         <thead>
-          <tr className="bg-gray-50 border-b border-gray-200">
-            <th className="p-4 text-[10px] font-black uppercase tracking-widest text-gray-400">SKU</th>
-            <th className="p-4 text-[10px] font-black uppercase tracking-widest text-gray-400">Product</th>
-            <th className="p-4 text-[10px] font-black uppercase tracking-widest text-gray-400">Category</th>
-            <th className="p-4 text-[10px] font-black uppercase tracking-widest text-gray-400">Price (PKR)</th>
-            <th className="p-4 text-[10px] font-black uppercase tracking-widest text-gray-400">Stock</th>
-            <th className="p-4 text-[10px] font-black uppercase tracking-widest text-gray-400">Rating</th>
-            <th className="p-4 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center">Actions</th>
+          <tr className="bg-gray-50 border-b border-gray-100">
+            {['Product', 'SKU / ID', 'Category', 'Price', 'Stock', 'Rating', 'Actions'].map(col => (
+              <th
+                key={col}
+                className="px-5 py-4 text-[9px] font-black uppercase tracking-[0.3em] text-gray-400"
+              >
+                {col}
+              </th>
+            ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-gray-100">
-          {products.map((product) => (
-            <tr key={product.id} className="hover:bg-gray-50 transition-colors">
-              <td className="p-4 font-mono text-xs font-bold text-red-600">
-                {product.id}
-              </td>
-              <td className="p-4">
+
+        <tbody className="divide-y divide-gray-50">
+          {products.map(product => (
+            <tr
+              key={product.id ?? product._id}
+              className="group hover:bg-gray-50/60 transition-colors duration-150"
+            >
+              {/* Product image + name */}
+              <td className="px-5 py-4">
                 <div className="flex items-center space-x-3">
-                  {product.image && (
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className="w-12 h-12 object-cover rounded-sm bg-gray-100"
-                    />
-                  )}
-                  <span className="text-sm font-black uppercase tracking-tight">{product.name}</span>
+                  <div className="w-11 h-11 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
+                    {product.image ? (
+                      <MediaRenderer
+                        src={product.mediaType === 'embed' ? null : product.image}
+                        embedCode={product.mediaType === 'embed' ? product.embedCode : undefined}
+                        mediaType={product.mediaType}
+                        alt={product.name}
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <span className="text-gray-300 text-[10px] font-black uppercase">No img</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-black uppercase tracking-tight text-gray-900 truncate max-w-[200px]">
+                      {product.name}
+                    </p>
+                    {product.colors?.length > 0 && (
+                      <div className="flex items-center space-x-1 mt-1">
+                        {product.colors.slice(0, 4).map(color => (
+                          <span
+                            key={color}
+                            className="w-2.5 h-2.5 rounded-full border border-white shadow-sm"
+                            style={{ backgroundColor: color.includes('|') ? color.split('|')[0] : color }}
+                            title={color}
+                          />
+                        ))}
+                        {product.colors.length > 4 && (
+                          <span className="text-[8px] text-gray-400 font-bold">
+                            +{product.colors.length - 4}
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
               </td>
-              <td className="p-4">
-                <span className="text-xs font-bold text-gray-500 uppercase">
-                  {product.bucket} / {product.subCategory || 'General'}
+
+              {/* SKU */}
+              <td className="px-5 py-4">
+                <span className="font-mono text-[10px] font-bold text-gray-400">
+                  #{product.id ?? product._id?.toString()?.slice(-8)}
                 </span>
               </td>
-              <td className="p-4">
-                <span className="text-sm font-black text-gray-900">
-                  Rs. {product.price?.toLocaleString()}
+
+              {/* Category */}
+              <td className="px-5 py-4">
+                <div>
+                  <p className="text-[10px] font-black text-[#ba1f3d] uppercase tracking-widest">
+                    {product.bucket || '—'}
+                  </p>
+                  <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">
+                    {product.subCategory || '—'}
+                  </p>
+                </div>
+              </td>
+
+              {/* Price */}
+              <td className="px-5 py-4">
+                <span className="text-sm font-black text-gray-900 tabular-nums">
+                  Rs. {Number(product.price ?? 0).toLocaleString('en-PK')}
                 </span>
               </td>
-              <td className="p-4">
-                <span className={`text-xs font-black uppercase tracking-widest ${
-                  product.quantity === 0 
-                    ? 'text-red-600' 
-                    : product.quantity < 5 
-                      ? 'text-yellow-600' 
-                      : 'text-green-600'
-                }`}>
-                  {product.quantity === 0 ? 'Out of Stock' : `${product.quantity} units`}
-                </span>
+
+              {/* Stock */}
+              <td className="px-5 py-4">
+                <div className="space-y-1.5">
+                  <StockBadge qty={product.quantity ?? 0} />
+                  {/* Per-size breakdown if available */}
+                  {product.sizes?.length > 0 && (
+                    <div className="flex flex-wrap gap-1">
+                      {product.sizes.map(size => {
+                        const sizeQty =
+                          product.sizeStock instanceof Map
+                            ? (product.sizeStock.get(size) ?? 0)
+                            : (product.sizeStock?.[size] ?? 0);
+                        return (
+                          <span
+                            key={size}
+                            className={`text-[7px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider ${
+                              sizeQty === 0 ? 'bg-red-50 text-red-400' : 'bg-gray-100 text-gray-500'
+                            }`}
+                          >
+                            {size}: {sizeQty}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               </td>
-              <td className="p-4">
-                <span className="text-xs font-black text-gray-400">
-                  {'★'.repeat(product.rating || 5)}
-                </span>
+
+              {/* Rating */}
+              <td className="px-5 py-4">
+                <div className="flex items-center space-x-1">
+                  {[...Array(5)].map((_, i) => (
+                    <span
+                      key={i}
+                      className={`text-[10px] ${i < (product.rating ?? 5) ? 'text-[#FBBF24]' : 'text-gray-200'}`}
+                    >
+                      ★
+                    </span>
+                  ))}
+                  <span className="text-[9px] font-bold text-gray-400 ml-1">
+                    {product.rating ?? 5}.0
+                  </span>
+                </div>
               </td>
-              <td className="p-4">
-                <div className="flex items-center justify-center space-x-2">
-                  <button
-                    onClick={() => onView(product)}
-                    className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-all"
-                    title="View Details"
-                  >
-                    <ExternalLink size={16} />
-                  </button>
+
+              {/* Actions */}
+              <td className="px-5 py-4">
+                <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+
+                  {/* Edit → opens form pre-filled → PATCH /api/admin/products/:id */}
                   <button
                     onClick={() => onEdit(product)}
-                    className="p-2 text-gray-400 hover:text-[#ba1f3d] hover:bg-red-50 rounded-full transition-all"
-                    title="Edit Product"
+                    title="Edit product — updates MongoDB"
+                    className="flex items-center space-x-1.5 px-3 py-2 bg-gray-100 text-gray-600 text-[9px] font-black uppercase tracking-widest rounded-lg hover:bg-gray-900 hover:text-white transition-all duration-200"
                   >
-                    <Pencil size={16} />
+                    <Edit3 size={11} />
+                    <span>Edit</span>
                   </button>
+
+                  {/* Delete → confirmation modal → DELETE /api/admin/products/:id */}
                   <button
-                    onClick={() => onDelete(product.id)}
-                    className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-all"
-                    title="Delete Product"
+                    onClick={() => onDelete(product)}
+                    title="Delete product — removes from MongoDB"
+                    className="flex items-center space-x-1.5 px-3 py-2 bg-red-50 text-[#ba1f3d] text-[9px] font-black uppercase tracking-widest rounded-lg hover:bg-[#ba1f3d] hover:text-white transition-all duration-200"
                   >
-                    <Trash2 size={16} />
+                    <Trash2 size={11} />
+                    <span>Delete</span>
                   </button>
+
                 </div>
               </td>
             </tr>
@@ -118,5 +206,4 @@ const ProductTable = memo(({
 });
 
 ProductTable.displayName = 'ProductTable';
-
 export default ProductTable;

@@ -1,7 +1,6 @@
 /**
- * @fileoverview App — Root component with design spells applied globally
- * Applies: design-spells (custom cursor, smooth scroll),
- *          react-patterns (ErrorBoundary at root, lazy loading)
+ * @fileoverview App.jsx — Root component with all routes
+ * Updated: Added ProductPage, SearchPage, ReturnsPage, OrderSuccessPage, OrderTrackingPage
  */
 
 import React, { useState, lazy, Suspense } from 'react';
@@ -23,12 +22,22 @@ import DashboardHome from '../pages/DashboardHome.jsx';
 import LoginPage from '../pages/LoginPage.jsx';
 import ProtectedRoute from '../components/ProtectedRoute.jsx';
 
+// ── Lazy-loaded pages ──────────────────────────────────────────────
 const AdminOrders    = lazy(() => import('../pages/AdminOrders.jsx'));
 const AdminInventory = lazy(() => import('../pages/AdminInventory.jsx'));
 const AdminProducts  = lazy(() => import('../pages/AdminProducts.jsx'));
 const AdminUsers     = lazy(() => import('../pages/AdminUsers.jsx'));
 const AdminSettings  = lazy(() => import('../pages/AdminSettings.jsx'));
 const AdminAuditPanel = lazy(() => import('../pages/AdminAuditPanel.jsx'));
+const AdminCoupons   = lazy(() => import('../pages/AdminCoupons.jsx'));  // ← NEW
+const AdminAnalytics = lazy(() => import('../pages/AdminAnalytics.jsx')); // ← NEW
+
+// ── Public pages (lazy) ────────────────────────────────────────────
+const ProductPage       = lazy(() => import('../pages/ProductPage.jsx'));         // ← NEW
+const SearchPage        = lazy(() => import('../pages/SearchPage.jsx'));           // ← NEW
+const OrderTrackingPage = lazy(() => import('../pages/OrderTrackingPage.jsx'));    // ← NEW
+const OrderSuccessPage  = lazy(() => import('../pages/OrderSuccessPage.jsx'));     // ← NEW
+const ReturnsPage       = lazy(() => import('../pages/ReturnsPage.jsx'));          // ← NEW
 
 const PageLoader = () => (
   <div className="flex items-center justify-center h-64">
@@ -58,15 +67,28 @@ function App() {
           <RecentlyViewedProvider>
             <WishlistProvider>
               <CartProvider>
-                {/* Design Spell: Custom cursor — desktop only */}
                 <CursorFollower />
-
-                {/* Luxury preloader */}
                 {loading && <SmoothLoader onComplete={() => setLoading(false)} />}
 
                 <Router>
                   <Routes>
+
+                    {/* ── Storefront ──────────────────────────────────── */}
                     <Route path="/" element={<HomeWithLayout />} />
+
+                    <Route path="/product/:id" element={
+                      <Layout>
+                        <Suspense fallback={<PageLoader />}>
+                          <ProductPage />
+                        </Suspense>
+                      </Layout>
+                    } />
+
+                    <Route path="/search" element={
+                      <Suspense fallback={<PageLoader />}>
+                        <SearchPage />
+                      </Suspense>
+                    } />
 
                     <Route path="/checkout" element={
                       <Layout>
@@ -74,8 +96,30 @@ function App() {
                       </Layout>
                     } />
 
+                    <Route path="/order-success" element={
+                      <Suspense fallback={<PageLoader />}>
+                        <OrderSuccessPage />
+                      </Suspense>
+                    } />
+
+                    <Route path="/track" element={
+                      <Suspense fallback={<PageLoader />}>
+                        <OrderTrackingPage />
+                      </Suspense>
+                    } />
+
+                    <Route path="/returns" element={
+                      <Layout>
+                        <Suspense fallback={<PageLoader />}>
+                          <ReturnsPage />
+                        </Suspense>
+                      </Layout>
+                    } />
+
+                    {/* ── Auth ────────────────────────────────────────── */}
                     <Route path="/login" element={<LoginPage />} />
 
+                    {/* ── Admin ───────────────────────────────────────── */}
                     <Route
                       path="/admin"
                       element={
@@ -85,16 +129,18 @@ function App() {
                       }
                     >
                       <Route index element={<Navigate to="/admin/dashboard" replace />} />
-                      <Route path="dashboard" element={<DashboardHome />} />
-                      <Route path="orders"    element={<Suspense fallback={<PageLoader />}><AdminOrders /></Suspense>} />
-                      <Route path="inventory" element={<Suspense fallback={<PageLoader />}><AdminInventory /></Suspense>} />
-                      <Route path="products"  element={<Suspense fallback={<PageLoader />}><AdminProducts /></Suspense>} />
-                      <Route path="users"     element={<Suspense fallback={<PageLoader />}><AdminUsers /></Suspense>} />
-                      <Route path="audits"    element={<Suspense fallback={<PageLoader />}><AdminAuditPanel /></Suspense>} />
-                      <Route path="settings"  element={<Suspense fallback={<PageLoader />}><AdminSettings /></Suspense>} />
+                      <Route path="dashboard"  element={<DashboardHome />} />
+                      <Route path="orders"     element={<Suspense fallback={<PageLoader />}><AdminOrders /></Suspense>} />
+                      <Route path="inventory"  element={<Suspense fallback={<PageLoader />}><AdminInventory /></Suspense>} />
+                      <Route path="products"   element={<Suspense fallback={<PageLoader />}><AdminProducts /></Suspense>} />
+                      <Route path="users"      element={<Suspense fallback={<PageLoader />}><AdminUsers /></Suspense>} />
+                      <Route path="audits"     element={<Suspense fallback={<PageLoader />}><AdminAuditPanel /></Suspense>} />
+                      <Route path="settings"   element={<Suspense fallback={<PageLoader />}><AdminSettings /></Suspense>} />
+                      <Route path="coupons"    element={<Suspense fallback={<PageLoader />}><AdminCoupons /></Suspense>} />
+                      <Route path="analytics"  element={<Suspense fallback={<PageLoader />}><AdminAnalytics /></Suspense>} />
                     </Route>
 
-                    {/* 404 */}
+                    {/* ── 404 ─────────────────────────────────────────── */}
                     <Route path="*" element={
                       <div className="min-h-screen bg-white flex items-center justify-center">
                         <div className="text-center">
@@ -110,6 +156,7 @@ function App() {
                         </div>
                       </div>
                     } />
+
                   </Routes>
 
                   <UniversalDrawer />

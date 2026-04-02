@@ -1,9 +1,5 @@
 /**
- * @fileoverview AdminSidebar — Design Spells Edition
- * Fix: replaced require('animejs') with ESM import — stagger entrance animations are now functional
- * Applies: design-spells (gold border-left active state, shimmer on hover),
- *          animejs-animation (stagger entrance on mount),
- *          design-md (Administrative Gray bg, Amber Gold accent)
+ * @fileoverview AdminSidebar — Updated with Coupons nav item
  */
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -11,8 +7,8 @@ import anime from 'animejs';
 import { NavLink } from 'react-router-dom';
 import {
   LayoutDashboard, ShoppingBag, Package, Settings,
-  Users, LogOut, ChevronRight, ShieldCheck, ShieldAlert,
-  BarChart3
+  Users, LogOut, ChevronRight, ShieldCheck,
+  BarChart3, Tag, TrendingUp
 } from 'lucide-react';
 import { apiUrl } from '../config/api.js';
 import { authFetch, clearToken } from '../lib/auth.js';
@@ -26,14 +22,8 @@ const AdminSidebar = () => {
   useEffect(() => {
     authFetch(apiUrl('/api/admin/users'))
       .then(r => r.ok ? r.json() : null)
-      .then(users => {
-        // Derive role from current user if possible
-        setRole('admin');
-      })
-      .catch((err) => {
-        console.error('[Admin] Failed to fetch user role:', err.message);
-        setRole('admin');
-      });
+      .then(() => setRole('admin'))
+      .catch(() => setRole('admin'));
   }, []);
 
   useEffect(() => {
@@ -58,11 +48,13 @@ const AdminSidebar = () => {
   };
 
   const navItems = [
-    { to: '/admin/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-    { to: '/admin/orders', label: 'Orders', icon: ShoppingBag },
-    { to: '/admin/products', label: 'Products', icon: Package },
-    { to: '/admin/inventory', label: 'Inventory', icon: BarChart3 },
-    { to: '/admin/users', label: 'Team', icon: Users },
+    { to: '/admin/dashboard', label: 'Dashboard',  icon: LayoutDashboard },
+    { to: '/admin/orders',    label: 'Orders',     icon: ShoppingBag },
+    { to: '/admin/products',  label: 'Products',   icon: Package },
+    { to: '/admin/inventory', label: 'Inventory',  icon: BarChart3 },
+    { to: '/admin/coupons',   label: 'Coupons',    icon: Tag },
+    { to: '/admin/analytics', label: 'Analytics',  icon: TrendingUp },  // ← NEW
+    { to: '/admin/users',     label: 'Team',       icon: Users },
     ...(role === 'super-admin' || role === 'auditor'
       ? [{ to: '/admin/audits', label: 'Audits', icon: ShieldCheck }]
       : []),
@@ -74,15 +66,13 @@ const AdminSidebar = () => {
   return (
     <aside className="fixed left-0 top-0 bottom-0 w-64 bg-[#0d0508] text-white flex flex-col z-20 overflow-hidden">
 
-      {/* Subtle grain texture */}
+      {/* Grain texture */}
       <div
         className="absolute inset-0 opacity-[0.04] pointer-events-none"
         style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 128 128' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
         }}
       />
-
-      {/* Cardinal red top accent */}
       <div className="absolute top-0 left-0 right-0 h-[2px] bg-[#ba1f3d]" />
 
       {/* Brand Header */}
@@ -119,9 +109,7 @@ const AdminSidebar = () => {
           >
             {({ isActive }) => (
               <>
-                {/* Shimmer on hover */}
                 <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-500 ease-out" />
-
                 <div className="flex items-center space-x-3 relative z-10">
                   <Icon size={16} className={isActive ? 'text-[#FBBF24]' : ''} />
                   <span>{label}</span>
@@ -138,27 +126,6 @@ const AdminSidebar = () => {
         ))}
       </nav>
 
-      {/* RBAC Gate Status */}
-      <div className="px-3 mb-2">
-        <div className="px-4 py-3 rounded-sm border border-white/8 bg-white/4">
-          <p className="text-[8px] font-black uppercase tracking-[0.35em] text-white/25 mb-2">
-            Security Gate
-          </p>
-          <div className="flex items-center space-x-2">
-            {import.meta.env.VITE_RBAC_ENABLED === 'true' ? (
-              <ShieldCheck size={12} className="text-green-400" />
-            ) : (
-              <ShieldAlert size={12} className="text-yellow-400" />
-            )}
-            <span className={`text-[9px] font-black uppercase tracking-wider ${
-              import.meta.env.VITE_RBAC_ENABLED === 'true' ? 'text-green-400' : 'text-yellow-400'
-            }`}>
-              {import.meta.env.VITE_RBAC_ENABLED === 'true' ? 'SECURED' : 'DISABLED'}
-            </span>
-          </div>
-        </div>
-      </div>
-
       {/* Logout */}
       <div className="px-3 pb-5 border-t border-white/6 pt-3">
         <button
@@ -170,10 +137,9 @@ const AdminSidebar = () => {
         </button>
       </div>
 
-      {/* Edition mark */}
       <div className="px-7 pb-5 text-center">
         <p className="text-[7px] font-black uppercase tracking-[0.4em] text-white/15">
-          Gujarat · 2026
+          Gujrat · 2026
         </p>
       </div>
     </aside>
