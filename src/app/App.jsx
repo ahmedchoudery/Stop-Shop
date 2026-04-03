@@ -1,6 +1,6 @@
 /**
  * @fileoverview App.jsx — Root component with all routes
- * Updated: Added ProductPage, SearchPage, ReturnsPage, OrderSuccessPage, OrderTrackingPage
+ * Updated: Added AdminReviews route at /admin/reviews
  */
 
 import React, { useState, lazy, Suspense } from 'react';
@@ -22,22 +22,23 @@ import DashboardHome from '../pages/DashboardHome.jsx';
 import LoginPage from '../pages/LoginPage.jsx';
 import ProtectedRoute from '../components/ProtectedRoute.jsx';
 
-// ── Lazy-loaded pages ──────────────────────────────────────────────
+// ── Admin pages (lazy) ─────────────────────────────────────────────
 const AdminOrders    = lazy(() => import('../pages/AdminOrders.jsx'));
 const AdminInventory = lazy(() => import('../pages/AdminInventory.jsx'));
 const AdminProducts  = lazy(() => import('../pages/AdminProducts.jsx'));
 const AdminUsers     = lazy(() => import('../pages/AdminUsers.jsx'));
 const AdminSettings  = lazy(() => import('../pages/AdminSettings.jsx'));
 const AdminAuditPanel = lazy(() => import('../pages/AdminAuditPanel.jsx'));
-const AdminCoupons   = lazy(() => import('../pages/AdminCoupons.jsx'));  // ← NEW
-const AdminAnalytics = lazy(() => import('../pages/AdminAnalytics.jsx')); // ← NEW
+const AdminCoupons   = lazy(() => import('../pages/AdminCoupons.jsx'));
+const AdminAnalytics = lazy(() => import('../pages/AdminAnalytics.jsx'));
+const AdminReviews   = lazy(() => import('../pages/AdminReviews.jsx'));  // ← NEW
 
 // ── Public pages (lazy) ────────────────────────────────────────────
-const ProductPage       = lazy(() => import('../pages/ProductPage.jsx'));         // ← NEW
-const SearchPage        = lazy(() => import('../pages/SearchPage.jsx'));           // ← NEW
-const OrderTrackingPage = lazy(() => import('../pages/OrderTrackingPage.jsx'));    // ← NEW
-const OrderSuccessPage  = lazy(() => import('../pages/OrderSuccessPage.jsx'));     // ← NEW
-const ReturnsPage       = lazy(() => import('../pages/ReturnsPage.jsx'));          // ← NEW
+const ProductPage       = lazy(() => import('../pages/ProductPage.jsx'));
+const SearchPage        = lazy(() => import('../pages/SearchPage.jsx'));
+const OrderTrackingPage = lazy(() => import('../pages/OrderTrackingPage.jsx'));
+const OrderSuccessPage  = lazy(() => import('../pages/OrderSuccessPage.jsx'));
+const ReturnsPage       = lazy(() => import('../pages/ReturnsPage.jsx'));
 
 const PageLoader = () => (
   <div className="flex items-center justify-center h-64">
@@ -138,19 +139,17 @@ function App() {
                       <Route path="settings"   element={<Suspense fallback={<PageLoader />}><AdminSettings /></Suspense>} />
                       <Route path="coupons"    element={<Suspense fallback={<PageLoader />}><AdminCoupons /></Suspense>} />
                       <Route path="analytics"  element={<Suspense fallback={<PageLoader />}><AdminAnalytics /></Suspense>} />
+                      <Route path="reviews"    element={<Suspense fallback={<PageLoader />}><AdminReviews /></Suspense>} />
                     </Route>
 
                     {/* ── 404 ─────────────────────────────────────────── */}
                     <Route path="*" element={
                       <div className="min-h-screen bg-white flex items-center justify-center">
                         <div className="text-center">
-                          <h1 className="text-[180px] font-black text-gray-50 leading-none select-none">404</h1>
+                          <h1 className="text-[160px] sm:text-[180px] font-black text-gray-50 leading-none select-none">404</h1>
                           <p className="text-xl font-black uppercase tracking-tighter text-gray-900 mt-4">Page Not Found</p>
                           <p className="text-gray-400 mt-2 text-sm uppercase tracking-widest font-black">The design doesn't exist here.</p>
-                          <a
-                            href="/"
-                            className="mt-8 inline-flex items-center space-x-2 px-10 py-5 bg-[#ba1f3d] text-white text-[10px] font-black uppercase tracking-[0.3em] hover:bg-gray-900 transition-all shadow-xl btn-shimmer"
-                          >
+                          <a href="/" className="mt-8 inline-flex items-center space-x-2 px-10 py-5 bg-[#ba1f3d] text-white text-[10px] font-black uppercase tracking-[0.3em] hover:bg-gray-900 transition-all shadow-xl">
                             <span>Return Home</span>
                           </a>
                         </div>
