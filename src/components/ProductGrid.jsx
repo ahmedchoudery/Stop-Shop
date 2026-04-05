@@ -1,4 +1,14 @@
+import { useState, useEffect, useRef, useMemo, useCallback, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { SlidersHorizontal, Star } from 'lucide-react';
+import { useCart } from '../context/CartContext';
+import ProductCard from './ProductCard';
+
+const SORT_OPTIONS = [
+  { label: 'Popularity', value: 'popular' },
+  { label: 'Price: Low to High', value: 'price-low' },
+  { label: 'Price: High to Low', value: 'price-high' },
+];
 
 const containerVariants = {
   hidden: { opacity: 0 },

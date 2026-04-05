@@ -77,10 +77,10 @@ const checkOutValidation = (items, dbProducts) => {
     const product = dbProducts.get(item.id);
     if (!product) return { ok: false, error: `Product not found: ${item.id}` };
 
-    const qty = Math.max(1, parseInt(item.quantity) || 1);
-    const size = (item.selectedSize ?? '').trim();
-    const available = size
-      ? (product.sizeStock?.[size] ?? 0)
+    const qty       = Math.max(1, parseInt(item.quantity) || 1);
+    const size      = (item.selectedSize ?? '').trim();
+    const available = (size && product.sizeStock)
+      ? (product.sizeStock[size] ?? 0)
       : product.quantity;
 
     if (available < qty) {

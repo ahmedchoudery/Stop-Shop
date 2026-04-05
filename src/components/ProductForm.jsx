@@ -284,7 +284,7 @@ const ProductForm = memo(({
 
 ProductForm.displayName = 'ProductForm';
 
-const MediaSection = memo(({ form, mediaTab, onTabSwitch, onImageUpload, injectTemplate, embedCopied, setEmbedCopied }) => (
+const MediaSection = memo(({ form, setForm, mediaTab, onTabSwitch, onImageUpload, injectTemplate, embedCopied, setEmbedCopied }) => (
   <div>
     <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-3">Product Media *</label>
     <div className="flex space-x-1 bg-gray-100 rounded-xl p-1 mb-4">

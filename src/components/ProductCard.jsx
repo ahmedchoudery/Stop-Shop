@@ -111,7 +111,7 @@ const ProductCard = ({ product, onSelectProduct, onImageLoad }) => {
     <div
       ref={tiltRef}
       className="group relative bg-[#0a0a0a] flex flex-col h-full cursor-pointer overflow-visible rounded-lg p-3 transition-shadow duration-500"
-      selected-active={isHovered ? 'true' : 'false'}
+      data-selected-active={isHovered ? 'true' : 'false'}
       style={{ 
         transformStyle: 'preserve-3d', 
         willChange: 'transform',

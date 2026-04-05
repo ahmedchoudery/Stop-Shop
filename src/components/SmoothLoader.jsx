@@ -109,7 +109,7 @@ const SmoothLoader = ({ onComplete }) => {
       clearInterval(scrambleInterval.current);
       progressAnim.pause();
     };
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);  
 
   return (
     <div

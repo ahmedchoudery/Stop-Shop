@@ -57,7 +57,7 @@ export const WishlistProvider = ({ children }) => {
   // Hydrate from localStorage on mount
   useEffect(() => {
     dispatch({ type: ACTIONS.LOAD, payload: storedWishlist });
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);  
 
   // Persist to localStorage on change
   useEffect(() => {

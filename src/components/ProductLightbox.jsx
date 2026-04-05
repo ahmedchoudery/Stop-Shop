@@ -82,7 +82,7 @@ const ProductLightbox = ({ images = [], startIndex = 0, isOpen, onClose }) => {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [isOpen, current, zoom]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [isOpen, current, zoom]);  
 
   const handleClose = useCallback(() => {
     if (!overlayRef.current) { onClose(); return; }

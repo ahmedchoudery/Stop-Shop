@@ -194,7 +194,7 @@ export const CartProvider = ({ children }) => {
   // Hydrate cart from localStorage on mount
   useEffect(() => {
     dispatch({ type: ActionTypes.LOAD_FROM_STORAGE, payload: storedCart });
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);  
 
   // Persist cart to localStorage on changes
   useEffect(() => {

@@ -43,7 +43,7 @@ export const useAnimeTimeline = (buildTimeline, deps = []) => {
     return () => {
       timelineRef.current?.pause();
     };
-  }, deps); // eslint-disable-line react-hooks/exhaustive-deps
+  }, deps);  
 
   const play = useCallback(() => timelineRef.current?.play(), []);
   const pause = useCallback(() => timelineRef.current?.pause(), []);
@@ -85,7 +85,7 @@ export const useAnimeEntrance = ({
     });
 
     return () => anim.pause();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);  
 
   return containerRef;
 };
@@ -177,7 +177,7 @@ export const useAnimeCounter = (target, {
     });
 
     return () => anim.pause();
-  }, [target]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [target]);  
 
   return ref;
 };

@@ -38,7 +38,7 @@ const STORAGE_KEY = 'stopshop_recently_viewed';
         });
     };
 
-    const clearViewed = () => setRecentlyViewed([]);
+    const clearViewed = () => setRecentlyViewedRaw([]);
 
     return (
         <RecentlyViewedContext.Provider value={{ recentlyViewed, addViewed, clearViewed }}>

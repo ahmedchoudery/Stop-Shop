@@ -144,9 +144,9 @@ describe('Coupon discount calculations', () => {
 
 describe('Stock validation', () => {
   const checkStock = (product, requestedQty, requestedSize) => {
-    const size = (requestedSize ?? '').trim();
-    const available = size
-      ? (product.sizeStock?.[size] ?? 0)
+    const size      = (requestedSize ?? '').trim();
+    const available = (size && product.sizeStock)
+      ? (product.sizeStock[size] ?? 0)
       : product.quantity;
 
     if (available < requestedQty) {

@@ -1,3 +1,7 @@
+/* eslint-disable react/no-unknown-property */
+import React, { useRef, useEffect, useState, Suspense } from 'react';
+import * as THREE from 'three';
+import { Canvas, useFrame, useThree } from '@react-three/fiber';
 import { Float, PerspectiveCamera, Environment, ContactShadows, Text } from '@react-three/drei';
 
 // ─────────────────────────────────────────────────────────────────

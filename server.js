@@ -36,7 +36,7 @@ import {
   updateOrderStatusSchema,
   checkoutSchema,
   updateSettingsSchema,
-  reviewSchema,
+  reviewSchema as reviewValidationSchema,
   couponValidationSchema,
 } from './src/schemas/validation.js';
 
@@ -1229,9 +1229,9 @@ app.post('/api/checkout', checkoutLimiter, validateRequest(checkoutSchema), asyn
       if (!product)  return res.status(400).json({ error: `Product not found: ${item.id}` });
 
       const qty      = Math.max(1, parseInt(item.quantity) || 1);
-      const size     = (item.selectedSize ?? '').trim();
-      const available = size
-        ? (product.sizeStock?.get?.(size) ?? product.sizeStock?.[size] ?? 0)
+      const size      = (item.selectedSize ?? '').trim();
+      const available = (size && product.sizeStock)
+        ? (product.sizeStock.get?.(size) ?? product.sizeStock[size] ?? 0)
         : product.quantity;
 
       if (available < qty) {
@@ -1504,7 +1504,7 @@ app.get('/api/public/reviews', async (_req, res, next) => {
   } catch (err) { next(err); }
 });
 
-app.post('/api/public/reviews', validateRequest(reviewSchema), async (req, res, next) => {
+app.post('/api/public/reviews', validateRequest(reviewValidationSchema), async (req, res, next) => {
   try {
     const { name, email, rating, title, body, productId } = req.body;
 
@@ -1795,7 +1795,7 @@ app.get('/api/admin/analytics', authenticateToken, async (_req, res, next) => {
             units:   { $sum: '$items.quantity' },
           },
         },
-        { $match: { _id: { $ne: null, $ne: '' } } },
+        { $match: { _id: { $nin: [null, ''] } } },
         { $sort: { revenue: -1 } },
         { $project: { category: '$_id', revenue: 1, units: 1, _id: 0 } },
         { $limit: 8 },

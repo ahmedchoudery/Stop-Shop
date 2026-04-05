@@ -163,7 +163,7 @@ describe('Price snapshot at checkout', () => {
 
     // Simulate broken data
     const broken = [{ price: -500, quantity: 1 }];
-    expect(computeVerifiedTotal(broken)).toBe(-500); // price can be 0 in DB, not negative
+    expect(computeVerifiedTotal(broken)).toBe(0); // price can be 0 in DB, not negative
   });
 
   it('handles missing product gracefully (uses client fallback)', () => {
