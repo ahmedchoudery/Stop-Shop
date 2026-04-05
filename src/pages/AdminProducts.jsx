@@ -23,7 +23,7 @@ import { authFetch, handleAuthError } from '../lib/auth.js';
 import { apiUrl } from '../config/api.js';
 import { useAsync } from '../hooks/useAsync.js';
 import { useDebounce } from '../hooks/useUtils.js';
-
+import CsvImport from '../components/CsvImport.jsx';
 // ─────────────────────────────────────────────────────────────────
 // DEFAULT FORM STATE
 // ─────────────────────────────────────────────────────────────────
@@ -386,6 +386,7 @@ const AdminProducts = () => {
           >
             <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
           </button>
+          <CsvImport onImported={refetch} />
 
           {/* Add Product */}
           <button

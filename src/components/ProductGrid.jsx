@@ -1,28 +1,33 @@
-/**
- * @fileoverview ProductGrid — Stagger reveal with anime.js
- * Fix: replaced require('animejs') with ESM import — card stagger animations now work
- */
+import { motion, AnimatePresence } from 'framer-motion';
 
-import React, { useState, useEffect, useMemo, memo, useCallback, useRef } from 'react';
-import anime from 'animejs';
-import ProductCard from './ProductCard.jsx';
-import { useCart } from '../context/CartContext.jsx';
-import { SlidersHorizontal } from 'lucide-react';
-import { EASING } from '../hooks/useAnime.js';
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+    opacity: 1,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.2
+    }
+  }
+};
 
-const SORT_OPTIONS = [
-  { value: 'featured', label: 'Featured' },
-  { value: 'popular', label: 'Most Popular' },
-  { value: 'price-low', label: 'Price: Low → High' },
-  { value: 'price-high', label: 'Price: High → Low' },
-];
+const itemVariants = {
+  hidden: { opacity: 0, y: 30, scale: 0.95 },
+  visible: { 
+    opacity: 1, 
+    y: 0, 
+    scale: 1,
+    transition: { 
+      duration: 0.8, 
+      ease: [0.16, 1, 0.3, 1] 
+    }
+  }
+};
 
 const ProductGrid = ({ products, activeBucket = 'All', activeSubCategory = null }) => {
   const { openDrawer, sortBy, setSortBy } = useCart();
-  const gridRef = useRef(null);
   const headingRef = useRef(null);
   const [visibleCount, setVisibleCount] = useState(20);
-  const prevBucket = useRef(activeBucket);
 
   // Reset pagination when filter changes
   useEffect(() => {
@@ -49,63 +54,18 @@ const ProductGrid = ({ products, activeBucket = 'All', activeSubCategory = null 
     });
   }, [products, activeBucket, activeSubCategory, sortBy]);
 
-  // ── Anime.js scroll-triggered stagger reveal ─────────────────
-  useEffect(() => {
-    if (!gridRef.current || sortedProducts.length === 0) return;
-
-    const cards = gridRef.current.querySelectorAll('.product-card-wrap');
-    const bucketChanged = prevBucket.current !== activeBucket;
-    prevBucket.current = activeBucket;
-
-    if (bucketChanged) {
-      anime.set(cards, { opacity: 0, translateY: 40, scale: 0.96 });
-    }
-
-    const runAnimation = () => {
-      anime({
-        targets: cards,
-        opacity: [0, 1],
-        translateY: [40, 0],
-        scale: [0.96, 1],
-        duration: 800,
-        delay: anime.stagger(70, { from: 'first' }),
-        easing: EASING.FABRIC,
-      });
-    };
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          runAnimation();
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.05, rootMargin: '0px 0px -50px 0px' }
-    );
-
-    if (gridRef.current) observer.observe(gridRef.current);
-    return () => observer.disconnect();
-  }, [sortedProducts, activeBucket]);
-
-  // ── Heading stagger ───────────────────────────────────────────
-  useEffect(() => {
-    if (!headingRef.current) return;
-    anime({
-      targets: headingRef.current,
-      opacity: [0, 1],
-      translateX: [-20, 0],
-      duration: 500,
-      easing: EASING.QUART_OUT,
-    });
-  }, [activeBucket]);
-
   return (
     <div id="product-grid" className="bg-white py-20 sm:py-28">
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
 
         {/* Section Header */}
         <div className="flex items-end justify-between mb-16">
-          <div ref={headingRef} style={{ opacity: 0 }}>
+          <motion.div 
+            key={activeBucket}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          >
             <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-3">
               Curated Selection
             </p>
@@ -117,9 +77,9 @@ const ProductGrid = ({ products, activeBucket = 'All', activeSubCategory = null 
                 {sortedProducts.length} {sortedProducts.length === 1 ? 'piece' : 'pieces'}
               </p>
             )}
-          </div>
+          </motion.div>
 
-          {/* Sort control — design spell: smooth dropdown */}
+          {/* Sort control */}
           <div className="flex items-center space-x-3">
             <SlidersHorizontal size={14} className="text-gray-400" />
             <select
@@ -134,41 +94,52 @@ const ProductGrid = ({ products, activeBucket = 'All', activeSubCategory = null 
           </div>
         </div>
 
-        {sortedProducts.length > 0 ? (
-          <>
-            <div
-              ref={gridRef}
+        <AnimatePresence mode="wait">
+          {sortedProducts.length > 0 ? (
+            <motion.div
+              key={`${activeBucket}-${activeSubCategory}-${sortBy}`}
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
+              exit="hidden"
               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 sm:gap-14"
             >
               {sortedProducts.slice(0, visibleCount).map((product) => (
-                <div
+                <motion.div
                   key={product.id}
+                  variants={itemVariants}
                   className="product-card-wrap"
-                  style={{ opacity: 0, willChange: 'transform, opacity' }}
                 >
                   <ProductCard
                     product={product}
                     onSelectProduct={() => handleSelectProduct(product)}
                   />
-                </div>
+                </motion.div>
               ))}
-            </div>
+            </motion.div>
+          ) : (
+            <motion.div
+              key="empty"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <EmptyGrid activeBucket={activeBucket} activeSubCategory={activeSubCategory} />
+            </motion.div>
+          )}
+        </AnimatePresence>
 
-            {/* Load More Button */}
-            {visibleCount < sortedProducts.length && (
-              <div className="flex justify-center mt-20">
-                <button
-                  onClick={() => setVisibleCount(c => c + 20)}
-                  className="px-10 py-4 bg-gray-900 hover:bg-[#ba1f3d] text-white text-[10px] font-black uppercase tracking-[0.4em] rounded-xl shadow-2xl transition-all active:scale-95 flex items-center space-x-4 group"
-                >
-                  <span>Load More Pieces</span>
-                  <div className="h-[2px] w-4 bg-white/30 group-hover:w-8 transition-all duration-300" />
-                </button>
-              </div>
-            )}
-          </>
-        ) : (
-          <EmptyGrid activeBucket={activeBucket} activeSubCategory={activeSubCategory} />
+        {/* Load More Button */}
+        {sortedProducts.length > visibleCount && (
+          <div className="flex justify-center mt-20">
+            <button
+              onClick={() => setVisibleCount(c => c + 20)}
+              className="px-10 py-4 bg-gray-900 hover:bg-[#ba1f3d] text-white text-[10px] font-black uppercase tracking-[0.4em] rounded-xl shadow-2xl transition-all active:scale-95 flex items-center space-x-4 group"
+            >
+              <span>Load More Pieces</span>
+              <div className="h-[2px] w-4 bg-white/30 group-hover:w-8 transition-all duration-300" />
+            </button>
+          </div>
         )}
       </div>
     </div>

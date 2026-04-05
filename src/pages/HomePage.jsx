@@ -19,36 +19,16 @@ import { EASING } from '../hooks/useAnime.js';
 // CATEGORY FILTER BAR — Design Spell: morphing active pill
 // ─────────────────────────────────────────────────────────────────
 
+import { motion, AnimatePresence as MotionAnimatePresence } from 'framer-motion';
+
 const BUCKETS = ['All', 'Tops', 'Bottoms', 'Footwear', 'Accessories'];
 
 const CategoryBar = ({ active, activeSub, onChange, products }) => {
-  const pillRef = useRef(null);
-  const tabRefs = useRef({});
-  const containerRef = useRef(null);
-
-  // Animate the sliding pill indicator — design spell
-  const movePill = useCallback((bucket) => {
-    const tab = tabRefs.current[bucket];
-    const container = containerRef.current;
-    const pill = pillRef.current;
-    if (!tab || !container || !pill) return;
-
-    const tabRect = tab.getBoundingClientRect();
-    const containerRect = container.getBoundingClientRect();
-    const left = tabRect.left - containerRect.left;
-
-    anime({
-      targets: pill,
-      left: [pill.offsetLeft, left],
-      width: [pill.offsetWidth, tabRect.width],
-      duration: 350,
-      easing: EASING.SPRING,
-    });
-  }, []);
-
-  useEffect(() => {
-    movePill(active);
-  }, [active, movePill]);
+  // Count per bucket
+  const counts = useMemo(() => BUCKETS.reduce((acc, b) => {
+    acc[b] = b === 'All' ? products.length : products.filter(p => p.bucket === b).length;
+    return acc;
+  }, {}), [products]);
 
   // Filter subcategories for the active bucket
   const subCategories = useMemo(() => {
@@ -59,69 +39,85 @@ const CategoryBar = ({ active, activeSub, onChange, products }) => {
     )].sort();
   }, [active, products]);
 
-  // Count per bucket
-  const counts = BUCKETS.reduce((acc, b) => {
-    acc[b] = b === 'All' ? products.length : products.filter(p => p.bucket === b).length;
-    return acc;
-  }, {});
-
   return (
-    <div className="sticky top-14 z-40 bg-white/95 backdrop-blur-sm border-b border-gray-100 shadow-sm">
+    <div className="sticky top-14 z-40 bg-white/80 backdrop-blur-xl border-b border-gray-100/50 shadow-sm">
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
-        <div ref={containerRef} className="flex items-center space-x-1 py-3 relative overflow-x-auto scrollbar-hide">
-
-          {/* Sliding pill background — design spell */}
-          <div
-            ref={pillRef}
-            className="absolute h-8 bg-[#ba1f3d] rounded-lg pointer-events-none transition-none"
-            style={{ top: '50%', transform: 'translateY(-50%)', willChange: 'left, width' }}
-          />
-
+        <div className="flex items-center space-x-1 py-4 relative overflow-x-auto scrollbar-hide">
           {BUCKETS.map(bucket => (
             <button
               key={bucket}
-              ref={el => { tabRefs.current[bucket] = el; }}
               onClick={() => onChange(bucket)}
-              className={`relative z-10 flex items-center space-x-1.5 px-4 py-1.5 text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-colors duration-200 rounded-lg flex-shrink-0 ${
-                active === bucket ? 'text-white' : 'text-gray-500 hover:text-gray-900'
+              className={`relative px-5 py-2 text-[10px] font-black uppercase tracking-[0.2em] whitespace-nowrap transition-colors duration-300 rounded-full flex-shrink-0 ${
+                active === bucket ? 'text-white' : 'text-gray-500 hover:text-gray-900 group'
               }`}
             >
-              <span>{bucket}</span>
+              <span className="relative z-10">{bucket}</span>
               {counts[bucket] > 0 && (
-                <span className={`text-[8px] font-black transition-colors duration-200 ${
-                  active === bucket ? 'text-white/70' : 'text-gray-300'
+                <span className={`relative z-10 ml-2 text-[8px] font-black opacity-60 ${
+                  active === bucket ? 'text-white' : 'text-gray-400 group-hover:text-gray-900'
                 }`}>
                   {counts[bucket]}
                 </span>
+              )}
+              
+              {active === bucket && (
+                <motion.div
+                  layoutId="activeCategoryPill"
+                  className="absolute inset-0 bg-[#ba1f3d] rounded-full shadow-[0_8px_20px_rgba(186,31,61,0.25)]"
+                  transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                />
               )}
             </button>
           ))}
         </div>
 
-        {/* Subcategories — design spell: slide-in from right */}
-        {subCategories.length > 0 && (
-          <div className="flex items-center space-x-2 py-3 border-t border-gray-50 overflow-x-auto scrollbar-hide animate-slide-right">
-            <button
-              onClick={() => onChange(active, null)}
-              className={`px-4 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-full transition-all whitespace-nowrap ${
-                !activeSub ? 'bg-gray-900 text-white shadow-lg' : 'bg-gray-50 text-gray-400 hover:bg-gray-100'
-              }`}
+        {/* Subcategories — liquid entrance */}
+        <MotionAnimatePresence mode="wait">
+          {subCategories.length > 0 && (
+            <motion.div 
+              key={active}
+              initial={{ opacity: 0, x: 10 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -10 }}
+              transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+              className="flex items-center space-x-2 py-4 border-t border-gray-50 overflow-x-auto scrollbar-hide"
             >
-              All {active}
-            </button>
-            {subCategories.map(sub => (
               <button
-                key={sub}
-                onClick={() => onChange(active, sub)}
-                className={`px-4 py-1.5 text-[9px] font-black uppercase tracking-widest rounded-full transition-all whitespace-nowrap ${
-                  activeSub === sub ? 'bg-gray-900 text-white shadow-lg' : 'bg-gray-50 text-gray-400 hover:bg-gray-100'
+                onClick={() => onChange(active, null)}
+                className={`relative px-5 py-2 text-[9px] font-black uppercase tracking-widest rounded-full transition-all whitespace-nowrap ${
+                  !activeSub ? 'text-white' : 'bg-gray-50 text-gray-400 hover:bg-gray-100'
                 }`}
               >
-                {sub}
+                <span className="relative z-10">All {active}</span>
+                {!activeSub && (
+                  <motion.div
+                    layoutId="activeSubCategoryPill"
+                    className="absolute inset-0 bg-gray-900 rounded-full shadow-lg"
+                    transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                  />
+                )}
               </button>
-            ))}
-          </div>
-        )}
+              {subCategories.map(sub => (
+                <button
+                  key={sub}
+                  onClick={() => onChange(active, sub)}
+                  className={`relative px-5 py-2 text-[9px] font-black uppercase tracking-widest rounded-full transition-all whitespace-nowrap ${
+                    activeSub === sub ? 'text-white' : 'bg-gray-50 text-gray-400 hover:bg-gray-100'
+                  }`}
+                >
+                  <span className="relative z-10">{sub}</span>
+                  {activeSub === sub && (
+                    <motion.div
+                      layoutId="activeSubCategoryPill"
+                      className="absolute inset-0 bg-gray-900 rounded-full shadow-lg"
+                      transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                    />
+                  )}
+                </button>
+              ))}
+            </motion.div>
+          )}
+        </MotionAnimatePresence>
       </div>
     </div>
   );

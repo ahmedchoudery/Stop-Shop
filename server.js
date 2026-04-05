@@ -36,6 +36,8 @@ import {
   updateOrderStatusSchema,
   checkoutSchema,
   updateSettingsSchema,
+  reviewSchema,
+  couponValidationSchema,
 } from './src/schemas/validation.js';
 
 dotenv.config();
@@ -388,6 +390,7 @@ inventorySchema.index({ category: 1, totalStock: 1 });
 
 const Inventory = mongoose.models.Inventory || mongoose.model('Inventory', inventorySchema);
 
+//
 // ── 4. ADMINS ──────────────────────────────────────────────────────
 
 const adminSchema = new mongoose.Schema({
@@ -470,7 +473,24 @@ const reviewSchema = new mongoose.Schema({
 
 reviewSchema.index({ status: 1, createdAt: -1 });
 
+
 const Review = mongoose.models.Review || mongoose.model('Review', reviewSchema);
+
+// ── 10. CUSTOMERS ───────────────────────────────────────────────────
+
+const customerSchema = new mongoose.Schema({
+  name:     { type: String, required: true, trim: true, maxlength: 100 },
+  email:    { type: String, required: true, trim: true, lowercase: true, unique: true, index: true },
+  password: { type: String, required: true, minlength: 6 },
+  phone:    { type: String, default: '', trim: true },
+  address:  { type: String, default: '' },
+  city:     { type: String, default: '' },
+  zip:      { type: String, default: '' },
+  isVerified: { type: Boolean, default: false },
+}, { timestamps: true, versionKey: false });
+
+const Customer = mongoose.models.Customer || mongoose.model('Customer', customerSchema);
+
 
 // ─────────────────────────────────────────────────────────────────
 // INVENTORY SYNC HELPER
@@ -492,7 +512,7 @@ const syncInventory = async (product, moveType = 'ADMIN_UPDATE', note = '', orde
     // Determine status
     const status = totalStock === 0
       ? 'Out of Stock'
-      : totalStock < (5)
+      : totalStock < (LOW_STOCK_THRESHOLD || 3)
         ? 'Low Stock'
         : 'In Stock';
 
@@ -573,6 +593,9 @@ const syncInventory = async (product, moveType = 'ADMIN_UPDATE', note = '', orde
 // UTILITIES
 // ─────────────────────────────────────────────────────────────────
 
+// Low stock threshold — alert when stock drops to this or below
+const LOW_STOCK_THRESHOLD = 3;
+
 const JWT_SECRET = getEnv('JWT_SECRET', 'jwt_secret');
 
 const logAudit = async (action, details, req) => {
@@ -613,81 +636,117 @@ const sendEmail = async (options) => {
 
 const ADMIN_EMAIL = getEnv('ADMIN_EMAIL', 'EMAIL_USER', 'email_user');
 
-const sendLowStockAlert = async (products) => {
-  const lowItems  = products.filter(p => p.quantity > 0 && p.quantity < 5);
-  const outItems  = products.filter(p => p.quantity === 0);
 
-  if (!lowItems.length && !outItems.length) return;
+/**
+ * Checks stock levels after checkout and sends a consolidated
+ * email alert listing ALL low-stock items in one email.
+ * Never throws — runs fire-and-forget.
+ */
+const checkAndAlertLowStock = async (purchasedItems) => {
+  try {
+    const adminEmail = process.env.ADMIN_EMAIL || getEnv('EMAIL_USER');
+    if (!adminEmail) return; // No admin email configured
 
-  const rows = [
-    ...outItems.map(p => `
-      <tr style="background:#fff5f5">
-        <td style="padding:10px 14px;font-family:monospace;font-size:12px;color:#ba1f3d">${p.id}</td>
-        <td style="padding:10px 14px;font-weight:bold;font-size:13px">${p.name}</td>
-        <td style="padding:10px 14px;text-align:center">
-          <span style="background:#ba1f3d;color:#fff;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:bold">
-            SOLD OUT
-          </span>
-        </td>
-      </tr>`),
-    ...lowItems.map(p => `
-      <tr>
-        <td style="padding:10px 14px;font-family:monospace;font-size:12px;color:#ba1f3d">${p.id}</td>
-        <td style="padding:10px 14px;font-weight:bold;font-size:13px">${p.name}</td>
-        <td style="padding:10px 14px;text-align:center">
-          <span style="background:#fff3cd;color:#856404;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:bold">
-            LOW · ${p.quantity} LEFT
-          </span>
-        </td>
-      </tr>`),
-  ].join('');
+    // Find which purchased items now have low stock
+    const lowStockItems = [];
 
-  await sendEmail({
-    from:    `"Stop & Shop Alerts" <${ADMIN_EMAIL}>`,
-    to:      ADMIN_EMAIL,
-    subject: `⚠️ Stock Alert — ${outItems.length} sold out, ${lowItems.length} low`,
-    html: `
-      <div style="font-family:system-ui,sans-serif;max-width:600px;margin:0 auto">
-        <div style="background:#ba1f3d;padding:24px 32px">
-          <h1 style="color:#fff;margin:0;font-size:22px;font-weight:900;letter-spacing:-0.5px">
-            STOP &amp; SHOP — STOCK ALERT
-          </h1>
-        </div>
-        <div style="padding:32px">
-          <p style="color:#374151;margin:0 0 24px;font-size:14px">
-            The following products need restocking after a recent order:
-          </p>
-          <table style="width:100%;border-collapse:collapse;border:1px solid #e5e7eb">
-            <thead>
-              <tr style="background:#f9fafb">
-                <th style="padding:10px 14px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:#6b7280">SKU</th>
-                <th style="padding:10px 14px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:#6b7280">Product</th>
-                <th style="padding:10px 14px;text-align:center;font-size:11px;text-transform:uppercase;letter-spacing:0.1em;color:#6b7280">Status</th>
-              </tr>
-            </thead>
-            <tbody>${rows}</tbody>
-          </table>
-          <div style="margin-top:28px;padding:16px;background:#f9fafb;border-left:4px solid #ba1f3d">
-            <p style="margin:0;font-size:12px;color:#6b7280">
-              Log in to the admin panel to restock:
-              <a href="https://stop-shop-gamma.vercel.app/admin/inventory"
-                 style="color:#ba1f3d;font-weight:bold;display:block;margin-top:4px">
-                stop-shop-gamma.vercel.app/admin/inventory
-              </a>
+    await Promise.all(purchasedItems.map(async (item) => {
+      const product = await Product.findOne(buildIdQuery(item.id)).select('name quantity id').lean();
+      if (!product) return;
+
+      const remaining = product.quantity ?? 0;
+      if (remaining <= LOW_STOCK_THRESHOLD) {
+        lowStockItems.push({
+          name:      product.name,
+          id:        product.id || item.id,
+          remaining,
+        });
+      }
+    }));
+
+    if (!lowStockItems.length) return;
+
+    // Sort: 0 stock first, then ascending
+    lowStockItems.sort((a, b) => a.remaining - b.remaining);
+
+    const subject = `⚠️ Low Stock Alert — ${lowStockItems.length} item${lowStockItems.length !== 1 ? 's' : ''} need restocking`;
+
+    const itemRows = lowStockItems.map(item =>
+      `  • ${item.name} (SKU: ${item.id}) — ${item.remaining === 0 ? '🔴 OUT OF STOCK' : `🟡 ${item.remaining} left`}`
+    ).join('\n');
+
+    const text = `
+Stop & Shop — Low Stock Alert
+==============================
+
+The following items need restocking after a recent order:
+
+${itemRows}
+
+Restock these items in your Admin Panel:
+https://stop-shop-gamma.vercel.app/admin/inventory
+
+This is an automated message from your Stop & Shop store.
+    `.trim();
+
+    await sendEmail({
+      to:      adminEmail,
+      subject,
+      text,
+      html: `
+        <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto;">
+          <div style="background: #ba1f3d; padding: 20px 30px;">
+            <h1 style="color: white; margin: 0; font-size: 18px; letter-spacing: 2px; text-transform: uppercase;">
+              ⚠️ Low Stock Alert
+            </h1>
+          </div>
+          <div style="padding: 30px; background: #fff; border: 1px solid #e5e7eb;">
+            <p style="color: #374151; font-size: 14px; margin-top: 0;">
+              The following items need restocking after a recent order:
+            </p>
+            <table style="width: 100%; border-collapse: collapse; margin: 20px 0;">
+              <thead>
+                <tr style="background: #f9fafb;">
+                  <th style="padding: 10px 12px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #9ca3af; border-bottom: 1px solid #e5e7eb;">Product</th>
+                  <th style="padding: 10px 12px; text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #9ca3af; border-bottom: 1px solid #e5e7eb;">SKU</th>
+                  <th style="padding: 10px 12px; text-align: center; font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #9ca3af; border-bottom: 1px solid #e5e7eb;">Stock Left</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${lowStockItems.map(item => `
+                  <tr style="border-bottom: 1px solid #f3f4f6;">
+                    <td style="padding: 12px; font-size: 13px; font-weight: bold; color: #111827;">${item.name}</td>
+                    <td style="padding: 12px; font-size: 11px; color: #6b7280; font-family: monospace;">${item.id}</td>
+                    <td style="padding: 12px; text-align: center;">
+                      <span style="background: ${item.remaining === 0 ? '#fee2e2' : '#fef3c7'}; color: ${item.remaining === 0 ? '#dc2626' : '#d97706'}; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold;">
+                        ${item.remaining === 0 ? 'OUT OF STOCK' : `${item.remaining} left`}
+                      </span>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+            <a href="https://stop-shop-gamma.vercel.app/admin/inventory"
+               style="display: inline-block; background: #ba1f3d; color: white; padding: 12px 24px; text-decoration: none; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; margin-top: 10px;">
+              Restock Now →
+            </a>
+          </div>
+          <div style="padding: 15px 30px; background: #f9fafb; text-align: center;">
+            <p style="color: #9ca3af; font-size: 11px; margin: 0;">
+              Stop &amp; Shop · Automated inventory alert
             </p>
           </div>
         </div>
-        <div style="background:#111827;padding:16px 32px;text-align:center">
-          <p style="color:#6b7280;margin:0;font-size:11px;font-weight:bold;letter-spacing:0.1em;text-transform:uppercase">
-            Stop &amp; Shop · Automated Stock Alert · ${new Date().toLocaleDateString('en-PK')}
-          </p>
-        </div>
-      </div>
-    `,
-  });
+      `,
+    });
 
-  console.log(`[Stock Alert] Sent — ${outItems.length} sold out, ${lowItems.length} low`);
+    console.log(`📧 Low stock alert sent for ${lowStockItems.length} item(s)`);
+  } catch (err) {
+    // Never let alert failure break checkout
+    console.error('[LowStock] Alert failed:', err.message);
+  }
 };
+
 
 // ─────────────────────────────────────────────────────────────────
 // AUTH MIDDLEWARE
@@ -702,6 +761,17 @@ const authenticateToken = (req, res, next) => {
   } catch {
     return res.status(403).json({ error: 'Invalid or expired token' });
   }
+};
+
+const requireRole = (...allowed) => (req, res, next) => {
+  const role = req.user?.role;
+  if (!role) return res.status(403).json({ error: 'Access denied — role not found' });
+  if (!allowed.includes(role)) {
+    return res.status(403).json({
+      error: `Access denied — requires one of: ${allowed.join(', ')}`,
+    });
+  }
+  next();
 };
 
 // ─────────────────────────────────────────────────────────────────
@@ -750,6 +820,31 @@ app.get('/api/admin/users', authenticateToken, async (req, res, next) => {
   try {
     const users = await Admin.find().sort({ createdAt: -1 }).select('-password').lean();
     res.json(users);
+  } catch (err) { next(err); }
+});
+
+// Create admin user — super-admin only
+app.post('/api/admin/users', authenticateToken, requireRole('super-admin'), async (req, res, next) => {
+  try {
+    const { name, email, password, roles } = req.body;
+    if (!name || !email || !password) return res.status(400).json({ error: 'Name, email, and password are required' });
+    const hashed = await bcrypt.hash(password, 12);
+    const admin = await Admin.create({ name, email, password: hashed, roles: roles ?? ['admin'] });
+    await logAudit('ADMIN_CREATE', { email: admin.email }, req);
+    res.status(201).json({ id: admin._id, name: admin.name, email: admin.email, roles: admin.roles });
+  } catch (err) {
+    if (err.code === 11000) return res.status(409).json({ error: 'Email already exists' });
+    next(err);
+  }
+});
+
+// Delete admin user — super-admin only
+app.delete('/api/admin/users/:id', authenticateToken, requireRole('super-admin'), async (req, res, next) => {
+  try {
+    const admin = await Admin.findByIdAndDelete(req.params.id).lean();
+    if (!admin) return res.status(404).json({ error: 'Admin not found' });
+    await logAudit('ADMIN_DELETE', { email: admin.email }, req);
+    res.json({ message: 'Admin deleted' });
   } catch (err) { next(err); }
 });
 
@@ -887,7 +982,7 @@ app.patch('/api/admin/products/:id', authenticateToken, validateRequest(updatePr
   } catch (err) { next(err); }
 });
 
-app.delete('/api/admin/products/:id', authenticateToken, async (req, res, next) => {
+app.delete('/api/admin/products/:id', authenticateToken, requireRole('admin', 'super-admin'), async (req, res, next) => {
   try {
     const product = await Product.findOneAndDelete(buildIdQuery(req.params.id));
     if (!product) throw new NotFoundError('Product not found');
@@ -946,6 +1041,76 @@ app.get('/api/admin/inventory/:productId', authenticateToken, async (req, res, n
     const entry = await Inventory.findOne({ productId: req.params.productId }).lean();
     if (!entry) throw new NotFoundError('Inventory entry not found');
     res.json(entry);
+  } catch (err) { next(err); }
+});
+
+// ── Inventory Mutations (Admin) ──────────────────────────────────────────
+//    Direct inventory management: restock or delete an inventory entry.
+//    Both sync back to the Product document and log audit + movements.
+
+// POST /api/admin/inventory/:productId/restock
+//    Adds stock to a product. Accepts: { quantity, sizeStock?, note? }
+//    Updates Product.quantity / Product.stock AND Inventory.totalStock / sizeStock.
+app.post('/api/admin/inventory/:productId/restock', authenticateToken, async (req, res, next) => {
+  try {
+    const { productId } = req.params;
+    const { quantity, sizeStock, note } = req.body;
+
+    const product = await Product.findOne({ id: productId });
+    if (!product) throw new NotFoundError('Product not found');
+
+    const prevStock = product.quantity ?? 0;
+
+    if (sizeStock && typeof sizeStock === 'object') {
+      const updated = { ...product.sizeStock };
+      for (const [size, qty] of Object.entries(sizeStock)) {
+        const n = Math.max(0, parseInt(qty) || 0);
+        updated[size] = (parseInt(updated[size]) || 0) + n;
+      }
+      product.sizeStock = updated;
+      product.quantity = Object.values(updated).reduce((s, v) => s + Math.max(0, parseInt(v) || 0), 0);
+      product.stock = product.quantity;
+    } else if (typeof quantity === 'number' && quantity > 0) {
+      product.quantity = prevStock + quantity;
+      product.stock = product.quantity;
+    } else {
+      return res.status(400).json({ error: 'Provide either quantity (number) or sizeStock (object)' });
+    }
+
+    await product.save();
+
+    await syncInventory(
+      product,
+      'RESTOCK',
+      note || `Admin restocked ${product.quantity - prevStock} units`,
+    );
+
+    await logAudit('INVENTORY_RESTOCK', { productId, added: quantity ?? sizeStock, newTotal: product.quantity }, req);
+    await cacheService.invalidateMany([CACHE_KEYS.STATS_INVENTORY, CACHE_KEYS.PRODUCTS, CACHE_KEYS.PUBLIC_PRODUCTS]);
+
+    res.json({ message: 'Restock successful', product });
+  } catch (err) { next(err); }
+});
+
+// DELETE /api/admin/inventory/:productId
+//    Removes an inventory entry entirely AND deletes the product.
+//    Logs an ADMIN_DELETE movement before removing.
+app.delete('/api/admin/inventory/:productId', authenticateToken, requireRole('super-admin'), async (req, res, next) => {
+  try {
+    const { productId } = req.params;
+
+    const entry = await Inventory.findOne({ productId });
+    if (!entry) throw new NotFoundError('Inventory entry not found');
+
+    await syncInventory({ id: productId, name: entry.name, quantity: 0, bucket: entry.category, subCategory: entry.subCategory, price: entry.price, image: entry.image, rating: entry.rating, colors: entry.colorVariants, sizes: entry.sizes, sizeStock: entry.sizeStock }, 'ADMIN_DELETE', 'Admin deleted inventory and product');
+
+    const product = await Product.findOneAndDelete({ id: productId });
+    if (!product) return res.status(404).json({ error: 'Product not found' });
+
+    await logAudit('INVENTORY_DELETE', { productId, name: entry.name }, req);
+    await cacheService.invalidateMany([CACHE_KEYS.STATS_INVENTORY, CACHE_KEYS.PRODUCTS, CACHE_KEYS.PUBLIC_PRODUCTS]);
+
+    res.json({ message: 'Inventory and product deleted successfully' });
   } catch (err) { next(err); }
 });
 
@@ -1052,6 +1217,10 @@ app.post('/api/checkout', checkoutLimiter, validateRequest(checkoutSchema), asyn
 
     // Fetch all products in one query
     const dbProducts = await Product.find({ id: { $in: productIds } });
+    if (dbProducts.length !== productIds.length) {
+      const missing = productIds.filter(id => !dbProducts.find(p => p.id === id));
+      return res.status(400).json({ error: `Some products in your cart are no longer available: ${missing.join(', ')}` });
+    }
     const productMap  = new Map(dbProducts.map(p => [p.id, p]));
 
     // ── Stock validation ───────────────────────────────────────
@@ -1085,8 +1254,12 @@ app.post('/api/checkout', checkoutLimiter, validateRequest(checkoutSchema), asyn
         ? { $inc: { quantity: -qty, stock: -qty, [sizeKey]: -qty } }
         : { $inc: { quantity: -qty, stock: -qty } };
 
+      // ATOMIC UPDATE: Only decrement if sufficient stock exists (prevention of overselling)
       const updatedProduct = await Product.findOneAndUpdate(
-        { id: item.id },
+        { 
+          id: item.id, 
+          ...(sizeKey ? { [sizeKey]: { $gte: qty } } : { stock: { $gte: qty } }) 
+        },
         stockUpdate,
         { new: true }
       );
@@ -1103,22 +1276,31 @@ app.post('/api/checkout', checkoutLimiter, validateRequest(checkoutSchema), asyn
     }
 
     // ── Build enriched order items (full snapshot) ─────────────
+    // ALL fields — especially price — are sourced from the DB product document,
+    // never trust the client-provided values. This prevents price manipulation.
     const enrichedItems = items.map(item => {
       const product = productMap.get(item.id);
       return {
         id:            item.id,
-        name:          item.name,
-        price:         item.price,
+        name:          product?.name          || item.name          || '',
+        price:         product?.price        ?? item.price         ?? 0,
         quantity:      Math.max(1, parseInt(item.quantity) || 1),
-        selectedSize:  (item.selectedSize ?? '').trim(),
+        selectedSize:  (item.selectedSize  ?? '').trim(),
         selectedColor: (item.selectedColor ?? '').trim(),
         category:      product?.bucket      || item.category    || '',
         subCategory:   product?.subCategory || item.subCategory || '',
       };
     });
 
-    // ── Create order ───────────────────────────────────────────
-    await Order.create({ orderID, customer, items: enrichedItems, total, paymentMethod, ip: clientIp });
+    // ── Recalculate order total from DB prices ───────────────────
+    // Guards against client-side total tampering.
+    const verifiedTotal = enrichedItems.reduce((sum, item) => {
+      return sum + item.price * item.quantity;
+    }, 0);
+    const finalTotal = Math.max(0, verifiedTotal);
+
+    // ── Create order (uses verified total) ────────────────────────
+    await Order.create({ orderID, customer, items: enrichedItems, total: finalTotal, paymentMethod, ip: clientIp });
 
     // ── Increment coupon usage if one was applied ──────────────
     if (req.body.couponCode) {
@@ -1136,9 +1318,7 @@ app.post('/api/checkout', checkoutLimiter, validateRequest(checkoutSchema), asyn
       CACHE_KEYS.PUBLIC_PRODUCTS,
     ]);
 
-    // ── Fire-and-forget: customer confirmation + stock alert ───
-    const updatedProducts = await Product.find({ id: { $in: productIds } }).lean();
-
+    // ── Fire-and-forget: customer confirmation + low-stock alert ───
     sendEmail({
       from:    `"Stop & Shop" <${getEnv('EMAIL_USER', 'email_user')}>`,
       to:      customer.email,
@@ -1146,17 +1326,17 @@ app.post('/api/checkout', checkoutLimiter, validateRequest(checkoutSchema), asyn
       html:    `
         <h2>Thank you, ${customer.name}!</h2>
         <p>Your order <strong>${orderID}</strong> has been placed successfully.</p>
-        <p><strong>Total:</strong> PKR ${total.toLocaleString()}</p>
+        <p><strong>Total:</strong> PKR ${finalTotal.toLocaleString()}</p>
         <p><strong>Payment:</strong> ${paymentMethod}</p>
         <p>Track your order: <a href="https://stop-shop-gamma.vercel.app/track?orderID=${orderID}">Click here</a></p>
         <p>Thank you for shopping with Stop & Shop.</p>
       `,
     });
 
-    // Low stock / out-of-stock alert to admin
-    sendLowStockAlert(updatedProducts);
+    // Consolidated alert checks stock after sale and emails admin if needed
+    checkAndAlertLowStock(items);
 
-    res.status(201).json({ message: 'Order placed', orderID });
+    res.status(201).json({ message: 'Order placed', orderID, verifiedTotal: finalTotal });
   } catch (err) { next(err); }
 });
 
@@ -1172,7 +1352,7 @@ app.get('/api/public/settings', async (_req, res, next) => {
   } catch (err) { next(err); }
 });
 
-app.post('/api/settings', authenticateToken, validateRequest(updateSettingsSchema), async (req, res, next) => {
+app.post('/api/settings', authenticateToken, requireRole('admin', 'super-admin'), validateRequest(updateSettingsSchema), async (req, res, next) => {
   try {
     const settings = await Settings.findOneAndUpdate({}, req.body, { new: true, upsert: true }).lean();
     await logAudit('SETTINGS_UPDATE', { changed: Object.keys(req.body) }, req);
@@ -1184,55 +1364,67 @@ app.post('/api/settings', authenticateToken, validateRequest(updateSettingsSchem
 // ── Coupons (Public) ────────────────────────────────────────────────────
 // Validate a coupon code — called from checkout form
 
-app.post('/api/public/coupons/validate', async (req, res, next) => {
+app.post('/api/public/coupons/validate', validateRequest(couponValidationSchema), async (req, res, next) => {
   try {
-    const { code, cartTotal } = req.body;
-
-    if (!code?.trim()) {
-      return res.status(400).json({ error: 'Coupon code is required' });
+    const { code, cartTotal, activeCouponCode } = req.body;
+ 
+    // ── Discount stacking prevention ─────────────────────────────
+    if (activeCouponCode && activeCouponCode !== code?.trim().toUpperCase()) {
+      return res.status(400).json({
+        error: `Coupon "${activeCouponCode}" is already applied. Remove it before adding another.`,
+      });
     }
-    if (!cartTotal || isNaN(parseFloat(cartTotal))) {
-      return res.status(400).json({ error: 'Cart total is required' });
-    }
-
-    const total  = parseFloat(cartTotal);
+ 
+    if (!code?.trim()) return res.status(400).json({ error: 'Coupon code is required' });
+ 
     const coupon = await Coupon.findOne({
       code:     code.trim().toUpperCase(),
       isActive: true,
     }).lean();
-
-    if (!coupon) {
-      return res.status(404).json({ error: 'Invalid coupon code' });
-    }
+ 
+    if (!coupon) return res.status(404).json({ error: 'Invalid or inactive coupon code' });
+ 
+    // Expiry check
     if (coupon.expiresAt && new Date(coupon.expiresAt) < new Date()) {
       return res.status(400).json({ error: 'This coupon has expired' });
     }
+ 
+    // Max uses check
     if (coupon.maxUses !== null && coupon.usedCount >= coupon.maxUses) {
       return res.status(400).json({ error: 'This coupon has reached its usage limit' });
     }
-    if (total < coupon.minOrderValue) {
+ 
+    // Minimum order check
+    const orderTotal = parseFloat(cartTotal) || 0;
+    if (coupon.minOrderValue && orderTotal < coupon.minOrderValue) {
       return res.status(400).json({
-        error: `Minimum order of PKR ${coupon.minOrderValue.toLocaleString()} required for this coupon`,
+        error: `This coupon requires a minimum order of Rs. ${coupon.minOrderValue.toLocaleString('en-PK')}`,
       });
     }
-
-    const discount   = coupon.type === 'percentage'
-      ? Math.round((total * coupon.value) / 100)
-      : Math.min(coupon.value, total);
-
+ 
+    // Calculate discount
+    let discount;
+    if (coupon.type === 'percentage') {
+      discount = Math.round((orderTotal * coupon.value) / 100);
+    } else {
+      discount = Math.min(coupon.value, orderTotal); // Can't discount more than the total
+    }
+ 
+    const finalTotal = Math.max(0, orderTotal - discount);
+ 
     res.json({
-      valid:      true,
       code:       coupon.code,
       type:       coupon.type,
       value:      coupon.value,
       discount,
-      finalTotal: Math.max(0, total - discount),
+      finalTotal,
       message:    coupon.type === 'percentage'
-        ? `${coupon.value}% off applied — you save PKR ${discount.toLocaleString()}`
-        : `PKR ${discount.toLocaleString()} off applied`,
+        ? `${coupon.value}% discount applied — you save Rs. ${discount.toLocaleString('en-PK')}`
+        : `Rs. ${discount.toLocaleString('en-PK')} discount applied`,
     });
   } catch (err) { next(err); }
 });
+
 
 // ── Coupons (Admin) ─────────────────────────────────────────────────────
 
@@ -1275,7 +1467,7 @@ app.patch('/api/admin/coupons/:id', authenticateToken, async (req, res, next) =>
   } catch (err) { next(err); }
 });
 
-app.delete('/api/admin/coupons/:id', authenticateToken, async (req, res, next) => {
+app.delete('/api/admin/coupons/:id', authenticateToken, requireRole('admin', 'super-admin'), async (req, res, next) => {
   try {
     const coupon = await Coupon.findByIdAndDelete(req.params.id).lean();
     if (!coupon) return res.status(404).json({ error: 'Coupon not found' });
@@ -1284,9 +1476,23 @@ app.delete('/api/admin/coupons/:id', authenticateToken, async (req, res, next) =
   } catch (err) { next(err); }
 });
 
-// ── Reviews (Public) ────────────────────────────────────────────────────
+// ── Reviews: Public ──────────────────────────────────────────────────────
+//
+// GET  /api/public/reviews/:productId  → approved reviews for ONE product
+// GET  /api/public/reviews             → all approved reviews (store-wide)
+// POST /api/public/reviews             → submit a new review (goes to pending)
 
-// Get approved reviews
+app.get('/api/public/reviews/:productId', async (req, res, next) => {
+  try {
+    const reviews = await Review
+      .find({ status: 'approved', productId: req.params.productId })
+      .sort({ createdAt: -1 })
+      .limit(50)
+      .lean();
+    res.json(reviews);
+  } catch (err) { next(err); }
+});
+
 app.get('/api/public/reviews', async (_req, res, next) => {
   try {
     const reviews = await Review
@@ -1298,16 +1504,26 @@ app.get('/api/public/reviews', async (_req, res, next) => {
   } catch (err) { next(err); }
 });
 
-// Submit a new review
-app.post('/api/public/reviews', async (req, res, next) => {
+app.post('/api/public/reviews', validateRequest(reviewSchema), async (req, res, next) => {
   try {
     const { name, email, rating, title, body, productId } = req.body;
 
-    if (!name?.trim())  return res.status(400).json({ error: 'Name is required' });
-    if (!email?.trim()) return res.status(400).json({ error: 'Email is required' });
-    if (!title?.trim()) return res.status(400).json({ error: 'Title is required' });
-    if (!body?.trim())  return res.status(400).json({ error: 'Review text is required' });
-    if (!rating || rating < 1 || rating > 5) return res.status(400).json({ error: 'Rating must be 1–5' });
+    // Verify product exists first
+    if (productId) {
+      const p = await Product.exists({ id: productId });
+      if (!p) return res.status(404).json({ error: 'Referenced product not found' });
+    }
+
+    // Validate
+    if (!name?.trim())               return res.status(400).json({ error: 'Name is required' });
+    if (!email?.trim())              return res.status(400).json({ error: 'Email is required' });
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+                                     return res.status(400).json({ error: 'Enter a valid email address' });
+    if (!title?.trim())              return res.status(400).json({ error: 'Review title is required' });
+    if (!body?.trim())               return res.status(400).json({ error: 'Review text is required' });
+    if (body.trim().length < 20)     return res.status(400).json({ error: 'Review must be at least 20 characters' });
+    if (!rating || rating < 1 || rating > 5)
+                                     return res.status(400).json({ error: 'Rating must be between 1 and 5' });
 
     const review = await Review.create({
       customerName:  name.trim(),
@@ -1319,15 +1535,26 @@ app.post('/api/public/reviews', async (req, res, next) => {
       status:        'pending',
     });
 
-    res.status(201).json({ message: 'Review submitted. It will appear after moderation.', id: review._id });
+    res.status(201).json({
+      message: 'Review submitted successfully. It will appear after moderation.',
+      id:      review._id,
+    });
   } catch (err) { next(err); }
 });
 
-// ── Reviews (Admin) ──────────────────────────────────────────────────────
+
+// ── Reviews: Admin ──────────────────────────────────────────────────────
+//
+// GET    /api/admin/reviews      → all reviews (pending + approved + rejected)
+// PATCH  /api/admin/reviews/:id  → change status (approve / reject / pending)
+// DELETE /api/admin/reviews/:id  → delete permanently
 
 app.get('/api/admin/reviews', authenticateToken, async (_req, res, next) => {
   try {
-    const reviews = await Review.find().sort({ createdAt: -1 }).lean();
+    const reviews = await Review
+      .find()
+      .sort({ createdAt: -1 })
+      .lean();
     res.json(reviews);
   } catch (err) { next(err); }
 });
@@ -1335,12 +1562,20 @@ app.get('/api/admin/reviews', authenticateToken, async (_req, res, next) => {
 app.patch('/api/admin/reviews/:id', authenticateToken, async (req, res, next) => {
   try {
     const { status } = req.body;
+
     if (!['pending', 'approved', 'rejected'].includes(status)) {
-      return res.status(400).json({ error: 'Invalid status' });
+      return res.status(400).json({ error: 'Invalid status. Must be: pending, approved, or rejected' });
     }
-    const review = await Review.findByIdAndUpdate(req.params.id, { status }, { new: true }).lean();
+
+    const review = await Review
+      .findByIdAndUpdate(req.params.id, { status }, { new: true })
+      .lean();
+
     if (!review) return res.status(404).json({ error: 'Review not found' });
-    await logAudit(`REVIEW_${status.toUpperCase()}`, { id: req.params.id }, req);
+
+    // Audit log (fire and forget — never throws)
+    logAudit(`REVIEW_${status.toUpperCase()}`, { reviewId: req.params.id, status }, req).catch(() => {});
+
     res.json(review);
   } catch (err) { next(err); }
 });
@@ -1349,11 +1584,142 @@ app.delete('/api/admin/reviews/:id', authenticateToken, async (req, res, next) =
   try {
     const review = await Review.findByIdAndDelete(req.params.id).lean();
     if (!review) return res.status(404).json({ error: 'Review not found' });
-    res.json({ message: 'Review deleted' });
+
+    logAudit('REVIEW_DELETE', { reviewId: req.params.id }, req).catch(() => {});
+
+    res.json({ message: 'Review deleted successfully' });
+  } catch (err) { next(err); }
+});
+const CUSTOMER_JWT_SECRET = process.env.CUSTOMER_JWT_SECRET || process.env.JWT_SECRET || 'customer_secret_change_in_prod';
+ 
+// Middleware to authenticate customer JWT
+const authenticateCustomer = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader?.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'No token provided' });
+  }
+  const token = authHeader.split(' ')[1];
+  try {
+    req.customer = jwt.verify(token, CUSTOMER_JWT_SECRET);
+    next();
+  } catch {
+    return res.status(401).json({ error: 'Invalid or expired token' });
+  }
+};
+ 
+// ── Customer: Register ────────────────────────────────────────────────────
+app.post('/api/customer/register', async (req, res, next) => {
+  try {
+    const { name, email, password, phone } = req.body;
+ 
+    if (!name?.trim() || name.trim().length < 2)
+      return res.status(400).json({ error: 'Name must be at least 2 characters' });
+    if (!email?.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
+      return res.status(400).json({ error: 'Enter a valid email address' });
+    if (!password || password.length < 6)
+      return res.status(400).json({ error: 'Password must be at least 6 characters' });
+ 
+    const exists = await Customer.findOne({ email: email.toLowerCase().trim() }).lean();
+    if (exists) return res.status(409).json({ error: 'An account with this email already exists' });
+ 
+    const hashed  = await bcrypt.hash(password, 12);
+    const customer = await Customer.create({
+      name:     name.trim(),
+      email:    email.toLowerCase().trim(),
+      password: hashed,
+      phone:    phone?.trim() ?? '',
+    });
+ 
+    const token = jwt.sign(
+      { id: customer._id, email: customer.email, type: 'customer' },
+      CUSTOMER_JWT_SECRET,
+      { expiresIn: '30d' }
+    );
+ 
+    const { password: _, ...safe } = customer.toObject();
+    res.status(201).json({ token, customer: safe });
+  } catch (err) { next(err); }
+});
+ 
+// ── Customer: Login ───────────────────────────────────────────────────────
+app.post('/api/customer/login', async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+ 
+    if (!email || !password)
+      return res.status(400).json({ error: 'Email and password are required' });
+ 
+    const customer = await Customer.findOne({ email: email.toLowerCase().trim() });
+    if (!customer)
+      return res.status(401).json({ error: 'No account found with this email' });
+ 
+    const valid = await bcrypt.compare(password, customer.password);
+    if (!valid)
+      return res.status(401).json({ error: 'Incorrect password' });
+ 
+    const token = jwt.sign(
+      { id: customer._id, email: customer.email, type: 'customer' },
+      CUSTOMER_JWT_SECRET,
+      { expiresIn: '30d' }
+    );
+ 
+    const { password: _, ...safe } = customer.toObject();
+    res.json({ token, customer: safe });
+  } catch (err) { next(err); }
+});
+ 
+// ── Customer: Get Profile ─────────────────────────────────────────────────
+app.get('/api/customer/profile', authenticateCustomer, async (req, res, next) => {
+  try {
+    const customer = await Customer.findById(req.customer.id).select('-password').lean();
+    if (!customer) return res.status(404).json({ error: 'Account not found' });
+    res.json(customer);
+  } catch (err) { next(err); }
+});
+ 
+// ── Customer: Update Profile ──────────────────────────────────────────────
+app.patch('/api/customer/profile', authenticateCustomer, async (req, res, next) => {
+  try {
+    const { name, phone, address, city, zip } = req.body;
+ 
+    const updates = {};
+    if (name?.trim()    && name.trim().length >= 2)  updates.name    = name.trim();
+    if (phone !== undefined)  updates.phone   = phone?.trim() ?? '';
+    if (address !== undefined) updates.address = address?.trim() ?? '';
+    if (city !== undefined)   updates.city    = city?.trim() ?? '';
+    if (zip !== undefined)    updates.zip     = zip?.trim() ?? '';
+ 
+    const customer = await Customer
+      .findByIdAndUpdate(req.customer.id, updates, { new: true })
+      .select('-password')
+      .lean();
+ 
+    if (!customer) return res.status(404).json({ error: 'Account not found' });
+    res.json(customer);
+  } catch (err) { next(err); }
+});
+ 
+// ── Customer: Order History ───────────────────────────────────────────────
+// Matches orders by the customer's email address
+app.get('/api/customer/orders', authenticateCustomer, async (req, res, next) => {
+  try {
+    const customer = await Customer.findById(req.customer.id).select('email').lean();
+    if (!customer) return res.status(404).json({ error: 'Account not found' });
+ 
+    const orders = await Order
+      .find({ 'customer.email': customer.email })
+      .sort({ createdAt: -1 })
+      .limit(50)
+      .lean();
+ 
+    res.json(orders);
   } catch (err) { next(err); }
 });
 
+
+
 // ── Analytics ─────────────────────────────────────────────────────────────
+
 // Real MongoDB aggregations powering the Analytics dashboard
 
 app.get('/api/admin/analytics', authenticateToken, async (_req, res, next) => {
@@ -1555,7 +1921,12 @@ app.get('*', (req, res) => {
 app.use((err, _req, res, _next) => {
   const code = err.statusCode ?? 500;
   if (code >= 500) console.error('[ERROR]', err.message, err.stack);
-  res.status(code).json({ status: code < 500 ? 'fail' : 'error', message: err.message });
+  res.status(code).json({ 
+    status:  code < 500 ? 'fail' : 'error', 
+    message: process.env.NODE_ENV === 'production' && code >= 500 
+               ? 'An internal error occurred' 
+               : err.message 
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────

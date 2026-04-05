@@ -144,6 +144,33 @@ export const updateSettingsSchema = z.object({
 });
 
 // ─────────────────────────────────────────────────────────────────
+// REVIEW SCHEMA
+// ─────────────────────────────────────────────────────────────────
+
+export const reviewSchema = z.object({
+  name:      z.string().trim().min(1, 'Name required').max(100),
+  email:     emailSchema,
+  rating:    z.number().int().min(1).max(5),
+  title:     z.string().trim().min(2, 'Title too short').max(120),
+  body:      z.string().trim().min(5, 'Review content too short').max(2000),
+  productId: z.string().max(100).optional().default(''),
+});
+
+/** @typedef {z.infer<typeof reviewSchema>} ReviewInput */
+
+// ─────────────────────────────────────────────────────────────────
+// COUPON VALIDATION SCHEMA
+// ─────────────────────────────────────────────────────────────────
+
+export const couponValidationSchema = z.object({
+  code:      z.string().trim().min(1, 'Coupon code required').toUpperCase(),
+  cartTotal: z.number().nonnegative('Total must be positive'),
+  activeCouponCode: z.string().optional().default(''),
+});
+
+/** @typedef {z.infer<typeof couponValidationSchema>} CouponValidationInput */
+
+// ─────────────────────────────────────────────────────────────────
 // VALIDATION MIDDLEWARE FACTORY
 // ─────────────────────────────────────────────────────────────────
 

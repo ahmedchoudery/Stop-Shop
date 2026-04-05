@@ -1,31 +1,22 @@
-/**
- * @fileoverview CursorFollower — Design Spell
- * Custom cursor that follows mouse with lag, transforms on interactive elements.
- * Applies: design-spells (premium cursor = instant luxury signal),
- *          javascript-pro (requestAnimationFrame, event cleanup)
- *
- * Desktop only — mobile has no cursor.
- */
-
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 const CursorFollower = () => {
   const dotRef = useRef(null);
   const ringRef = useRef(null);
   const posRef = useRef({ x: 0, y: 0 });
   const ringPosRef = useRef({ x: 0, y: 0 });
+  const velRef = useRef({ x: 0, y: 0 });
   const rafRef = useRef(null);
   const isVisible = useRef(false);
+  const [isMagnetic, setIsMagnetic] = useState(false);
 
   useEffect(() => {
-    // Only on desktop pointer devices
     if (!window.matchMedia('(pointer: fine)').matches) return;
 
     const dot = dotRef.current;
     const ring = ringRef.current;
     if (!dot || !ring) return;
 
-    // Hide default cursor (CSS in index.css handles body)
     document.body.style.cursor = 'none';
 
     const onMouseMove = (e) => {
@@ -43,36 +34,63 @@ const CursorFollower = () => {
       isVisible.current = false;
     };
 
-    // Track interactive elements for cursor state change
     const onMouseOver = (e) => {
       const target = e.target;
-      const isInteractive = target.closest('a, button, [role="button"], input, textarea, select, label');
+      const isInteractive = target.closest('a, button, [role="button"], .magnetic-area');
+      
       if (isInteractive) {
-        dot.style.transform = 'translate(-50%, -50%) scale(2)';
-        dot.style.background = '#F63049';
-        ring.style.transform = 'translate(-50%, -50%) scale(1.5)';
-        ring.style.borderColor = 'rgba(246, 48, 73, 0.4)';
+        setIsMagnetic(true);
+        dot.style.width = '24px';
+        dot.style.height = '24px';
+        dot.style.background = 'rgba(186, 31, 61, 0.4)';
+        dot.style.backdropFilter = 'blur(4px)';
+        ring.style.width = '48px';
+        ring.style.height = '48px';
+        ring.style.borderColor = '#ba1f3d';
       } else {
-        dot.style.transform = 'translate(-50%, -50%) scale(1)';
+        setIsMagnetic(false);
+        dot.style.width = '10px';
+        dot.style.height = '10px';
         dot.style.background = '#ba1f3d';
-        ring.style.transform = 'translate(-50%, -50%) scale(1)';
+        dot.style.backdropFilter = 'none';
+        ring.style.width = '36px';
+        ring.style.height = '36px';
         ring.style.borderColor = 'rgba(186, 31, 61, 0.5)';
       }
     };
 
-    // Smooth ring follow with lerp
     const animate = () => {
       const lerp = (a, b, n) => a + (b - a) * n;
-      ringPosRef.current.x = lerp(ringPosRef.current.x, posRef.current.x, 0.12);
-      ringPosRef.current.y = lerp(ringPosRef.current.y, posRef.current.y, 0.12);
+      
+      // Calculate velocity
+      const vx = posRef.current.x - ringPosRef.current.x;
+      const vy = posRef.current.y - ringPosRef.current.y;
+      velRef.current = { x: vx, y: vy };
 
+      // Update ring with lerp
+      ringPosRef.current.x = lerp(ringPosRef.current.x, posRef.current.x, 0.15);
+      ringPosRef.current.y = lerp(ringPosRef.current.y, posRef.current.y, 0.15);
+
+      // Warping based on velocity
+      const speed = Math.hypot(vx, vy);
+      const angle = Math.atan2(vy, vx) * (180 / Math.PI);
+      const stretch = Math.min(speed / 15, 1.5);
+      
       if (dot) {
         dot.style.left = `${posRef.current.x}px`;
         dot.style.top = `${posRef.current.y}px`;
+        
+        if (!isMagnetic) {
+          dot.style.transform = `translate(-50%, -50%) rotate(${angle}deg) scale(${1 + stretch}, ${1 - stretch * 0.5})`;
+        } else {
+          dot.style.transform = `translate(-50%, -50%) scale(1.2)`;
+        }
       }
+
       if (ring) {
         ring.style.left = `${ringPosRef.current.x}px`;
         ring.style.top = `${ringPosRef.current.y}px`;
+        ring.style.transform = `translate(-50%, -50%)`;
       }
 
       rafRef.current = requestAnimationFrame(animate);
@@ -90,11 +108,10 @@ const CursorFollower = () => {
       cancelAnimationFrame(rafRef.current);
       document.body.style.cursor = '';
     };
-  }, []);
+  }, [isMagnetic]);
 
   return (
     <>
-      {/* Dot — follows instantly */}
       <div
         ref={dotRef}
         style={{
@@ -106,12 +123,10 @@ const CursorFollower = () => {
           pointerEvents: 'none',
           zIndex: 99999,
           opacity: 0,
-          transform: 'translate(-50%, -50%)',
-          transition: 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.3s ease, opacity 0.3s ease',
-          willChange: 'left, top',
+          willChange: 'left, top, transform',
+          transition: 'width 0.3s ease, height 0.3s ease, background 0.3s ease, opacity 0.3s ease',
         }}
       />
-      {/* Ring — follows with lag (lerp in rAF) */}
       <div
         ref={ringRef}
         style={{
@@ -123,9 +138,8 @@ const CursorFollower = () => {
           pointerEvents: 'none',
           zIndex: 99998,
           opacity: 0,
-          transform: 'translate(-50%, -50%)',
-          transition: 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), border-color 0.3s ease, opacity 0.3s ease',
-          willChange: 'left, top',
+          willChange: 'left, top, transform',
+          transition: 'width 0.4s cubic-bezier(0.16, 1, 0.3, 1), height 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.3s ease, opacity 0.3s ease',
         }}
       />
     </>
@@ -133,3 +147,4 @@ const CursorFollower = () => {
 };
 
 export default CursorFollower;
+

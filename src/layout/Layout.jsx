@@ -4,7 +4,9 @@
  *          hidden automatically on /admin and /login routes.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from './Navbar.jsx';
 import Footer from './Footer.jsx';
 import SearchOverlay from '../components/SearchOverlay.jsx';
@@ -12,12 +14,50 @@ import MarqueeBar from '../components/MarqueeBar.jsx';
 import WhatsAppButton from '../components/WhatsAppButton.jsx';
 import { useSettings } from '../hooks/useDomain.js';
 
+/**
+ * Liquid Page Transition variants
+ */
+const pageVariants = {
+  initial: {
+    opacity: 0,
+    clipPath: 'circle(0% at 50% 50%)',
+    filter: 'blur(40px)',
+    scale: 1.1,
+  },
+  animate: {
+    opacity: 1,
+    clipPath: 'circle(150% at 50% 50%)',
+    filter: 'blur(0px)',
+    scale: 1,
+    transition: {
+      duration: 1.2,
+      ease: [0.23, 1, 0.32, 1], // Liquid expansion easing
+    },
+  },
+  exit: {
+    opacity: 0,
+    clipPath: 'circle(0% at 50% 50%)',
+    filter: 'blur(40px)',
+    scale: 0.9,
+    transition: {
+      duration: 0.8,
+      ease: [0.23, 1, 0.32, 1],
+    },
+  },
+};
+
 const Layout = ({ children, products = [] }) => {
   const [searchOpen, setSearchOpen] = useState(false);
   const { data: settings } = useSettings(false);
+  const location = useLocation();
+
+  // Scroll to top on every route change
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="min-h-screen flex flex-col bg-white overflow-hidden">
       {/* Announcement bar */}
       <MarqueeBar announcement={settings?.announcement} />
 
@@ -27,9 +67,20 @@ const Layout = ({ children, products = [] }) => {
         products={products}
       />
 
-      {/* Page content */}
-      <main className="flex-grow">
-        {children}
+      {/* Page content with Liquid Transition */}
+      <main className="flex-grow relative">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={location.pathname}
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            className="w-full h-full"
+          >
+            {children}
+          </motion.div>
+        </AnimatePresence>
       </main>
 
       {/* Footer */}

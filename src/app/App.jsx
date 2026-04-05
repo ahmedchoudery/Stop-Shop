@@ -1,10 +1,11 @@
 /**
  * @fileoverview App.jsx — Root component with all routes
- * Updated: Added AdminReviews route at /admin/reviews
+ * Updated: Added Customer Account routes + CustomerProvider
  */
 
 import React, { useState, lazy, Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
 import Layout from '../layout/Layout.jsx';
 import UniversalDrawer from '../layout/UniversalDrawer.jsx';
 import SmoothLoader from '../components/SmoothLoader.jsx';
@@ -14,6 +15,7 @@ import { WishlistProvider } from '../context/WishlistContext.jsx';
 import { RecentlyViewedProvider } from '../context/RecentlyViewedContext.jsx';
 import { CurrencyProvider } from '../context/CurrencyContext.jsx';
 import { LocaleProvider } from '../context/LocaleContext.jsx';
+import { CustomerProvider } from '../context/CustomerContext.jsx';
 import ErrorBoundary from '../components/ErrorBoundary.jsx';
 import HomePage from '../pages/HomePage.jsx';
 import CheckoutPage from '../pages/CheckoutPage.jsx';
@@ -31,14 +33,18 @@ const AdminSettings  = lazy(() => import('../pages/AdminSettings.jsx'));
 const AdminAuditPanel = lazy(() => import('../pages/AdminAuditPanel.jsx'));
 const AdminCoupons   = lazy(() => import('../pages/AdminCoupons.jsx'));
 const AdminAnalytics = lazy(() => import('../pages/AdminAnalytics.jsx'));
-const AdminReviews   = lazy(() => import('../pages/AdminReviews.jsx'));  // ← NEW
+const AdminReviews   = lazy(() => import('../pages/AdminReviews.jsx'));
 
 // ── Public pages (lazy) ────────────────────────────────────────────
-const ProductPage       = lazy(() => import('../pages/ProductPage.jsx'));
-const SearchPage        = lazy(() => import('../pages/SearchPage.jsx'));
-const OrderTrackingPage = lazy(() => import('../pages/OrderTrackingPage.jsx'));
-const OrderSuccessPage  = lazy(() => import('../pages/OrderSuccessPage.jsx'));
-const ReturnsPage       = lazy(() => import('../pages/ReturnsPage.jsx'));
+const ProductPage        = lazy(() => import('../pages/ProductPage.jsx'));
+const SearchPage         = lazy(() => import('../pages/SearchPage.jsx'));
+const OrderTrackingPage  = lazy(() => import('../pages/OrderTrackingPage.jsx'));
+const OrderSuccessPage   = lazy(() => import('../pages/OrderSuccessPage.jsx'));
+const ReturnsPage        = lazy(() => import('../pages/ReturnsPage.jsx'));
+
+// ── Customer account pages (lazy) ─────────────────────────────────
+const CustomerAuthPage = lazy(() => import('../pages/CustomerAuthPage.jsx'));
+const AccountPage      = lazy(() => import('../pages/AccountPage.jsx'));
 
 const PageLoader = () => (
   <div className="flex items-center justify-center h-64">
@@ -49,12 +55,123 @@ const PageLoader = () => (
   </div>
 );
 
-const HomeWithLayout = () => {
+const PageContent = () => {
+  const location = useLocation();
   const [liveProducts, setLiveProducts] = useState([]);
+
   return (
-    <Layout products={liveProducts}>
-      <HomePage onProductsLoaded={setLiveProducts} />
-    </Layout>
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        {/* ── Storefront ──────────────────────────────── */}
+        <Route path="/" element={
+          <Layout products={liveProducts}>
+            <HomePage onProductsLoaded={setLiveProducts} />
+          </Layout>
+        } />
+
+        <Route path="/product/:id" element={
+          <Layout>
+            <Suspense fallback={<PageLoader />}>
+              <ProductPage />
+            </Suspense>
+          </Layout>
+        } />
+
+        <Route path="/search" element={
+          <Layout>
+            <Suspense fallback={<PageLoader />}>
+              <SearchPage />
+            </Suspense>
+          </Layout>
+        } />
+
+        <Route path="/checkout" element={
+          <Layout>
+            <CheckoutPage />
+          </Layout>
+        } />
+
+        <Route path="/order-success" element={
+          <Layout>
+            <Suspense fallback={<PageLoader />}>
+              <OrderSuccessPage />
+            </Suspense>
+          </Layout>
+        } />
+
+        <Route path="/track" element={
+          <Layout>
+            <Suspense fallback={<PageLoader />}>
+              <OrderTrackingPage />
+            </Suspense>
+          </Layout>
+        } />
+
+        <Route path="/returns" element={
+          <Layout>
+            <Suspense fallback={<PageLoader />}>
+              <ReturnsPage />
+            </Suspense>
+          </Layout>
+        } />
+
+        {/* ── Customer Account ────────────────────────── */}
+        <Route path="/account/login" element={
+          <Layout>
+            <Suspense fallback={<PageLoader />}>
+              <CustomerAuthPage />
+            </Suspense>
+          </Layout>
+        } />
+
+        <Route path="/account" element={
+          <Layout>
+            <Suspense fallback={<PageLoader />}>
+              <AccountPage />
+            </Suspense>
+          </Layout>
+        } />
+
+        {/* ── Admin auth ──────────────────────────────── */}
+        <Route path="/login" element={<LoginPage />} />
+
+        {/* ── Admin panel ─────────────────────────────── */}
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute>
+              <AdminDashboard />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Navigate to="/admin/dashboard" replace />} />
+          <Route path="dashboard"  element={<DashboardHome />} />
+          <Route path="orders"     element={<Suspense fallback={<PageLoader />}><AdminOrders /></Suspense>} />
+          <Route path="inventory"  element={<Suspense fallback={<PageLoader />}><AdminInventory /></Suspense>} />
+          <Route path="products"   element={<Suspense fallback={<PageLoader />}><AdminProducts /></Suspense>} />
+          <Route path="users"      element={<Suspense fallback={<PageLoader />}><AdminUsers /></Suspense>} />
+          <Route path="audits"     element={<Suspense fallback={<PageLoader />}><AdminAuditPanel /></Suspense>} />
+          <Route path="settings"   element={<Suspense fallback={<PageLoader />}><AdminSettings /></Suspense>} />
+          <Route path="coupons"    element={<Suspense fallback={<PageLoader />}><AdminCoupons /></Suspense>} />
+          <Route path="analytics"  element={<Suspense fallback={<PageLoader />}><AdminAnalytics /></Suspense>} />
+          <Route path="reviews"    element={<Suspense fallback={<PageLoader />}><AdminReviews /></Suspense>} />
+        </Route>
+
+        {/* ── 404 ─────────────────────────────────────── */}
+        <Route path="*" element={
+          <div className="min-h-screen bg-white flex items-center justify-center">
+            <div className="text-center">
+              <h1 className="text-[160px] sm:text-[180px] font-black text-gray-50 leading-none select-none">404</h1>
+              <p className="text-xl font-black uppercase tracking-tighter text-gray-900 mt-4">Page Not Found</p>
+              <p className="text-gray-400 mt-2 text-sm uppercase tracking-widest font-black">The design doesn't exist here.</p>
+              <a href="/" className="mt-8 inline-flex items-center space-x-2 px-10 py-5 bg-[#ba1f3d] text-white text-[10px] font-black uppercase tracking-[0.3em] hover:bg-gray-900 transition-all shadow-xl">
+                <span>Return Home</span>
+              </a>
+            </div>
+          </div>
+        } />
+      </Routes>
+    </AnimatePresence>
   );
 };
 
@@ -68,98 +185,15 @@ function App() {
           <RecentlyViewedProvider>
             <WishlistProvider>
               <CartProvider>
-                <CursorFollower />
-                {loading && <SmoothLoader onComplete={() => setLoading(false)} />}
+                <CustomerProvider>
+                  <CursorFollower />
+                  {loading && <SmoothLoader onComplete={() => setLoading(false)} />}
 
-                <Router>
-                  <Routes>
-
-                    {/* ── Storefront ──────────────────────────────────── */}
-                    <Route path="/" element={<HomeWithLayout />} />
-
-                    <Route path="/product/:id" element={
-                      <Layout>
-                        <Suspense fallback={<PageLoader />}>
-                          <ProductPage />
-                        </Suspense>
-                      </Layout>
-                    } />
-
-                    <Route path="/search" element={
-                      <Suspense fallback={<PageLoader />}>
-                        <SearchPage />
-                      </Suspense>
-                    } />
-
-                    <Route path="/checkout" element={
-                      <Layout>
-                        <CheckoutPage />
-                      </Layout>
-                    } />
-
-                    <Route path="/order-success" element={
-                      <Suspense fallback={<PageLoader />}>
-                        <OrderSuccessPage />
-                      </Suspense>
-                    } />
-
-                    <Route path="/track" element={
-                      <Suspense fallback={<PageLoader />}>
-                        <OrderTrackingPage />
-                      </Suspense>
-                    } />
-
-                    <Route path="/returns" element={
-                      <Layout>
-                        <Suspense fallback={<PageLoader />}>
-                          <ReturnsPage />
-                        </Suspense>
-                      </Layout>
-                    } />
-
-                    {/* ── Auth ────────────────────────────────────────── */}
-                    <Route path="/login" element={<LoginPage />} />
-
-                    {/* ── Admin ───────────────────────────────────────── */}
-                    <Route
-                      path="/admin"
-                      element={
-                        <ProtectedRoute>
-                          <AdminDashboard />
-                        </ProtectedRoute>
-                      }
-                    >
-                      <Route index element={<Navigate to="/admin/dashboard" replace />} />
-                      <Route path="dashboard"  element={<DashboardHome />} />
-                      <Route path="orders"     element={<Suspense fallback={<PageLoader />}><AdminOrders /></Suspense>} />
-                      <Route path="inventory"  element={<Suspense fallback={<PageLoader />}><AdminInventory /></Suspense>} />
-                      <Route path="products"   element={<Suspense fallback={<PageLoader />}><AdminProducts /></Suspense>} />
-                      <Route path="users"      element={<Suspense fallback={<PageLoader />}><AdminUsers /></Suspense>} />
-                      <Route path="audits"     element={<Suspense fallback={<PageLoader />}><AdminAuditPanel /></Suspense>} />
-                      <Route path="settings"   element={<Suspense fallback={<PageLoader />}><AdminSettings /></Suspense>} />
-                      <Route path="coupons"    element={<Suspense fallback={<PageLoader />}><AdminCoupons /></Suspense>} />
-                      <Route path="analytics"  element={<Suspense fallback={<PageLoader />}><AdminAnalytics /></Suspense>} />
-                      <Route path="reviews"    element={<Suspense fallback={<PageLoader />}><AdminReviews /></Suspense>} />
-                    </Route>
-
-                    {/* ── 404 ─────────────────────────────────────────── */}
-                    <Route path="*" element={
-                      <div className="min-h-screen bg-white flex items-center justify-center">
-                        <div className="text-center">
-                          <h1 className="text-[160px] sm:text-[180px] font-black text-gray-50 leading-none select-none">404</h1>
-                          <p className="text-xl font-black uppercase tracking-tighter text-gray-900 mt-4">Page Not Found</p>
-                          <p className="text-gray-400 mt-2 text-sm uppercase tracking-widest font-black">The design doesn't exist here.</p>
-                          <a href="/" className="mt-8 inline-flex items-center space-x-2 px-10 py-5 bg-[#ba1f3d] text-white text-[10px] font-black uppercase tracking-[0.3em] hover:bg-gray-900 transition-all shadow-xl">
-                            <span>Return Home</span>
-                          </a>
-                        </div>
-                      </div>
-                    } />
-
-                  </Routes>
-
-                  <UniversalDrawer />
-                </Router>
+                  <Router>
+                    <PageContent />
+                    <UniversalDrawer />
+                  </Router>
+                </CustomerProvider>
               </CartProvider>
             </WishlistProvider>
           </RecentlyViewedProvider>

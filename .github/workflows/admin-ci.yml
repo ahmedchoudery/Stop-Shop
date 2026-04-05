@@ -1,40 +1,118 @@
-name: Railway Admin API CI
+name: CI — Tests, Lint & Type Check
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ['main']
   pull_request:
-    branches: [ "main" ]
+    branches: ['main']
+
+env:
+  MONGODB_URI: 'mongodb://127.0.0.1:27017/stopshop_test'
+  MONGO_URL: 'mongodb://127.0.0.1:27017/stopshop_test'
+  JWT_SECRET: 'ci_test_secret_key_do_not_use_in_production'
+  NODE_ENV: 'test'
+  REDIS_URL: ''
 
 jobs:
-  test-admin-api:
+  quality-checks:
+    name: Lint & Type Check
     runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
-    env:
-      MONGODB_URI: "mongodb://127.0.0.1:27017/stop_shop_test"
-      MONGO_URL: "mongodb://127.0.0.1:27017/stop_shop_test"
-      JWT_SECRET: "ci_testing_secret_key"
-      RBAC_STAGE: "dev"
-      NODE_ENV: "test"
+      - name: Setup Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
 
+      - name: Install dependencies
+        run: npm install
+
+      - name: ESLint
+        run: npm run lint
+
+  unit-tests:
+    name: Unit Tests (Vitest)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run unit tests
+        run: npm test
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage/
+          retention-days: 7
+
+  integration-tests:
+    name: Integration Tests (MongoDB)
+    runs-on: ubuntu-latest
     services:
       mongodb:
         image: mongo:7
         ports:
           - 27017:27017
-
+        options: >-
+          --replSet rs0
+          --bind_ip_all
+    env:
+      MONGODB_URI: 'mongodb://127.0.0.1:27017/stopshop_test'
+      MONGO_URL: 'mongodb://127.0.0.1:27017/stopshop_test'
+      JWT_SECRET: 'ci_test_secret_key_do_not_use_in_production'
+      NODE_ENV: 'test'
+      REDIS_URL: ''
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Use Node.js 20.x
-      uses: actions/setup-node@v4
-      with:
-        node-version: 20.x
-        cache: 'npm'
-        cache-dependency-path: package-lock.json
+      - name: Setup Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
 
-    - name: Install Dependencies
-      run: npm install
+      - name: Install dependencies
+        run: npm install
 
-    - name: Run Jest Unit & Integration Tests (ESM)
-      run: npm test
+      - name: Initialize MongoDB replica set
+        run: |
+          sleep 5
+          mongosh --host 127.0.0.1:27017 --eval 'rs.initiate({_id:"rs0",members:[{_id:0,host:"127.0.0.1:27017"}]})' || true
+
+      - name: Run integration tests
+        run: npm test -- --include='src/test/checkout.test.js'
+
+  build-check:
+    name: Build Verification
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build frontend
+        run: npm run build

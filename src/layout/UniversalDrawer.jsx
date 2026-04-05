@@ -6,6 +6,7 @@
  */
 
 import React, { useEffect, useRef, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import anime from 'animejs';
 import {
   X, ShoppingBag, Plus, Minus, Trash2, ArrowRight,
@@ -519,62 +520,58 @@ const ProductDrawer = ({ product, onClose }) => {
 const UniversalDrawer = () => {
   const { isDrawerOpen, drawerMode, selectedProduct, closeDrawer } = useCart();
   const drawerRef = useRef(null);
-
+ 
   useScrollLock(isDrawerOpen);
-
-  // Slide IN — runs when drawer opens (component mounts)
-  useEffect(() => {
-    if (!drawerRef.current || !isDrawerOpen) return;
-
-    // Small delay to ensure DOM is reflowed and painted
-    requestAnimationFrame(() => {
-      if (!drawerRef.current) return;
-      
-      // Force initial state
-      anime.set(drawerRef.current, { translateX: '100%' });
-      
-      anime({
-        targets: drawerRef.current,
-        translateX: '0%',
-        duration: 550,
-        easing: EASING.SPRING,
-      });
-    });
-  }, [isDrawerOpen]);
-
+ 
+  // Handle Close with animation
   const handleClose = useCallback(() => {
-    if (!drawerRef.current) { closeDrawer(); return; }
-    anime({
-      targets: drawerRef.current,
-      translateX: ['0%', '100%'],
-      duration: 400,
-      easing: EASING.SILK,
-      complete: closeDrawer,
-    });
+    closeDrawer();
   }, [closeDrawer]);
-
-  if (!isDrawerOpen) return null;
-
+ 
   return (
-    <div className="fixed inset-0 z-[100] overflow-hidden">
-      {/* Backdrop */}
-      <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm animate-fade-in"
-        onClick={handleClose}
-      />
+    <AnimatePresence mode="wait">
+      {isDrawerOpen && (
+        <div className="fixed inset-0 z-[100] overflow-hidden flex justify-end">
+          {/* Backdrop — Deep blurred */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
+            className="absolute inset-0 bg-black/40 backdrop-blur-2xl"
+            onClick={handleClose}
+          />
+ 
+          {/* Drawer panel — Magnetic & Editorial */}
+          <motion.div
+            ref={drawerRef}
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: 'spring', damping: 25, stiffness: 200, mass: 0.8 }}
+            drag="x"
+            dragConstraints={{ left: 0, right: 1000 }}
+            dragElastic={0.05}
+            onDragEnd={(e, { offset, velocity }) => {
+              if (offset.x > 150 || velocity.x > 500) {
+                handleClose();
+              }
+            }}
+            className="relative w-full max-w-md bg-white shadow-[-20px_0_60px_rgba(0,0,0,0.2)] flex flex-col h-full origin-right"
+          >
+            {/* Magnetic Edge indicator */}
+            <div className="absolute left-0 top-0 bottom-0 w-1.5 flex items-center justify-center opacity-20 pointer-events-none">
+              <div className="w-[2px] h-20 bg-gray-300 rounded-full" />
+            </div>
 
-      {/* Drawer panel — starts off-screen, anime slides it in */}
-      <div
-        ref={drawerRef}
-        className="absolute inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl flex flex-col"
-        style={{ transform: 'translateX(100%)', willChange: 'transform' }}
-      >
-        {drawerMode === 'cart' && <CartDrawer onClose={handleClose} />}
-        {drawerMode === 'wishlist' && <WishlistDrawer onClose={handleClose} />}
-        {drawerMode === 'product' && <ProductDrawer product={selectedProduct} onClose={handleClose} />}
-      </div>
-    </div>
+            {drawerMode === 'cart' && <CartDrawer onClose={handleClose} />}
+            {drawerMode === 'wishlist' && <WishlistDrawer onClose={handleClose} />}
+            {drawerMode === 'product' && <ProductDrawer product={selectedProduct} onClose={handleClose} />}
+          </motion.div>
+        </div>
+      )}
+    </AnimatePresence>
   );
 };
-
+ 
 export default UniversalDrawer;

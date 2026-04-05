@@ -1,44 +1,21 @@
-/**
- * @fileoverview ClothingHeroScene — Clothing-themed 3D hero
- * Replaces the abstract icosahedra with a fashion-forward fabric simulation.
- *
- * Scene contains:
- *  - Waving fabric cloth panel (wind-driven vertex displacement)
- *  - Floating garment ring hoops (clothing rack aesthetic)
- *  - Silk-thread particle system
- *  - Dynamic cardinal red/gold lighting
- *  - Mouse parallax on the full group
- *  - Mobile fallback (renders nothing = static image shows instead)
- *
- * Applies: 3d-web-experience (R3F, performance optimization, mobile fallback),
- *          design-spells (purposeful 3D, fabric feel, no 3D for 3D's sake)
- */
-
-/* eslint-disable react/no-unknown-property */
-import React, { useRef, useMemo, Suspense, useEffect, useState } from 'react';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Float, PerspectiveCamera, MeshDistortMaterial, Torus } from '@react-three/drei';
-import * as THREE from 'three';
+import { Float, PerspectiveCamera, Environment, ContactShadows, Text } from '@react-three/drei';
 
 // ─────────────────────────────────────────────────────────────────
-// CONSTANTS
+// CONSTANTS — Editorial Masculine Palette
 // ─────────────────────────────────────────────────────────────────
 
 const CARDINAL = new THREE.Color('#ba1f3d');
-const GOLD = new THREE.Color('#FBBF24');
-const DARK = new THREE.Color('#111827');
-const SILK = new THREE.Color('#f8f4f0');
+const CHROME   = new THREE.Color('#ffffff');
+const DARK     = new THREE.Color('#050505');
+const GOLD     = new THREE.Color('#FBBF24');
 
 // ─────────────────────────────────────────────────────────────────
 // FABRIC CLOTH PANEL
-// Wind-driven vertex displacement simulating waving fabric
 // ─────────────────────────────────────────────────────────────────
 
 const FabricPanel = ({ position = [0, 0, 0], color = CARDINAL, width = 3, height = 4 }) => {
   const meshRef = useRef();
   const geomRef = useRef();
-
-  // Store original positions for displacement
   const originalPositions = useRef(null);
 
   useEffect(() => {
@@ -49,296 +26,186 @@ const FabricPanel = ({ position = [0, 0, 0], color = CARDINAL, width = 3, height
 
   useFrame(({ clock }) => {
     if (!meshRef.current || !geomRef.current || !originalPositions.current) return;
-
     const t = clock.getElapsedTime();
     const pos = geomRef.current.attributes.position;
     const orig = originalPositions.current;
 
-    // Wind simulation: each vertex displaced by overlapping sine waves
     for (let i = 0; i < pos.count; i++) {
       const ix = i * 3;
       const x = orig[ix];
       const y = orig[ix + 1];
-
-      // Multi-frequency wind displacement
-      const windX = Math.sin(x * 1.2 + t * 1.4) * 0.08;
-      const windY = Math.sin(y * 0.8 + t * 1.1) * 0.06;
-      const wave = Math.sin(x * 2 + y * 1.5 + t * 2) * 0.04;
-      const sway = Math.sin(t * 0.7 + x * 0.5) * 0.12;
-
-      pos.setZ(i, windX + windY + wave + sway);
+      
+      // Complex fabric ripple
+      const windX = Math.sin(x * 1.2 + t * 0.8) * 0.08;
+      const windY = Math.cos(y * 0.9 + t * 1.2) * 0.06;
+      const sway = Math.sin(t * 0.5 + x * 0.4) * 0.15;
+      
+      pos.setZ(i, windX + windY + sway);
     }
-
     pos.needsUpdate = true;
     geomRef.current.computeVertexNormals();
   });
 
   return (
-    <mesh ref={meshRef} position={position}>
-      <planeGeometry ref={geomRef} args={[width, height, 32, 40]} />
+    <mesh ref={meshRef} position={position} castShadow receiveShadow>
+      <planeGeometry ref={geomRef} args={[width, height, 64, 80]} />
       <meshStandardMaterial
         color={color}
-        roughness={0.85}
-        metalness={0.05}
+        roughness={0.4}
+        metalness={0.2}
         side={THREE.DoubleSide}
-        wireframe={false}
       />
     </mesh>
   );
 };
 
 // ─────────────────────────────────────────────────────────────────
-// CLOTHING RACK HOOP
-// Torus geometry representing garment rings / clothing hanger hoops
+// CHROME GARMENT RING
 // ─────────────────────────────────────────────────────────────────
 
-const GarmentHoop = ({ position, radius = 0.6, tube = 0.035, color = GOLD, speed = 1, rotOffset = 0 }) => {
+const GarmentRing = ({ position, radius = 0.6, speed = 1, rotOffset = 0 }) => {
   const meshRef = useRef();
-
   useFrame(({ clock }) => {
     if (!meshRef.current) return;
-    const t = clock.getElapsedTime();
-    meshRef.current.rotation.x = Math.sin(t * speed * 0.5 + rotOffset) * 0.3;
-    meshRef.current.rotation.y = t * speed * 0.3 + rotOffset;
-    meshRef.current.position.y = position[1] + Math.sin(t * speed * 0.8 + rotOffset) * 0.15;
+    const t = clock.getElapsedTime() * speed + rotOffset;
+    meshRef.current.rotation.x = Math.sin(t * 0.3) * 0.5;
+    meshRef.current.rotation.y = t * 0.2;
+    meshRef.current.position.y = position[1] + Math.sin(t * 0.6) * 0.2;
   });
 
   return (
-    <Float speed={speed} rotationIntensity={0.4} floatIntensity={0.6}>
+    <Float speed={speed * 2} rotationIntensity={1} floatIntensity={1.5}>
       <mesh ref={meshRef} position={position}>
-        <torusGeometry args={[radius, tube, 16, 80]} />
-        <meshStandardMaterial
-          color={color}
-          roughness={0.1}
-          metalness={0.9}
-          envMapIntensity={1.5}
-        />
+        <torusGeometry args={[radius, 0.015, 16, 128]} />
+        <meshStandardMaterial color={CHROME} roughness={0} metalness={1} />
       </mesh>
     </Float>
   );
 };
 
 // ─────────────────────────────────────────────────────────────────
-// SILK THREAD PARTICLES
-// Thin elongated particles representing loose threads / fabric fibers
+// MAIN SCENE logic
 // ─────────────────────────────────────────────────────────────────
 
-const SilkParticles = ({ count = 80 }) => {
-  const meshRef = useRef();
-
-  const { positions, speeds, offsets } = useMemo(() => {
-    const positions = new Float32Array(count * 3);
-    const speeds = new Float32Array(count);
-    const offsets = new Float32Array(count);
-
-    for (let i = 0; i < count; i++) {
-      positions[i * 3]     = (Math.random() - 0.5) * 9;
-      positions[i * 3 + 1] = (Math.random() - 0.5) * 10;
-      positions[i * 3 + 2] = (Math.random() - 0.5) * 4;
-      speeds[i] = 0.3 + Math.random() * 0.7;
-      offsets[i] = Math.random() * Math.PI * 2;
-    }
-
-    return { positions, speeds, offsets };
-  }, [count]);
-
-  useFrame(({ clock }) => {
-    if (!meshRef.current) return;
-    const t = clock.getElapsedTime();
-    const pos = meshRef.current.geometry.attributes.position;
-
-    for (let i = 0; i < count; i++) {
-      const ix = i * 3;
-      // Gentle drift upward with sinusoidal sway
-      const drift = (t * speeds[i] * 0.2 + offsets[i]) % 10 - 5;
-      pos.setY(i, positions[ix + 1] + drift * 0.3);
-      pos.setX(i, positions[ix] + Math.sin(t * speeds[i] * 0.5 + offsets[i]) * 0.1);
-    }
-
-    pos.needsUpdate = true;
-  });
-
-  return (
-    <points ref={meshRef}>
-      <bufferGeometry>
-        <bufferAttribute
-          attach="attributes-position"
-          array={positions}
-          count={count}
-          itemSize={3}
-        />
-      </bufferGeometry>
-      <pointsMaterial
-        size={0.025}
-        color={SILK}
-        transparent
-        opacity={0.5}
-        sizeAttenuation
-      />
-    </points>
-  );
-};
-
-// ─────────────────────────────────────────────────────────────────
-// HANGING FABRIC STRIP
-// Thinner vertical fabric panels like hanging garments
-// ─────────────────────────────────────────────────────────────────
-
-const HangingStrip = ({ position, color, width = 0.8, delay = 0 }) => {
-  const meshRef = useRef();
-  const origPos = useRef(null);
-
-  useEffect(() => {
-    if (!meshRef.current?.geometry) return;
-    const pos = meshRef.current.geometry.attributes.position;
-    origPos.current = new Float32Array(pos.array);
-  }, []);
-
-  useFrame(({ clock }) => {
-    if (!meshRef.current?.geometry || !origPos.current) return;
-    const t = clock.getElapsedTime() + delay;
-    const pos = meshRef.current.geometry.attributes.position;
-    const orig = origPos.current;
-
-    for (let i = 0; i < pos.count; i++) {
-      const ix = i * 3;
-      const y = orig[ix + 1];
-      // Fabric hangs from top — bottom sways more than top
-      const hangFactor = (y + 2) / 4; // 0 at top, 1 at bottom
-      const sway = Math.sin(t * 1.2 + orig[ix] * 2) * 0.15 * hangFactor;
-      pos.setZ(i, sway);
-      pos.setX(i, orig[ix] + Math.sin(t * 0.8 + y) * 0.04 * hangFactor);
-    }
-
-    pos.needsUpdate = true;
-    meshRef.current.geometry.computeVertexNormals();
-  });
-
-  return (
-    <mesh ref={meshRef} position={position}>
-      <planeGeometry args={[width, 3.5, 8, 24]} />
-      <meshStandardMaterial
-        color={color}
-        roughness={0.9}
-        metalness={0}
-        side={THREE.DoubleSide}
-        transparent
-        opacity={0.85}
-      />
-    </mesh>
-  );
-};
-
-// ─────────────────────────────────────────────────────────────────
-// MAIN SCENE
-// ─────────────────────────────────────────────────────────────────
-
-const ClothingScene = () => {
-  const { mouse, size } = useThree();
+const ClothingScene = ({ gyroPos }) => {
+  const { mouse } = useThree();
   const groupRef = useRef();
 
   useFrame(() => {
     if (!groupRef.current) return;
-    // Smooth mouse parallax — fabric responds to viewer movement
-    groupRef.current.rotation.y = THREE.MathUtils.lerp(
-      groupRef.current.rotation.y,
-      mouse.x * 0.08,
-      0.04
-    );
-    groupRef.current.rotation.x = THREE.MathUtils.lerp(
-      groupRef.current.rotation.x,
-      -mouse.y * 0.05,
-      0.04
-    );
+    // Enhanced depth response
+    const targetX = (mouse.x * 0.15) + (gyroPos.x * 0.4);
+    const targetY = (-mouse.y * 0.12) + (gyroPos.y * 0.3);
+
+    groupRef.current.rotation.y = THREE.MathUtils.lerp(groupRef.current.rotation.y, targetX, 0.05);
+    groupRef.current.rotation.x = THREE.MathUtils.lerp(groupRef.current.rotation.x, targetY, 0.05);
   });
 
   return (
     <group ref={groupRef}>
-      {/* Main cardinal fabric panel — center stage */}
-      <FabricPanel
-        position={[0, 0.3, 0]}
-        color={CARDINAL}
-        width={2.8}
-        height={4.2}
-      />
+      <FabricPanel position={[0, 0, 0]} color={CARDINAL} width={2.8} height={4.2} />
+      <FabricPanel position={[-2.5, -0.5, -2]} color={DARK} width={1.5} height={3.5} />
+      <FabricPanel position={[2.8, 0.5, -1.5]} color={DARK} width={1.2} height={3} />
+      
+      <GarmentRing position={[-1.8, 2.2, 0.8]} radius={0.6} speed={0.8} rotOffset={1} />
+      <GarmentRing position={[2, 1.8, 0.5]} radius={0.4} speed={1.2} rotOffset={4} />
+      <GarmentRing position={[0.5, -2.5, 1.2]} radius={0.35} speed={0.6} rotOffset={2} />
 
-      {/* Secondary fabric panel — dark, slightly offset */}
-      <HangingStrip position={[-2.2, 0.2, -1.2]} color={DARK} width={0.9} delay={0.5} />
-      <HangingStrip position={[2.4, 0.1, -1.0]} color={new THREE.Color('#1f1f2e')} width={0.7} delay={1.2} />
-
-      {/* Gold garment hoops — clothing rack aesthetic */}
-      <GarmentHoop position={[-1.8, 1.8, 0.5]} radius={0.55} color={GOLD} speed={0.8} rotOffset={0} />
-      <GarmentHoop position={[2.0, 2.1, 0.3]} radius={0.4} color={GOLD} speed={1.1} rotOffset={1.5} />
-      <GarmentHoop position={[0.6, -2.1, 0.8]} radius={0.35} color={new THREE.Color('#d4a843')} speed={0.6} rotOffset={3} />
-
-      {/* Small cardinal hoop accent */}
-      <GarmentHoop position={[-0.8, -1.6, 1.2]} radius={0.28} color={CARDINAL} speed={1.4} rotOffset={2} />
-
-      {/* Silk thread particles */}
-      <SilkParticles count={60} />
-
-      {/* Lighting — warm fashion-studio feel */}
-      <ambientLight intensity={0.4} color="#fff5e6" />
-      <directionalLight
-        position={[5, 8, 3]}
-        intensity={1.8}
-        color="#fff8f0"
-        castShadow={false}
-      />
-      <pointLight position={[-4, 2, 2]} intensity={2.5} color={CARDINAL} distance={8} />
-      <pointLight position={[4, -2, 1]} intensity={1.2} color={GOLD} distance={6} />
-      <pointLight position={[0, -4, 3]} intensity={0.8} color="#ffffff" distance={5} />
+      <ContactShadows position={[0, -3, 0]} opacity={0.4} scale={10} blur={2.5} far={4} />
+      <Environment preset="city" />
+      
+      <ambientLight intensity={0.2} />
+      <spotLight position={[10, 15, 10]} angle={0.2} penumbra={1} intensity={3} color="#fff" castShadow />
+      <pointLight position={[-5, 5, 5]} intensity={5} color={CARDINAL} />
+      <pointLight position={[5, -5, 5]} intensity={3} color={GOLD} />
     </group>
   );
 };
 
-// ─────────────────────────────────────────────────────────────────
-// EXPORT — with mobile fallback
-// ─────────────────────────────────────────────────────────────────
-
 const ClothingHeroScene = () => {
-  const [isMobile, setIsMobile] = useState(false);
+  const [gyroPos, setGyroPos] = useState({ x: 0, y: 0 });
+  const [hasSensors, setHasSensors] = useState(false);
+  const [needsPermission, setNeedsPermission] = useState(false);
   const [isLowEnd, setIsLowEnd] = useState(false);
 
   useEffect(() => {
-    // Detect mobile — skip 3D to save battery
-    const mobile = window.matchMedia('(max-width: 768px)').matches;
-    setIsMobile(mobile);
+    if (navigator.deviceMemory && navigator.deviceMemory < 2) setIsLowEnd(true);
 
-    // Detect low-end device by memory or renderer
-    const nav = navigator;
-    if (nav.deviceMemory && nav.deviceMemory < 4) setIsLowEnd(true);
-    if (nav.hardwareConcurrency && nav.hardwareConcurrency < 4) setIsLowEnd(true);
-  }, []);
+    const checkPermission = () => {
+      if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+        setNeedsPermission(true);
+      } else {
+        window.addEventListener('deviceorientation', handleOrientation);
+      }
+    };
 
-  // Static fallback for mobile / low-end — show brand-colored gradient
-  if (isMobile || isLowEnd) {
-    return (
-      <div className="w-full h-full" style={{
-        background: 'linear-gradient(135deg, #111827 0%, #1f0a10 40%, #ba1f3d 100%)',
-      }} />
-    );
-  }
+    const handleOrientation = (e) => {
+      if (!hasSensors && (e.beta || e.gamma)) setHasSensors(true);
+      const x = (e.gamma || 0) / 45; 
+      const y = (e.beta - 45 || 0) / 45;
+      setGyroPos({ x, y });
+    };
+
+    checkPermission();
+    
+    return () => {
+      window.removeEventListener('deviceorientation', handleOrientation);
+    };
+  }, [hasSensors]);
+
+  const requestPermission = async () => {
+    if (typeof DeviceOrientationEvent?.requestPermission === 'function') {
+      try {
+        const res = await DeviceOrientationEvent.requestPermission();
+        if (res === 'granted') {
+          setNeedsPermission(false);
+          window.addEventListener('deviceorientation', (e) => {
+            const x = (e.gamma || 0) / 45; 
+            const y = (e.beta - 45 || 0) / 45;
+            setGyroPos({ x, y });
+            setHasSensors(true);
+          });
+        }
+      } catch (e) {
+        console.error('Gyro access denied:', e);
+      }
+    }
+  };
+
+  if (isLowEnd) return <div className="w-full h-full bg-[#050505]" />;
 
   return (
-    <div className="w-full h-full">
-      <Canvas
-        dpr={[1, 1.5]}                    // Cap pixel ratio for performance
-        gl={{
-          antialias: true,
-          alpha: true,
-          powerPreference: 'high-performance',
-        }}
-        performance={{ min: 0.5 }}       // Adaptive quality
-        frameloop="always"
-      >
-        <PerspectiveCamera makeDefault position={[0, 0, 7]} fov={52} />
+    <div className="w-full h-full relative">
+      <Canvas dpr={[1, 2]} gl={{ antialias: true, alpha: true }} shadows>
+        <PerspectiveCamera makeDefault position={[0, 0, 8]} fov={45} />
         <Suspense fallback={null}>
-          <ClothingScene />
+          <ClothingScene gyroPos={gyroPos} />
         </Suspense>
       </Canvas>
+
+      {/* Sensor Request Badge — Luxury Editorial UI */}
+      {needsPermission && !hasSensors && (
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-50">
+          <button 
+            onClick={requestPermission}
+            className="glass-premium px-8 py-4 rounded-full text-white text-[9px] font-black uppercase tracking-[0.4em] border border-white/20 whitespace-nowrap animate-pulse hover:bg-white hover:text-black transition-all duration-500"
+          >
+            Enable Experience Sensors
+          </button>
+        </div>
+      )}
+
+      {/* Subtle "Immersive Mode Active" hint */}
+      {hasSensors && (
+        <div className="absolute bottom-10 left-10 opacity-30 select-none pointer-events-none">
+          <p className="text-[7px] font-black uppercase tracking-[0.8em] text-white/50 vertical-text">
+            IMMERSIVE SENSORS ACTIVE
+          </p>
+        </div>
+      )}
     </div>
   );
 };
 
 export default ClothingHeroScene;
+
