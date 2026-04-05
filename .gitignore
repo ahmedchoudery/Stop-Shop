@@ -31,3 +31,10 @@ pnpm-debug.log*
 /seed.js
 /seed_settings.js
 /migrate_admins.js
+
+# Temporary output files
+lint_output.txt
+lint_results.txt
+lint_report.json
+current_lint_errors*.txt
+test_output.txt
