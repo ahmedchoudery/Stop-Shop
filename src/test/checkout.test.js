@@ -270,8 +270,8 @@ describe('Checkout flow — end-to-end logic', () => {
   describe('Full checkout scenario', () => {
     it('complete happy-path: cart → validation → enrichment → order creation', () => {
       setupProducts([
-        { id: 'P1', name: 'Tee', price: 1500, quantity: 10, bucket: 'Tops', subCategory: 'T-Shirt' },
-        { id: 'P2', name: 'Jeans', price: 2500, quantity: 5, bucket: 'Bottoms', subCategory: 'Jeans' },
+        { id: 'P1', name: 'Tee', price: 1500, quantity: 10, bucket: 'Tops', subCategory: 'T-Shirt', sizeStock: { M: 5 } },
+        { id: 'P2', name: 'Jeans', price: 2500, quantity: 5, bucket: 'Bottoms', subCategory: 'Jeans', sizeStock: { '32': 5 } },
       ]);
 
       const cartItems = [
@@ -288,7 +288,7 @@ describe('Checkout flow — end-to-end logic', () => {
       expect(enriched[0].price).toBe(1500);
       expect(enriched[0].category).toBe('Tops');
       expect(enriched[1].price).toBe(2500);
-      expect(enriched[1].bucket).toBe('Bottoms');
+      expect(enriched[1].category).toBe('Bottoms');
 
       // Step 3: Compute verified total
       const total = computeVerifiedTotal(enriched);
