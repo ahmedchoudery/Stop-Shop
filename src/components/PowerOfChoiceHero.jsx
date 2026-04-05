@@ -1,201 +1,366 @@
 /**
- * @fileoverview PowerOfChoiceHero — Fashion-forward hero with clothing 3D
- * Fix: replaced require('animejs') with ESM import — entrance animations are now functional
- * Applies: animejs-animation (spring timeline, stagger entrance),
- *          design-spells (fabric motion, magnetic CTA),
- *          3d-web-experience (purposeful clothing 3D, mobile fallback)
+ * @fileoverview PowerOfChoiceHero — Luxury Editorial Hero Section
+ * Design: Full-bleed dark cinematic hero with 3D parallax cursor effects,
+ *         ambient glow cursor, floating brand labels, and editorial typography.
+ * Replaces: Abstract THREE.js fabric scene → High-fashion editorial image
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useCallback, useState } from 'react';
 import anime from 'animejs';
-import { ArrowRight } from 'lucide-react';
-import ClothingHeroScene from './ClothingHeroScene.jsx';
-import { useAnimeMagnetic } from '../hooks/useAnime.js';
+import { ArrowRight, ShoppingBag, Star, Package } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { EASING } from '../hooks/useAnime.js';
 
-const PowerOfChoiceHero = () => {
-  const containerRef = useRef(null);
-  const badgeRef = useRef(null);
-  const lineRef = useRef(null);
-  const ctaRef = useAnimeMagnetic(0.35, 100);
+// ─────────────────────────────────────────────────────────────────
+// AMBIENT GLOW CURSOR
+// Follows mouse with a soft light-scatter blob
+// ─────────────────────────────────────────────────────────────────
+
+const AmbientCursor = ({ containerRef }) => {
+  const glowRef = useRef(null);
 
   useEffect(() => {
-    // Set initial hidden state
-    const items = containerRef.current?.querySelectorAll('[data-anime]');
-    if (!items?.length) return;
+    const el = containerRef.current;
+    if (!el || !glowRef.current) return;
 
-    anime.set(items, { opacity: 0, translateY: 80 });
-    anime.set(badgeRef.current, { opacity: 0, translateX: 40 });
-    anime.set(lineRef.current, { scaleX: 0, transformOrigin: 'left center' });
+    let raf;
+    let cx = window.innerWidth / 2;
+    let cy = window.innerHeight / 2;
+    let tx = cx, ty = cy;
 
-    // Master timeline — fabric settling choreography
-    const tl = anime.timeline({ easing: EASING.FABRIC });
+    const onMove = (e) => {
+      const rect = el.getBoundingClientRect();
+      tx = e.clientX - rect.left;
+      ty = e.clientY - rect.top;
+    };
 
-    tl
-      // 1. Red accent line draws first
-      .add({
-        targets: lineRef.current,
-        scaleX: [0, 1],
-        duration: 600,
-        easing: EASING.QUART_OUT,
-      })
-      // 2. Headline words stagger in with expo easing
-      .add({
-        targets: items,
-        translateY: [80, 0],
-        opacity: [0, 1],
-        duration: 1100,
-        delay: anime.stagger(120),
-        easing: EASING.FABRIC,
-      }, '-=300')
-      // 3. Badge slides in from right
-      .add({
-        targets: badgeRef.current,
-        translateX: [60, 0],
-        opacity: [0, 1],
-        duration: 900,
-        easing: EASING.SPRING,
-      }, '-=800');
+    const animate = () => {
+      cx += (tx - cx) * 0.06;
+      cy += (ty - cy) * 0.06;
+      if (glowRef.current) {
+        glowRef.current.style.transform = `translate(${cx}px, ${cy}px) translate(-50%, -50%)`;
+      }
+      raf = requestAnimationFrame(animate);
+    };
 
-    return () => tl.pause();
+    el.addEventListener('mousemove', onMove, { passive: true });
+    raf = requestAnimationFrame(animate);
+    return () => {
+      el.removeEventListener('mousemove', onMove);
+      cancelAnimationFrame(raf);
+    };
+  }, [containerRef]);
+
+  return (
+    <div
+      ref={glowRef}
+      className="absolute pointer-events-none z-10 w-[600px] h-[600px] rounded-full"
+      style={{
+        background: 'radial-gradient(circle, rgba(186,31,61,0.06) 0%, rgba(186,31,61,0.02) 40%, transparent 70%)',
+        top: 0,
+        left: 0,
+        willChange: 'transform',
+      }}
+    />
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────
+// FLOATING BRAND LABEL
+// ─────────────────────────────────────────────────────────────────
+
+const FloatingLabel = ({ children, className, delay = 0, style = {} }) => {
+  const ref = useRef(null);
+  useEffect(() => {
+    if (!ref.current) return;
+    anime.set(ref.current, { opacity: 0, translateY: 20 });
+    anime({
+      targets: ref.current,
+      opacity: [0, 1],
+      translateY: [20, 0],
+      duration: 900,
+      delay,
+      easing: EASING.FABRIC,
+    });
+  }, [delay]);
+
+  return (
+    <div ref={ref} className={`absolute z-30 ${className}`} style={style}>
+      {children}
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────
+// MAIN HERO COMPONENT
+// ─────────────────────────────────────────────────────────────────
+
+const PowerOfChoiceHero = () => {
+  const sectionRef = useRef(null);
+  const modelContainerRef = useRef(null);
+  const textRef = useRef(null);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+
+  // ── 3D Parallax on mouse move ─────────────────────────────────
+  const handleMouseMove = useCallback((e) => {
+    if (!sectionRef.current) return;
+    const rect = sectionRef.current.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width - 0.5) * 2;   // -1 to 1
+    const y = ((e.clientY - rect.top)  / rect.height - 0.5) * 2;  // -1 to 1
+    setMousePos({ x, y });
+
+    if (modelContainerRef.current) {
+      modelContainerRef.current.style.transform = `
+        perspective(1200px)
+        rotateY(${x * 5}deg)
+        rotateX(${-y * 4}deg)
+        translateZ(0px)
+      `;
+    }
+  }, []);
+
+  const handleMouseLeave = useCallback(() => {
+    if (modelContainerRef.current) {
+      modelContainerRef.current.style.transform = `
+        perspective(1200px) rotateY(0deg) rotateX(0deg) translateZ(0)
+      `;
+    }
+  }, []);
+
+  // ── Entrance animations ───────────────────────────────────────
+  useEffect(() => {
+    if (!textRef.current) return;
+    const items = textRef.current.querySelectorAll('[data-anime]');
+    anime.set(items, { opacity: 0, translateY: 60 });
+
+    anime({
+      targets: items,
+      opacity: [0, 1],
+      translateY: [60, 0],
+      duration: 1100,
+      delay: anime.stagger(120, { start: 300 }),
+      easing: EASING.FABRIC,
+    });
   }, []);
 
   return (
-    <section className="relative overflow-hidden bg-white text-gray-900 border-b border-gray-100">
-      <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[90vh]">
+    <section
+      ref={sectionRef}
+      className="relative overflow-hidden bg-[#050505] min-h-screen flex items-center"
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+    >
+      {/* Ambient cursor glow */}
+      <AmbientCursor containerRef={sectionRef} />
 
-        {/* ── Text Column ─────────────────────────────────────── */}
-        <div className="lg:col-span-7 flex flex-col justify-center px-8 py-24 md:px-16 lg:px-24 bg-white z-20 relative">
-          <div ref={containerRef} className="max-w-2xl">
+      {/* ── Background texture: subtle noise grain ──────────── */}
+      <div
+        className="absolute inset-0 z-0 opacity-[0.03] pointer-events-none"
+        style={{
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+          backgroundRepeat: 'repeat',
+          backgroundSize: '128px 128px',
+        }}
+      />
 
-            {/* Accent line + label */}
-            <div className="flex items-center space-x-4 mb-10 overflow-hidden">
-              <div
-                ref={lineRef}
-                className="w-10 h-[2px] bg-[#ba1f3d]"
-                style={{ willChange: 'transform' }}
-              />
-              <span
-                data-anime
-                className="text-[10px] font-black uppercase tracking-[0.6em] text-[#ba1f3d]"
-                style={{ opacity: 0, willChange: 'transform, opacity' }}
-              >
-                Supreme Elegance · Pakistan Edition
-              </span>
-            </div>
+      {/* ── Diagonal accent light ────────────────────────────── */}
+      <div
+        className="absolute inset-0 pointer-events-none z-0"
+        style={{
+          background: 'radial-gradient(ellipse 60% 80% at 70% 50%, rgba(186,31,61,0.07) 0%, transparent 70%)',
+        }}
+      />
 
-            {/* Main headline — split for stagger */}
-            <h1 className="text-6xl md:text-8xl lg:text-[9rem] font-black leading-[0.8] tracking-tighter mb-10 uppercase">
-              <span
-                data-anime
-                className="block text-gray-900"
-                style={{ opacity: 0, willChange: 'transform, opacity' }}
-              >
-                The Power
-              </span>
-              <span
-                data-anime
-                className="block text-transparent"
-                style={{
-                  WebkitTextStroke: '2px #ba1f3d',
-                  opacity: 0,
-                  willChange: 'transform, opacity'
-                }}
-              >
-                Of Choice
-              </span>
-            </h1>
+      {/* ── Main Grid ─────────────────────────────────────────── */}
+      <div className="relative z-20 w-full grid grid-cols-1 lg:grid-cols-12 min-h-screen">
 
-            {/* Subheading */}
-            <p
-              data-anime
-              className="text-gray-500 text-xl font-medium leading-relaxed mb-12 max-w-lg"
-              style={{ opacity: 0, willChange: 'transform, opacity' }}
-            >
-              Define your own standard of excellence. Our bespoke collections are tailored for the modern Pakistani trendsetter.
-            </p>
+        {/* ── LEFT: Editorial Text Column ───────────────────── */}
+        <div
+          ref={textRef}
+          className="lg:col-span-5 flex flex-col justify-center px-8 py-24 md:px-14 lg:px-16 order-2 lg:order-1"
+        >
 
-            {/* CTAs */}
-            <div
-              data-anime
-              className="flex flex-wrap gap-6 items-center"
-              style={{ opacity: 0, willChange: 'transform, opacity' }}
-            >
-              {/* Magnetic primary CTA */}
-              <a
-                ref={ctaRef}
-                href="#trending"
-                className="group relative px-10 py-5 bg-[#ba1f3d] text-white text-xs font-black uppercase tracking-[0.3em] flex items-center shadow-[0_20px_40px_rgba(186,31,61,0.25)] hover:shadow-[0_28px_56px_rgba(186,31,61,0.35)] transition-shadow duration-500"
-                style={{ willChange: 'transform' }}
-              >
-                <span className="relative z-10">Discover Collection</span>
-                <ArrowRight className="ml-3 w-4 h-4 group-hover:translate-x-2 transition-transform duration-300 relative z-10" />
-                {/* Shimmer overlay */}
-                <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out" />
-              </a>
-
-              <button className="px-10 py-5 border-2 border-gray-900 text-gray-900 text-xs font-black uppercase tracking-[0.3em] hover:bg-gray-900 hover:text-white transition-all duration-500">
-                Lookbook
-              </button>
-            </div>
-
-            {/* Trust badges */}
-            <div
-              data-anime
-              className="flex items-center space-x-8 mt-12 pt-8 border-t border-gray-100"
-              style={{ opacity: 0, willChange: 'transform, opacity' }}
-            >
-              {['Free Delivery', 'Premium Quality', 'Easy Returns'].map(badge => (
-                <div key={badge} className="flex items-center space-x-2">
-                  <span className="w-1 h-1 rounded-full bg-[#ba1f3d]" />
-                  <span className="text-[9px] font-black uppercase tracking-[0.3em] text-gray-400">
-                    {badge}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* ── 3D Clothing Scene Column ─────────────────────────── */}
-        <div className="lg:col-span-5 relative h-[70vh] lg:h-full overflow-hidden bg-[#0d0810]">
-
-          {/* The clothing 3D scene */}
-          <div className="absolute inset-0 z-0">
-            <ClothingHeroScene />
+          {/* Pre-label */}
+          <div data-anime className="flex items-center space-x-4 mb-8" style={{ opacity: 0 }}>
+            <div className="w-8 h-px bg-[#ba1f3d]" />
+            <span className="text-[9px] font-black uppercase tracking-[0.6em] text-[#ba1f3d]">
+              SS '26 · Pakistan Edition
+            </span>
           </div>
 
-          {/* Gradient fade on left edge */}
-          <div className="absolute inset-0 bg-gradient-to-l from-transparent via-transparent to-white/20 lg:block hidden z-10 pointer-events-none" />
+          {/* Headline */}
+          <h1 className="font-black uppercase leading-[0.82] tracking-tighter mb-8 text-white">
+            <span
+              data-anime
+              className="block text-[clamp(3.5rem,9vw,8rem)]"
+              style={{ opacity: 0 }}
+            >
+              Define
+            </span>
+            <span
+              data-anime
+              className="block text-[clamp(3.5rem,9vw,8rem)]"
+              style={{
+                opacity: 0,
+                WebkitTextStroke: '1.5px #ba1f3d',
+                color: 'transparent',
+              }}
+            >
+              Your
+            </span>
+            <span
+              data-anime
+              className="block text-[clamp(3.5rem,9vw,8rem)] text-white"
+              style={{ opacity: 0 }}
+            >
+              Look.
+            </span>
+          </h1>
 
-          {/* Floating Collection Badge */}
-          <div
-            ref={badgeRef}
-            className="absolute bottom-10 right-8 bg-white/10 backdrop-blur-md border border-white/20 text-white p-7 shadow-2xl z-20"
-            style={{ opacity: 0, willChange: 'transform, opacity' }}
+          {/* Sub-copy */}
+          <p
+            data-anime
+            className="text-gray-500 text-base md:text-lg font-medium leading-relaxed mb-10 max-w-sm"
+            style={{ opacity: 0 }}
           >
-            <p className="text-[9px] font-black uppercase tracking-[0.4em] text-[#FBBF24] mb-1">
-              New Season
-            </p>
-            <p className="text-2xl font-black leading-none uppercase tracking-tighter mb-1">
-              SS '26
-            </p>
-            <p className="text-2xl font-black leading-none uppercase tracking-tighter mb-2">
-              Collection
-            </p>
-            <p className="text-[10px] font-bold text-white/50 uppercase tracking-[0.2em]">
-              Now Available
-            </p>
+            Curated premium streetwear for the modern Pakistani trendsetter. Unmatched quality. Zero compromise.
+          </p>
+
+          {/* CTAs */}
+          <div data-anime className="flex flex-wrap gap-4 items-center mb-12" style={{ opacity: 0 }}>
+            <Link
+              to="/#product-grid"
+              className="group relative flex items-center space-x-3 px-8 py-4 bg-[#ba1f3d] text-white text-[10px] font-black uppercase tracking-[0.3em] overflow-hidden hover:shadow-[0_20px_40px_rgba(186,31,61,0.35)] transition-shadow duration-500"
+            >
+              <span className="relative z-10">Shop Collection</span>
+              <ArrowRight size={14} className="relative z-10 group-hover:translate-x-1.5 transition-transform duration-300" />
+              <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out" />
+            </Link>
+
+            <button
+              onClick={() => {
+                const el = document.getElementById('product-grid');
+                if (el) el.scrollIntoView({ behavior: 'smooth' });
+              }}
+              className="flex items-center space-x-2 text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 hover:text-white transition-colors duration-300 group"
+            >
+              <ShoppingBag size={14} className="group-hover:scale-110 transition-transform duration-300" />
+              <span>View Lookbook</span>
+            </button>
           </div>
 
-          {/* Corner decoration */}
-          <div className="absolute top-8 left-8 z-10 opacity-30">
-            <div className="w-8 h-8 border-t-2 border-l-2 border-white/60" />
-          </div>
-          <div className="absolute bottom-8 right-8 z-10 opacity-30" style={{ marginBottom: '120px' }}>
-            <div className="w-8 h-8 border-b-2 border-r-2 border-white/20" />
+          {/* Trust strip */}
+          <div data-anime className="flex flex-wrap gap-6" style={{ opacity: 0 }}>
+            {[
+              { icon: Package, label: 'Free Delivery' },
+              { icon: Star, label: 'Premium Quality' },
+              { icon: ShoppingBag, label: 'Easy Returns' },
+            ].map(({ icon: Icon, label }) => (
+              <div key={label} className="flex items-center space-x-2 group">
+                <Icon size={11} className="text-[#ba1f3d] group-hover:scale-110 transition-transform" />
+                <span className="text-[9px] font-black uppercase tracking-[0.3em] text-gray-600 group-hover:text-gray-400 transition-colors">
+                  {label}
+                </span>
+              </div>
+            ))}
           </div>
         </div>
+
+        {/* ── RIGHT: Model Image with 3D Parallax ──────────────── */}
+        <div className="lg:col-span-7 relative h-[70vh] lg:h-screen order-1 lg:order-2 overflow-hidden">
+
+          {/* 3D Parallax Container */}
+          <div
+            ref={modelContainerRef}
+            className="absolute inset-0"
+            style={{
+              transition: 'transform 0.12s linear',
+              willChange: 'transform',
+              transformStyle: 'preserve-3d',
+            }}
+          >
+            {/* Model image */}
+            <img
+              src="/hero-model.jpg"
+              alt="Stop & Shop SS'26 Editorial — Man in Prada Jacket"
+              className="absolute inset-0 w-full h-full object-cover object-top"
+              style={{ filter: 'brightness(0.9) contrast(1.08) saturate(0.9)' }}
+              loading="eager"
+              fetchpriority="high"
+            />
+
+            {/* Vignette bottom fade */}
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background: 'linear-gradient(to top, #050505 0%, transparent 40%), linear-gradient(to right, #050505 0%, transparent 30%)',
+              }}
+            />
+
+            {/* Subtle red light overlay */}
+            <div
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                background: 'radial-gradient(ellipse 50% 60% at 20% 90%, rgba(186,31,61,0.18) 0%, transparent 60%)',
+              }}
+            />
+          </div>
+
+          {/* ── FLOATING BRAND LABELS ──────────────────────────── */}
+
+          {/* Prada label — top left */}
+          <FloatingLabel delay={1200} className="top-10 left-8 lg:top-16 lg:left-10">
+            <div className="bg-white/5 backdrop-blur-xl border border-white/10 px-4 py-3 rounded-sm">
+              <p className="text-[8px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-0.5">Outerwear</p>
+              <p className="text-sm font-black uppercase tracking-tight text-white">Prada Bomber</p>
+              <p className="text-[9px] text-gray-500 font-bold mt-1">Limited Edition</p>
+            </div>
+          </FloatingLabel>
+
+          {/* Air Force label — bottom left */}
+          <FloatingLabel delay={1500} className="bottom-28 left-8 lg:bottom-32 lg:left-10">
+            <div className="bg-white/5 backdrop-blur-xl border border-white/10 px-4 py-3 rounded-sm">
+              <p className="text-[8px] font-black uppercase tracking-[0.5em] text-gray-500 mb-0.5">Footwear</p>
+              <p className="text-sm font-black uppercase tracking-tight text-white">Air Force 1</p>
+              <div className="flex items-center space-x-1 mt-1.5">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} size={8} className="fill-[#ba1f3d] text-[#ba1f3d]" />
+                ))}
+                <span className="text-[8px] text-gray-500 font-bold ml-1">5.0</span>
+              </div>
+            </div>
+          </FloatingLabel>
+
+          {/* Season label — top right */}
+          <FloatingLabel delay={1800} className="top-10 right-8 lg:top-16 lg:right-10">
+            <div className="bg-[#ba1f3d]/10 backdrop-blur-xl border border-[#ba1f3d]/25 px-5 py-4 text-right rounded-sm">
+              <p className="text-[8px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-1">New Season</p>
+              <p className="text-2xl font-black leading-none uppercase tracking-tighter text-white">SS '26</p>
+              <p className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.2em] mt-1">Now Available</p>
+            </div>
+          </FloatingLabel>
+
+          {/* Corner brackets — editorial detail */}
+          <div className="absolute top-6 left-6 z-30 opacity-40 pointer-events-none">
+            <div className="w-6 h-6 border-t border-l border-white/40" />
+          </div>
+          <div className="absolute bottom-6 right-6 z-30 opacity-40 pointer-events-none">
+            <div className="w-6 h-6 border-b border-r border-white/20" />
+          </div>
+
+          {/* Vertical label — right edge */}
+          <div className="absolute right-5 top-1/2 -translate-y-1/2 z-30 rotate-90 origin-center opacity-25 pointer-events-none">
+            <span className="text-[7px] font-black uppercase tracking-[0.8em] text-white whitespace-nowrap">
+              Stop &amp; Shop · Premium Streetwear
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Bottom scroll indicator ──────────────────────────────── */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center space-y-2 opacity-40 animate-bounce pointer-events-none">
+        <span className="text-[7px] font-black uppercase tracking-[0.6em] text-white/60">Scroll</span>
+        <div className="w-px h-8 bg-gradient-to-b from-white/40 to-transparent" />
       </div>
     </section>
   );
