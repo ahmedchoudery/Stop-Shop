@@ -16,6 +16,7 @@ import { useWishlist } from '../context/WishlistContext.jsx';
 import { useCurrency } from '../context/CurrencyContext.jsx';
 import { useLocale } from '../context/LocaleContext.jsx';
 import { useCustomer } from '../context/CustomerContext.jsx';
+import MobileDrawer from './MobileDrawer.jsx';
 
 const CURRENCIES = {
   PKR: { symbol: '₨', rate: 1 },
@@ -322,6 +323,7 @@ const Navbar = ({ products = [], onSearchOpen }) => {
           </div>
         </div>
       </motion.header>
+      <MobileDrawer isOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
     </>
   );
 };

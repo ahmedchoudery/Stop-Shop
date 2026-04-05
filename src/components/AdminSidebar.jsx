@@ -7,7 +7,7 @@ import React, { useState, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from '../layout/Layout.jsx';
 import UniversalDrawer from '../layout/UniversalDrawer.jsx';
-import SmoothLoader from '../components/SmoothLoader.jsx';
+
 import CursorFollower from '../components/CursorFollower.jsx';
 import { CartProvider } from '../context/CartContext.jsx';
 import { WishlistProvider } from '../context/WishlistContext.jsx';
@@ -59,7 +59,7 @@ const HomeWithLayout = () => {
 };
 
 function App() {
-  const [loading, setLoading] = useState(true);
+
 
   return (
     <ErrorBoundary title="Something went wrong">
@@ -69,7 +69,7 @@ function App() {
             <WishlistProvider>
               <CartProvider>
                 <CursorFollower />
-                {loading && <SmoothLoader onComplete={() => setLoading(false)} />}
+
 
                 <Router>
                   <Routes>

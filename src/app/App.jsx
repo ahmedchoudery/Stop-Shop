@@ -8,7 +8,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'r
 import { AnimatePresence } from 'framer-motion';
 import Layout from '../layout/Layout.jsx';
 import UniversalDrawer from '../layout/UniversalDrawer.jsx';
-import SmoothLoader from '../components/SmoothLoader.jsx';
+
 import CursorFollower from '../components/CursorFollower.jsx';
 import { CartProvider } from '../context/CartContext.jsx';
 import { WishlistProvider } from '../context/WishlistContext.jsx';
@@ -176,7 +176,7 @@ const PageContent = () => {
 };
 
 function App() {
-  const [loading, setLoading] = useState(true);
+
 
   return (
     <ErrorBoundary title="Something went wrong">
@@ -187,7 +187,7 @@ function App() {
               <CartProvider>
                 <CustomerProvider>
                   <CursorFollower />
-                  {loading && <SmoothLoader onComplete={() => setLoading(false)} />}
+
 
                   <Router>
                     <PageContent />

@@ -112,7 +112,7 @@ const ProductGrid = ({ products, activeBucket = 'All', activeSubCategory = null 
               initial="hidden"
               animate="visible"
               exit="hidden"
-              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-10 sm:gap-14"
+              className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-14"
             >
               {sortedProducts.slice(0, visibleCount).map((product) => (
                 <motion.div
