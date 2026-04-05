@@ -7,7 +7,7 @@ import { useWishlist } from '../context/WishlistContext.jsx';
 import { useCurrency } from '../context/CurrencyContext.jsx';
 import { useLocale } from '../context/LocaleContext.jsx';
 import MediaRenderer from './MediaRenderer.jsx';
-import { useAnimeTextScramble, EASING } from '../hooks/useAnime.js';
+import { EASING } from '../hooks/useAnime.js';
 import { useAntigravity } from '../hooks/useAntigravity.js';
 
 const ProductCard = ({ product, onSelectProduct, onImageLoad }) => {
@@ -32,8 +32,6 @@ const ProductCard = ({ product, onSelectProduct, onImageLoad }) => {
   const { elementRef: tiltRef, position: tiltPos } = useAntigravity({ type: 'tilt', power: 0.8 });
   const { elementRef: cartRef, position: cartPos } = useAntigravity({ type: 'magnetic', power: 1.5 });
 
-  // ── Design Spell: Text Scramble on product name hover ────────
-  const { ref: nameRef, scramble } = useAnimeTextScramble(product.name.toUpperCase());
 
   // ── Cleanup cart burst animation ──────────────────────────────
   useEffect(() => {
@@ -60,8 +58,7 @@ const ProductCard = ({ product, onSelectProduct, onImageLoad }) => {
 
   const handleMouseEnter = useCallback(() => {
     setIsHovered(true);
-    scramble();
-  }, [scramble]);
+  }, []);
 
   const handleMouseLeave = useCallback(() => {
     setIsHovered(false);
@@ -221,7 +218,6 @@ const ProductCard = ({ product, onSelectProduct, onImageLoad }) => {
         </p>
 
         <p
-          ref={nameRef}
           className="text-xs font-black text-gray-100 mb-3 uppercase tracking-tighter leading-tight"
         >
           {product.name.toUpperCase()}

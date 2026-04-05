@@ -165,8 +165,8 @@ const Newsletter = () => {
             <span
               key={i}
               data-word
-              className="inline-block mr-[0.15em] text-transparent"
-              style={{ WebkitTextStroke: '2px #ba1f3d', opacity: 0 }}
+              className="inline-block mr-[0.15em] text-gray-900"
+              style={{ opacity: 0 }}
             >
               {word}
             </span>
