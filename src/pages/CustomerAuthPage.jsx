@@ -33,7 +33,7 @@ const Field = ({ label, error, children }) => (
 );
 
 const inputCls = (err) =>
-  `w-full border-b-2 py-3 text-sm font-bold bg-transparent outline-none transition-all placeholder:text-gray-300 placeholder:font-normal ${
+  `w-full border-b-2 py-3 text-sm font-bold bg-transparent text-gray-900 outline-none transition-all placeholder:text-gray-300 placeholder:font-normal ${
     err ? 'border-[#ba1f3d]' : 'border-gray-200 focus:border-[#ba1f3d]'
   }`;
 

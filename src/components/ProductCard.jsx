@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import anime from 'animejs';
-import { Star, Heart, ShoppingCart } from 'lucide-react';
+import { Star, Heart, ShoppingCart, Plus } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext.jsx';
 import { useWishlist } from '../context/WishlistContext.jsx';
@@ -10,7 +10,7 @@ import MediaRenderer from './MediaRenderer.jsx';
 import { EASING } from '../hooks/useAnime.js';
 import { useAntigravity } from '../hooks/useAntigravity.js';
 
-const ProductCard = ({ product, onSelectProduct, onImageLoad }) => {
+const ProductCard = ({ product, onImageLoad }) => {
   const navigate = useNavigate();
   const { addToCart } = useCart();
   const { toggleWishlist, isWishlisted } = useWishlist();
@@ -24,13 +24,10 @@ const ProductCard = ({ product, onSelectProduct, onImageLoad }) => {
   const [wishlistAnim, setWishlistAnim] = useState(false);
   const [isHovered,    setIsHovered]    = useState(false);
 
-  const cardRef    = useRef(null);
   const priceRef   = useRef(null);
-  const overlayRef = useRef(null);
 
   // ── Antigravity Motion ───────────────────────────────────────
   const { elementRef: tiltRef, position: tiltPos } = useAntigravity({ type: 'tilt', power: 0.8 });
-  const { elementRef: cartRef, position: cartPos } = useAntigravity({ type: 'magnetic', power: 1.5 });
 
 
   // ── Cleanup cart burst animation ──────────────────────────────
@@ -69,15 +66,6 @@ const ProductCard = ({ product, onSelectProduct, onImageLoad }) => {
     setCartBurst(true);
     setTimeout(() => setCartBurst(false), 600);
 
-    if (cartRef.current) {
-      anime({
-        targets: cartRef.current,
-        scale: [1, 1.3, 1],
-        duration: 500,
-        easing: EASING.SPRING,
-      });
-    }
-
     addToCart({
       ...product,
       image:         currentImage,
@@ -107,14 +95,14 @@ const ProductCard = ({ product, onSelectProduct, onImageLoad }) => {
   return (
     <div
       ref={tiltRef}
-      className="group relative bg-[#0a0a0a] flex flex-col h-full cursor-pointer overflow-visible rounded-lg p-3 transition-shadow duration-500"
+      className="group relative bg-white flex flex-col h-full cursor-pointer overflow-visible rounded-xl p-3 border border-gray-100/50 transition-all duration-500"
       data-selected-active={isHovered ? 'true' : 'false'}
       style={{ 
         transformStyle: 'preserve-3d', 
         willChange: 'transform',
         transform: isHovered ? tiltTransform : 'perspective(1000px) rotateX(0) rotateY(0) scale3d(1, 1, 1)',
         transition: isHovered ? 'transform 0.1s linear' : 'transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
-        boxShadow: isHovered ? '0 32px 80px rgba(0,0,0,0.6)' : 'none'
+        boxShadow: isHovered ? '0 32px 80px rgba(0,0,0,0.08)' : 'none'
       }}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
@@ -132,12 +120,12 @@ const ProductCard = ({ product, onSelectProduct, onImageLoad }) => {
 
       {/* ── Image Container ──────────────────────────────────── */}
       <div
-        className="relative aspect-[4/5] overflow-hidden bg-gray-950 mb-5 rounded-md antigravity-depth"
+        className="relative aspect-[4/5] overflow-hidden bg-gray-50 mb-5 rounded-lg antigravity-depth"
         style={{ transform: 'translateZ(30px)' }}
       >
         {/* Trending Badge */}
         <div className="absolute top-4 left-4 z-20">
-          <span className="glass-cardinal text-white text-[8px] font-black px-3 py-1.5 uppercase tracking-[0.3em] rounded-full">
+          <span className="glass-premium bg-[#ba1f3d] text-white text-[8px] font-black px-3 py-1.5 uppercase tracking-[0.3em] rounded-full">
             {t('status.trending')}
           </span>
         </div>
@@ -148,7 +136,7 @@ const ProductCard = ({ product, onSelectProduct, onImageLoad }) => {
           className={`absolute top-4 right-4 z-20 p-2.5 rounded-full transition-all duration-500 ${
             wishlisted
               ? 'bg-[#ba1f3d] shadow-xl shadow-red-500/30 scale-110'
-              : 'glass-premium opacity-0 group-hover:opacity-100 translate-y-1 group-hover:translate-y-0'
+              : 'bg-white/90 shadow-lg translate-y-1 group-hover:translate-y-0 opacity-0 group-hover:opacity-100'
           }`}
           style={{
             transform:  wishlistAnim ? 'scale(1.4)' : undefined,
@@ -157,7 +145,7 @@ const ProductCard = ({ product, onSelectProduct, onImageLoad }) => {
         >
           <Heart
             size={14}
-            className={wishlisted ? 'fill-white text-white' : 'text-gray-400 group-hover:text-white'}
+            className={wishlisted ? 'fill-white text-white' : 'text-gray-400 group-hover:text-[#ba1f3d]'}
           />
         </button>
 
@@ -169,37 +157,38 @@ const ProductCard = ({ product, onSelectProduct, onImageLoad }) => {
           alt={product.name}
           onLoad={() => { setHasLoaded(true); onImageLoad?.(); }}
           className={`w-full h-full object-cover transition-all duration-[1s] ease-out animate-beam-reveal ${
-            isHovered ? 'scale-110 blur-0' : 'scale-100 blur-[1px]'
+            isHovered ? 'scale-110 blur-0' : 'scale-100'
           } ${product.stock === 0 ? 'grayscale opacity-30' : ''}`}
         />
 
-        {/* Floating Cart Button — MAGNETIC */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
+        {/* Quick Add Button — BOTTON RIGHT */}
+        <div className="absolute bottom-4 right-4 z-30">
           {product.stock > 0 && (
             <button
-              ref={cartRef}
               onClick={handleAddToCart}
-              className={`pointer-events-auto transition-all duration-500 rounded-full p-5 ${
-                isHovered ? 'opacity-100 scale-100' : 'opacity-0 scale-75'
-              } ${
+              className={`transition-all duration-500 rounded-xl p-3 flex items-center justify-center ${
                 cartBurst
-                  ? 'bg-[#ba1f3d] shadow-[0_0_40px_rgba(186,31,61,0.8)]'
-                  : 'glass-premium hover:bg-[#ba1f3d] shadow-2xl'
+                  ? 'bg-gray-900 shadow-xl scale-90'
+                  : 'bg-[#ba1f3d] hover:bg-gray-900 shadow-lg shadow-red-500/20 translate-y-2 group-hover:translate-y-0 opacity-100 lg:opacity-0' 
               } text-white`}
               style={{ 
                 willChange: 'transform',
-                transform: `translate(${cartPos.x}px, ${cartPos.y}px)`
               }}
             >
-              <ShoppingCart size={18} />
+              <div className="flex items-center justify-center relative">
+                {cartBurst ? <ShoppingCart size={16} /> : <Plus size={16} />}
+              </div>
+              <div className="absolute -top-1 -right-1">
+                 {cartBurst && <div className="w-2 h-2 bg-green-500 rounded-full animate-ping" />}
+              </div>
             </button>
           )}
         </div>
 
         {/* Out of Stock Overlay */}
         {product.stock === 0 && (
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-[4px] flex items-center justify-center">
-            <span className="text-white font-black uppercase tracking-[0.5em] text-[9px] border-b border-white/30 pb-2">
+          <div className="absolute inset-0 bg-white/60 backdrop-blur-[4px] flex items-center justify-center">
+            <span className="text-[#ba1f3d] font-black uppercase tracking-[0.5em] text-[9px] border-b border-[#ba1f3d]/30 pb-2">
               {t('status.soldOut')}
             </span>
           </div>
@@ -218,7 +207,7 @@ const ProductCard = ({ product, onSelectProduct, onImageLoad }) => {
         </p>
 
         <p
-          className="text-xs font-black text-gray-100 mb-3 uppercase tracking-tighter leading-tight"
+          className="text-xs font-black text-gray-900 mb-3 uppercase tracking-tighter leading-tight"
         >
           {product.name.toUpperCase()}
         </p>
@@ -226,7 +215,7 @@ const ProductCard = ({ product, onSelectProduct, onImageLoad }) => {
         <div className="mt-auto space-y-3">
           <p
             ref={priceRef}
-            className="text-lg font-black text-white tracking-widest transition-all duration-300"
+            className="text-lg font-black text-gray-900 tracking-widest transition-all duration-300"
             style={{
               color: isHovered ? '#ba1f3d' : undefined,
             }}
@@ -261,7 +250,7 @@ const ProductCard = ({ product, onSelectProduct, onImageLoad }) => {
               <Star
                 key={i}
                 size={8}
-                className={i < product.rating ? 'fill-[#ba1f3d] text-[#ba1f3d]' : 'text-gray-800'}
+                className={i < product.rating ? 'fill-[#ba1f3d] text-[#ba1f3d]' : 'text-gray-200'}
               />
             ))}
           </div>
