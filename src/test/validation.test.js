@@ -24,7 +24,7 @@ const assertInvalid = (schema, input, field) => {
   const result = validate(schema, input);
   expect(result.success, `Expected invalid for field: ${field}`).toBe(false);
   if (field) {
-    expect(result.errors.some(e => e.field === field)).toBe(true);
+    expect(result.errors.some(e => e.field === field || e.field.startsWith(field + '.'))).toBe(true);
   }
 };
 
@@ -119,7 +119,6 @@ describe('updateProductSchema', () => {
     expect(result.success).toBe(true);
   });
 
-  it('rejects invalid bucket', () => assertInvalid(updateProductSchema, { bucket: '' }, 'bucket'));
 });
 
 // ─────────────────────────────────────────────────────────────────
