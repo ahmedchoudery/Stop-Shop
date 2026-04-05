@@ -204,13 +204,13 @@ const EmptyCartState = ({ onClose }) => (
 // ─────────────────────────────────────────────────────────────────
 
 const WishlistDrawer = ({ onClose }) => {
-  const { wishlistItems, toggleWishlist } = useWishlist();
+  const { wishlist, toggleWishlist } = useWishlist();
   const { formatPrice } = useCurrency();
   const { openDrawer } = useCart();
   const listRef = useRef(null);
 
   useEffect(() => {
-    if (!listRef.current || !wishlistItems.length) return;
+    if (!listRef.current || !wishlist.length) return;
     const items = listRef.current.querySelectorAll('[data-wishlist-item]');
     anime.set(items, { opacity: 0, translateX: 30 });
     anime({
@@ -221,7 +221,7 @@ const WishlistDrawer = ({ onClose }) => {
       delay: anime.stagger(60),
       easing: EASING.FABRIC,
     });
-  }, [wishlistItems.length]);
+  }, [wishlist.length]);
 
   return (
     <div className="flex flex-col h-full">
@@ -230,9 +230,9 @@ const WishlistDrawer = ({ onClose }) => {
         <div className="flex items-center space-x-3">
           <Heart size={20} className="text-[#ba1f3d]" />
           <h2 className="text-base font-black uppercase tracking-tighter">Wishlist</h2>
-          {wishlistItems.length > 0 && (
+          {wishlist.length > 0 && (
             <span className="bg-[#ba1f3d] text-white text-[9px] font-black px-2 py-0.5 rounded-full">
-              {wishlistItems.length}
+              {wishlist.length}
             </span>
           )}
         </div>
@@ -246,7 +246,7 @@ const WishlistDrawer = ({ onClose }) => {
 
       {/* Items */}
       <div ref={listRef} className="flex-grow overflow-y-auto px-5 py-4 space-y-3">
-        {wishlistItems.length === 0 ? (
+        {wishlist.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-center py-16 space-y-6">
             <div className="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center">
               <Heart size={32} strokeWidth={1} className="text-gray-300" />
@@ -264,7 +264,7 @@ const WishlistDrawer = ({ onClose }) => {
             </button>
           </div>
         ) : (
-          wishlistItems.map(item => (
+          wishlist.map(item => (
             <div
               key={item.id}
               data-wishlist-item
