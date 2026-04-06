@@ -72,11 +72,11 @@ const PowerOfChoiceHero = () => {
         }}
       />
 
-      {/* ── MAIN LAYOUT (Professional Bottom-Weighted) ───────────────────────── */}
+      {/* ── MAIN LAYOUT (Centered for Impact) ───────────────────────── */}
       <div className="relative z-30 h-full max-w-[1920px] mx-auto pt-[90px] lg:pt-[130px]">
-        <div className="h-full flex flex-col justify-end pb-16 lg:pb-0 lg:justify-center px-6 md:px-12 lg:px-20">
+        <div className="h-full flex flex-col justify-center px-6 md:px-12 lg:px-20">
           
-          {/* CONTENT PANEL: High-End Left-Aligned Positioning */}
+          {/* CONTENT PANEL: Centered Mobile / Left-Aligned Laptop */}
           <div 
             ref={contentRef}
             className="
@@ -85,7 +85,7 @@ const PowerOfChoiceHero = () => {
             "
           >
             {/* Season Tag */}
-            <div data-anime className="flex items-center gap-3 mb-4 lg:mb-8" style={{ opacity: 0 }}>
+            <div data-anime className="flex items-center gap-3 mb-6 lg:mb-8" style={{ opacity: 0 }}>
               <span className="w-8 h-px bg-[#ba1f3d] hidden lg:block" />
               <span className="text-[10px] font-black uppercase tracking-[0.45em] text-[#ba1f3d]">
                 Pakistan's Premium Fashion Hub · SS '26
@@ -95,7 +95,7 @@ const PowerOfChoiceHero = () => {
             {/* Headline: Mobile-Optimized Scale */}
             <h1 
               data-anime
-              className="text-white font-black uppercase leading-[0.88] tracking-[-0.03em] mb-4 lg:mb-8 text-[1.85rem] md:text-[2.6rem] lg:text-[clamp(2.4rem, 7vw, 4.3rem)] shadow-black/20"
+              className="text-white font-black uppercase leading-[0.88] tracking-[-0.03em] mb-6 lg:mb-8 text-[2.1rem] md:text-[2.8rem] lg:text-[clamp(2.4rem, 7vw, 4.3rem)]"
               style={{ opacity: 0 }}
             >
               The New<br />
@@ -103,26 +103,26 @@ const PowerOfChoiceHero = () => {
               of Streetwear.
             </h1>
 
-            {/* Body: High Legibility */}
+            {/* Body: Full Brand Narrative */}
             <p 
               data-anime
-              className="text-gray-200 text-xs md:text-sm lg:text-xl leading-relaxed max-w-[280px] md:max-w-md lg:max-w-xl mb-8 lg:mb-12 font-medium"
+              className="text-gray-200 text-[13px] md:text-base lg:text-xl leading-relaxed max-w-[340px] md:max-w-md lg:max-w-xl mb-10 lg:mb-12 font-medium"
               style={{ 
                 opacity: 0, 
                 textShadow: '0 2px 10px rgba(0,0,0,0.8)'
               }}
             >
               Elite fabrics. Bold designs. We don't just sell clothes; we build your identity. 
-              Join 2,000+ trendsetters.
+              Join 2,000+ trendsetters who make their own rules.
             </p>
 
             {/* Action Group */}
             <div data-anime className="flex w-full sm:w-auto" style={{ opacity: 0 }}>
               <button
                 onClick={scrollToGrid}
-                className="group relative flex-grow sm:flex-grow-0 flex items-center justify-center gap-6 px-12 py-4 lg:px-16 lg:py-5 bg-[#ba1f3d] text-white text-[12px] lg:text-[13px] font-black uppercase tracking-[0.4em] overflow-hidden transition-all duration-300 hover:shadow-[0_20px_50px_rgba(186,31,61,0.5)] active:scale-95"
+                className="group relative flex-grow sm:flex-grow-0 flex items-center justify-center gap-6 px-14 py-5 bg-[#ba1f3d] text-white text-[13px] font-black uppercase tracking-[0.4em] overflow-hidden transition-all duration-300 hover:shadow-[0_20px_50px_rgba(186,31,61,0.5)] active:scale-95"
               >
-                <span className="relative z-10">Shop Selection</span>
+                <span className="relative z-10">Shop Collection</span>
                 <ArrowRight size={18} className="relative z-10 group-hover:translate-x-1.5 transition-transform" />
                 <div className="absolute inset-0 bg-white/10 -translate-x-full group-hover:translate-x-0 transition-transform duration-500" />
               </button>
