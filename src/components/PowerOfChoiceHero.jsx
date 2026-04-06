@@ -69,7 +69,7 @@ const PowerOfChoiceHero = () => {
 
       {/* ── MAIN LAYOUT (Shifted below header) ─────────────────── */}
       <div className="relative z-20 h-full max-w-[1920px] mx-auto pt-[80px] lg:pt-[90px]">
-        <div className="h-full flex flex-col lg:grid lg:grid-cols-12 h-full lg:items-center">
+        <div className="flex flex-col lg:grid lg:grid-cols-12 h-full lg:items-center">
           
           {/* CONTENT PANEL: Compact 100% visible sizing */}
           <div 
@@ -115,7 +115,7 @@ const PowerOfChoiceHero = () => {
             <div data-anime className="flex w-full sm:w-auto mb-8 lg:mb-10" style={{ opacity: 0 }}>
               <button
                 onClick={scrollToGrid}
-                className="group relative flex-grow sm:flex-grow-0 flex items-center justify-center gap-5 px-12 py-4.5 lg:py-5 bg-[#ba1f3d] text-white text-[12px] font-black uppercase tracking-[0.4em] overflow-hidden transition-all duration-300 hover:shadow-[0_15px_40px_rgba(186,31,61,0.4)] active:scale-95"
+                className="group relative flex-grow sm:flex-grow-0 flex items-center justify-center gap-5 px-12 py-5 bg-[#ba1f3d] text-white text-[12px] font-black uppercase tracking-[0.4em] overflow-hidden transition-all duration-300 hover:shadow-[0_15px_40px_rgba(186,31,61,0.4)] active:scale-95"
               >
                 <span className="relative z-10">Shop Selection</span>
                 <ArrowRight size={18} className="relative z-10 group-hover:translate-x-1.5 transition-transform" />
