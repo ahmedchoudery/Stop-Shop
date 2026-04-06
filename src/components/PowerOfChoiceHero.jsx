@@ -290,10 +290,10 @@ const PowerOfChoiceHero = () => {
           >
             {/* Model image */}
             <img
-              src="https://images.unsplash.com/photo-1617137984095-74e4e5e34407?auto=format&fit=crop&q=80&w=2000"
+              src="/hero-model.jpg"
               alt="Stop & Shop SS'26 Editorial — Man in Prada Jacket"
               className="absolute inset-0 w-full h-full object-cover object-top"
-              style={{ filter: 'brightness(0.8) contrast(1.1) saturate(0.9)' }}
+              style={{ filter: 'brightness(0.85) contrast(1.08) saturate(0.95)' }}
               loading="eager"
             />
 
