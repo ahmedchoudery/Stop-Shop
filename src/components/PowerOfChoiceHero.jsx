@@ -47,8 +47,8 @@ const PowerOfChoiceHero = () => {
            <img
             src="/hero-models-duo.jpg"
             alt="SS'26 Luxury Duo"
-            className="w-full h-full object-cover object-[center_35%] lg:object-[center_15%]"
-            style={{ filter: 'brightness(0.85) contrast(1.1)' }}
+            className="w-full h-full object-cover object-[center_35%] lg:object-contain lg:object-right"
+            style={{ filter: 'none' }}
             loading="eager"
           />
           
