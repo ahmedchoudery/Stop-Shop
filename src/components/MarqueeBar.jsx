@@ -1,13 +1,12 @@
 /**
  * @fileoverview MarqueeBar — GPU-accelerated, pause-on-hover, smooth
- * Applies: design-spells (hover pause = design detail that delights),
- *          animejs-animation (GPU-accelerated transform only)
+ * Updated: Supports scroll-synced transparency for hero sections.
  */
 
 import React, { useRef } from 'react';
 
 const DEFAULT_ITEMS = [
-  '✦ FREE SHIPPING ON ORDERS OVER RS. 2000',
+  '✦ NO FREE SHIPPING · CUSTOMER PAID DELIVERY',
   '✦ USE CODE CARDINAL20 FOR 20% OFF',
   '✦ NEW ARRIVALS EVERY FRIDAY',
   '✦ PREMIUM FABRICS · CRAFTED WITH CARE',
@@ -15,19 +14,23 @@ const DEFAULT_ITEMS = [
   '✦ CASHBACK ON EASYPAISA & JAZZCASH',
 ];
 
-const MarqueeBar = ({ announcement }) => {
+const MarqueeBar = ({ announcement, scrolled = true, isHome = false }) => {
   const trackRef = useRef(null);
 
   const items = announcement
     ? [`✦ ${announcement.toUpperCase()}`, ...DEFAULT_ITEMS]
     : DEFAULT_ITEMS;
 
-  // Triplicate for truly seamless loop across all screen widths
   const allItems = [...items, ...items, ...items];
+  const useTransparent = isHome && !scrolled;
 
   return (
     <div
-      className="fixed top-0 left-0 w-full z-[110] bg-[#FBBF24] py-3 overflow-hidden select-none"
+      className={`fixed top-0 left-0 w-full z-[110] py-3 overflow-hidden select-none transition-all duration-500 ${
+        useTransparent 
+          ? 'bg-transparent border-b border-white/5' 
+          : 'bg-[#FBBF24]'
+      }`}
       onMouseEnter={() => {
         if (trackRef.current) trackRef.current.style.animationPlayState = 'paused';
       }}
@@ -36,10 +39,16 @@ const MarqueeBar = ({ announcement }) => {
       }}
     >
       {/* Fade edges */}
-      <div className="absolute left-0 top-0 bottom-0 w-16 z-10 pointer-events-none"
-        style={{ background: 'linear-gradient(to right, #FBBF24, transparent)' }} />
-      <div className="absolute right-0 top-0 bottom-0 w-16 z-10 pointer-events-none"
-        style={{ background: 'linear-gradient(to left, #FBBF24, transparent)' }} />
+      <div className="absolute left-0 top-0 bottom-0 w-16 z-10 pointer-events-none transition-opacity duration-500"
+        style={{ 
+          background: `linear-gradient(to right, ${useTransparent ? 'transparent' : '#FBBF24'}, transparent)`,
+          opacity: useTransparent ? 0 : 1 
+        }} />
+      <div className="absolute right-0 top-0 bottom-0 w-16 z-10 pointer-events-none transition-opacity duration-500"
+        style={{ 
+          background: `linear-gradient(to left, ${useTransparent ? 'transparent' : '#FBBF24'}, transparent)`,
+          opacity: useTransparent ? 0 : 1
+        }} />
 
       <div
         ref={trackRef}
@@ -52,7 +61,9 @@ const MarqueeBar = ({ announcement }) => {
         {allItems.map((item, i) => (
           <span
             key={i}
-            className="inline-flex items-center text-[10px] font-black uppercase tracking-[0.35em] text-red-950 px-8 flex-shrink-0 cursor-default"
+            className={`inline-flex items-center text-[10px] font-black uppercase tracking-[0.35em] px-8 flex-shrink-0 cursor-default transition-colors duration-500 ${
+              useTransparent ? 'text-white/60' : 'text-red-950'
+            }`}
           >
             {item}
           </span>

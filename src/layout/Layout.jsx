@@ -51,24 +51,44 @@ const Layout = ({ children, products = [] }) => {
   const { data: settings } = useSettings(false);
   const location = useLocation();
 
+  const [scrolled, setScrolled] = useState(false);
+
   // Scroll to top on every route change
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [location.pathname]);
 
+  // Unified scroll detection
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 20);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll(); // Initial check
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const isHome = location.pathname === '/';
+
   return (
     <div className="min-h-screen flex flex-col bg-white overflow-hidden">
       {/* Announcement bar */}
-      <MarqueeBar announcement={settings?.announcement} />
+      <MarqueeBar 
+        announcement={settings?.announcement} 
+        scrolled={scrolled} 
+        isHome={isHome}
+      />
 
       {/* Sticky navbar */}
       <Navbar
         onSearchOpen={() => setSearchOpen(true)}
         products={products}
+        scrolled={scrolled}
+        isHome={isHome}
       />
 
       {/* Page content with Liquid Transition */}
-      <main className="flex-grow relative pt-[124px] lg:pt-[140px]">
+      <main className={`flex-grow relative ${isHome ? 'pt-0' : 'pt-[124px] lg:pt-[140px]'}`}>
         <AnimatePresence mode="wait">
           <motion.div
             key={location.pathname}

@@ -27,7 +27,7 @@ const CURRENCIES = {
 
 const BUCKETS = ['All', 'Tops', 'Bottoms', 'Footwear', 'Accessories'];
 
-const Navbar = ({ products = [], onSearchOpen }) => {
+const Navbar = ({ products = [], onSearchOpen, scrolled, isHome }) => {
   const { cartCount, isBouncing, setActiveBucket, openDrawer } = useCart();
   const { wishlistCount }     = useWishlist();
   const { currency, setCurrency } = useCurrency();
@@ -36,7 +36,6 @@ const Navbar = ({ products = [], onSearchOpen }) => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [scrolled,      setScrolled]      = useState(false);
   const [mobileOpen,    setMobileOpen]    = useState(false);
   const [currencyOpen,  setCurrencyOpen]  = useState(false);
   const [accountOpen,   setAccountOpen]   = useState(false);
@@ -46,12 +45,7 @@ const Navbar = ({ products = [], onSearchOpen }) => {
   const headerHeight = useTransform(scrollY, [0, 60], [80, 64]);
   const headerPadding = useTransform(scrollY, [0, 60], ['1.5rem', '1rem']);
 
-  // Scroll shrink observer
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 40);
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
+
 
   // Update active tab based on cart context or logic if needed
   // For now we keep it internal to the Navbar state
@@ -94,10 +88,10 @@ const Navbar = ({ products = [], onSearchOpen }) => {
     <>
       <motion.header
         style={{ height: headerHeight }}
-        className={`fixed top-14 left-0 w-full z-[100] transition-all duration-300 flex items-center ${
+        className={`fixed top-14 left-0 w-full z-[100] transition-all duration-500 flex items-center ${
           scrolled 
             ? 'bg-[#0d0d0d]/95 backdrop-blur-xl border-b border-white/10 shadow-[0_4px_24px_rgba(0,0,0,0.4)]'
-            : 'bg-white shadow-[0_2px_20px_rgba(0,0,0,0.08)] border-b border-gray-150'
+            : 'bg-transparent'
         }`}
       >
         <div className="w-full flex items-center justify-between px-6 sm:px-10 lg:px-16 mx-auto max-w-[1920px]">
@@ -110,8 +104,8 @@ const Navbar = ({ products = [], onSearchOpen }) => {
               transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
               className="flex items-center"
             >
-              <span className={`font-black italic uppercase tracking-tighter text-[#ba1f3d] transition-all duration-500 ${scrolled ? 'text-xl' : 'text-[1.4rem]'}`}>
-                Stop<span className={`${scrolled ? 'text-white' : 'text-gray-900'} not-italic font-black mx-0.5 transition-colors duration-500`}>&</span>Shop
+              <span className={`font-black italic uppercase tracking-tighter text-[#ba1f3d] transition-all duration-500 ${scrolled ? 'text-xl' : 'text-[1.5rem]'}`}>
+                Stop<span className={`${scrolled ? 'text-white' : 'text-white'} not-italic font-black mx-0.5 transition-colors duration-500`}>&</span>Shop
               </span>
               <div className="absolute -bottom-1 left-0 w-0 h-[2px] bg-[#ba1f3d] transition-all duration-500 group-hover:w-full opacity-50" />
             </motion.div>
@@ -132,8 +126,8 @@ const Navbar = ({ products = [], onSearchOpen }) => {
                   onClick={() => handleBucketClick(bucket)}
                   className={`relative px-5 py-3 text-[10.5px] font-black uppercase tracking-[0.18em] transition-all duration-300 flex items-center space-x-1.5 z-10 ${
                     activeTab === bucket 
-                      ? (scrolled ? 'text-white' : 'text-gray-900') 
-                      : (scrolled ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900')
+                      ? (scrolled ? 'text-white' : 'text-white') 
+                      : (scrolled ? 'text-gray-400 hover:text-white' : 'text-gray-100/60 hover:text-white')
                   }`}
                 >
                   <span className="relative z-20">{bucket}</span>
