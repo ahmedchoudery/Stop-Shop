@@ -42,7 +42,7 @@ const PowerOfChoiceHero = () => {
       style={{ minHeight: '100dvh' }}
     >
       {/* ── 12K SEAMLESS BACKGROUND (Models Duo: Prada & Trapstar) ─────── */}
-      <div className="absolute inset-0 z-0">
+      <div className="absolute left-0 right-0 bottom-0 top-[110px] z-0">
         <div className="relative w-full h-full">
            <img
             src="/hero-models-duo.jpg"
