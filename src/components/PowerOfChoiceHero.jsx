@@ -99,15 +99,11 @@ const PowerOfChoiceHero = () => {
   const sectionRef = useRef(null);
   const modelContainerRef = useRef(null);
   const textRef = useRef(null);
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-
-  // ── 3D Parallax on mouse move ─────────────────────────────────
   const handleMouseMove = useCallback((e) => {
     if (!sectionRef.current) return;
     const rect = sectionRef.current.getBoundingClientRect();
     const x = ((e.clientX - rect.left) / rect.width - 0.5) * 2;   // -1 to 1
     const y = ((e.clientY - rect.top)  / rect.height - 0.5) * 2;  // -1 to 1
-    setMousePos({ x, y });
 
     if (modelContainerRef.current) {
       modelContainerRef.current.style.transform = `
@@ -218,7 +214,7 @@ const PowerOfChoiceHero = () => {
               className="block text-[3.5rem] md:text-[6rem] lg:text-[8rem] xl:text-[9.5rem] mt-[-0.5rem] md:mt-[-1rem]"
               style={{
                 opacity: 0,
-                WebkitTextStroke: '1px md:2px #ba1f3d',
+                WebkitTextStroke: '1px #ba1f3d',
                 color: 'transparent',
               }}
             >
@@ -294,10 +290,10 @@ const PowerOfChoiceHero = () => {
           >
             {/* Model image */}
             <img
-              src="https://images.unsplash.com/photo-1550991152-71370ed45dea?auto=format&fit=crop&q=80&w=2000"
+              src="https://images.unsplash.com/photo-1617137984095-74e4e5e34407?auto=format&fit=crop&q=80&w=2000"
               alt="Stop & Shop SS'26 Editorial — Man in Prada Jacket"
               className="absolute inset-0 w-full h-full object-cover object-top"
-              style={{ filter: 'brightness(0.85) contrast(1.1) saturate(0.95)' }}
+              style={{ filter: 'brightness(0.8) contrast(1.1) saturate(0.9)' }}
               loading="eager"
             />
 
