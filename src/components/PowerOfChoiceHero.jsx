@@ -145,17 +145,12 @@ const PowerOfChoiceHero = () => {
                 <img
                   src="/hero-model.jpg"
                   alt="SS'26 Premium Model"
-                  className="w-full h-full object-cover object-top filter brightness-[0.9] contrast-[1.1] transition-transform duration-[5s] group-hover:scale-105"
+                  className="w-full h-full object-cover object-[center_18%] filter brightness-[0.9] contrast-[1.1] transition-transform duration-[5s] group-hover:scale-105"
                   loading="eager"
                 />
                 
-                {/* Editorial Fade & Tag */}
+                {/* Editorial Fade */}
                 <div className="absolute inset-0 bg-gradient-to-r from-[#080808] via-transparent to-transparent opacity-40" />
-                
-                <div className="absolute top-12 right-12 z-20 bg-black/40 backdrop-blur-2xl border border-white/10 p-6 text-right">
-                  <p className="text-[8px] font-black text-[#ba1f3d] uppercase tracking-[0.5em]">Exclusive Launch</p>
-                  <p className="text-4xl font-black text-white uppercase tracking-tighter mt-1">SS '26</p>
-                </div>
              </div>
           </div>
         </div>
