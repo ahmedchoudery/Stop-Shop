@@ -94,10 +94,10 @@ const Navbar = ({ products = [], onSearchOpen }) => {
     <>
       <motion.header
         style={{ height: headerHeight }}
-        className={`sticky top-0 z-[100] transition-all duration-1000 flex items-center ${
+        className={`fixed top-14 left-0 w-full z-[100] transition-all duration-300 flex items-center ${
           scrolled 
             ? 'glass-editorial border-b border-white/5' 
-            : 'bg-white/95 backdrop-blur-3xl border-b border-gray-100'
+            : 'bg-white/98 backdrop-blur-3xl border-b border-gray-100'
         }`}
       >
         <div className="w-full flex items-center justify-between px-6 sm:px-10 lg:px-16 mx-auto max-w-[1920px]">

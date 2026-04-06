@@ -68,7 +68,7 @@ const Layout = ({ children, products = [] }) => {
       />
 
       {/* Page content with Liquid Transition */}
-      <main className="flex-grow relative">
+      <main className="flex-grow relative pt-[124px] lg:pt-[140px]">
         <AnimatePresence mode="wait">
           <motion.div
             key={location.pathname}

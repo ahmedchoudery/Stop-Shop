@@ -177,16 +177,6 @@ const HomePage = ({ onProductsLoaded }) => {
       {/* Hero */}
       <PowerOfChoiceHero />
 
-      {/* Category filter — sticky below navbar */}
-      {!loading && products.length > 0 && (
-        <CategoryBar
-          active={activeBucket}
-          activeSub={activeSubCategory}
-          onChange={setActiveBucket}
-          products={products}
-        />
-      )}
-
       {/* Products */}
       {loading ? (
         <ProductSkeleton />

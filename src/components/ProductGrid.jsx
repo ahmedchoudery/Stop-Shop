@@ -76,11 +76,9 @@ const ProductGrid = ({ products, activeBucket = 'All', activeSubCategory = null 
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
           >
-            <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-3">
-              Curated Selection
-            </p>
+
             <h2 className="text-4xl md:text-5xl font-black text-gray-900 tracking-tighter uppercase leading-none">
-              {activeBucket !== 'All' ? activeBucket : 'Complete Catalog'}
+              {activeBucket !== 'All' ? activeBucket : 'Shop Collection'}
             </h2>
             {sortedProducts.length > 0 && (
               <p className="text-sm text-gray-400 font-bold mt-2">

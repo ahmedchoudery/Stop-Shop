@@ -27,7 +27,7 @@ const MarqueeBar = ({ announcement }) => {
 
   return (
     <div
-      className="bg-[#FBBF24] py-3 overflow-hidden relative select-none"
+      className="fixed top-0 left-0 w-full z-[110] bg-[#FBBF24] py-3 overflow-hidden select-none"
       onMouseEnter={() => {
         if (trackRef.current) trackRef.current.style.animationPlayState = 'paused';
       }}

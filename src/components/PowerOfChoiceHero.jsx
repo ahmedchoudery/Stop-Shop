@@ -143,10 +143,26 @@ const PowerOfChoiceHero = () => {
     });
   }, []);
 
+  const scrollToGrid = useCallback(() => {
+    const el = document.getElementById('product-grid');
+    if (el) {
+      const offset = 80; // Account for fixed header
+      const bodyRect = document.body.getBoundingClientRect().top;
+      const elementRect = el.getBoundingClientRect().top;
+      const elementPosition = elementRect - bodyRect;
+      const offsetPosition = elementPosition - offset;
+
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: 'smooth'
+      });
+    }
+  }, []);
+
   return (
     <section
       ref={sectionRef}
-      className="relative overflow-hidden bg-[#050505] min-h-screen flex items-center"
+      className="relative overflow-hidden bg-[#050505] min-h-screen flex items-center pt-24 lg:pt-0"
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
     >
@@ -177,32 +193,32 @@ const PowerOfChoiceHero = () => {
         {/* ── LEFT: Editorial Text Column ───────────────────── */}
         <div
           ref={textRef}
-          className="lg:col-span-5 flex flex-col justify-center px-8 py-24 md:px-14 lg:px-16 order-2 lg:order-1"
+          className="lg:col-span-5 flex flex-col justify-center px-6 py-12 md:px-12 lg:px-16 order-2 lg:order-1 relative z-20"
         >
 
           {/* Pre-label */}
-          <div data-anime className="flex items-center space-x-4 mb-8" style={{ opacity: 0 }}>
-            <div className="w-8 h-px bg-[#ba1f3d]" />
-            <span className="text-[9px] font-black uppercase tracking-[0.6em] text-[#ba1f3d]">
+          <div data-anime className="flex items-center space-x-3 mb-6 md:mb-8" style={{ opacity: 0 }}>
+            <div className="w-6 md:w-8 h-px bg-[#ba1f3d]" />
+            <span className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.5em] md:tracking-[0.6em] text-[#ba1f3d]">
               SS '26 · Pakistan Edition
             </span>
           </div>
 
           {/* Headline */}
-          <h1 className="font-black uppercase leading-[0.82] tracking-tighter mb-8 text-white">
+          <h1 className="font-black uppercase leading-[0.85] tracking-tighter mb-6 md:mb-8 text-white">
             <span
               data-anime
-              className="block text-[clamp(3.5rem,9vw,8rem)]"
+              className="block text-[3.5rem] md:text-[6rem] lg:text-[8rem] xl:text-[9.5rem]"
               style={{ opacity: 0 }}
             >
               Define
             </span>
             <span
               data-anime
-              className="block text-[clamp(3.5rem,9vw,8rem)]"
+              className="block text-[3.5rem] md:text-[6rem] lg:text-[8rem] xl:text-[9.5rem] mt-[-0.5rem] md:mt-[-1rem]"
               style={{
                 opacity: 0,
-                WebkitTextStroke: '1.5px #ba1f3d',
+                WebkitTextStroke: '1px md:2px #ba1f3d',
                 color: 'transparent',
               }}
             >
@@ -210,7 +226,7 @@ const PowerOfChoiceHero = () => {
             </span>
             <span
               data-anime
-              className="block text-[clamp(3.5rem,9vw,8rem)] text-white"
+              className="block text-[3.5rem] md:text-[6rem] lg:text-[8rem] xl:text-[9.5rem] text-white mt-[-0.5rem] md:mt-[-1rem]"
               style={{ opacity: 0 }}
             >
               Look.
@@ -220,29 +236,26 @@ const PowerOfChoiceHero = () => {
           {/* Sub-copy */}
           <p
             data-anime
-            className="text-gray-500 text-base md:text-lg font-medium leading-relaxed mb-10 max-w-sm"
+            className="text-gray-500 text-sm md:text-base lg:text-lg font-medium leading-relaxed mb-8 md:mb-10 max-w-sm lg:max-w-md mx-auto lg:mx-0 text-center lg:text-left"
             style={{ opacity: 0 }}
           >
             Curated premium streetwear for the modern Pakistani trendsetter. Unmatched quality. Zero compromise.
           </p>
 
           {/* CTAs */}
-          <div data-anime className="flex flex-wrap gap-4 items-center mb-12" style={{ opacity: 0 }}>
-            <Link
-              to="/#product-grid"
-              className="group relative flex items-center space-x-3 px-8 py-4 bg-[#ba1f3d] text-white text-[10px] font-black uppercase tracking-[0.3em] overflow-hidden hover:shadow-[0_20px_40px_rgba(186,31,61,0.35)] transition-shadow duration-500"
+          <div data-anime className="flex flex-col sm:flex-row gap-4 items-center justify-center lg:justify-start mb-10 md:mb-12" style={{ opacity: 0 }}>
+            <button
+              onClick={scrollToGrid}
+              className="w-full sm:w-auto group relative flex items-center justify-center space-x-3 px-8 py-4 bg-[#ba1f3d] text-white text-[10px] font-black uppercase tracking-[0.3em] overflow-hidden hover:shadow-[0_20px_40px_rgba(186,31,61,0.35)] transition-shadow duration-500"
             >
               <span className="relative z-10">Shop Collection</span>
               <ArrowRight size={14} className="relative z-10 group-hover:translate-x-1.5 transition-transform duration-300" />
               <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out" />
-            </Link>
+            </button>
 
             <button
-              onClick={() => {
-                const el = document.getElementById('product-grid');
-                if (el) el.scrollIntoView({ behavior: 'smooth' });
-              }}
-              className="flex items-center space-x-2 text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 hover:text-white transition-colors duration-300 group"
+              onClick={scrollToGrid}
+              className="w-full sm:w-auto flex items-center justify-center space-x-2 text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 hover:text-white transition-colors duration-300 group px-8 py-4 border border-transparent hover:border-gray-800"
             >
               <ShoppingBag size={14} className="group-hover:scale-110 transition-transform duration-300" />
               <span>View Lookbook</span>
@@ -250,7 +263,7 @@ const PowerOfChoiceHero = () => {
           </div>
 
           {/* Trust strip */}
-          <div data-anime className="flex flex-wrap gap-6" style={{ opacity: 0 }}>
+          <div data-anime className="hidden sm:flex flex-wrap items-center justify-center lg:justify-start gap-4 md:gap-6" style={{ opacity: 0 }}>
             {[
               { icon: Package, label: 'Free Delivery' },
               { icon: Star, label: 'Premium Quality' },
@@ -281,12 +294,11 @@ const PowerOfChoiceHero = () => {
           >
             {/* Model image */}
             <img
-              src="/hero-model.jpg"
+              src="https://images.unsplash.com/photo-1550991152-71370ed45dea?auto=format&fit=crop&q=80&w=2000"
               alt="Stop & Shop SS'26 Editorial — Man in Prada Jacket"
               className="absolute inset-0 w-full h-full object-cover object-top"
-              style={{ filter: 'brightness(0.9) contrast(1.08) saturate(0.9)' }}
+              style={{ filter: 'brightness(0.85) contrast(1.1) saturate(0.95)' }}
               loading="eager"
-              fetchpriority="high"
             />
 
             {/* Vignette bottom fade */}
