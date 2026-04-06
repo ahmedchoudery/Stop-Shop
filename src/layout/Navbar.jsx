@@ -96,8 +96,8 @@ const Navbar = ({ products = [], onSearchOpen }) => {
         style={{ height: headerHeight }}
         className={`fixed top-14 left-0 w-full z-[100] transition-all duration-300 flex items-center ${
           scrolled 
-            ? 'glass-editorial border-b border-white/5' 
-            : 'bg-white/98 backdrop-blur-3xl border-b border-gray-100'
+            ? 'bg-[#0d0d0d]/95 backdrop-blur-xl border-b border-white/10 shadow-[0_4px_24px_rgba(0,0,0,0.4)]'
+            : 'bg-white shadow-[0_2px_20px_rgba(0,0,0,0.08)] border-b border-gray-150'
         }`}
       >
         <div className="w-full flex items-center justify-between px-6 sm:px-10 lg:px-16 mx-auto max-w-[1920px]">
@@ -110,7 +110,7 @@ const Navbar = ({ products = [], onSearchOpen }) => {
               transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
               className="flex items-center"
             >
-              <span className={`font-black italic uppercase tracking-tighter text-[#ba1f3d] transition-all duration-500 ${scrolled ? 'text-xl' : 'text-2xl'}`}>
+              <span className={`font-black italic uppercase tracking-tighter text-[#ba1f3d] transition-all duration-500 ${scrolled ? 'text-xl' : 'text-[1.4rem]'}`}>
                 Stop<span className={`${scrolled ? 'text-white' : 'text-gray-900'} not-italic font-black mx-0.5 transition-colors duration-500`}>&</span>Shop
               </span>
               <div className="absolute -bottom-1 left-0 w-0 h-[2px] bg-[#ba1f3d] transition-all duration-500 group-hover:w-full opacity-50" />
@@ -130,10 +130,10 @@ const Navbar = ({ products = [], onSearchOpen }) => {
               >
                 <button
                   onClick={() => handleBucketClick(bucket)}
-                  className={`relative px-5 py-3 text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-500 flex items-center space-x-1.5 z-10 ${
+                  className={`relative px-5 py-3 text-[10.5px] font-black uppercase tracking-[0.18em] transition-all duration-300 flex items-center space-x-1.5 z-10 ${
                     activeTab === bucket 
                       ? (scrolled ? 'text-white' : 'text-gray-900') 
-                      : (scrolled ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-gray-900')
+                      : (scrolled ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900')
                   }`}
                 >
                   <span className="relative z-20">{bucket}</span>

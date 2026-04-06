@@ -1,21 +1,17 @@
 /**
- * @fileoverview PowerOfChoiceHero — Luxury Editorial Hero Section
- * Design: Full-bleed dark cinematic hero with 3D parallax cursor effects,
- *         ambient glow cursor, floating brand labels, and editorial typography.
- * Replaces: Abstract THREE.js fabric scene → High-fashion editorial image
+ * @fileoverview PowerOfChoiceHero — Premium Full-Screen Hero
+ * Design: Full-viewport dark hero with crisp model photography,
+ *         clean trust-building layout, subtle cursor glow effect.
  */
 
-import React, { useEffect, useRef, useCallback, useState } from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import anime from 'animejs';
-import { ArrowRight, ShoppingBag, Star, Package } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { ArrowRight, ShoppingBag, Star, RotateCcw, CreditCard } from 'lucide-react';
 import { EASING } from '../hooks/useAnime.js';
 
 // ─────────────────────────────────────────────────────────────────
-// AMBIENT GLOW CURSOR
-// Follows mouse with a soft light-scatter blob
+// SUBTLE AMBIENT CURSOR GLOW
 // ─────────────────────────────────────────────────────────────────
-
 const AmbientCursor = ({ containerRef }) => {
   const glowRef = useRef(null);
 
@@ -34,17 +30,17 @@ const AmbientCursor = ({ containerRef }) => {
       ty = e.clientY - rect.top;
     };
 
-    const animate = () => {
-      cx += (tx - cx) * 0.06;
-      cy += (ty - cy) * 0.06;
+    const loop = () => {
+      cx += (tx - cx) * 0.07;
+      cy += (ty - cy) * 0.07;
       if (glowRef.current) {
         glowRef.current.style.transform = `translate(${cx}px, ${cy}px) translate(-50%, -50%)`;
       }
-      raf = requestAnimationFrame(animate);
+      raf = requestAnimationFrame(loop);
     };
 
     el.addEventListener('mousemove', onMove, { passive: true });
-    raf = requestAnimationFrame(animate);
+    raf = requestAnimationFrame(loop);
     return () => {
       el.removeEventListener('mousemove', onMove);
       cancelAnimationFrame(raf);
@@ -54,11 +50,10 @@ const AmbientCursor = ({ containerRef }) => {
   return (
     <div
       ref={glowRef}
-      className="absolute pointer-events-none z-10 w-[600px] h-[600px] rounded-full"
+      className="absolute pointer-events-none z-10 w-[700px] h-[700px] rounded-full"
       style={{
-        background: 'radial-gradient(circle, rgba(186,31,61,0.06) 0%, rgba(186,31,61,0.02) 40%, transparent 70%)',
-        top: 0,
-        left: 0,
+        background: 'radial-gradient(circle, rgba(186,31,61,0.05) 0%, transparent 65%)',
+        top: 0, left: 0,
         willChange: 'transform',
       }}
     />
@@ -66,75 +61,23 @@ const AmbientCursor = ({ containerRef }) => {
 };
 
 // ─────────────────────────────────────────────────────────────────
-// FLOATING BRAND LABEL
-// ─────────────────────────────────────────────────────────────────
-
-const FloatingLabel = ({ children, className, delay = 0, style = {} }) => {
-  const ref = useRef(null);
-  useEffect(() => {
-    if (!ref.current) return;
-    anime.set(ref.current, { opacity: 0, translateY: 20 });
-    anime({
-      targets: ref.current,
-      opacity: [0, 1],
-      translateY: [20, 0],
-      duration: 900,
-      delay,
-      easing: EASING.FABRIC,
-    });
-  }, [delay]);
-
-  return (
-    <div ref={ref} className={`absolute z-30 ${className}`} style={style}>
-      {children}
-    </div>
-  );
-};
-
-// ─────────────────────────────────────────────────────────────────
 // MAIN HERO COMPONENT
 // ─────────────────────────────────────────────────────────────────
-
 const PowerOfChoiceHero = () => {
-  const sectionRef = useRef(null);
-  const modelContainerRef = useRef(null);
-  const textRef = useRef(null);
-  const handleMouseMove = useCallback((e) => {
-    if (!sectionRef.current) return;
-    const rect = sectionRef.current.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width - 0.5) * 2;   // -1 to 1
-    const y = ((e.clientY - rect.top)  / rect.height - 0.5) * 2;  // -1 to 1
-
-    if (modelContainerRef.current) {
-      modelContainerRef.current.style.transform = `
-        perspective(1200px)
-        rotateY(${x * 5}deg)
-        rotateX(${-y * 4}deg)
-        translateZ(0px)
-      `;
-    }
-  }, []);
-
-  const handleMouseLeave = useCallback(() => {
-    if (modelContainerRef.current) {
-      modelContainerRef.current.style.transform = `
-        perspective(1200px) rotateY(0deg) rotateX(0deg) translateZ(0)
-      `;
-    }
-  }, []);
+  const sectionRef  = useRef(null);
+  const contentRef  = useRef(null);
 
   // ── Entrance animations ───────────────────────────────────────
   useEffect(() => {
-    if (!textRef.current) return;
-    const items = textRef.current.querySelectorAll('[data-anime]');
-    anime.set(items, { opacity: 0, translateY: 60 });
-
+    if (!contentRef.current) return;
+    const items = contentRef.current.querySelectorAll('[data-anime]');
+    anime.set(items, { opacity: 0, translateY: 40 });
     anime({
       targets: items,
       opacity: [0, 1],
-      translateY: [60, 0],
-      duration: 1100,
-      delay: anime.stagger(120, { start: 300 }),
+      translateY: [40, 0],
+      duration: 900,
+      delay: anime.stagger(100, { start: 200 }),
       easing: EASING.FABRIC,
     });
   }, []);
@@ -142,233 +85,176 @@ const PowerOfChoiceHero = () => {
   const scrollToGrid = useCallback(() => {
     const el = document.getElementById('product-grid');
     if (el) {
-      const offset = 80; // Account for fixed header
-      const bodyRect = document.body.getBoundingClientRect().top;
-      const elementRect = el.getBoundingClientRect().top;
-      const elementPosition = elementRect - bodyRect;
-      const offsetPosition = elementPosition - offset;
-
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
-      });
+      const top = el.getBoundingClientRect().top + window.scrollY - 100;
+      window.scrollTo({ top, behavior: 'smooth' });
     }
   }, []);
+
+  const TRUST = [
+    { icon: Star,       label: 'Premium Quality',   sub: 'Hand-picked fabrics' },
+    { icon: RotateCcw,  label: 'Easy Returns',       sub: '30-day policy' },
+    { icon: CreditCard, label: 'Secure Checkout',    sub: 'EasyPaisa · JazzCash · COD' },
+  ];
 
   return (
     <section
       ref={sectionRef}
-      className="relative overflow-hidden bg-[#050505] min-h-screen flex items-center pt-24 lg:pt-0"
-      onMouseMove={handleMouseMove}
-      onMouseLeave={handleMouseLeave}
+      className="relative bg-[#0a0a0a] overflow-hidden"
+      style={{ height: '100dvh', minHeight: '600px' }}
     >
       {/* Ambient cursor glow */}
       <AmbientCursor containerRef={sectionRef} />
 
-      {/* ── Background texture: subtle noise grain ──────────── */}
+      {/* Subtle noise grain texture */}
       <div
-        className="absolute inset-0 z-0 opacity-[0.03] pointer-events-none"
+        className="absolute inset-0 z-0 opacity-[0.025] pointer-events-none"
         style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-          backgroundRepeat: 'repeat',
-          backgroundSize: '128px 128px',
+          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
+          backgroundSize: '180px 180px',
         }}
       />
 
-      {/* ── Diagonal accent light ────────────────────────────── */}
-      <div
-        className="absolute inset-0 pointer-events-none z-0"
-        style={{
-          background: 'radial-gradient(ellipse 60% 80% at 70% 50%, rgba(186,31,61,0.07) 0%, transparent 70%)',
-        }}
-      />
+      {/* ── MAIN LAYOUT: Split screen ──────────────────────────── */}
+      <div className="relative z-20 h-full flex flex-col lg:grid lg:grid-cols-2">
 
-      {/* ── Main Grid ─────────────────────────────────────────── */}
-      <div className="relative z-20 w-full grid grid-cols-1 lg:grid-cols-12 min-h-screen">
-
-        {/* ── LEFT: Editorial Text Column ───────────────────── */}
+        {/* ── LEFT TEXT PANEL ─────────────────────────────────── */}
         <div
-          ref={textRef}
-          className="lg:col-span-5 flex flex-col justify-center px-6 py-12 md:px-12 lg:px-16 order-2 lg:order-1 relative z-20"
+          ref={contentRef}
+          className="flex flex-col justify-center px-8 md:px-14 lg:px-16 pt-8 pb-6 lg:py-0 order-2 lg:order-1 relative"
         >
 
-          {/* Pre-label */}
-          <div data-anime className="flex items-center space-x-3 mb-6 md:mb-8" style={{ opacity: 0 }}>
-            <div className="w-6 md:w-8 h-px bg-[#ba1f3d]" />
-            <span className="text-[8px] md:text-[9px] font-black uppercase tracking-[0.5em] md:tracking-[0.6em] text-[#ba1f3d]">
+          {/* ── Season tag ── */}
+          <div data-anime className="flex items-center gap-3 mb-6" style={{ opacity: 0 }}>
+            <div className="w-8 h-[1px] bg-[#ba1f3d]" />
+            <span className="text-[9px] font-black uppercase tracking-[0.55em] text-[#ba1f3d]">
               SS '26 · Pakistan Edition
             </span>
           </div>
 
-          {/* Headline */}
-          <h1 className="font-black uppercase leading-[0.85] tracking-tighter mb-6 md:mb-8 text-white">
-            <span
-              data-anime
-              className="block text-[3.5rem] md:text-[6rem] lg:text-[8rem] xl:text-[9.5rem]"
-              style={{ opacity: 0 }}
-            >
-              Define
-            </span>
-            <span
-              data-anime
-              className="block text-[3.5rem] md:text-[6rem] lg:text-[8rem] xl:text-[9.5rem] mt-[-0.5rem] md:mt-[-1rem]"
-              style={{
-                opacity: 0,
-                WebkitTextStroke: '1px #ba1f3d',
-                color: 'transparent',
-              }}
-            >
-              Your
-            </span>
-            <span
-              data-anime
-              className="block text-[3.5rem] md:text-[6rem] lg:text-[8rem] xl:text-[9.5rem] text-white mt-[-0.5rem] md:mt-[-1rem]"
-              style={{ opacity: 0 }}
-            >
-              Look.
-            </span>
+          {/* ── Headline ── */}
+          <h1
+            data-anime
+            className="font-black uppercase leading-[0.88] tracking-[-0.02em] text-white mb-5"
+            style={{ opacity: 0, fontSize: 'clamp(2.8rem, 7vw, 7rem)' }}
+          >
+            Define<br />
+            <span style={{ WebkitTextStroke: '1.5px #ba1f3d', color: 'transparent' }}>Your</span><br />
+            Look.
           </h1>
 
-          {/* Sub-copy */}
+          {/* ── Sub-copy ── */}
           <p
             data-anime
-            className="text-gray-500 text-sm md:text-base lg:text-lg font-medium leading-relaxed mb-8 md:mb-10 max-w-sm lg:max-w-md mx-auto lg:mx-0 text-center lg:text-left"
+            className="text-gray-400 text-[0.9rem] md:text-base leading-relaxed mb-8 max-w-md"
             style={{ opacity: 0 }}
           >
-            Curated premium streetwear for the modern Pakistani trendsetter. Unmatched quality. Zero compromise.
+            Premium streetwear crafted for the modern Pakistani trendsetter.
+            Bold styles. Unmatched quality. Always on trend.
           </p>
 
-          {/* CTAs */}
-          <div data-anime className="flex flex-col sm:flex-row gap-4 items-center justify-center lg:justify-start mb-10 md:mb-12" style={{ opacity: 0 }}>
+          {/* ── CTAs ── */}
+          <div data-anime className="flex flex-col sm:flex-row gap-3 mb-10" style={{ opacity: 0 }}>
             <button
               onClick={scrollToGrid}
-              className="w-full sm:w-auto group relative flex items-center justify-center space-x-3 px-8 py-4 bg-[#ba1f3d] text-white text-[10px] font-black uppercase tracking-[0.3em] overflow-hidden hover:shadow-[0_20px_40px_rgba(186,31,61,0.35)] transition-shadow duration-500"
+              className="group relative flex items-center justify-center gap-3 px-8 py-[14px] bg-[#ba1f3d] text-white text-[10px] font-black uppercase tracking-[0.3em] overflow-hidden transition-shadow duration-300 hover:shadow-[0_16px_40px_rgba(186,31,61,0.4)]"
             >
               <span className="relative z-10">Shop Collection</span>
-              <ArrowRight size={14} className="relative z-10 group-hover:translate-x-1.5 transition-transform duration-300" />
-              <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out" />
+              <ArrowRight size={13} className="relative z-10 group-hover:translate-x-1 transition-transform duration-200" />
+              <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/8 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-600 ease-out" />
             </button>
 
             <button
               onClick={scrollToGrid}
-              className="w-full sm:w-auto flex items-center justify-center space-x-2 text-[10px] font-black uppercase tracking-[0.3em] text-gray-500 hover:text-white transition-colors duration-300 group px-8 py-4 border border-transparent hover:border-gray-800"
+              className="group flex items-center justify-center gap-2.5 px-8 py-[14px] border border-gray-700 text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 hover:text-white hover:border-gray-500 transition-all duration-300"
             >
-              <ShoppingBag size={14} className="group-hover:scale-110 transition-transform duration-300" />
+              <ShoppingBag size={13} className="group-hover:scale-105 transition-transform" />
               <span>View Lookbook</span>
             </button>
           </div>
 
-          {/* Trust strip */}
-          <div data-anime className="hidden sm:flex flex-wrap items-center justify-center lg:justify-start gap-4 md:gap-6" style={{ opacity: 0 }}>
-            {[
-              { icon: Package, label: 'Free Delivery' },
-              { icon: Star, label: 'Premium Quality' },
-              { icon: ShoppingBag, label: 'Easy Returns' },
-            ].map(({ icon: Icon, label }) => (
-              <div key={label} className="flex items-center space-x-2 group">
-                <Icon size={11} className="text-[#ba1f3d] group-hover:scale-110 transition-transform" />
-                <span className="text-[9px] font-black uppercase tracking-[0.3em] text-gray-600 group-hover:text-gray-400 transition-colors">
-                  {label}
-                </span>
+          {/* ── Trust badges ── */}
+          <div data-anime className="flex flex-col gap-3" style={{ opacity: 0 }}>
+            <p className="text-[8.5px] font-black uppercase tracking-[0.5em] text-gray-600 mb-1">Why Stop & Shop</p>
+            <div className="flex flex-wrap gap-x-6 gap-y-3">
+              {TRUST.map(({ icon: Icon, label, sub }) => (
+                <div key={label} className="flex items-center gap-2.5 group">
+                  <div className="w-7 h-7 rounded-sm bg-white/5 border border-white/8 flex items-center justify-center flex-shrink-0 group-hover:border-[#ba1f3d]/40 transition-colors duration-300">
+                    <Icon size={12} className="text-[#ba1f3d]" />
+                  </div>
+                  <div>
+                    <p className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-300 leading-none">{label}</p>
+                    <p className="text-[8px] text-gray-600 font-medium mt-0.5">{sub}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* ── Bottom bar: social proof ── */}
+          <div data-anime className="mt-auto pt-8 border-t border-white/5 hidden lg:flex items-center gap-6" style={{ opacity: 0 }}>
+            <div className="flex -space-x-2">
+              {['F', 'A', 'M', 'Z'].map((l) => (
+                <div key={l} className="w-7 h-7 rounded-full bg-gray-800 border-2 border-[#0a0a0a] flex items-center justify-center">
+                  <span className="text-[7px] font-black text-gray-400">{l}</span>
+                </div>
+              ))}
+            </div>
+            <div>
+              <div className="flex items-center gap-0.5 mb-0.5">
+                {[...Array(5)].map((_, i) => <Star key={i} size={9} className="fill-[#ba1f3d] text-[#ba1f3d]" />)}
               </div>
-            ))}
+              <p className="text-[8px] text-gray-500 font-bold uppercase tracking-widest">Trusted by 2,000+ customers</p>
+            </div>
           </div>
         </div>
 
-        {/* ── RIGHT: Model Image with 3D Parallax ──────────────── */}
-        <div className="lg:col-span-7 relative h-[70vh] lg:h-screen order-1 lg:order-2 overflow-hidden">
+        {/* ── RIGHT IMAGE PANEL ─────────────────────────────────── */}
+        <div className="relative order-1 lg:order-2 h-[48vh] lg:h-full overflow-hidden">
 
-          {/* 3D Parallax Container */}
+          {/* Model image — full bleed, no 3D transforms that could cause glitch */}
+          <img
+            src="/hero-model.jpg"
+            alt="Stop & Shop SS'26 Fashion Model — Prada Jacket"
+            className="absolute inset-0 w-full h-full object-cover object-center"
+            style={{ filter: 'brightness(0.88) contrast(1.06) saturate(0.92)' }}
+            loading="eager"
+          />
+
+          {/* Left edge fade into dark panel */}
           <div
-            ref={modelContainerRef}
-            className="absolute inset-0"
-            style={{
-              transition: 'transform 0.12s linear',
-              willChange: 'transform',
-              transformStyle: 'preserve-3d',
-            }}
-          >
-            {/* Model image */}
-            <img
-              src="/hero-model.jpg"
-              alt="Stop & Shop SS'26 Editorial — Man in Prada Jacket"
-              className="absolute inset-0 w-full h-full object-cover object-top"
-              style={{ filter: 'brightness(0.85) contrast(1.08) saturate(0.95)' }}
-              loading="eager"
-            />
+            className="absolute inset-0 pointer-events-none hidden lg:block"
+            style={{ background: 'linear-gradient(to right, #0a0a0a 0%, transparent 30%)' }}
+          />
 
-            {/* Vignette bottom fade */}
-            <div
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                background: 'linear-gradient(to top, #050505 0%, transparent 40%), linear-gradient(to right, #050505 0%, transparent 30%)',
-              }}
-            />
+          {/* Bottom fade for mobile */}
+          <div
+            className="absolute inset-0 pointer-events-none lg:hidden"
+            style={{ background: 'linear-gradient(to top, #0a0a0a 0%, transparent 40%)' }}
+          />
 
-            {/* Subtle red light overlay */}
-            <div
-              className="absolute inset-0 pointer-events-none"
-              style={{
-                background: 'radial-gradient(ellipse 50% 60% at 20% 90%, rgba(186,31,61,0.18) 0%, transparent 60%)',
-              }}
-            />
+          {/* Top fade for mobile */}
+          <div
+            className="absolute inset-0 pointer-events-none lg:hidden"
+            style={{ background: 'linear-gradient(to bottom, #0a0a0a 0%, transparent 20%)' }}
+          />
+
+          {/* ── SS '26 badge ── */}
+          <div className="absolute top-5 right-5 lg:top-8 lg:right-8 z-20 bg-[#ba1f3d]/90 backdrop-blur-md px-4 py-3 text-right">
+            <p className="text-[7px] font-black uppercase tracking-[0.5em] text-white/70">New Season</p>
+            <p className="text-xl font-black uppercase tracking-tighter text-white leading-none mt-0.5">SS '26</p>
           </div>
 
-          {/* ── FLOATING BRAND LABELS ──────────────────────────── */}
-
-          {/* Prada label — top left */}
-          <FloatingLabel delay={1200} className="top-10 left-8 lg:top-16 lg:left-10">
-            <div className="bg-white/5 backdrop-blur-xl border border-white/10 px-4 py-3 rounded-sm">
-              <p className="text-[8px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-0.5">Outerwear</p>
-              <p className="text-sm font-black uppercase tracking-tight text-white">Prada Bomber</p>
-              <p className="text-[9px] text-gray-500 font-bold mt-1">Limited Edition</p>
-            </div>
-          </FloatingLabel>
-
-          {/* Air Force label — bottom left */}
-          <FloatingLabel delay={1500} className="bottom-28 left-8 lg:bottom-32 lg:left-10">
-            <div className="bg-white/5 backdrop-blur-xl border border-white/10 px-4 py-3 rounded-sm">
-              <p className="text-[8px] font-black uppercase tracking-[0.5em] text-gray-500 mb-0.5">Footwear</p>
-              <p className="text-sm font-black uppercase tracking-tight text-white">Air Force 1</p>
-              <div className="flex items-center space-x-1 mt-1.5">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} size={8} className="fill-[#ba1f3d] text-[#ba1f3d]" />
-                ))}
-                <span className="text-[8px] text-gray-500 font-bold ml-1">5.0</span>
-              </div>
-            </div>
-          </FloatingLabel>
-
-          {/* Season label — top right */}
-          <FloatingLabel delay={1800} className="top-10 right-8 lg:top-16 lg:right-10">
-            <div className="bg-[#ba1f3d]/10 backdrop-blur-xl border border-[#ba1f3d]/25 px-5 py-4 text-right rounded-sm">
-              <p className="text-[8px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-1">New Season</p>
-              <p className="text-2xl font-black leading-none uppercase tracking-tighter text-white">SS '26</p>
-              <p className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.2em] mt-1">Now Available</p>
-            </div>
-          </FloatingLabel>
-
-          {/* Corner brackets — editorial detail */}
-          <div className="absolute top-6 left-6 z-30 opacity-40 pointer-events-none">
-            <div className="w-6 h-6 border-t border-l border-white/40" />
-          </div>
-          <div className="absolute bottom-6 right-6 z-30 opacity-40 pointer-events-none">
-            <div className="w-6 h-6 border-b border-r border-white/20" />
-          </div>
-
-          {/* Vertical label — right edge */}
-          <div className="absolute right-5 top-1/2 -translate-y-1/2 z-30 rotate-90 origin-center opacity-25 pointer-events-none">
-            <span className="text-[7px] font-black uppercase tracking-[0.8em] text-white whitespace-nowrap">
-              Stop &amp; Shop · Premium Streetwear
-            </span>
+          {/* Corner bracket detail */}
+          <div className="absolute bottom-5 left-5 lg:bottom-8 lg:left-8 z-20 opacity-30 pointer-events-none">
+            <div className="w-5 h-5 border-b border-l border-white" />
           </div>
         </div>
       </div>
 
-      {/* ── Bottom scroll indicator ──────────────────────────────── */}
-      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center space-y-2 opacity-40 animate-bounce pointer-events-none">
-        <span className="text-[7px] font-black uppercase tracking-[0.6em] text-white/60">Scroll</span>
-        <div className="w-px h-8 bg-gradient-to-b from-white/40 to-transparent" />
+      {/* ── Scroll cue ── */}
+      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 hidden lg:flex flex-col items-center gap-2 opacity-30">
+        <span className="text-[7px] font-black uppercase tracking-[0.7em] text-white">Scroll</span>
+        <div className="w-px h-6 bg-white animate-pulse" />
       </div>
     </section>
   );
