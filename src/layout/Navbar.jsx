@@ -88,10 +88,10 @@ const Navbar = ({ products = [], onSearchOpen, scrolled, isHome }) => {
     <>
       <motion.header
         style={{ height: headerHeight }}
-        className={`fixed top-14 left-0 w-full z-[100] transition-all duration-500 flex items-center ${
+        className={`fixed top-0 left-0 w-full z-[100] transition-all duration-500 flex items-center ${
           scrolled 
             ? 'bg-[#0d0d0d]/95 backdrop-blur-xl border-b border-white/10 shadow-[0_4px_24px_rgba(0,0,0,0.4)]'
-            : 'bg-transparent'
+            : isHome ? 'bg-black/30 backdrop-blur-md' : 'bg-white shadow-[0_2px_20px_rgba(0,0,0,0.08)]'
         }`}
       >
         <div className="w-full flex items-center justify-between px-6 sm:px-10 lg:px-16 mx-auto max-w-[1920px]">
@@ -142,7 +142,7 @@ const Navbar = ({ products = [], onSearchOpen, scrolled, isHome }) => {
                       className={`absolute inset-x-1 inset-y-1.5 rounded-full z-0 ${
                         scrolled 
                           ? 'bg-white/10 shadow-[0_0_20px_rgba(255,255,255,0.1)] border border-white/10' 
-                          : 'bg-gray-100 shadow-sm'
+                          : isHome ? 'bg-white/10 border border-white/10' : 'bg-gray-100 shadow-sm'
                       }`}
                       transition={{ type: 'spring', bounce: 0.15, duration: 0.7 }}
                     />

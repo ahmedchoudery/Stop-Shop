@@ -1,17 +1,13 @@
 /**
- * @fileoverview PowerOfChoiceHero — Premium Retail Hero
- * Redesigned for maximum trust, clarity, and professional organization.
- * Features: Header-clearance padding, balanced grid, and high-trust branding.
+ * @fileoverview PowerOfChoiceHero — Final Premium Refinement
+ * Tone: Easy but weighty. Policy: No guarantees. Layout: Clean & Balanced.
  */
 
 import React, { useEffect, useRef, useCallback } from 'react';
 import anime from 'animejs';
-import { ArrowRight, ShoppingBag, Star, RotateCcw, ShieldCheck } from 'lucide-react';
+import { ArrowRight, Star, ShieldCheck, Zap } from 'lucide-react';
 import { EASING } from '../hooks/useAnime.js';
 
-// ─────────────────────────────────────────────────────────────────
-// SUBTLE AMBIENT CURSOR GLOW
-// ─────────────────────────────────────────────────────────────────
 const AmbientCursor = ({ containerRef }) => {
   const glowRef = useRef(null);
 
@@ -64,7 +60,6 @@ const PowerOfChoiceHero = () => {
   const sectionRef  = useRef(null);
   const contentRef  = useRef(null);
 
-  // ── Entrance animations ───────────────────────────────────────
   useEffect(() => {
     if (!contentRef.current) return;
     const items = contentRef.current.querySelectorAll('[data-anime]');
@@ -87,10 +82,10 @@ const PowerOfChoiceHero = () => {
     }
   }, []);
 
-  const TRUST_ITEMS = [
-    { icon: ShieldCheck, label: 'Premium Quality', sub: 'Imported Fabrics' },
-    { icon: RotateCcw,  label: 'Easy Returns',    sub: '30-Day Policy' },
-    { icon: Star,        label: 'Top Rated',       sub: '2,000+ Reviews' },
+  const IDENTITY_PILLARS = [
+    { icon: ShieldCheck, label: 'Highest Luxury', sub: 'Imported Elite Fabrics' },
+    { icon: Zap,         label: 'Bold Identity', sub: 'Worn by Leaders' },
+    { icon: Star,        label: 'Trend Shapers', sub: '2,000+ Verified Customers' },
   ];
 
   return (
@@ -101,7 +96,7 @@ const PowerOfChoiceHero = () => {
     >
       <AmbientCursor containerRef={sectionRef} />
 
-      {/* Grid Pattern Background */}
+      {/* Grid Pattern */}
       <div 
         className="absolute inset-0 z-0 opacity-[0.03] pointer-events-none"
         style={{
@@ -112,114 +107,84 @@ const PowerOfChoiceHero = () => {
 
       <div className="relative z-20 h-full flex flex-col lg:grid lg:grid-cols-12 max-w-[1920px] mx-auto">
         
-        {/* LEFT: CONTENT PANEL */}
+        {/* CONTENT PANEL */}
         <div 
           ref={contentRef}
-          className="lg:col-span-6 flex flex-col justify-center px-6 md:px-12 lg:px-20 pt-[110px] lg:pt-[140px] pb-10 lg:pb-0 order-2 lg:order-1"
+          className="lg:col-span-6 flex flex-col justify-center px-6 md:px-12 lg:px-20 pt-[80px] lg:pt-[100px] pb-10 lg:pb-0 order-2 lg:order-1"
         >
-          {/* Badge */}
           <div data-anime className="flex items-center gap-3 mb-6" style={{ opacity: 0 }}>
             <span className="w-10 h-px bg-[#ba1f3d]" />
-            <span className="text-[9px] font-black uppercase tracking-[0.4em] text-[#ba1f3d]">
-              Pakistan's Premium Streetwear · SS '26
+            <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[#ba1f3d]">
+              Pakistan's Premium Fashion Hub · SS '26
             </span>
           </div>
 
-          {/* Headline */}
           <h1 
             data-anime
             className="text-white font-black uppercase leading-[0.85] tracking-[-0.03em] mb-6"
-            style={{ opacity: 0, fontSize: 'clamp(3rem, 8vw, 6.5rem)' }}
+            style={{ opacity: 0, fontSize: 'clamp(2.8rem, 8vw, 6rem)' }}
           >
-            Define<br />
-            <span className="text-transparent" style={{ WebkitTextStroke: '1.5px #ba1f3d' }}>Your</span><br />
-            Look.
+            The New<br />
+            <span className="text-transparent" style={{ WebkitTextStroke: '1.5px #ba1f3d' }}>Standard</span><br />
+            of Streetwear.
           </h1>
 
-          {/* Body */}
           <p 
             data-anime
-            className="text-gray-400 text-sm md:text-base lg:text-lg leading-relaxed max-w-lg mb-10"
+            className="text-gray-400 text-sm md:text-base lg:text-xl leading-relaxed max-w-lg mb-10 font-medium"
             style={{ opacity: 0 }}
           >
-            Meticulously crafted apparel for those who lead, not follow. 
-            Blending international luxury with local streetwear culture.
+            Elite fabrics. Bold designs. We don't just sell clothes; we build your identity. 
+            Join 2,000+ trendsetters who make their own rules.
           </p>
 
-          {/* Actions */}
-          <div data-anime className="flex flex-col sm:flex-row gap-4 mb-12" style={{ opacity: 0 }}>
+          <div data-anime className="flex mb-12" style={{ opacity: 0 }}>
             <button
               onClick={scrollToGrid}
-              className="group relative flex items-center justify-center gap-4 px-10 py-4 bg-[#ba1f3d] text-white text-[11px] font-black uppercase tracking-[0.3em] overflow-hidden transition-all duration-300 hover:shadow-[0_20px_40px_rgba(186,31,61,0.3)] active:scale-95"
+              className="group relative flex items-center justify-center gap-5 px-12 py-5 bg-[#ba1f3d] text-white text-[12px] font-black uppercase tracking-[0.35em] overflow-hidden transition-all duration-300 hover:shadow-[0_20px_50px_rgba(186,31,61,0.4)] active:scale-95"
             >
-              <span className="relative z-10">Shop Collection</span>
-              <ArrowRight size={14} className="relative z-10 group-hover:translate-x-1 transition-transform" />
+              <span className="relative z-10">Shop Selection</span>
+              <ArrowRight size={16} className="relative z-10 group-hover:translate-x-1 transition-transform" />
               <div className="absolute inset-0 bg-white/10 -translate-x-full group-hover:translate-x-0 transition-transform duration-500" />
-            </button>
-
-            <button
-              onClick={scrollToGrid}
-              className="group flex items-center justify-center gap-3 px-10 py-4 border border-white/10 text-gray-400 text-[11px] font-black uppercase tracking-[0.3em] hover:text-white hover:border-white transition-all duration-300 active:scale-95"
-            >
-              <ShoppingBag size={14} />
-              <span>View Lookbook</span>
             </button>
           </div>
 
-          {/* Trust Strip */}
-          <div data-anime className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-10 border-t border-white/5" style={{ opacity: 0 }}>
-            {TRUST_ITEMS.map((item) => (
+          <div data-anime className="grid grid-cols-1 sm:grid-cols-3 gap-8 pt-10 border-t border-white/5" style={{ opacity: 0 }}>
+            {IDENTITY_PILLARS.map((item) => (
               <div key={item.label} className="flex items-start gap-3 group">
-                <div className="p-2 rounded bg-white/5 border border-white/5 group-hover:border-[#ba1f3d]/30 transition-colors">
-                  <item.icon size={14} className="text-[#ba1f3d]" />
+                <div className="p-2.5 rounded bg-white/5 border border-white/5 group-hover:border-[#ba1f3d]/30 transition-colors">
+                  <item.icon size={16} className="text-[#ba1f3d]" />
                 </div>
                 <div>
                   <p className="text-[10px] font-black text-white uppercase tracking-wider">{item.label}</p>
-                  <p className="text-[9px] text-gray-500 font-bold mt-1">{item.sub}</p>
+                  <p className="text-[9px] text-gray-500 font-bold mt-1 tracking-wide">{item.sub}</p>
                 </div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* RIGHT: IMAGE PANEL */}
-        <div className="lg:col-span-6 relative h-[45vh] lg:h-full order-1 lg:order-2 overflow-hidden">
-          {/* Framed Image Container */}
-          <div className="absolute inset-0 lg:inset-10 lg:my-20">
-            <div className="relative w-full h-full overflow-hidden rounded-sm group">
+        {/* IMAGE PANEL */}
+        <div className="lg:col-span-6 relative h-[50vh] lg:h-full order-1 lg:order-2 overflow-hidden">
+          <div className="absolute inset-0 lg:p-12 lg:my-10">
+            <div className="relative w-full h-full overflow-hidden rounded-sm bg-[#0a0a0a]">
               <img
                 src="/hero-model.jpg"
                 alt="SS'26 Model Prada Jacket"
-                className="w-full h-full object-cover object-top filter brightness-[0.85] contrast-[1.05] group-hover:scale-105 transition-transform duration-[2s] ease-out"
+                className="w-full h-full object-cover object-bottom filter brightness-[0.9] contrast-[1.05] group-hover:scale-105 transition-transform duration-[3s]"
               />
               
-              {/* Overlays for depth */}
-              <div className="absolute inset-0 bg-gradient-to-t from-[#080808] via-transparent to-transparent opacity-60 lg:hidden" />
-              <div className="absolute inset-x-0 bottom-0 py-6 px-8 lg:hidden flex justify-between items-end z-20">
-                <div className="text-right">
-                  <p className="text-[8px] font-black text-[#ba1f3d] uppercase tracking-widest">New Season</p>
-                  <p className="text-2xl font-black text-white uppercase tracking-tighter">SS '26</p>
-                </div>
+              {/* Fade for mobile integration */}
+              <div className="absolute inset-0 bg-gradient-to-t from-[#080808] via-transparent to-transparent opacity-80 lg:hidden" />
+              
+              {/* New Season Badge */}
+              <div className="absolute top-5 right-5 lg:top-10 lg:right-10 z-20 bg-black/40 backdrop-blur-xl border border-white/10 px-6 py-4 text-right">
+                <p className="text-[8px] font-black text-[#ba1f3d] uppercase tracking-[0.5em]">New Season</p>
+                <p className="text-3xl font-black text-white uppercase tracking-tighter mt-1">SS '26</p>
               </div>
             </div>
           </div>
-
-          {/* Decorative Corner Brackets (Desktop) */}
-          <div className="absolute top-10 right-10 hidden lg:block opacity-20">
-            <div className="w-12 h-12 border-t-2 border-r-2 border-[#ba1f3d]" />
-          </div>
-          <div className="absolute bottom-10 left-10 hidden lg:block opacity-10">
-            <div className="w-12 h-12 border-b-2 border-l-2 border-white" />
-          </div>
         </div>
-      </div>
-
-      {/* Floating Badge (Desktop) */}
-      <div className="absolute bottom-12 right-12 hidden xl:flex items-center gap-4 z-30 opacity-40">
-        <div className="h-px w-12 bg-white" />
-        <span className="text-[8px] font-black text-white uppercase tracking-[1em] rotate-180" style={{ writingMode: 'vertical-rl' }}>
-          Stop & Shop Est. 2024
-        </span>
       </div>
     </section>
   );

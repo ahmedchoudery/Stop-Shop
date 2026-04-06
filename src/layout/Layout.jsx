@@ -10,7 +10,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from './Navbar.jsx';
 import Footer from './Footer.jsx';
 import SearchOverlay from '../components/SearchOverlay.jsx';
-import MarqueeBar from '../components/MarqueeBar.jsx';
 import WhatsAppButton from '../components/WhatsAppButton.jsx';
 import { useSettings } from '../hooks/useDomain.js';
 
@@ -72,13 +71,6 @@ const Layout = ({ children, products = [] }) => {
 
   return (
     <div className="min-h-screen flex flex-col bg-white overflow-hidden">
-      {/* Announcement bar */}
-      <MarqueeBar 
-        announcement={settings?.announcement} 
-        scrolled={scrolled} 
-        isHome={isHome}
-      />
-
       {/* Sticky navbar */}
       <Navbar
         onSearchOpen={() => setSearchOpen(true)}
@@ -88,7 +80,7 @@ const Layout = ({ children, products = [] }) => {
       />
 
       {/* Page content with Liquid Transition */}
-      <main className={`flex-grow relative ${isHome ? 'pt-0' : 'pt-[124px] lg:pt-[140px]'}`}>
+      <main className={`flex-grow relative ${isHome ? 'pt-0' : 'pt-[80px] lg:pt-[100px]'}`}>
         <AnimatePresence mode="wait">
           <motion.div
             key={location.pathname}
