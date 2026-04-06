@@ -149,36 +149,47 @@ const Navbar = ({ products = [], onSearchOpen, scrolled, isHome }) => {
                   )}
                 </button>
  
-                {/* Editorial Subcategory Dropdown */}
+                {/* Editorial Subcategory Dropdown with Hover Bridge */}
                 {bucket !== 'All' && categoryMap[bucket]?.length > 0 && (
-                  <div className={`absolute top-full left-1/2 -translate-x-1/2 mt-2 opacity-0 translate-y-4 pointer-events-none group-hover/parent:opacity-100 group-hover/parent:translate-y-0 group-hover/parent:pointer-events-auto transition-all duration-500 z-[110] min-w-[240px] p-1 ${
-                    scrolled ? 'glass-editorial rounded-3xl' : 'bg-white border border-gray-100 shadow-2xl rounded-3xl'
-                  }`}>
-                    <div className="py-2">
-                      <p className={`text-[8px] font-black uppercase tracking-[0.4em] pb-3 px-6 mb-2 border-b ${scrolled ? 'text-white/20 border-white/5' : 'text-gray-300 border-gray-50'}`}>
-                        Collection / {bucket}
-                      </p>
-                      {categoryMap[bucket].map(sub => (
-                        <button 
-                          key={sub} 
-                          onClick={() => handleBucketClick(bucket, sub)}
-                          className={`w-full text-left px-6 py-2.5 text-[9px] font-black uppercase tracking-[0.2em] transition-all duration-300 rounded-xl hover:translate-x-1 ${
-                            scrolled 
-                              ? 'text-gray-300 hover:text-white hover:bg-white/10' 
-                              : 'text-gray-500 hover:text-[#ba1f3d] hover:bg-red-50'
-                          }`}
-                        >
-                          {sub}
-                        </button>
-                      ))}
-                      <div className="mt-2 pt-2 px-6">
-                        <button 
-                          onClick={() => handleBucketClick(bucket)}
-                          className="text-[8px] font-black text-[#ba1f3d] uppercase tracking-[0.3em] hover:brightness-125 transition-all flex items-center space-x-1"
-                        >
-                          <span>Explore All</span>
-                          <span className="text-[12px]">→</span>
-                        </button>
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 group-hover/parent:opacity-100 group-hover/parent:translate-y-0 group-hover/parent:pointer-events-auto opacity-0 translate-y-4 pointer-events-none transition-all duration-500 z-[110] min-w-[260px]">
+                    {/* The Hover Bridge: Prevents gap-induced mouse-out */}
+                    <div className="h-4 w-full" /> 
+                    
+                    <div className={`p-1.5 shadow-2xl ${
+                      scrolled ? 'glass-editorial rounded-2xl border border-white/10' : 'bg-white border border-gray-100 shadow-2xl rounded-2xl'
+                    }`}>
+                      <div className="py-2">
+                        <div className={`px-6 pb-2 mb-2 border-b flex items-center justify-between ${scrolled ? 'border-white/5' : 'border-gray-50'}`}>
+                          <p className={`text-[8px] font-black uppercase tracking-[0.4em] ${scrolled ? 'text-white/30' : 'text-gray-300'}`}>
+                            {bucket} / Collection
+                          </p>
+                        </div>
+                        
+                        <div className="space-y-0.5">
+                          {categoryMap[bucket].map(sub => (
+                            <button 
+                              key={sub} 
+                              onClick={() => handleBucketClick(bucket, sub)}
+                              className={`w-full text-left px-6 py-2.5 text-[9px] font-black uppercase tracking-[0.2em] transition-all duration-300 rounded-xl hover:translate-x-1 ${
+                                scrolled 
+                                  ? 'text-gray-300 hover:text-white hover:bg-white/10' 
+                                  : 'text-gray-500 hover:text-[#ba1f3d] hover:bg-red-50/50'
+                              }`}
+                            >
+                              {sub}
+                            </button>
+                          ))}
+                        </div>
+
+                        <div className="mt-3 pt-3 px-6 border-t border-transparent group-hover:border-white/5">
+                          <button 
+                            onClick={() => handleBucketClick(bucket)}
+                            className="text-[8px] font-black text-[#ba1f3d] uppercase tracking-[0.35em] hover:brightness-125 transition-all flex items-center gap-2 group/all"
+                          >
+                            <span>Explore Selection</span>
+                            <span className="text-[12px] group-hover/all:translate-x-1 transition-transform">→</span>
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>
