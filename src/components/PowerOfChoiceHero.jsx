@@ -37,7 +37,7 @@ const PowerOfChoiceHero = () => {
   return (
     <section
       ref={sectionRef}
-      className="relative bg-[#080808] overflow-hidden w-full lg:h-[100dvh]"
+      className="relative bg-[#080808] overflow-hidden w-full flex flex-col lg:h-[100dvh]"
       style={{ minHeight: '100dvh' }}
     >
       {/* ── 12K SEAMLESS BACKGROUND (Models Duo: Prada & Trapstar) ─────── */}
@@ -73,19 +73,16 @@ const PowerOfChoiceHero = () => {
       />
 
       {/* ── MAIN LAYOUT (Centered & Balanced) ───────────────────────── */}
-      <div className="relative z-30 h-full max-w-[1920px] mx-auto lg:pt-[130px]">
-        <div className="h-full flex flex-col justify-center px-6 md:px-12 lg:px-20 pt-32 lg:pt-0">
+      <div className="relative z-30 flex-1 w-full max-w-[1920px] mx-auto flex flex-col justify-center pt-[110px] lg:pt-[130px] pb-10 lg:pb-0">
+        <div className="w-full flex flex-col items-center text-center lg:items-start lg:text-left px-6 md:px-12 lg:px-20">
           
           {/* CONTENT PANEL: High-End Centered Positioning */}
           <div 
             ref={contentRef}
-            className="
-              max-w-4xl flex flex-col items-center text-center 
-              lg:items-start lg:text-left
-            "
+            className="max-w-4xl flex flex-col items-center text-center lg:items-start lg:text-left"
           >
             {/* Season Tag */}
-            <div data-anime className="flex items-center gap-3 mb-8 lg:mb-10" style={{ opacity: 0 }}>
+            <div data-anime className="flex items-center gap-3 mb-6 lg:mb-8" style={{ opacity: 0 }}>
               <span className="w-8 h-px bg-[#ba1f3d] hidden lg:block" />
               <span className="text-[10px] font-black uppercase tracking-[0.45em] text-[#ba1f3d]">
                 Pakistan's Premium Fashion Hub · SS '26
@@ -95,11 +92,12 @@ const PowerOfChoiceHero = () => {
             {/* Headline: De-congested for Mobile Readability */}
             <h1 
               data-anime
-              className="text-white font-black uppercase leading-[1.4] lg:leading-[0.88] tracking-[-0.03em] mb-8 lg:mb-10 text-[1.85rem] md:text-[2.6rem] lg:text-[clamp(2.4rem, 7vw, 4.3rem)]"
+              className="text-white font-black uppercase leading-[1.25] lg:leading-[0.88] tracking-[-0.03em] mb-8 lg:mb-10 text-[1.85rem] md:text-[2.6rem] lg:text-[clamp(2.4rem, 7vw, 4.3rem)]"
               style={{ opacity: 0 }}
             >
               The New<br />
-              <span className="text-transparent" style={{ WebkitTextStroke: '0.5px #ba1f3d' }}>Standard</span><br />
+              {/* Lower weight on Standard completely opens up the 'A' holes for the stroke */}
+              <span className="text-transparent font-bold" style={{ WebkitTextStroke: '1px #ba1f3d' }}>Standard</span><br />
               of Streetwear.
             </h1>
 
