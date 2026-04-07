@@ -107,8 +107,8 @@ const PowerOfChoiceHero = () => {
               style={{ opacity: 0 }}
             >
               The New<br />
-              {/* Lower weight on Standard completely opens up the 'A' holes for the stroke */}
-              <span className="text-transparent font-bold" style={{ WebkitTextStroke: '1px #ba1f3d' }}>Standard</span><br />
+              {/* Solid crisp color replaces buggy stroke for perfect mobile clarity */}
+              <span className="text-[#ba1f3d] font-black">Standard</span><br />
               of Streetwear.
             </h1>
 
