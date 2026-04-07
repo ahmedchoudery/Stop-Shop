@@ -73,8 +73,8 @@ const PowerOfChoiceHero = () => {
       />
 
       {/* ── MAIN LAYOUT (Centered & Balanced) ───────────────────────── */}
-      <div className="relative z-30 h-full max-w-[1920px] mx-auto pt-[90px] lg:pt-[130px]">
-        <div className="h-full flex flex-col justify-center px-6 md:px-12 lg:px-20">
+      <div className="relative z-30 h-full max-w-[1920px] mx-auto lg:pt-[130px]">
+        <div className="h-full flex flex-col justify-center px-6 md:px-12 lg:px-20 pt-[60px] lg:pt-0">
           
           {/* CONTENT PANEL: High-End Centered Positioning */}
           <div 
@@ -99,7 +99,7 @@ const PowerOfChoiceHero = () => {
               style={{ opacity: 0 }}
             >
               The New<br />
-              <span className="text-transparent" style={{ WebkitTextStroke: '1.5px #ba1f3d' }}>Standard</span><br />
+              <span className="text-transparent" style={{ WebkitTextStroke: '1px #ba1f3d' }}>Standard</span><br />
               of Streetwear.
             </h1>
 
