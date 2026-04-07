@@ -73,17 +73,30 @@ const PowerOfChoiceHero = () => {
       />
 
       {/* ── MAIN LAYOUT (Centered & Balanced) ───────────────────────── */}
-      <div className="relative z-30 flex-1 w-full max-w-[1920px] mx-auto flex flex-col justify-center pt-[110px] lg:pt-[130px] pb-10 lg:pb-0">
-        <div className="w-full flex flex-col items-center text-center lg:items-start lg:text-left px-6 md:px-12 lg:px-20">
+      <div className="relative z-30 flex-1 w-full max-w-[1920px] mx-auto flex flex-col pt-[110px] lg:pt-[130px] pb-10 lg:pb-0">
+        
+        {/* MOBILE ONLY: Top Season Tag */}
+        <div className="w-full px-6 flex justify-center lg:hidden mt-4">
+          <span 
+            data-anime 
+            className="text-[10px] font-black uppercase tracking-[0.45em] text-[#ba1f3d] text-center" 
+            style={{ opacity: 0 }}
+          >
+            Pakistan's Premium Fashion Hub · SS '26
+          </span>
+        </div>
+
+        {/* CONTAINER: Vertically Centered */}
+        <div className="w-full flex-grow flex flex-col justify-center px-6 md:px-12 lg:px-20">
           
-          {/* CONTENT PANEL: High-End Centered Positioning */}
+          {/* CONTENT PANEL: Left-Aligned but Centered Overall */}
           <div 
             ref={contentRef}
-            className="max-w-4xl flex flex-col items-center text-center lg:items-start lg:text-left"
+            className="max-w-4xl flex flex-col items-start text-left"
           >
-            {/* Season Tag */}
-            <div data-anime className="flex items-center gap-3 mb-6 lg:mb-8" style={{ opacity: 0 }}>
-              <span className="w-8 h-px bg-[#ba1f3d] hidden lg:block" />
+            {/* LAPTOP ONLY: Inline Season Tag */}
+            <div data-anime className="hidden lg:flex items-center gap-3 mb-8" style={{ opacity: 0 }}>
+              <span className="w-8 h-px bg-[#ba1f3d]" />
               <span className="text-[10px] font-black uppercase tracking-[0.45em] text-[#ba1f3d]">
                 Pakistan's Premium Fashion Hub · SS '26
               </span>
