@@ -78,9 +78,7 @@ const PowerOfChoiceHero = () => {
         {/* MOBILE ONLY: Top Season Tag */}
         <div className="w-full px-6 flex justify-center lg:hidden mt-4">
           <span 
-            data-anime 
             className="text-[10px] font-black uppercase tracking-[0.45em] text-[#ba1f3d] text-center" 
-            style={{ opacity: 0 }}
           >
             Pakistan's Premium Fashion Hub · SS '26
           </span>
