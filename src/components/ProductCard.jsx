@@ -151,11 +151,6 @@ const ProductCard = ({ product, onImageLoad }) => {
         <h3 className="text-sm font-black text-gray-900 uppercase tracking-tight leading-snug mb-2 group-hover:text-[#ba1f3d] transition-colors duration-300 line-clamp-1">
           {product.name}
         </h3>
-        
-        {/* Temporary debug tag to inspect url propagation */}
-        <span className="text-[7px] text-gray-300 font-mono block truncate max-w-full mb-1">
-          {currentImage}
-        </span>
 
         {/* Price + Colors */}
         <div className="flex items-center justify-between">
