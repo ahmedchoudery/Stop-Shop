@@ -104,7 +104,14 @@ export function useAsync(asyncFn, options = {}) {
     setState({ data: initialData, loading: false, refreshing: false, error: null });
   }, [initialData]);
 
-  return [state, { execute, reset }];
+  const setData = useCallback((updater) => {
+    setState(prev => ({
+      ...prev,
+      data: typeof updater === 'function' ? updater(prev.data) : updater
+    }));
+  }, []);
+
+  return [state, { execute, reset, setData }];
 }
 
 /**
