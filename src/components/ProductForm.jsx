@@ -407,10 +407,10 @@ const BasicInfoSection = memo(({ form, setForm }) => (
     <div>
       <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Price (PKR) *</label>
       <div className="relative">
-        <DollarSign className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-xs">Rs.</span>
         <input type="number" step="0.01" value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))}
           placeholder="0.00"
-          className="w-full border-2 border-gray-200 rounded-xl pl-9 pr-4 py-3 text-sm font-bold focus:border-red-600 outline-none transition-colors" />
+          className="w-full border-2 border-gray-200 rounded-xl pl-10 pr-4 py-3 text-sm font-bold focus:border-red-600 outline-none transition-colors" />
       </div>
     </div>
   </div>
