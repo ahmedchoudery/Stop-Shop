@@ -1,10 +1,10 @@
 /**
  * @fileoverview useAsync — universal async state hook
  * Applies: react-patterns (custom hook extraction), react-ui-patterns (loading/error states),
- *          javascript-pro (async/await, race condition prevention)
+ *          javascript-pro (AbortController race condition prevention, async/await)
  */
 
-import { useState, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 
 /**
  * @typedef {Object} AsyncState
@@ -46,15 +46,18 @@ export function useAsync(asyncFn, options = {}) {
     error: null,
   });
 
-  // Ref to track latest call and prevent stale updates
-  const callIdRef = useRef(0);
+  // AbortController ref — cancels in-flight requests when a new one fires
+  const abortRef = useRef(null);
 
   const execute = useCallback(
-    async (...args) => {
-      const callId = ++callIdRef.current;
+    async (...args) =>
+    {
+      // Cancel any previous in-flight request
+      abortRef.current?.abort();
+      const controller = new AbortController();
+      abortRef.current = controller;
 
       setState(prev => {
-        // Show full loading spinner when: null OR empty array (nothing yet loaded)
         const hasNoData = prev.data === null
           || (Array.isArray(prev.data) && prev.data.length === 0);
         return {
@@ -66,10 +69,10 @@ export function useAsync(asyncFn, options = {}) {
       });
 
       try {
-        const result = await asyncFn(...args);
+        const result = await asyncFn(...args, controller.signal);
 
-        // Ignore stale responses from superseded calls
-        if (callId !== callIdRef.current) return;
+        // Guard: if this controller was already replaced, discard result
+        if (controller.signal.aborted) return;
 
         setState({
           data: result,
@@ -81,7 +84,8 @@ export function useAsync(asyncFn, options = {}) {
         onSuccess?.(result);
         return result;
       } catch (err) {
-        if (callId !== callIdRef.current) return;
+        // AbortError is not a real error — the request was intentionally cancelled
+        if (err?.name === 'AbortError') return;
 
         const message = err instanceof Error ? err.message : 'An unexpected error occurred';
 
@@ -99,8 +103,11 @@ export function useAsync(asyncFn, options = {}) {
     [asyncFn, onSuccess, onError]
   );
 
+  // Abort on unmount — prevents setState on unmounted component
+  useEffect(() => () => abortRef.current?.abort(), []);
+
   const reset = useCallback(() => {
-    callIdRef.current++;
+    abortRef.current?.abort();
     setState({ data: initialData, loading: false, refreshing: false, error: null });
   }, [initialData]);
 

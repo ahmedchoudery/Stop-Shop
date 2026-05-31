@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { authFetch, handleAuthError } from '../lib/auth.js';
 import { apiUrl } from '../config/api.js';
+import { useTimeout } from '../hooks/useUtils.js';
 
 // ─────────────────────────────────────────────────────────────────
 // HELPERS
@@ -24,10 +25,11 @@ import { apiUrl } from '../config/api.js';
 
 const useToast = () => {
     const [toast, setToast] = useState(null);
+    const set = useTimeout();
     const show = useCallback((message, type = 'success') => {
         setToast({ message, type, id: Date.now() });
-        setTimeout(() => setToast(null), 3500);
-    }, []);
+        set(() => setToast(null), 3500);
+    }, [set]);
     return { toast, show };
 };
 

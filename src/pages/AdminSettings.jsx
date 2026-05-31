@@ -3,16 +3,18 @@
  * Applies: react-ui-patterns (loading, optimistic save), design-spells (preview live update)
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Save, Eye, Zap, Image, Megaphone, AlertCircle, CheckCircle } from 'lucide-react';
 import { useSettings } from '../hooks/useDomain.js';
 import { AsyncContent } from '../components/ErrorBoundary.jsx';
+import { useTimeout } from '../hooks/useUtils.js';
 
 const AdminSettings = () => {
   const { data: settings, loading, error, updating, updateSettings, refetch } = useSettings(true);
   const [form, setForm] = useState({ logo: '', announcement: '' });
   const [toast, setToast] = useState(null);
   const [preview, setPreview] = useState(false);
+  const set = useTimeout();
 
   useEffect(() => {
     if (settings) {
@@ -20,10 +22,10 @@ const AdminSettings = () => {
     }
   }, [settings]);
 
-  const showToast = (message, type = 'success') => {
+  const showToast = useCallback((message, type = 'success') => {
     setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
-  };
+    set(() => setToast(null), 3000);
+  }, [set]);
 
   const handleSave = async () => {
     try {

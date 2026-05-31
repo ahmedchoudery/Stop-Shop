@@ -12,7 +12,7 @@ import { AsyncContent } from '../components/ErrorBoundary.jsx';
 import InventoryHealthChart from '../components/InventoryHealthChart.jsx';
 import { authFetch, handleAuthError } from '../lib/auth.js';
 import { apiUrl } from '../config/api.js';
-import { useDebounce } from '../hooks/useUtils.js';
+import { useDebounce, useTimeout } from '../hooks/useUtils.js';
 import { EASING } from '../hooks/useAnime.js';
 
 const AdminInventory = () => {
@@ -23,6 +23,7 @@ const AdminInventory = () => {
   const [stockFilter, setStockFilter] = useState('all');
   const [savedIds, setSavedIds] = useState(new Set());
   const searchTerm = useDebounce(searchRaw, 250);
+  const flashTimeout = useTimeout();
 
   const fetchProducts = useCallback(async () => {
     setLoading(true);
@@ -56,8 +57,8 @@ const AdminInventory = () => {
 
       // Flash success — design spell
       setSavedIds(prev => new Set(prev).add(productId));
-      setTimeout(() => {
-        setSavedIds(prev => { const n = new Set(prev); n.delete(productId); return n; });
+      flashTimeout(() => {
+        setSavedIds(new Set());
       }, 2000);
 
       // Spring bounce on the saved indicator
@@ -67,7 +68,7 @@ const AdminInventory = () => {
     } catch (err) {
       alert('Update failed: ' + err.message);
     }
-  }, []);
+  }, [flashTimeout]);
 
   const handleLocalChange = (id, field, value) => {
     setProducts(prev => prev.map(p =>

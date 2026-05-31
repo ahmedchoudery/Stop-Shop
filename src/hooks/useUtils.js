@@ -1,10 +1,37 @@
 /**
  * @fileoverview Utility hooks
  * Applies: react-patterns (extract reusable hooks), javascript-mastery (closures, event loop),
- *          javascript-pro (ES6+, proper cleanup)
+ *          javascript-pro (ES6+, AbortController, proper cleanup, Result pattern)
  */
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+
+// ─────────────────────────────────────────────────────────────────
+// useTimeout
+// ─────────────────────────────────────────────────────────────────
+
+/**
+ * Safe setTimeout — auto-clears on unmount to prevent setState-after-unmount leaks.
+ * javascript-mastery: closures + event loop awareness.
+ *
+ * @returns {(fn: function, delay: number) => void} set — call to start the timeout
+ *
+ * @example
+ * const set = useTimeout();
+ * const handleCopy = () => { setCopied(true); set(() => setCopied(false), 2000); };
+ */
+export function useTimeout() {
+  const timerRef = useRef(null);
+
+  // Clear on unmount
+  useEffect(() => () => clearTimeout(timerRef.current), []);
+
+  return useCallback((fn, delay) => {
+    clearTimeout(timerRef.current); // cancel any previous pending timer
+    timerRef.current = setTimeout(fn, delay);
+  }, []);
+}
+
 
 // ─────────────────────────────────────────────────────────────────
 // useDebounce
@@ -233,3 +260,85 @@ export function useScrollLock(locked) {
     return () => { document.body.style.overflow = original; };
   }, [locked]);
 }
+
+// ─────────────────────────────────────────────────────────────────
+// useAbortableFetch
+// ─────────────────────────────────────────────────────────────────
+
+/**
+ * Fetch data with automatic AbortController management.
+ * Cancels in-flight requests on cleanup (unmount or dep change).
+ * Filters AbortError so cancelled requests don't surface as UI errors.
+ *
+ * javascript-pro: AbortController pattern, race condition prevention.
+ *
+ * @param {string|null} url - URL to fetch; pass null to skip
+ * @param {RequestInit} [fetchOptions]
+ * @returns {{ data: any, loading: boolean, error: string|null }}
+ */
+export function useAbortableFetch(url, fetchOptions = {}) {
+  const [state, setState] = useState({ data: null, loading: !!url, error: null });
+  // Stable ref for fetchOptions to avoid re-triggering on every render
+  const optionsRef = useRef(fetchOptions);
+  optionsRef.current = fetchOptions;
+
+  useEffect(() => {
+    if (!url) {
+      setState({ data: null, loading: false, error: null });
+      return;
+    }
+
+    const controller = new AbortController();
+    setState(prev => ({ ...prev, loading: true, error: null }));
+
+    fetch(url, { ...optionsRef.current, signal: controller.signal })
+      .then(res => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json();
+      })
+      .then(data => setState({ data, loading: false, error: null }))
+      .catch(err => {
+        if (err?.name === 'AbortError') return; // intentionally cancelled — not an error
+        setState({ data: null, loading: false, error: err.message });
+      });
+
+    return () => controller.abort();
+  }, [url]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  return state;
+}
+
+// ─────────────────────────────────────────────────────────────────
+// Result — explicit success/failure without try/catch noise
+// ─────────────────────────────────────────────────────────────────
+
+/**
+ * Result pattern for explicit error handling at call sites.
+ * Eliminates try/catch boilerplate in components; caller decides how to handle failure.
+ *
+ * javascript-pro: functional error handling, no exception leakage.
+ *
+ * @example
+ * const result = await Result.from(fetchProduct(id));
+ * if (!result.ok) return showError(result.error);
+ * renderProduct(result.value);
+ */
+export const Result = {
+  /** @param {any} value */
+  ok:  (value) => ({ ok: true,  value }),
+  /** @param {string|Error} error */
+  err: (error) => ({ ok: false, error: error instanceof Error ? error.message : String(error) }),
+  /**
+   * Wrap an async operation into a Result — never throws.
+   * @param {Promise<any>} promise
+   * @returns {Promise<{ok: boolean, value?: any, error?: string}>}
+   */
+  from: async (promise) => {
+    try {
+      const value = await promise;
+      return Result.ok(value);
+    } catch (err) {
+      return Result.err(err);
+    }
+  },
+};

@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { authFetch, handleAuthError } from '../lib/auth.js';
 import { apiUrl } from '../config/api.js';
+import { useTimeout } from '../hooks/useUtils.js';
 
 // ─────────────────────────────────────────────────────────────────
 // UTILITIES
@@ -24,10 +25,11 @@ import { apiUrl } from '../config/api.js';
 
 const useToast = () => {
   const [toast, setToast] = useState(null);
+  const set = useTimeout();
   const show = useCallback((message, type = 'success') => {
     setToast({ message, type, id: Date.now() });
-    setTimeout(() => setToast(null), 3500);
-  }, []);
+    set(() => setToast(null), 3500);
+  }, [set]);
   return { toast, show };
 };
 
@@ -68,6 +70,7 @@ const AdminCoupons = () => {
   const [form,      setForm]      = useState(DEFAULT_FORM);
   const [errors,    setErrors]    = useState({});
   const [copied,    setCopied]    = useState(null);
+  const copyTimeout = useTimeout();
   const { toast, show: showToast } = useToast();
 
   // ── Fetch ────────────────────────────────────────────────────────
@@ -164,12 +167,12 @@ const AdminCoupons = () => {
   };
 
   // ── Copy code ─────────────────────────────────────────────────────
-  const handleCopy = (code) => {
+  const handleCopy = useCallback((code) => {
     navigator.clipboard?.writeText(code).then(() => {
       setCopied(code);
-      setTimeout(() => setCopied(null), 2000);
+      copyTimeout(() => setCopied(null), 2000);
     });
-  };
+  }, [copyTimeout]);
 
   const inputCls = (field) =>
     `w-full border-b-2 py-2.5 text-sm font-bold bg-transparent outline-none transition-all placeholder:text-gray-300 ${

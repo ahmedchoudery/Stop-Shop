@@ -10,7 +10,7 @@ import StatsGrid from '../components/StatsGrid.jsx';
 import RevenueChart from '../components/RevenueChart.jsx';
 import InventoryHealthChart from '../components/InventoryHealthChart.jsx';
 import { AsyncContent } from '../components/ErrorBoundary.jsx';
-import { useRevenueStats, useOrderStats, useInventoryStats } from '../hooks/useDomain.js';
+import { useDashboardStats } from '../hooks/useDomain.js';
 import { RefreshCw } from 'lucide-react';
 
 // ─────────────────────────────────────────────────────────────────
@@ -34,18 +34,7 @@ const ChartSkeleton = () => (
 // ─────────────────────────────────────────────────────────────────
 
 const DashboardHome = () => {
-  const revenue = useRevenueStats();
-  const orders = useOrderStats();
-  const inventory = useInventoryStats();
-
-  const isLoading = revenue.loading || orders.loading || inventory.loading;
-  const hasError = revenue.error ?? orders.error ?? inventory.error;
-
-  const handleRefresh = () => {
-    revenue.refetch();
-    orders.refetch();
-    inventory.refetch();
-  };
+  const { revenue, orders, inventory, loading: isLoading, error: hasError, refetch: handleRefresh } = useDashboardStats();
 
   return (
     <div>
@@ -85,17 +74,17 @@ const DashboardHome = () => {
 
       {/* Stats Grid */}
       <AsyncContent
-        loading={orders.loading || revenue.loading}
-        error={orders.error ?? revenue.error}
-        data={orders.data ?? revenue.data}
+        loading={isLoading}
+        error={hasError}
+        data={orders && revenue}
         skeleton={<StatsSkeleton />}
         onRetry={handleRefresh}
       >
         <StatsGrid
-          totalSales={revenue.data?.totalRevenue ?? 0}
-          totalOrders={orders.data?.totalOrders ?? 0}
-          trend={revenue.data?.trend ?? 0}
-          pendingOrders={orders.data?.pendingOrders ?? 0}
+          totalSales={revenue?.totalRevenue ?? 0}
+          totalOrders={orders?.totalOrders ?? 0}
+          trend={revenue?.trend ?? 0}
+          pendingOrders={orders?.pendingOrders ?? 0}
         />
       </AsyncContent>
 
@@ -104,44 +93,44 @@ const DashboardHome = () => {
         {/* Revenue Chart — takes 2/3 width on XL */}
         <div className="xl:col-span-2">
           <AsyncContent
-            loading={revenue.loading}
-            error={revenue.error}
-            data={revenue.data}
+            loading={isLoading}
+            error={hasError}
+            data={revenue}
             skeleton={<ChartSkeleton />}
-            onRetry={revenue.refetch}
+            onRetry={handleRefresh}
           >
-            <RevenueChart chartData={revenue.data?.weeklyData ?? []} />
+            <RevenueChart chartData={revenue?.weeklyData ?? []} />
           </AsyncContent>
         </div>
 
         {/* Inventory Health — takes 1/3 width on XL */}
         <div className="xl:col-span-1">
           <AsyncContent
-            loading={inventory.loading}
-            error={inventory.error}
-            data={inventory.data}
+            loading={isLoading}
+            error={hasError}
+            data={inventory}
             skeleton={<ChartSkeleton />}
-            onRetry={inventory.refetch}
+            onRetry={handleRefresh}
           >
-            <InventoryHealthChart products={inventory.data?.products ?? []} />
+            <InventoryHealthChart products={inventory?.products ?? []} />
           </AsyncContent>
         </div>
       </div>
 
       {/* Low Stock Alert */}
-      {!inventory.loading && (inventory.data?.lowStock ?? 0) > 0 && (
+      {!isLoading && (inventory?.lowStock ?? 0) > 0 && (
         <div className="mt-8 p-6 bg-yellow-50 border border-yellow-200 rounded-xl">
           <p className="text-xs font-black uppercase tracking-widest text-yellow-800">
-            ⚠️ {inventory.data.lowStock} product{inventory.data.lowStock !== 1 ? 's' : ''} running low on stock
+            ⚠️ {inventory.lowStock} product{inventory.lowStock !== 1 ? 's' : ''} running low on stock
           </p>
         </div>
       )}
 
       {/* Out of Stock Alert */}
-      {!inventory.loading && (inventory.data?.outOfStock ?? 0) > 0 && (
+      {!isLoading && (inventory?.outOfStock ?? 0) > 0 && (
         <div className="mt-4 p-6 bg-red-50 border border-red-200 rounded-xl">
           <p className="text-xs font-black uppercase tracking-widest text-red-700">
-            🚫 {inventory.data.outOfStock} product{inventory.data.outOfStock !== 1 ? 's' : ''} completely out of stock
+            🚫 {inventory.outOfStock} product{inventory.outOfStock !== 1 ? 's' : ''} completely out of stock
           </p>
         </div>
       )}

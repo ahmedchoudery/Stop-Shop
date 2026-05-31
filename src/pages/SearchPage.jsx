@@ -10,7 +10,7 @@
  * - No results state
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { Search, X, Filter, Package, ArrowLeft, SlidersHorizontal } from 'lucide-react';
 import { useCart } from '../context/CartContext.jsx';
@@ -99,13 +99,19 @@ const SearchPage = () => {
   const [sortBy,         setSortBy]         = useState('relevance');
   const [filtersOpen,    setFiltersOpen]    = useState(false);
 
-  // Fetch all products once
+  // Fetch all products once — AbortController cancels if component unmounts
   useEffect(() => {
-    fetch(apiUrl('/api/public/products'))
+    const controller = new AbortController();
+
+    fetch(apiUrl('/api/public/products'), { signal: controller.signal })
       .then(r => r.json())
-      .then(data => setProducts(Array.isArray(data) ? data : []))
-      .catch(() => setProducts([]))
+      .then(data => setProducts(Array.isArray(data) ? data : (data.products ?? [])))
+      .catch(err => {
+        if (err?.name !== 'AbortError') setProducts([]);
+      })
       .finally(() => setLoading(false));
+
+    return () => controller.abort();
   }, []);
 
   // Update URL when user submits search
@@ -149,10 +155,11 @@ const SearchPage = () => {
       return matchesQuery && matchesCategory && matchesStock;
     });
 
+    // .toSorted() — non-mutating (ES2023); preserves the original filtered array
     switch (sortBy) {
-      case 'price-asc':  return filtered.sort((a, b) => a.price - b.price);
-      case 'price-desc': return filtered.sort((a, b) => b.price - a.price);
-      case 'rating':     return filtered.sort((a, b) => (b.rating ?? 5) - (a.rating ?? 5));
+      case 'price-asc':  return filtered.toSorted((a, b) => a.price - b.price);
+      case 'price-desc': return filtered.toSorted((a, b) => b.price - a.price);
+      case 'rating':     return filtered.toSorted((a, b) => (b.rating ?? 5) - (a.rating ?? 5));
       default:           return filtered; // relevance = natural order
     }
   }, [products, urlQuery, categoryFilter, stockFilter, sortBy]);

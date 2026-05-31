@@ -22,7 +22,7 @@ import ProductFilters from '../components/ProductFilters.jsx';
 import { authFetch, handleAuthError } from '../lib/auth.js';
 import { apiUrl } from '../config/api.js';
 import { useAsync } from '../hooks/useAsync.js';
-import { useDebounce } from '../hooks/useUtils.js';
+import { useDebounce, useTimeout } from '../hooks/useUtils.js';
 import CsvImport from '../components/CsvImport.jsx';
 // ─────────────────────────────────────────────────────────────────
 // DEFAULT FORM STATE
@@ -55,11 +55,13 @@ const DEFAULT_FORM = {
 
 const useToast = () => {
   const [toast, setToast] = useState(null);
+  const set = useTimeout();
 
   const show = useCallback((message, type = 'success') => {
     setToast({ message, type, id: Date.now() });
-    setTimeout(() => setToast(null), 3500);
-  }, []);
+    // useTimeout auto-clears on unmount — no setState-after-unmount leak
+    set(() => setToast(null), 3500);
+  }, [set]);
 
   return { toast, show };
 };

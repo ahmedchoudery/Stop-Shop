@@ -166,6 +166,47 @@ export function useOrders() {
 // STATS HOOKS
 // ─────────────────────────────────────────────────────────────────
 
+/**
+ * Consolidated dashboard stats hook.
+ * Uses Promise.all to fetch revenue, order, and inventory stats in parallel.
+ * prevents waterfall loading and streamlines state management.
+ *
+ * javascript-pro: Promise.all coordination + unified error handling.
+ */
+export function useDashboardStats() {
+  const fetchAllStats = useCallback(async () => {
+    const [revRes, ordRes, invRes] = await Promise.all([
+      authFetch(apiUrl('/api/stats/revenue')),
+      authFetch(apiUrl('/api/stats/orders')),
+      authFetch(apiUrl('/api/stats/inventory')),
+    ]);
+
+    if (!revRes.ok) throw new Error('Failed to load revenue data');
+    if (!ordRes.ok) throw new Error('Failed to load orders data');
+    if (!invRes.ok) throw new Error('Failed to load inventory data');
+
+    const [revenue, orders, inventory] = await Promise.all([
+      revRes.json(),
+      ordRes.json(),
+      invRes.json(),
+    ]);
+
+    return { revenue, orders, inventory };
+  }, []);
+
+  const [state, { execute: refetch }] = useAsync(fetchAllStats);
+  useEffect(() => { refetch(); }, [refetch]);
+
+  return {
+    revenue: state.data?.revenue,
+    orders: state.data?.orders,
+    inventory: state.data?.inventory,
+    loading: state.loading,
+    error: state.error,
+    refetch,
+  };
+}
+
 export function useRevenueStats() {
   const fetchRevenue = useCallback(async () => {
     const res = await authFetch(apiUrl('/api/stats/revenue'));

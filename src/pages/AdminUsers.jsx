@@ -8,6 +8,7 @@ import { Plus, UserCheck, UserX, Shield, Clock, AlertCircle, X, Save } from 'luc
 import { AsyncContent } from '../components/ErrorBoundary.jsx';
 import { useAdminUsers } from '../hooks/useDomain.js';
 import { EASING } from '../hooks/useAnime.js';
+import { useTimeout } from '../hooks/useUtils.js';
 
 const ROLES = ['admin', 'super-admin', 'auditor'];
 
@@ -17,11 +18,12 @@ const AdminUsers = () => {
   const [toast, setToast] = useState(null);
   const [form, setForm] = useState({ name: '', email: '', password: '', roles: ['admin'] });
   const [formErrors, setFormErrors] = useState({});
+  const set = useTimeout();
 
-  const showToast = (message, type = 'success') => {
+  const showToast = useCallback((message, type = 'success') => {
     setToast({ message, type });
-    setTimeout(() => setToast(null), 3500);
-  };
+    set(() => setToast(null), 3500);
+  }, [set]);
 
   const validateForm = () => {
     const e = {};
