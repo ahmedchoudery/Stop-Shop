@@ -19,9 +19,7 @@ const ProductCard = ({ product, onImageLoad }) => {
   const currentImage =
     (activeColor && product.variantImages?.[activeColor])
       ? product.variantImages[activeColor]
-      : (product.gallery?.length > 0 && product.gallery[0]?.trim())
-        ? product.gallery[0]
-        : product.image;
+      : (product.image || product.gallery?.[0]);
 
   const wishlisted = isWishlisted(product.id);
   const outOfStock = product.stock === 0;
