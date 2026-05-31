@@ -11,13 +11,15 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { X, MapPin, ChevronRight, ChevronLeft, Search, Package, RotateCcw, MessageCircle } from 'lucide-react';
+import { X, MapPin, ChevronRight, ChevronLeft, Search, Package, RotateCcw, MessageCircle, User, LogOut } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext.jsx';
+import { useCustomer } from '../context/CustomerContext.jsx';
 import { CATEGORIES, CATEGORY_MAP } from '../utils/categories.js';
 
 const MobileDrawer = ({ isOpen, onClose }) => {
   const { setActiveBucket } = useCart();
+  const { customer, isLoggedIn, logout } = useCustomer();
   const navigate = useNavigate();
   const [activeCategoryView, setActiveCategoryView] = useState(null);
 
@@ -190,7 +192,48 @@ const MobileDrawer = ({ isOpen, onClose }) => {
         </div>
 
         {/* Footer */}
-        <div className="flex-shrink-0 border-t border-gray-100 px-6 py-5 bg-white z-10">
+        <div className="flex-shrink-0 border-t border-gray-100 px-6 py-5 bg-white z-10 space-y-4">
+          
+          {/* Customer Account / Login Area */}
+          <div className="border-b border-gray-100 pb-4">
+            {isLoggedIn ? (
+              <div className="flex items-center justify-between">
+                <Link
+                  to="/account"
+                  onClick={onClose}
+                  className="flex items-center space-x-3 group"
+                >
+                  <div className="w-9 h-9 bg-gray-900 text-white rounded-full flex items-center justify-center group-hover:bg-[#ba1f3d] transition-all">
+                    <User size={15} strokeWidth={2} />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-800 truncate max-w-[130px] group-hover:text-[#ba1f3d] transition-colors">
+                      {customer?.name}
+                    </p>
+                    <p className="text-[8px] text-gray-400 font-bold tracking-wider mt-0.5 uppercase">
+                      My Account
+                    </p>
+                  </div>
+                </Link>
+                <button
+                  onClick={() => { logout(); onClose(); }}
+                  className="flex items-center space-x-1.5 px-3 py-1.5 border border-gray-200 text-gray-500 text-[8px] font-black uppercase tracking-widest hover:text-[#ba1f3d] hover:border-[#ba1f3d] transition-all"
+                >
+                  <LogOut size={10} strokeWidth={2.5} />
+                  <span>Sign Out</span>
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => { navigate('/account/login'); onClose(); }}
+                className="w-full flex items-center justify-center space-x-2 bg-gray-900 text-white py-3 text-[10px] font-black uppercase tracking-[0.25em] transition-all duration-300 hover:bg-[#ba1f3d] shadow-md shadow-gray-200/50"
+              >
+                <User size={13} strokeWidth={2.5} />
+                <span>Customer Login</span>
+              </button>
+            )}
+          </div>
+
           <a
             href="https://www.google.com/maps/search/Zaib+Market+Gujrat+Punjab"
             target="_blank"
