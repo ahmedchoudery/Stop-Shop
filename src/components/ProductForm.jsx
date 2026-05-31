@@ -239,12 +239,16 @@ const MediaSection = memo(({ form, onImageUpload, uploading }) => (
         )}
       </div>
       <div className="flex-grow">
-        <label className={`flex flex-col items-center justify-center w-full py-6 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-red-400 hover:bg-red-50 transition-all ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
+        <label className={`flex flex-col items-center justify-center w-full py-4 px-6 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-red-400 hover:bg-red-50 transition-all text-center ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
           <Upload size={20} className="text-gray-400 mb-2" />
-          <span className="text-[11px] font-black uppercase tracking-widest text-gray-500">
+          <span className="text-[11px] font-black uppercase tracking-widest text-gray-500 mb-2">
             {uploading ? 'Uploading to Cloudinary...' : 'Click to Upload Media'}
           </span>
-          <span className="text-[10px] text-gray-400 mt-1">JPG, PNG, WEBP, MP4</span>
+          <div className="text-[9px] leading-relaxed text-gray-400 space-y-1">
+            <p><span className="font-bold text-gray-500">Images:</span> WebP (Best), JPG, PNG, GIF, SVG</p>
+            <p><span className="font-bold text-gray-500">Videos:</span> MP4, WebM, OGG (Short showcases)</p>
+            <p><span className="font-bold text-gray-500">Limits:</span> Max 5MB | <span className="font-bold text-gray-500">Ratio:</span> 1:1 or 4:5 recommended</p>
+          </div>
           <input type="file" accept="image/*,video/*" className="hidden" onChange={onImageUpload} disabled={uploading} />
         </label>
       </div>
