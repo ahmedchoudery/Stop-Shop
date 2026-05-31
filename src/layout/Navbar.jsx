@@ -1,61 +1,46 @@
 /**
- * @fileoverview Navbar.jsx — Updated
- * Added: Account icon → /account (logged in) or /account/login
- * Customer name shown when logged in.
+ * Navbar — Premium Minimalist Edition
+ * Sits at top-[34px] to clear the 34px MarqueeBar.
+ * Transparent on hero, crisp white on scroll. Cardinal Red as precise accent.
  */
 
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
 import {
-  Search, ShoppingCart, Heart, Menu, ChevronDown,
-  DollarSign, User, LogOut
+  Search, ShoppingBag, Heart, Menu,
+  User, LogOut, ChevronDown
 } from 'lucide-react';
 import { useCart } from '../context/CartContext.jsx';
 import { useWishlist } from '../context/WishlistContext.jsx';
-import { useCurrency } from '../context/CurrencyContext.jsx';
-import { useLocale } from '../context/LocaleContext.jsx';
 import { useCustomer } from '../context/CustomerContext.jsx';
 import MobileDrawer from './MobileDrawer.jsx';
-
-const CURRENCIES = {
-  PKR: { symbol: '₨', rate: 1 },
-  USD: { symbol: '$', rate: 0.0036 },
-  AED: { symbol: 'د.إ', rate: 0.013 },
-  GBP: { symbol: '£', rate: 0.0028 },
-};
 
 const BUCKETS = ['All', 'Tops', 'Bottoms', 'Footwear', 'Accessories'];
 
 const Navbar = ({ products = [], onSearchOpen, scrolled, isHome }) => {
-  const { cartCount, isBouncing, setActiveBucket, openDrawer } = useCart();
-  const { wishlistCount }     = useWishlist();
-  const { currency, setCurrency } = useCurrency();
-  const { locale, setLocale } = useLocale();
+  const { cartCount, setActiveBucket, openDrawer } = useCart();
+  const { wishlistCount } = useWishlist();
   const { customer, isLoggedIn, logout } = useCustomer();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [mobileOpen,    setMobileOpen]    = useState(false);
-  const [currencyOpen,  setCurrencyOpen]  = useState(false);
-  const [accountOpen,   setAccountOpen]   = useState(false);
-  const [activeTab,     setActiveTab]     = useState('All');
+  const [mobileOpen, setMobileOpen]   = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
+  const [subMenuOpen, setSubMenuOpen] = useState(null);
+  const [activeTab, setActiveTab]     = useState('All');
 
-  const { scrollY } = useScroll();
-  const headerHeight = useTransform(scrollY, [0, 60], [80, 64]);
-  const headerPadding = useTransform(scrollY, [0, 60], ['1.5rem', '1rem']);
+  const isTransparent = isHome && !scrolled;
 
-
-
-  // Update active tab based on cart context or logic if needed
-  // For now we keep it internal to the Navbar state
-
-  // Subcategory map
   const categoryMap = useMemo(() => {
     const map = {};
     BUCKETS.forEach(b => {
       if (b === 'All') return;
-      map[b] = [...new Set(products.filter(p => p.bucket === b && p.subCategory && p.subCategory.toLowerCase() !== 'general').map(p => p.subCategory))].sort();
+      map[b] = [...new Set(
+        products
+          .filter(p => p.bucket === b && p.subCategory && p.subCategory.toLowerCase() !== 'general')
+          .map(p => p.subCategory)
+      )].sort();
     });
     return map;
   }, [products]);
@@ -63,208 +48,139 @@ const Navbar = ({ products = [], onSearchOpen, scrolled, isHome }) => {
   const handleBucketClick = useCallback((bucket, sub = null) => {
     setActiveTab(bucket);
     setActiveBucket(bucket, sub);
-    if (location.pathname !== '/') {
-      navigate('/');
-    }
-    setTimeout(() => { 
-      document.getElementById('product-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); 
+    setSubMenuOpen(null);
+    if (location.pathname !== '/') navigate('/');
+    setTimeout(() => {
+      document.getElementById('product-grid')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }, 150);
   }, [setActiveBucket, navigate, location.pathname]);
 
-  // Framer Motion Variants
-  const navItemVariants = {
-    hidden: { opacity: 0, y: -10 },
-    show: { 
-      opacity: 1, 
-      y: 0,
-      transition: {
-        ease: [0.16, 1, 0.3, 1],
-        duration: 0.6
-      }
-    }
-  };
+  useEffect(() => {
+    if (!accountOpen) return;
+    const handler = () => setAccountOpen(false);
+    document.addEventListener('click', handler);
+    return () => document.removeEventListener('click', handler);
+  }, [accountOpen]);
+
+  const iconColor = isTransparent ? 'text-white/70' : 'text-gray-500';
+  const iconHover = isTransparent ? 'hover:text-white hover:bg-white/10' : 'hover:text-gray-900 hover:bg-gray-50';
+  const navBg     = isTransparent
+    ? 'bg-transparent border-b border-white/10'
+    : 'bg-white border-b border-gray-100 shadow-[0_1px_0_rgba(0,0,0,0.04)]';
 
   return (
     <>
-      <motion.header
-        style={{ height: headerHeight }}
-        className={`fixed top-0 left-0 w-full z-[100] transition-all duration-500 flex items-center ${
-          scrolled 
-            ? 'bg-[#0d0d0d]/95 backdrop-blur-xl border-b border-white/10 shadow-[0_4px_24px_rgba(0,0,0,0.4)]'
-            : isHome ? 'bg-black/30 backdrop-blur-md' : 'bg-white shadow-[0_2px_20px_rgba(0,0,0,0.08)]'
-        }`}
+      <header
+        className={`fixed left-0 w-full z-[100] transition-all duration-400 ${navBg}`}
+        style={{ top: '34px', height: scrolled ? '64px' : '72px' }}
       >
-        <div className="w-full flex items-center justify-between px-6 sm:px-10 lg:px-16 mx-auto max-w-[1920px]">
+        <div className="h-full w-full max-w-[1440px] mx-auto px-6 sm:px-10 lg:px-16 flex items-center justify-between">
 
-          {/* Logo Section */}
-          <Link to="/" className="flex-shrink-0 group relative" onClick={() => setActiveTab('All')}>
-            <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-              className="flex items-center"
-            >
-              <span className={`font-black italic uppercase tracking-tighter text-[#ba1f3d] transition-all duration-500 ${scrolled ? 'text-xl' : 'text-[1.5rem]'}`}>
-                Stop<span className={`${scrolled ? 'text-white' : 'text-white'} not-italic font-black mx-0.5 transition-colors duration-500`}>&</span>Shop
-              </span>
-              <div className="absolute -bottom-1 left-0 w-0 h-[2px] bg-[#ba1f3d] transition-all duration-500 group-hover:w-full opacity-50" />
-            </motion.div>
+          {/* Logo */}
+          <Link to="/" onClick={() => setActiveTab('All')} className="flex-shrink-0">
+            <span className={`text-xl font-black italic uppercase tracking-tighter transition-colors duration-300 ${
+              isTransparent ? 'text-white' : 'text-[#ba1f3d]'
+            }`}>
+              Stop
+              <span className={`not-italic font-black mx-0.5 transition-colors duration-300 ${
+                isTransparent ? 'text-white/80' : 'text-gray-900'
+              }`}>&</span>
+              Shop
+            </span>
           </Link>
 
-          {/* Desktop Navigation — Morphing Indicator */}
-          <nav className="hidden lg:flex items-center space-x-2">
-            {BUCKETS.map((bucket, idx) => (
-              <motion.div
+          {/* Desktop Nav */}
+          <nav className="hidden lg:flex items-center space-x-0.5">
+            {BUCKETS.map((bucket) => (
+              <div
                 key={bucket}
-                initial="hidden"
-                animate="show"
-                variants={navItemVariants}
-                transition={{ delay: 0.1 + idx * 0.05 }}
-                className="relative group/parent"
+                className="relative"
+                onMouseEnter={() => bucket !== 'All' && categoryMap[bucket]?.length > 0 && setSubMenuOpen(bucket)}
+                onMouseLeave={() => setSubMenuOpen(null)}
               >
                 <button
                   onClick={() => handleBucketClick(bucket)}
-                  className={`relative px-5 py-3 text-[10.5px] font-black uppercase tracking-[0.18em] transition-all duration-300 flex items-center space-x-1.5 z-10 ${
-                    activeTab === bucket 
-                      ? (scrolled ? 'text-white' : 'text-white') 
-                      : (scrolled ? 'text-gray-400 hover:text-white' : 'text-gray-100/60 hover:text-white')
+                  className={`relative flex items-center space-x-1.5 px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] transition-colors duration-200 ${
+                    activeTab === bucket
+                      ? isTransparent ? 'text-white' : 'text-gray-900'
+                      : isTransparent ? 'text-white/55 hover:text-white' : 'text-gray-400 hover:text-gray-900'
                   }`}
                 >
-                  <span className="relative z-20">{bucket}</span>
+                  <span>{bucket}</span>
                   {bucket !== 'All' && categoryMap[bucket]?.length > 0 && (
-                    <ChevronDown size={10} className={`group-hover/parent:rotate-180 transition-transform duration-500 z-20 ${activeTab === bucket ? 'opacity-100' : 'opacity-40'}`} />
+                    <ChevronDown size={9} className={`transition-transform duration-200 ${subMenuOpen === bucket ? 'rotate-180' : ''}`} />
                   )}
- 
-                  {/* Morphing Background Indicator — Editorial Style */}
                   {activeTab === bucket && (
                     <motion.div
-                      layoutId="navIndicator"
-                      className={`absolute inset-x-1 inset-y-1.5 rounded-full z-0 ${
-                        scrolled 
-                          ? 'bg-white/10 shadow-[0_0_20px_rgba(255,255,255,0.1)] border border-white/10' 
-                          : isHome ? 'bg-white/10 border border-white/10' : 'bg-gray-100 shadow-sm'
-                      }`}
-                      transition={{ type: 'spring', bounce: 0.15, duration: 0.7 }}
+                      layoutId="navUnderline"
+                      className="absolute bottom-0 left-4 right-4 h-[1.5px] bg-[#ba1f3d]"
+                      transition={{ type: 'spring', bounce: 0.15, duration: 0.5 }}
                     />
                   )}
                 </button>
- 
-                {/* Editorial Subcategory Dropdown with Hover Bridge */}
-                {bucket !== 'All' && categoryMap[bucket]?.length > 0 && (
-                  <div className="absolute top-full left-1/2 -translate-x-1/2 group-hover/parent:opacity-100 group-hover/parent:translate-y-0 group-hover/parent:pointer-events-auto opacity-0 translate-y-4 pointer-events-none transition-all duration-500 z-[110] min-w-[260px]">
-                    {/* The Hover Bridge: Prevents gap-induced mouse-out */}
-                    <div className="h-4 w-full" /> 
-                    
-                    <div className={`p-1.5 shadow-2xl ${
-                      scrolled ? 'glass-editorial rounded-2xl border border-white/10' : 'bg-white border border-gray-100 shadow-2xl rounded-2xl'
-                    }`}>
-                      <div className="py-2">
-                        <div className={`px-6 pb-2 mb-2 border-b flex items-center justify-between ${scrolled ? 'border-white/5' : 'border-gray-50'}`}>
-                          <p className={`text-[8px] font-black uppercase tracking-[0.4em] ${scrolled ? 'text-white/30' : 'text-gray-300'}`}>
-                            {bucket} / Collection
-                          </p>
-                        </div>
-                        
-                        <div className="space-y-0.5">
-                          {categoryMap[bucket].map(sub => (
-                            <button 
-                              key={sub} 
-                              onClick={() => handleBucketClick(bucket, sub)}
-                              className={`w-full text-left px-6 py-2.5 text-[9px] font-black uppercase tracking-[0.2em] transition-all duration-300 rounded-xl hover:translate-x-1 ${
-                                scrolled 
-                                  ? 'text-gray-300 hover:text-white hover:bg-white/10' 
-                                  : 'text-gray-500 hover:text-[#ba1f3d] hover:bg-red-50/50'
-                              }`}
-                            >
-                              {sub}
-                            </button>
-                          ))}
-                        </div>
 
-                        <div className="mt-3 pt-3 px-6 border-t border-transparent group-hover:border-white/5">
-                          <button 
-                            onClick={() => handleBucketClick(bucket)}
-                            className="text-[8px] font-black text-[#ba1f3d] uppercase tracking-[0.35em] hover:brightness-125 transition-all flex items-center gap-2 group/all"
-                          >
-                            <span>Explore Selection</span>
-                            <span className="text-[12px] group-hover/all:translate-x-1 transition-transform">→</span>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+                {bucket !== 'All' && categoryMap[bucket]?.length > 0 && subMenuOpen === bucket && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.18 }}
+                    className="absolute top-full left-0 mt-1 min-w-[180px] bg-white border border-gray-100 shadow-lg z-50 py-2"
+                  >
+                    <button
+                      onClick={() => handleBucketClick(bucket)}
+                      className="w-full text-left px-5 py-2.5 text-[9px] font-black uppercase tracking-widest text-gray-400 hover:text-[#ba1f3d] transition-colors"
+                    >
+                      All {bucket}
+                    </button>
+                    <div className="mx-4 h-px bg-gray-100 mb-1" />
+                    {categoryMap[bucket].map(sub => (
+                      <button
+                        key={sub}
+                        onClick={() => handleBucketClick(bucket, sub)}
+                        className="w-full text-left px-5 py-2.5 text-[9px] font-black uppercase tracking-widest text-gray-600 hover:text-[#ba1f3d] hover:bg-[#ba1f3d]/5 transition-all"
+                      >
+                        {sub}
+                      </button>
+                    ))}
+                  </motion.div>
                 )}
-              </motion.div>
+              </div>
             ))}
           </nav>
 
-          {/* Action Icons Section */}
-          <div className="flex items-center space-x-2">
-            
-            {/* Search — Minimalist & High Contrast */}
-            <Tooltip content="Search">
-              <button 
-                onClick={onSearchOpen} 
-                className={`p-3 rounded-full transition-all duration-500 ${
-                  scrolled ? 'text-white hover:bg-white/10' : 'text-gray-600 hover:bg-gray-100'
-                }`}
-              >
-                <Search size={18} strokeWidth={2.5} />
-              </button>
-            </Tooltip>
+          {/* Action Icons */}
+          <div className="flex items-center space-x-0.5">
+            <button onClick={onSearchOpen} className={`w-9 h-9 flex items-center justify-center transition-all duration-200 ${iconColor} ${iconHover}`} aria-label="Search">
+              <Search size={17} strokeWidth={1.8} />
+            </button>
 
-            {/* Account — Integrated into Theme */}
-            <div className="relative group/account">
+            <div className="relative hidden sm:block">
               <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (isLoggedIn) {
-                    setAccountOpen(o => !o);
-                    setCurrencyOpen(false);
-                  } else {
-                    navigate('/account/login');
-                  }
-                }}
-                className={`flex items-center space-x-2 p-3 rounded-full transition-all duration-500 ${
-                  scrolled ? 'text-white hover:bg-white/10' : 'text-gray-600 hover:bg-gray-100'
-                }`}
+                onClick={(e) => { e.stopPropagation(); if (isLoggedIn) setAccountOpen(o => !o); else navigate('/account/login'); }}
+                className={`w-9 h-9 flex items-center justify-center transition-all duration-200 ${iconColor} ${iconHover}`}
+                aria-label="Account"
               >
-                <User size={18} strokeWidth={2.5} />
-                {isLoggedIn && (
-                  <span className={`text-[10px] font-black uppercase tracking-widest hidden xl:block ${scrolled ? 'text-gray-300' : 'text-gray-700'}`}>
-                    {customer.name.split(' ')[0]}
-                  </span>
-                )}
+                <User size={17} strokeWidth={1.8} />
               </button>
-
               <AnimatePresence>
                 {isLoggedIn && accountOpen && (
-                  <motion.div 
-                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  <motion.div
+                    initial={{ opacity: 0, y: 6, scale: 0.97 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                    className={`absolute right-0 top-full mt-2 min-w-[200px] p-1 z-[120] ${
-                      scrolled ? 'glass-premium rounded-2xl shadow-2xl' : 'bg-white border border-gray-100 shadow-2xl rounded-2xl'
-                    }`}
+                    exit={{ opacity: 0, y: 6, scale: 0.97 }}
+                    transition={{ duration: 0.16 }}
+                    className="absolute right-0 top-full mt-2 min-w-[200px] bg-white border border-gray-100 shadow-xl z-50"
                   >
-                    <div className={`px-5 py-4 border-b ${scrolled ? 'border-white/10' : 'border-gray-50'}`}>
-                      <p className={`text-[10px] font-black uppercase tracking-widest ${scrolled ? 'text-white' : 'text-gray-900'}`}>{customer.name}</p>
-                      <p className="text-[9px] font-bold text-gray-400 lowercase">{customer.email}</p>
+                    <div className="px-5 py-4 border-b border-gray-50">
+                      <p className="text-[10px] font-black uppercase tracking-tight text-gray-900 truncate">{customer?.name}</p>
+                      <p className="text-[9px] text-gray-400 mt-0.5 truncate">{customer?.email}</p>
                     </div>
-                    <div className="py-1">
-                      <Link to="/account" onClick={() => setAccountOpen(false)}
-                        className={`flex items-center space-x-3 px-5 py-3 text-[10px] font-black uppercase tracking-widest transition-all rounded-xl ${
-                          scrolled ? 'text-gray-300 hover:text-white hover:bg-white/10' : 'text-gray-600 hover:bg-gray-50 hover:text-[#ba1f3d]'
-                        }`}>
-                        <User size={14} strokeWidth={2.5} />
-                        <span>Profile</span>
+                    <div className="py-2">
+                      <Link to="/account" onClick={() => setAccountOpen(false)} className="flex items-center space-x-2.5 px-5 py-2.5 text-[9px] font-black uppercase tracking-widest text-gray-600 hover:text-[#ba1f3d] hover:bg-[#ba1f3d]/5 transition-all">
+                        <User size={11} strokeWidth={2} /><span>My Account</span>
                       </Link>
-                      <button
-                        onClick={() => { logout(); setAccountOpen(false); }}
-                        className="w-full flex items-center space-x-3 px-5 py-3 text-[10px] font-black uppercase tracking-widest transition-all rounded-xl text-red-500 hover:bg-red-50"
-                      >
-                        <LogOut size={14} strokeWidth={2.5} />
-                        <span>Log Out</span>
+                      <button onClick={() => { logout(); setAccountOpen(false); }} className="w-full flex items-center space-x-2.5 px-5 py-2.5 text-[9px] font-black uppercase tracking-widest text-gray-400 hover:text-[#ba1f3d] hover:bg-[#ba1f3d]/5 transition-all">
+                        <LogOut size={11} strokeWidth={2} /><span>Sign Out</span>
                       </button>
                     </div>
                   </motion.div>
@@ -272,75 +188,34 @@ const Navbar = ({ products = [], onSearchOpen, scrolled, isHome }) => {
               </AnimatePresence>
             </div>
 
-            {/* Wishlist Button */}
-            <button 
-              onClick={() => openDrawer('wishlist')} 
-              className={`relative p-3 rounded-full transition-all duration-500 ${
-                scrolled ? 'text-white hover:bg-white/10' : 'text-gray-600 hover:bg-gray-100'
-              }`}
-            >
-              <Heart size={18} strokeWidth={2.5} />
+            <button onClick={() => openDrawer('wishlist')} className={`relative w-9 h-9 flex items-center justify-center transition-all duration-200 ${iconColor} ${iconHover}`} aria-label="Wishlist">
+              <Heart size={17} strokeWidth={1.8} />
               {wishlistCount > 0 && (
-                <motion.span 
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  className="absolute top-2 right-2 bg-[#ba1f3d] text-white text-[8px] font-black w-4 h-4 rounded-full flex items-center justify-center border-2 border-white"
-                >
+                <span className="absolute top-1.5 right-1.5 w-[13px] h-[13px] bg-[#ba1f3d] flex items-center justify-center text-[7px] font-black text-white leading-none">
                   {wishlistCount > 9 ? '9+' : wishlistCount}
-                </motion.span>
+                </span>
               )}
             </button>
 
-            {/* Cart Button — Tonal & Tactile */}
-            <motion.button
-              onClick={() => openDrawer('cart')}
-              className={`relative p-3 rounded-full transition-all duration-500 ${
-                scrolled 
-                  ? 'bg-white text-gray-900 shadow-xl' 
-                  : 'bg-[#ba1f3d] text-white shadow-lg'
-              } hover:scale-110 active:scale-95`}
-            >
-              <ShoppingCart size={18} strokeWidth={2.5} />
-              <AnimatePresence>
-                {cartCount > 0 && (
-                  <motion.span 
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    className={`absolute -top-1 -right-1 text-[8px] font-black w-5 h-5 rounded-full flex items-center justify-center border-2 ${
-                      scrolled ? 'bg-[#ba1f3d] text-white border-white' : 'bg-gray-900 text-white border-white'
-                    }`}
-                  >
-                    {cartCount > 9 ? '9+' : cartCount}
-                  </motion.span>
-                )}
-              </AnimatePresence>
-            </motion.button>
+            <button onClick={() => openDrawer('cart')} className={`relative w-9 h-9 flex items-center justify-center ml-1 transition-all duration-300 ${isTransparent ? 'bg-white/15 text-white hover:bg-white/25' : 'bg-gray-900 text-white hover:bg-[#ba1f3d]'}`} aria-label="Cart">
+              <ShoppingBag size={16} strokeWidth={1.8} />
+              {cartCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 w-[16px] h-[16px] bg-[#ba1f3d] flex items-center justify-center text-[7px] font-black text-white leading-none border-[1.5px] border-white">
+                  {cartCount > 9 ? '9+' : cartCount}
+                </span>
+              )}
+            </button>
 
-            {/* Mobile Toggle */}
-            <button
-              onClick={() => setMobileOpen(true)}
-              className={`lg:hidden p-3 rounded-full transition-all duration-500 ${
-                scrolled ? 'text-white' : 'text-gray-900 hover:bg-gray-100'
-              }`}
-            >
-              <Menu size={20} strokeWidth={2.5} />
+            <button onClick={() => setMobileOpen(true)} className={`lg:hidden w-9 h-9 flex items-center justify-center ml-1 transition-colors duration-200 ${iconColor} ${iconHover}`} aria-label="Menu">
+              <Menu size={20} strokeWidth={1.8} />
             </button>
           </div>
         </div>
-      </motion.header>
+      </header>
+
       <MobileDrawer isOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
     </>
   );
 };
-
-// Helper for tooltips if needed, or simple implementation
-const Tooltip = ({ children, content }) => (
-  <div className="relative group/tooltip">
-    {children}
-    <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-2 py-1 bg-gray-900 text-white text-[8px] font-black uppercase tracking-widest rounded opacity-0 pointer-events-none group-hover/tooltip:opacity-100 transition-opacity">
-      {content}
-    </div>
-  </div>
-);
 
 export default Navbar;

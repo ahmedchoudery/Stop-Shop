@@ -1948,7 +1948,28 @@ if (mongoUri) {
   mongoose.connect(mongoUri, { dbName: 'stopshop', maxPoolSize: 10, socketTimeoutMS: 45000, family: 4 })
     .then(async () => {
       console.log('✅ MongoDB connected (db: stopshop)');
-      // Seed the CARDINAL20 coupon promised in the newsletter if it doesn't exist yet
+
+      // Seed admin user if none exists
+      const adminEmail = process.env.ADMIN_EMAIL;
+      const adminPassword = process.env.ADMIN_PASSWORD;
+      if (adminEmail && adminPassword) {
+        try {
+          const existingAdmin = await Admin.findOne({ email: adminEmail });
+          if (!existingAdmin) {
+            const hashed = await bcrypt.hash(adminPassword, 12);
+            await Admin.create({
+              name: 'Super Admin',
+              email: adminEmail,
+              password: hashed,
+              roles: ['super-admin'],
+              isPrimary: true,
+            });
+            console.log('✅ Admin user seeded');
+          }
+        } catch (e) {
+          console.error('❌ Admin seed error:', e.message);
+        }
+      }      // Seed the CARDINAL20 coupon promised in the newsletter if it doesn't exist yet
       const exists = await Coupon.findOne({ code: 'CARDINAL20' }).lean();
       if (!exists) {
         await Coupon.create({

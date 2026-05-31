@@ -1,18 +1,16 @@
 /**
- * @fileoverview WishlistDrawer — Design Spells Edition
- * Fix: replaced require('animejs') with ESM import — animations are now functional
- * Applies: animejs-animation (spring entrance, stagger items),
- *          design-spells (move-to-cart with burst, hover lift on cards)
+ * WishlistDrawer — Premium Minimalist Edition
+ * Full-height right panel, surgical white space, Cardinal Red accents.
  */
 
 import React, { useEffect, useRef } from 'react';
 import anime from 'animejs';
-import { X, Heart, ShoppingBag, ArrowRight, Trash2 } from 'lucide-react';
+import { X, Heart, ShoppingBag, Trash2, ArrowRight } from 'lucide-react';
 import { useWishlist } from '../context/WishlistContext.jsx';
 import { useCart } from '../context/CartContext.jsx';
 import { useCurrency } from '../context/CurrencyContext.jsx';
-import { EASING } from '../hooks/useAnime.js';
 import { useScrollLock } from '../hooks/useUtils.js';
+import { EASING } from '../hooks/useAnime.js';
 
 const WishlistDrawer = ({ isOpen, onClose }) => {
   const { wishlist, toggleWishlist } = useWishlist();
@@ -20,38 +18,37 @@ const WishlistDrawer = ({ isOpen, onClose }) => {
   const { formatPrice } = useCurrency();
 
   const drawerRef = useRef(null);
-  const listRef = useRef(null);
+  const itemsRef = useRef(null);
 
   useScrollLock(isOpen);
 
-  // Spring slide-in
   useEffect(() => {
     if (!drawerRef.current) return;
-
     if (isOpen) {
       anime({
         targets: drawerRef.current,
         translateX: ['100%', '0%'],
-        duration: 550,
-        easing: EASING.SPRING,
+        duration: 500,
+        easing: 'cubicBezier(0.16, 1, 0.3, 1)',
       });
+      // Stagger items in
+      if (itemsRef.current) {
+        setTimeout(() => {
+          const items = itemsRef.current?.querySelectorAll('[data-wish-item]');
+          if (items?.length) {
+            anime.set(items, { opacity: 0, translateY: 12 });
+            anime({
+              targets: items,
+              opacity: [0, 1],
+              translateY: [12, 0],
+              duration: 350,
+              delay: anime.stagger(55),
+              easing: EASING.FABRIC,
+            });
+          }
+        }, 150);
+      }
     }
-  }, [isOpen]);
-
-  // Stagger items
-  useEffect(() => {
-    if (!isOpen || !listRef.current || !wishlist.length) return;
-
-    const items = listRef.current.querySelectorAll('[data-wish-item]');
-    anime.set(items, { opacity: 0, translateX: 20 });
-    anime({
-      targets: items,
-      opacity: [0, 1],
-      translateX: [20, 0],
-      duration: 400,
-      delay: anime.stagger(60),
-      easing: EASING.FABRIC,
-    });
   }, [isOpen, wishlist.length]);
 
   const handleClose = () => {
@@ -60,7 +57,7 @@ const WishlistDrawer = ({ isOpen, onClose }) => {
       targets: drawerRef.current,
       translateX: ['0%', '100%'],
       duration: 380,
-      easing: EASING.SILK,
+      easing: 'cubicBezier(0.7, 0, 1, 1)',
       complete: onClose,
     });
   };
@@ -68,19 +65,16 @@ const WishlistDrawer = ({ isOpen, onClose }) => {
   const handleMoveToCart = (product) => {
     addToCart(product);
     toggleWishlist(product);
-    // Animate the item out
     const el = document.querySelector(`[data-wish-id="${product.id}"]`);
     if (el) {
       anime({
         targets: el,
         opacity: [1, 0],
-        translateX: [0, 40],
+        translateX: [0, 60],
         height: [el.offsetHeight, 0],
-        marginBottom: [12, 0],
-        paddingTop: [0, 0],
-        paddingBottom: [0, 0],
-        duration: 350,
-        easing: EASING.SILK,
+        marginBottom: [0, 0],
+        duration: 300,
+        easing: 'cubicBezier(0.7, 0, 1, 1)',
       });
     }
   };
@@ -88,116 +82,160 @@ const WishlistDrawer = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-[150] overflow-hidden">
+    <div className="fixed inset-0 z-[150]">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm animate-fade-in"
+        className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"
+        style={{ animation: 'fadeIn 0.3s ease forwards' }}
         onClick={handleClose}
       />
 
       {/* Drawer */}
       <div
         ref={drawerRef}
-        className="absolute inset-y-0 right-0 w-full max-w-md bg-white shadow-2xl flex flex-col"
+        className="absolute inset-y-0 right-0 w-full max-w-[420px] bg-white flex flex-col shadow-2xl"
         style={{ transform: 'translateX(100%)', willChange: 'transform' }}
       >
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-5 bg-gray-900 text-white flex-shrink-0">
+        {/* ── Header ─────────────────────────────────────── */}
+        <div className="flex items-center justify-between px-8 py-6 border-b border-gray-100">
           <div className="flex items-center space-x-3">
-            <Heart size={20} className="text-[#ba1f3d] fill-[#ba1f3d]" />
-            <h2 className="text-base font-black uppercase tracking-tighter">Wishlist</h2>
+            <Heart size={16} className="text-[#ba1f3d] fill-[#ba1f3d]" />
+            <h2 className="text-[11px] font-black uppercase tracking-[0.4em] text-gray-900">
+              Saved Items
+            </h2>
             {wishlist.length > 0 && (
-              <span className="bg-[#ba1f3d] text-white text-[9px] font-black px-2 py-0.5 rounded-full">
-                {wishlist.length}
+              <span className="text-[9px] font-black text-gray-400">
+                ({wishlist.length})
               </span>
             )}
           </div>
           <button
             onClick={handleClose}
-            className="p-2 hover:bg-white/10 rounded-xl transition-all duration-200 hover:rotate-90 transform"
+            className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-900 transition-colors"
           >
-            <X size={20} />
+            <X size={18} />
           </button>
         </div>
 
-        {/* Content */}
-        <div ref={listRef} className="flex-grow overflow-y-auto p-5">
+        {/* ── Content ─────────────────────────────────────── */}
+        <div ref={itemsRef} className="flex-grow overflow-y-auto">
           {wishlist.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-center py-16 space-y-5">
-              <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center">
-                <Heart size={32} strokeWidth={1} className="text-gray-200" />
+            /* Empty state */
+            <div className="h-full flex flex-col items-center justify-center px-8 text-center">
+              <div className="w-16 h-16 border border-gray-100 flex items-center justify-center mb-6">
+                <Heart size={24} strokeWidth={1} className="text-gray-200" />
               </div>
-              <div>
-                <p className="font-black uppercase tracking-tight text-gray-900 mb-1">Wishlist is empty</p>
-                <p className="text-xs text-gray-400">Save pieces you love</p>
-              </div>
+              <p className="text-sm font-black uppercase tracking-tight text-gray-900 mb-2">
+                Nothing saved yet
+              </p>
+              <p className="text-xs text-gray-400 mb-8 leading-relaxed">
+                Heart pieces you love and they'll appear here for easy access.
+              </p>
               <button
                 onClick={handleClose}
-                className="flex items-center space-x-2 text-[10px] font-black uppercase tracking-widest text-[#ba1f3d] border-b border-[#ba1f3d]/30 pb-0.5 hover:border-[#ba1f3d] transition-colors"
+                className="flex items-center space-x-2 text-[10px] font-black uppercase tracking-[0.3em] text-[#ba1f3d] border-b border-[#ba1f3d]/40 pb-0.5 hover:border-[#ba1f3d] transition-colors"
               >
-                <span>Browse Collection</span>
-                <ArrowRight size={12} />
+                <span>Explore Collection</span>
+                <ArrowRight size={11} />
               </button>
             </div>
           ) : (
-            <div className="space-y-3">
-              {wishlist.map(product => (
+            <div className="px-8 py-6 space-y-0">
+              {wishlist.map((product, idx) => (
                 <div
                   key={product.id}
                   data-wish-item
                   data-wish-id={product.id}
-                  className="flex space-x-4 bg-gray-50 rounded-xl p-3 group hover:bg-gray-100/80 transition-colors duration-200 overflow-hidden"
+                  className={`flex space-x-4 py-6 group ${
+                    idx < wishlist.length - 1 ? 'border-b border-gray-50' : ''
+                  }`}
                 >
-                  {/* Image */}
+                  {/* Product image */}
                   <div
                     onClick={() => { openDrawer('product', product); handleClose(); }}
-                    className="w-20 h-24 bg-white rounded-lg overflow-hidden flex-shrink-0 cursor-pointer shadow-sm"
+                    className="w-[72px] h-[90px] bg-[#F8F7F5] overflow-hidden flex-shrink-0 cursor-pointer"
                   >
-                    <img
-                      src={product.image}
-                      alt={product.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                      loading="lazy"
-                    />
+                    {product.image ? (
+                      <img
+                        src={product.image}
+                        alt={product.name}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <ShoppingBag size={16} className="text-gray-300" />
+                      </div>
+                    )}
                   </div>
 
                   {/* Info */}
-                  <div className="flex-grow min-w-0">
-                    <div className="flex justify-between items-start mb-1">
-                      <div className="min-w-0 pr-2">
-                        <h3 className="text-[11px] font-black uppercase tracking-tight text-gray-900 leading-tight truncate">
-                          {product.name}
-                        </h3>
-                        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">
-                          {product.bucket}
-                        </p>
-                      </div>
-                      <button
-                        onClick={() => toggleWishlist(product)}
-                        className="p-1.5 text-gray-300 hover:text-red-500 transition-colors flex-shrink-0"
+                  <div className="flex-grow min-w-0 flex flex-col justify-between py-0.5">
+                    <div>
+                      {/* Category */}
+                      <p className="text-[8px] font-bold uppercase tracking-[0.35em] text-gray-400 mb-1">
+                        {product.bucket}
+                      </p>
+                      {/* Name */}
+                      <h3
+                        onClick={() => { openDrawer('product', product); handleClose(); }}
+                        className="text-[11px] font-black uppercase tracking-tight text-gray-900 leading-snug cursor-pointer hover:text-[#ba1f3d] transition-colors line-clamp-2 mb-2"
                       >
-                        <Trash2 size={12} />
-                      </button>
+                        {product.name}
+                      </h3>
+                      {/* Price */}
+                      <p className="text-sm font-black text-gray-900">
+                        {formatPrice(product.price)}
+                      </p>
                     </div>
 
-                    <p className="text-sm font-black text-[#ba1f3d] mb-3">
-                      {formatPrice(product.price)}
-                    </p>
-
-                    <button
-                      onClick={() => handleMoveToCart(product)}
-                      className="flex items-center space-x-2 text-[9px] font-black uppercase tracking-[0.25em] bg-gray-900 text-white px-3 py-2 rounded-lg hover:bg-[#ba1f3d] transition-all duration-300 group/btn"
-                    >
-                      <ShoppingBag size={11} />
-                      <span>Move to Bag</span>
-                    </button>
+                    {/* Actions */}
+                    <div className="flex items-center space-x-3 mt-3">
+                      <button
+                        onClick={() => handleMoveToCart(product)}
+                        className="flex items-center space-x-1.5 text-[9px] font-black uppercase tracking-[0.25em] text-white bg-gray-900 px-3 py-2 hover:bg-[#ba1f3d] transition-colors duration-300"
+                      >
+                        <ShoppingBag size={10} />
+                        <span>Add to Bag</span>
+                      </button>
+                      <button
+                        onClick={() => toggleWishlist(product)}
+                        className="p-2 text-gray-300 hover:text-[#ba1f3d] transition-colors"
+                        title="Remove"
+                      >
+                        <Trash2 size={13} />
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
           )}
         </div>
+
+        {/* ── Footer ─────────────────────────────────────── */}
+        {wishlist.length > 0 && (
+          <div className="border-t border-gray-100 px-8 py-6">
+            <button
+              onClick={() => {
+                wishlist.forEach(p => addToCart(p));
+                handleClose();
+              }}
+              className="w-full flex items-center justify-center space-x-2 bg-[#ba1f3d] text-white py-4 text-[10px] font-black uppercase tracking-[0.35em] hover:bg-gray-900 transition-colors duration-300"
+            >
+              <ShoppingBag size={13} />
+              <span>Add All to Bag</span>
+            </button>
+            <p className="text-center text-[9px] text-gray-400 font-bold mt-3 uppercase tracking-widest">
+              {wishlist.length} piece{wishlist.length !== 1 ? 's' : ''} saved
+            </p>
+          </div>
+        )}
       </div>
+
+      <style>{`
+        @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+      `}</style>
     </div>
   );
 };

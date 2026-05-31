@@ -1,263 +1,199 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import anime from 'animejs';
-import { Star, Heart, ShoppingCart, Plus } from 'lucide-react';
+import React, { useState, useCallback } from 'react';
+import { Heart, ShoppingBag, Eye } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext.jsx';
 import { useWishlist } from '../context/WishlistContext.jsx';
 import { useCurrency } from '../context/CurrencyContext.jsx';
-import { useLocale } from '../context/LocaleContext.jsx';
 import MediaRenderer from './MediaRenderer.jsx';
-import { EASING } from '../hooks/useAnime.js';
-import { useAntigravity } from '../hooks/useAntigravity.js';
 
 const ProductCard = ({ product, onImageLoad }) => {
   const navigate = useNavigate();
   const { addToCart } = useCart();
   const { toggleWishlist, isWishlisted } = useWishlist();
   const { formatPrice } = useCurrency();
-  const { t } = useLocale();
 
-  const [activeColor,  setActiveColor]  = useState(product.colors?.[0] ?? null);
-  const [galleryIndex, setGalleryIndex] = useState(0);
-  const [hasLoaded,    setHasLoaded]    = useState(false);
-  const [cartBurst,    setCartBurst]    = useState(false);
-  const [wishlistAnim, setWishlistAnim] = useState(false);
-  const [isHovered,    setIsHovered]    = useState(false);
+  const [activeColor, setActiveColor] = useState(product.colors?.[0] ?? null);
+  const [cartAdded, setCartAdded] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
 
-  const priceRef   = useRef(null);
+  const currentImage =
+    (activeColor && product.variantImages?.[activeColor])
+      ? product.variantImages[activeColor]
+      : product.gallery?.length > 0
+        ? product.gallery[0]
+        : product.image;
 
-  // ── Antigravity Motion ───────────────────────────────────────
-  const { elementRef: tiltRef, position: tiltPos } = useAntigravity({ type: 'tilt', power: 0.8 });
-
-
-  // ── Cleanup cart burst animation ──────────────────────────────
-  useEffect(() => {
-    if (!cartBurst) return;
-    const timer = setTimeout(() => setCartBurst(false), 600);
-    return () => clearTimeout(timer);
-  }, [cartBurst]);
-
-  // ── Cleanup wishlist animation ────────────────────────────────
-  useEffect(() => {
-    if (!wishlistAnim) return;
-    const timer = setTimeout(() => setWishlistAnim(false), 600);
-    return () => clearTimeout(timer);
-  }, [wishlistAnim]);
-
-  // ── Current image ───────────────────────────────────────────
-  const currentImage = (activeColor && product.variantImages?.[activeColor])
-    ? product.variantImages[activeColor]
-    : (product.gallery?.length > 0
-        ? product.gallery[galleryIndex % product.gallery.length]
-        : product.image);
-
-  useEffect(() => { setHasLoaded(false); }, [currentImage]);
-
-  const handleMouseEnter = useCallback(() => {
-    setIsHovered(true);
-  }, []);
-
-  const handleMouseLeave = useCallback(() => {
-    setIsHovered(false);
-  }, []);
+  const wishlisted = isWishlisted(product.id);
+  const outOfStock = product.stock === 0;
 
   const handleAddToCart = useCallback((e) => {
     e.stopPropagation();
-    setCartBurst(true);
-    setTimeout(() => setCartBurst(false), 600);
-
+    if (outOfStock) return;
     addToCart({
       ...product,
-      image:         currentImage,
-      selectedSize:  product.sizes?.[0] ?? '',
+      image: currentImage,
+      selectedSize: product.sizes?.[0] ?? '',
       selectedColor: activeColor ?? '',
-      quantity:      1,
+      quantity: 1,
     });
-  }, [addToCart, product, currentImage, activeColor]);
+    setCartAdded(true);
+    setTimeout(() => setCartAdded(false), 1800);
+  }, [addToCart, product, currentImage, activeColor, outOfStock]);
 
   const handleWishlist = useCallback((e) => {
     e.stopPropagation();
     toggleWishlist(product);
-    setWishlistAnim(true);
-    setTimeout(() => setWishlistAnim(false), 600);
   }, [product, toggleWishlist]);
 
   const handleCardClick = useCallback(() => {
     navigate(`/product/${product.id}`);
   }, [navigate, product.id]);
 
-  const wishlisted = isWishlisted(product.id);
-
-  // Dynamic tilt strings
-  const tiltTransform = `perspective(1000px) rotateX(${tiltPos.x}deg) rotateY(${tiltPos.y}deg) scale3d(1.02, 1.02, 1.02)`;
-  const shineBackground = `radial-gradient(circle at ${(tiltPos.y / 20 + 0.5) * 100}% ${(tiltPos.x / 20 + 0.5) * 100}%, rgba(255,255,255,0.15) 0%, transparent 60%)`;
+  const category = product.subCategory && product.subCategory.toLowerCase() !== 'general'
+    ? product.subCategory
+    : product.bucket;
 
   return (
-    <div
-      ref={tiltRef}
-      className="group relative bg-white flex flex-col h-full cursor-pointer overflow-visible rounded-xl p-3 border border-gray-100/50 transition-all duration-500"
-      data-selected-active={isHovered ? 'true' : 'false'}
-      style={{ 
-        transformStyle: 'preserve-3d', 
-        willChange: 'transform',
-        transform: isHovered ? tiltTransform : 'perspective(1000px) rotateX(0) rotateY(0) scale3d(1, 1, 1)',
-        transition: isHovered ? 'transform 0.1s linear' : 'transform 0.6s cubic-bezier(0.16, 1, 0.3, 1)',
-        boxShadow: isHovered ? '0 32px 80px rgba(0,0,0,0.08)' : 'none'
-      }}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
+    <article
+      className="group relative cursor-pointer"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       onClick={handleCardClick}
     >
-      {/* Shine overlay */}
-      <div
-        className="absolute inset-0 z-10 pointer-events-none rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-        style={{ 
-          background: shineBackground,
-          mixBlendMode: 'overlay',
-          transform: 'translateZ(1px)'
-        }}
-      />
+      {/* ── Image Container ─────────────────────────────── */}
+      <div className="relative aspect-[3/4] overflow-hidden bg-[#F8F7F5] mb-4">
 
-      {/* ── Image Container ──────────────────────────────────── */}
-      <div
-        className="relative aspect-[4/5] overflow-hidden bg-gray-50 mb-5 rounded-lg antigravity-depth"
-        style={{ transform: 'translateZ(30px)' }}
-      >
-        {/* Trending Badge */}
-        <div className="absolute top-4 left-4 z-20">
-          <span className="glass-premium bg-[#ba1f3d] text-white text-[8px] font-black px-3 py-1.5 uppercase tracking-[0.3em] rounded-full">
-            {t('status.trending')}
-          </span>
-        </div>
-
-        {/* Wishlist Heart */}
-        <button
-          onClick={handleWishlist}
-          className={`absolute top-4 right-4 z-20 p-2.5 rounded-full transition-all duration-500 ${
-            wishlisted
-              ? 'bg-[#ba1f3d] shadow-xl shadow-red-500/30 scale-110'
-              : 'bg-white/90 shadow-lg translate-y-1 group-hover:translate-y-0 opacity-0 group-hover:opacity-100'
-          }`}
-          style={{
-            transform:  wishlistAnim ? 'scale(1.4)' : undefined,
-            willChange: 'transform',
-          }}
-        >
-          <Heart
-            size={14}
-            className={wishlisted ? 'fill-white text-white' : 'text-gray-400 group-hover:text-[#ba1f3d]'}
-          />
-        </button>
-
-        {/* Product Image — BEAM REVEAL */}
+        {/* Main Image */}
         <MediaRenderer
           src={product.mediaType === 'embed' ? null : currentImage}
           embedCode={product.mediaType === 'embed' ? product.embedCode : undefined}
           mediaType={product.mediaType}
           alt={product.name}
-          onLoad={() => { setHasLoaded(true); onImageLoad?.(); }}
-          className={`w-full h-full object-cover transition-all duration-[1s] ease-out animate-beam-reveal ${
-            isHovered ? 'scale-110 blur-0' : 'scale-100'
-          } ${product.stock === 0 ? 'grayscale opacity-30' : ''}`}
+          onLoad={() => onImageLoad?.()}
+          className={`w-full h-full object-cover transition-transform duration-700 ease-out ${
+            isHovered ? 'scale-[1.06]' : 'scale-100'
+          } ${outOfStock ? 'opacity-50' : ''}`}
         />
 
-        {/* Quick Add Button — BOTTON RIGHT */}
-        <div className="absolute bottom-4 right-4 z-30">
-          {product.stock > 0 && (
+        {/* Overlay on hover — actions */}
+        <div className={`absolute inset-0 transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
+          {/* Gradient veil */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+
+          {/* Quick view button */}
+          <div className="absolute bottom-4 left-4 right-4">
             <button
-              onClick={handleAddToCart}
-              className={`transition-all duration-500 rounded-xl p-3 flex items-center justify-center ${
-                cartBurst
-                  ? 'bg-gray-900 shadow-xl scale-90'
-                  : 'bg-[#ba1f3d] hover:bg-gray-900 shadow-lg shadow-red-500/20 translate-y-2 group-hover:translate-y-0 opacity-100 lg:opacity-0' 
-              } text-white`}
-              style={{ 
-                willChange: 'transform',
-              }}
+              onClick={(e) => { e.stopPropagation(); navigate(`/product/${product.id}`); }}
+              className="w-full flex items-center justify-center space-x-2 bg-white text-gray-900 py-2.5 text-[10px] font-black uppercase tracking-[0.25em] transition-all duration-300 hover:bg-[#ba1f3d] hover:text-white"
             >
-              <div className="flex items-center justify-center relative">
-                {cartBurst ? <ShoppingCart size={16} /> : <Plus size={16} />}
-              </div>
-              <div className="absolute -top-1 -right-1">
-                 {cartBurst && <div className="w-2 h-2 bg-green-500 rounded-full animate-ping" />}
-              </div>
+              <Eye size={12} />
+              <span>Quick View</span>
             </button>
-          )}
+          </div>
         </div>
 
-        {/* Out of Stock Overlay */}
-        {product.stock === 0 && (
-          <div className="absolute inset-0 bg-white/60 backdrop-blur-[4px] flex items-center justify-center">
-            <span className="text-[#ba1f3d] font-black uppercase tracking-[0.5em] text-[9px] border-b border-[#ba1f3d]/30 pb-2">
-              {t('status.soldOut')}
+        {/* Wishlist button — top right */}
+        <button
+          onClick={handleWishlist}
+          className={`absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center transition-all duration-300 ${
+            wishlisted
+              ? 'bg-[#ba1f3d] opacity-100'
+              : 'bg-white opacity-0 group-hover:opacity-100'
+          }`}
+          style={{ backdropFilter: 'blur(4px)' }}
+        >
+          <Heart
+            size={13}
+            className={wishlisted ? 'fill-white text-white' : 'text-gray-700'}
+          />
+        </button>
+
+        {/* Add to cart — top left, appears on hover */}
+        {!outOfStock && (
+          <button
+            onClick={handleAddToCart}
+            className={`absolute top-3 left-3 z-10 w-8 h-8 flex items-center justify-center bg-white transition-all duration-300 ${
+              cartAdded ? 'bg-[#ba1f3d]' : ''
+            } ${isHovered ? 'opacity-100' : 'opacity-0'}`}
+          >
+            <ShoppingBag
+              size={13}
+              className={cartAdded ? 'text-white' : 'text-gray-700'}
+            />
+          </button>
+        )}
+
+        {/* Sold out badge */}
+        {outOfStock && (
+          <div className="absolute top-3 left-3 z-10 bg-white px-2 py-1">
+            <span className="text-[8px] font-black uppercase tracking-[0.3em] text-gray-500">
+              Sold Out
+            </span>
+          </div>
+        )}
+
+        {/* New badge */}
+        {!outOfStock && product.rating >= 5 && (
+          <div className="absolute top-3 left-3 z-10 bg-[#ba1f3d] px-2 py-1">
+            <span className="text-[8px] font-black uppercase tracking-[0.3em] text-white">
+              New
             </span>
           </div>
         )}
       </div>
 
-      {/* ── Product Details ──────────────────────────────────── */}
-      <div
-        className="flex flex-col flex-grow text-center px-1 antigravity-depth"
-        style={{ transform: 'translateZ(20px)' }}
-      >
-        <p className="text-[8px] font-black text-[#ba1f3d] mb-2 uppercase tracking-[0.4em]">
-          {product.subCategory && product.subCategory.toLowerCase() !== 'general'
-            ? product.subCategory
-            : product.bucket}
+      {/* ── Product Info ─────────────────────────────────── */}
+      <div className="px-0.5">
+        {/* Category */}
+        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.35em] mb-1.5">
+          {category}
         </p>
 
-        <p
-          className="text-xs font-black text-gray-900 mb-3 uppercase tracking-tighter leading-tight"
-        >
-          {product.name.toUpperCase()}
-        </p>
+        {/* Name */}
+        <h3 className="text-sm font-black text-gray-900 uppercase tracking-tight leading-snug mb-2 group-hover:text-[#ba1f3d] transition-colors duration-300 line-clamp-1">
+          {product.name}
+        </h3>
 
-        <div className="mt-auto space-y-3">
-          <p
-            ref={priceRef}
-            className="text-lg font-black text-gray-900 tracking-widest transition-all duration-300"
-            style={{
-              color: isHovered ? '#ba1f3d' : undefined,
-            }}
-          >
+        {/* Price + Colors */}
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-black text-gray-900 tracking-wide">
             {formatPrice(product.price)}
-          </p>
+          </span>
 
-          {/* Color Swatches */}
+          {/* Color dots */}
           {product.colors?.length > 0 && (
-            <div className="flex items-center justify-center space-x-2">
-              {product.colors.map(color => (
-                <button
-                  key={color}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setActiveColor(color);
-                  }}
-                  className={`w-2.5 h-2.5 rounded-full transition-all duration-500 ${
-                    activeColor === color
-                      ? 'ring-1 ring-offset-2 ring-offset-black ring-[#ba1f3d] scale-125'
-                      : 'opacity-40 hover:opacity-100'
-                  }`}
-                  style={{ backgroundColor: color.includes('|') ? color.split('|')[0] : color }}
-                />
-              ))}
+            <div className="flex items-center space-x-1">
+              {product.colors.slice(0, 4).map(color => {
+                const hex = color.includes('|') ? color.split('|')[0] : color;
+                return (
+                  <button
+                    key={color}
+                    onClick={(e) => { e.stopPropagation(); setActiveColor(color); }}
+                    className={`w-2.5 h-2.5 rounded-full border transition-all duration-200 ${
+                      activeColor === color
+                        ? 'border-[#ba1f3d] ring-1 ring-[#ba1f3d] ring-offset-1'
+                        : 'border-gray-200 hover:border-gray-400'
+                    }`}
+                    style={{ backgroundColor: hex }}
+                  />
+                );
+              })}
+              {product.colors.length > 4 && (
+                <span className="text-[8px] text-gray-400 font-bold">+{product.colors.length - 4}</span>
+              )}
             </div>
           )}
-
-          {/* Stars */}
-          <div className={`flex items-center justify-center space-x-0.5 transition-opacity duration-700 ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
-            {[...Array(5)].map((_, i) => (
-              <Star
-                key={i}
-                size={8}
-                className={i < product.rating ? 'fill-[#ba1f3d] text-[#ba1f3d]' : 'text-gray-200'}
-              />
-            ))}
-          </div>
         </div>
+
+        {/* Cart added feedback */}
+        {cartAdded && (
+          <p className="text-[9px] font-black text-[#ba1f3d] uppercase tracking-widest mt-1.5 animate-fade-up">
+            ✓ Added to bag
+          </p>
+        )}
       </div>
-    </div>
+    </article>
   );
 };
 
-export default ProductCard;
+export default ProductCard;

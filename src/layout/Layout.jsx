@@ -1,7 +1,9 @@
 /**
- * @fileoverview Layout — Main site wrapper
- * Updated: Added WhatsAppButton globally — appears on all storefront pages,
- *          hidden automatically on /admin and /login routes.
+ * @fileoverview Layout — Updated for Premium Redesign
+ * Changes:
+ *  - MarqueeBar is 34px tall, Navbar is 64–72px → total top offset = 34 + 68 = 102px
+ *  - Simplified page transition (clip-path removed — too heavy on mobile)
+ *  - isHome passed to MarqueeBar for transparent mode
  */
 
 import React, { useState, useEffect } from 'react';
@@ -9,39 +11,22 @@ import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from './Navbar.jsx';
 import Footer from './Footer.jsx';
+import MarqueeBar from '../components/MarqueeBar.jsx';
 import SearchOverlay from '../components/SearchOverlay.jsx';
 import WhatsAppButton from '../components/WhatsAppButton.jsx';
 import { useSettings } from '../hooks/useDomain.js';
 
-/**
- * Liquid Page Transition variants
- */
+// ── Page transition — clean fade + subtle lift ─────────────────────
 const pageVariants = {
-  initial: {
-    opacity: 0,
-    clipPath: 'circle(0% at 50% 50%)',
-    filter: 'blur(40px)',
-    scale: 1.1,
-  },
+  initial: { opacity: 0, y: 10 },
   animate: {
     opacity: 1,
-    clipPath: 'circle(150% at 50% 50%)',
-    filter: 'blur(0px)',
-    scale: 1,
-    transition: {
-      duration: 1.2,
-      ease: [0.23, 1, 0.32, 1], // Liquid expansion easing
-    },
+    y: 0,
+    transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] },
   },
   exit: {
     opacity: 0,
-    clipPath: 'circle(0% at 50% 50%)',
-    filter: 'blur(40px)',
-    scale: 0.9,
-    transition: {
-      duration: 0.8,
-      ease: [0.23, 1, 0.32, 1],
-    },
+    transition: { duration: 0.2, ease: 'easeIn' },
   },
 };
 
@@ -49,29 +34,44 @@ const Layout = ({ children, products = [] }) => {
   const [searchOpen, setSearchOpen] = useState(false);
   const { data: settings } = useSettings(false);
   const location = useLocation();
-
   const [scrolled, setScrolled] = useState(false);
 
-  // Scroll to top on every route change
+  // Scroll to top on route change
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [location.pathname]);
 
-  // Unified scroll detection
+  // Scroll detection — triggers navbar style change
   useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
+    const handleScroll = () => setScrolled(window.scrollY > 30);
     window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll(); // Initial check
+    handleScroll();
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const isHome = location.pathname === '/';
 
+  // Top padding calculation:
+  //   MarqueeBar = 34px (fixed, top-0)
+  //   Navbar     = 64px scrolled / 72px default (fixed, top-[34px])
+  //   Total      = 34 + 72 = 106px on non-home pages
+  //   Home page gets pt-0 because the hero is full-bleed under the bars
+  const mainPadding = isHome ? 'pt-0' : 'pt-[106px]';
+
   return (
-    <div className="min-h-screen flex flex-col bg-white overflow-hidden">
-      {/* Sticky navbar */}
+    <div className="min-h-screen flex flex-col bg-white">
+
+      {/* ── Marquee announcement bar (topmost, 34px) ─── */}
+      <MarqueeBar
+        announcement={settings?.announcement}
+        scrolled={scrolled}
+        isHome={isHome}
+      />
+
+      {/* ── Navbar (sits below marquee bar, top-[34px]) ─ */}
+      {/* Note: Navbar itself is fixed top-0 — we offset it internally */}
+      {/* The Navbar component handles its own `top` via fixed positioning */}
+      {/* We pass scrolled + isHome so it can change its own style */}
       <Navbar
         onSearchOpen={() => setSearchOpen(true)}
         products={products}
@@ -79,8 +79,8 @@ const Layout = ({ children, products = [] }) => {
         isHome={isHome}
       />
 
-      {/* Page content with Liquid Transition */}
-      <main className={`flex-grow relative ${isHome ? 'pt-0' : 'pt-[80px] lg:pt-[100px]'}`}>
+      {/* ── Page content ─────────────────────────────── */}
+      <main className={`flex-grow relative ${mainPadding}`}>
         <AnimatePresence mode="wait">
           <motion.div
             key={location.pathname}
@@ -88,24 +88,24 @@ const Layout = ({ children, products = [] }) => {
             initial="initial"
             animate="animate"
             exit="exit"
-            className="w-full h-full"
+            className="w-full"
           >
             {children}
           </motion.div>
         </AnimatePresence>
       </main>
 
-      {/* Footer */}
+      {/* ── Footer ───────────────────────────────────── */}
       <Footer />
 
-      {/* Search overlay — portal-like, above everything */}
+      {/* ── Search overlay ────────────────────────────── */}
       <SearchOverlay
         isOpen={searchOpen}
         onClose={() => setSearchOpen(false)}
         products={products}
       />
 
-      {/* WhatsApp floating button — auto-hidden on admin/login pages */}
+      {/* ── WhatsApp floating button ──────────────────── */}
       <WhatsAppButton />
     </div>
   );

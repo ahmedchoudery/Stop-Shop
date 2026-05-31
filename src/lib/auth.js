@@ -137,17 +137,25 @@ export const isLoggedIn = () => {
  * @throws {Error} with user-friendly message
  */
 export const adminLogin = async (email, password) => {
-  const res = await fetch(apiUrl('/api/admin/login'), {
+const res = await fetch('/api/admin/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',
     body: JSON.stringify({ email, password }),
   });
 
-  const data = await res.json();
+  // Try to parse JSON, but fallback gracefully if response is empty or malformed
+  let data = {};
+  try {
+    const text = await res.text();
+    data = text ? JSON.parse(text) : {};
+  } catch (e) {
+    console.warn('Unable to parse JSON from admin login response', e);
+    data = {};
+  }
 
   if (!res.ok) {
-    // Map status codes to user-friendly messages
+    // Map status codes to user‑friendly messages
     const messages = {
       401: data.error ?? 'Invalid email or password.',
       423: data.error ?? 'Account is temporarily locked.',

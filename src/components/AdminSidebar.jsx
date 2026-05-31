@@ -1,172 +1,94 @@
 /**
- * @fileoverview App.jsx — Root component with all routes
- * Updated: Added AdminReviews route at /admin/reviews
+ * @fileoverview AdminSidebar — Fixed sidebar navigation for the admin dashboard.
+ * Uses NavLink (no Router) — it lives inside the App's existing Router.
  */
 
-import React, { useState, lazy, Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import Layout from '../layout/Layout.jsx';
-import UniversalDrawer from '../layout/UniversalDrawer.jsx';
+import React from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
+import {
+  LayoutDashboard,
+  ShoppingCart,
+  Package,
+  Boxes,
+  Users,
+  Settings,
+  FileText,
+  Tag,
+  BarChart3,
+  Star,
+  LogOut,
+  Shield,
+} from 'lucide-react';
+import { clearToken } from '../lib/auth.js';
 
-import CursorFollower from '../components/CursorFollower.jsx';
-import { CartProvider } from '../context/CartContext.jsx';
-import { WishlistProvider } from '../context/WishlistContext.jsx';
-import { RecentlyViewedProvider } from '../context/RecentlyViewedContext.jsx';
-import { CurrencyProvider } from '../context/CurrencyContext.jsx';
-import { LocaleProvider } from '../context/LocaleContext.jsx';
-import ErrorBoundary from '../components/ErrorBoundary.jsx';
-import HomePage from '../pages/HomePage.jsx';
-import CheckoutPage from '../pages/CheckoutPage.jsx';
-import AdminDashboard from '../pages/AdminDashboard.jsx';
-import DashboardHome from '../pages/DashboardHome.jsx';
-import LoginPage from '../pages/LoginPage.jsx';
-import ProtectedRoute from '../components/ProtectedRoute.jsx';
+const NAV_ITEMS = [
+  { to: '/admin/dashboard',  icon: LayoutDashboard, label: 'Dashboard' },
+  { to: '/admin/orders',     icon: ShoppingCart,    label: 'Orders' },
+  { to: '/admin/products',   icon: Package,         label: 'Products' },
+  { to: '/admin/inventory',  icon: Boxes,           label: 'Inventory' },
+  { to: '/admin/analytics',  icon: BarChart3,       label: 'Analytics' },
+  { to: '/admin/coupons',    icon: Tag,             label: 'Coupons' },
+  { to: '/admin/reviews',    icon: Star,            label: 'Reviews' },
+  { to: '/admin/users',      icon: Users,           label: 'Users' },
+  { to: '/admin/audits',     icon: FileText,        label: 'Audit Log' },
+  { to: '/admin/settings',   icon: Settings,        label: 'Settings' },
+];
 
-// ── Admin pages (lazy) ─────────────────────────────────────────────
-const AdminOrders    = lazy(() => import('../pages/AdminOrders.jsx'));
-const AdminInventory = lazy(() => import('../pages/AdminInventory.jsx'));
-const AdminProducts  = lazy(() => import('../pages/AdminProducts.jsx'));
-const AdminUsers     = lazy(() => import('../pages/AdminUsers.jsx'));
-const AdminSettings  = lazy(() => import('../pages/AdminSettings.jsx'));
-const AdminAuditPanel = lazy(() => import('../pages/AdminAuditPanel.jsx'));
-const AdminCoupons   = lazy(() => import('../pages/AdminCoupons.jsx'));
-const AdminAnalytics = lazy(() => import('../pages/AdminAnalytics.jsx'));
-const AdminReviews   = lazy(() => import('../pages/AdminReviews.jsx'));  // ← NEW
+const AdminSidebar = () => {
+  const navigate = useNavigate();
 
-// ── Public pages (lazy) ────────────────────────────────────────────
-const ProductPage       = lazy(() => import('../pages/ProductPage.jsx'));
-const SearchPage        = lazy(() => import('../pages/SearchPage.jsx'));
-const OrderTrackingPage = lazy(() => import('../pages/OrderTrackingPage.jsx'));
-const OrderSuccessPage  = lazy(() => import('../pages/OrderSuccessPage.jsx'));
-const ReturnsPage       = lazy(() => import('../pages/ReturnsPage.jsx'));
+  const handleLogout = () => {
+    clearToken();
+    navigate('/login', { replace: true });
+  };
 
-const PageLoader = () => (
-  <div className="flex items-center justify-center h-64">
-    <div className="flex flex-col items-center space-y-3">
-      <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#ba1f3d]" />
-      <p className="text-[9px] font-black uppercase tracking-[0.4em] text-gray-300">Loading</p>
-    </div>
-  </div>
-);
-
-const HomeWithLayout = () => {
-  const [liveProducts, setLiveProducts] = useState([]);
   return (
-    <Layout products={liveProducts}>
-      <HomePage onProductsLoaded={setLiveProducts} />
-    </Layout>
+    <aside className="fixed left-0 top-0 h-screen w-64 bg-gray-900 text-white flex flex-col z-40">
+      {/* Brand */}
+      <div className="px-6 py-6 border-b border-white/10">
+        <h1 className="text-lg font-black italic uppercase tracking-tighter text-[#ba1f3d]">
+          Stop & Shop
+        </h1>
+        <div className="flex items-center space-x-1.5 mt-1">
+          <Shield size={10} className="text-gray-500" />
+          <p className="text-[8px] font-black uppercase tracking-[0.3em] text-gray-500">
+            Admin Panel
+          </p>
+        </div>
+      </div>
+
+      {/* Navigation */}
+      <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+        {NAV_ITEMS.map(({ to, icon: Icon, label }) => (
+          <NavLink
+            key={to}
+            to={to}
+            className={({ isActive }) =>
+              `flex items-center space-x-3 px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${
+                isActive
+                  ? 'bg-[#ba1f3d] text-white shadow-lg shadow-[#ba1f3d]/20'
+                  : 'text-gray-400 hover:text-white hover:bg-white/5'
+              }`
+            }
+          >
+            <Icon size={16} />
+            <span>{label}</span>
+          </NavLink>
+        ))}
+      </nav>
+
+      {/* Logout */}
+      <div className="px-3 py-4 border-t border-white/10">
+        <button
+          onClick={handleLogout}
+          className="flex items-center space-x-3 px-4 py-2.5 rounded-lg text-xs font-bold uppercase tracking-wider text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-all w-full"
+        >
+          <LogOut size={16} />
+          <span>Logout</span>
+        </button>
+      </div>
+    </aside>
   );
 };
 
-function App() {
-
-
-  return (
-    <ErrorBoundary title="Something went wrong">
-      <LocaleProvider>
-        <CurrencyProvider>
-          <RecentlyViewedProvider>
-            <WishlistProvider>
-              <CartProvider>
-                <CursorFollower />
-
-
-                <Router>
-                  <Routes>
-
-                    {/* ── Storefront ──────────────────────────────────── */}
-                    <Route path="/" element={<HomeWithLayout />} />
-
-                    <Route path="/product/:id" element={
-                      <Layout>
-                        <Suspense fallback={<PageLoader />}>
-                          <ProductPage />
-                        </Suspense>
-                      </Layout>
-                    } />
-
-                    <Route path="/search" element={
-                      <Suspense fallback={<PageLoader />}>
-                        <SearchPage />
-                      </Suspense>
-                    } />
-
-                    <Route path="/checkout" element={
-                      <Layout>
-                        <CheckoutPage />
-                      </Layout>
-                    } />
-
-                    <Route path="/order-success" element={
-                      <Suspense fallback={<PageLoader />}>
-                        <OrderSuccessPage />
-                      </Suspense>
-                    } />
-
-                    <Route path="/track" element={
-                      <Suspense fallback={<PageLoader />}>
-                        <OrderTrackingPage />
-                      </Suspense>
-                    } />
-
-                    <Route path="/returns" element={
-                      <Layout>
-                        <Suspense fallback={<PageLoader />}>
-                          <ReturnsPage />
-                        </Suspense>
-                      </Layout>
-                    } />
-
-                    {/* ── Auth ────────────────────────────────────────── */}
-                    <Route path="/login" element={<LoginPage />} />
-
-                    {/* ── Admin ───────────────────────────────────────── */}
-                    <Route
-                      path="/admin"
-                      element={
-                        <ProtectedRoute>
-                          <AdminDashboard />
-                        </ProtectedRoute>
-                      }
-                    >
-                      <Route index element={<Navigate to="/admin/dashboard" replace />} />
-                      <Route path="dashboard"  element={<DashboardHome />} />
-                      <Route path="orders"     element={<Suspense fallback={<PageLoader />}><AdminOrders /></Suspense>} />
-                      <Route path="inventory"  element={<Suspense fallback={<PageLoader />}><AdminInventory /></Suspense>} />
-                      <Route path="products"   element={<Suspense fallback={<PageLoader />}><AdminProducts /></Suspense>} />
-                      <Route path="users"      element={<Suspense fallback={<PageLoader />}><AdminUsers /></Suspense>} />
-                      <Route path="audits"     element={<Suspense fallback={<PageLoader />}><AdminAuditPanel /></Suspense>} />
-                      <Route path="settings"   element={<Suspense fallback={<PageLoader />}><AdminSettings /></Suspense>} />
-                      <Route path="coupons"    element={<Suspense fallback={<PageLoader />}><AdminCoupons /></Suspense>} />
-                      <Route path="analytics"  element={<Suspense fallback={<PageLoader />}><AdminAnalytics /></Suspense>} />
-                      <Route path="reviews"    element={<Suspense fallback={<PageLoader />}><AdminReviews /></Suspense>} />
-                    </Route>
-
-                    {/* ── 404 ─────────────────────────────────────────── */}
-                    <Route path="*" element={
-                      <div className="min-h-screen bg-white flex items-center justify-center">
-                        <div className="text-center">
-                          <h1 className="text-[160px] sm:text-[180px] font-black text-gray-50 leading-none select-none">404</h1>
-                          <p className="text-xl font-black uppercase tracking-tighter text-gray-900 mt-4">Page Not Found</p>
-                          <p className="text-gray-400 mt-2 text-sm uppercase tracking-widest font-black">The design doesn't exist here.</p>
-                          <a href="/" className="mt-8 inline-flex items-center space-x-2 px-10 py-5 bg-[#ba1f3d] text-white text-[10px] font-black uppercase tracking-[0.3em] hover:bg-gray-900 transition-all shadow-xl">
-                            <span>Return Home</span>
-                          </a>
-                        </div>
-                      </div>
-                    } />
-
-                  </Routes>
-
-                  <UniversalDrawer />
-                </Router>
-              </CartProvider>
-            </WishlistProvider>
-          </RecentlyViewedProvider>
-        </CurrencyProvider>
-      </LocaleProvider>
-    </ErrorBoundary>
-  );
-}
-
-export default App;
+export default AdminSidebar;

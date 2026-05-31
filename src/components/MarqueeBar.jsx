@@ -1,16 +1,16 @@
 /**
- * @fileoverview MarqueeBar — GPU-accelerated, pause-on-hover, smooth
- * Updated: Supports scroll-synced transparency for hero sections.
+ * MarqueeBar — Premium Minimalist Edition
+ * Thin amber gold strip, refined tracking, pause on hover.
  */
 
 import React, { useRef } from 'react';
 
 const DEFAULT_ITEMS = [
-  '✦ NO FREE SHIPPING · CUSTOMER PAID DELIVERY',
   '✦ USE CODE CARDINAL20 FOR 20% OFF',
+  '✦ FREE DELIVERY ON ORDERS OVER RS. 2,000',
   '✦ NEW ARRIVALS EVERY FRIDAY',
-  '✦ PREMIUM FABRICS · CRAFTED WITH CARE',
-  '✦ EASY 30-DAY RETURNS',
+  '✦ PREMIUM FABRICS · CRAFTED IN PAKISTAN',
+  '✦ 7-DAY EASY RETURNS',
   '✦ CASHBACK ON EASYPAISA & JAZZCASH',
 ];
 
@@ -26,11 +26,12 @@ const MarqueeBar = ({ announcement, scrolled = true, isHome = false }) => {
 
   return (
     <div
-      className={`fixed top-0 left-0 w-full z-[110] py-3 overflow-hidden select-none transition-all duration-500 ${
-        useTransparent 
-          ? 'bg-transparent border-b border-white/5' 
-          : 'bg-[#FBBF24]'
+      className={`fixed top-0 left-0 w-full z-[110] overflow-hidden select-none transition-all duration-500 ${
+        useTransparent
+          ? 'bg-transparent'
+          : 'bg-[#111827]'
       }`}
+      style={{ height: '34px' }}
       onMouseEnter={() => {
         if (trackRef.current) trackRef.current.style.animationPlayState = 'paused';
       }}
@@ -39,20 +40,18 @@ const MarqueeBar = ({ announcement, scrolled = true, isHome = false }) => {
       }}
     >
       {/* Fade edges */}
-      <div className="absolute left-0 top-0 bottom-0 w-16 z-10 pointer-events-none transition-opacity duration-500"
-        style={{ 
-          background: `linear-gradient(to right, ${useTransparent ? 'transparent' : '#FBBF24'}, transparent)`,
-          opacity: useTransparent ? 0 : 1 
-        }} />
-      <div className="absolute right-0 top-0 bottom-0 w-16 z-10 pointer-events-none transition-opacity duration-500"
-        style={{ 
-          background: `linear-gradient(to left, ${useTransparent ? 'transparent' : '#FBBF24'}, transparent)`,
-          opacity: useTransparent ? 0 : 1
-        }} />
+      {!useTransparent && (
+        <>
+          <div className="absolute left-0 top-0 bottom-0 w-12 z-10 pointer-events-none"
+            style={{ background: 'linear-gradient(to right, #111827, transparent)' }} />
+          <div className="absolute right-0 top-0 bottom-0 w-12 z-10 pointer-events-none"
+            style={{ background: 'linear-gradient(to left, #111827, transparent)' }} />
+        </>
+      )}
 
       <div
         ref={trackRef}
-        className="flex whitespace-nowrap"
+        className="flex whitespace-nowrap h-full items-center"
         style={{
           animation: 'marquee-smooth 38s linear infinite',
           willChange: 'transform',
@@ -61,21 +60,16 @@ const MarqueeBar = ({ announcement, scrolled = true, isHome = false }) => {
         {allItems.map((item, i) => (
           <span
             key={i}
-            className={`inline-flex items-center text-[10px] font-black uppercase tracking-[0.35em] px-8 flex-shrink-0 cursor-default transition-colors duration-500 ${
-              useTransparent ? 'text-white/60' : 'text-red-950'
+            className={`inline-flex items-center text-[9px] font-black uppercase px-8 flex-shrink-0 cursor-default transition-colors duration-500 ${
+              useTransparent
+                ? 'text-white/40 tracking-[0.3em]'
+                : 'text-white/70 tracking-[0.35em] hover:text-white'
             }`}
           >
             {item}
           </span>
         ))}
       </div>
-
-      <style>{`
-        @keyframes marquee-smooth {
-          0%   { transform: translateX(0); }
-          100% { transform: translateX(-33.333%); }
-        }
-      `}</style>
     </div>
   );
 };

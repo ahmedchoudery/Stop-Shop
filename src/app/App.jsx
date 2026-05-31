@@ -9,7 +9,6 @@ import { AnimatePresence } from 'framer-motion';
 import Layout from '../layout/Layout.jsx';
 import UniversalDrawer from '../layout/UniversalDrawer.jsx';
 
-import CursorFollower from '../components/CursorFollower.jsx';
 import { CartProvider } from '../context/CartContext.jsx';
 import { WishlistProvider } from '../context/WishlistContext.jsx';
 import { RecentlyViewedProvider } from '../context/RecentlyViewedContext.jsx';
@@ -186,7 +185,7 @@ function App() {
             <WishlistProvider>
               <CartProvider>
                 <CustomerProvider>
-                  <CursorFollower />
+
 
 
                   <Router>
