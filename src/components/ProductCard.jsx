@@ -16,10 +16,7 @@ const ProductCard = ({ product, onImageLoad }) => {
   const [cartAdded, setCartAdded] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
-  const currentImage =
-    (activeColor && product.variantImages?.[activeColor])
-      ? product.variantImages[activeColor]
-      : (product.image || product.gallery?.[0]);
+  const currentImage = product.image;
 
   const wishlisted = isWishlisted(product.id);
   const outOfStock = product.stock === 0;
