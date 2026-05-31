@@ -10,16 +10,16 @@ import AnimatedCounter from './AnimatedCounter.jsx';
 
 const StatsGrid = ({ totalSales, totalOrders, trend = 0, pendingOrders = 0 }) => {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 mb-6 sm:mb-12">
 
       {/* Revenue Card */}
-      <div className="group bg-white p-8 rounded-sm border border-gray-100 shadow-xl shadow-gray-100/50 hover:border-green-400/50 hover:shadow-2xl hover:shadow-green-100/60 transition-all duration-700 relative overflow-hidden cursor-default">
+      <div className="group bg-white p-5 sm:p-8 rounded-sm border border-gray-100 shadow-xl shadow-gray-100/50 hover:border-green-400/50 hover:shadow-2xl hover:shadow-green-100/60 transition-all duration-700 relative overflow-hidden cursor-default">
 
         {/* Background glow — reveals on hover */}
         <div className="absolute inset-0 bg-gradient-to-br from-green-50/0 via-green-50/0 to-green-100/0 group-hover:from-green-50/80 group-hover:to-green-50/20 transition-all duration-700 pointer-events-none" />
 
         {/* Icon watermark */}
-        <div className="absolute top-0 right-0 p-4 opacity-[0.04] group-hover:opacity-[0.08] transition-opacity duration-700 transform translate-x-4 -translate-y-4 group-hover:translate-x-2 group-hover:translate-y-0 transition-transform">
+        <div className="absolute top-0 right-0 p-4 opacity-[0.04] group-hover:opacity-[0.08] translate-x-4 -translate-y-4 group-hover:translate-x-2 group-hover:translate-y-0 transition-all duration-700">
           <TrendingUp size={90} className="text-green-600" />
         </div>
 
@@ -38,7 +38,7 @@ const StatsGrid = ({ totalSales, totalOrders, trend = 0, pendingOrders = 0 }) =>
             <AnimatedCounter
               value={totalSales}
               duration={1800}
-              className="text-5xl font-black tracking-tighter text-gray-900 tabular-nums"
+              className="text-3xl sm:text-5xl font-black tracking-tighter text-gray-900 tabular-nums"
               formatter={(n) => Math.round(n).toLocaleString('en-PK', {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
@@ -63,7 +63,7 @@ const StatsGrid = ({ totalSales, totalOrders, trend = 0, pendingOrders = 0 }) =>
       </div>
 
       {/* Orders Card */}
-      <div className="group bg-white p-8 rounded-sm border border-gray-100 shadow-xl shadow-gray-100/50 hover:border-[#ba1f3d]/30 hover:shadow-2xl hover:shadow-red-100/40 transition-all duration-700 relative overflow-hidden cursor-default">
+      <div className="group bg-white p-5 sm:p-8 rounded-sm border border-gray-100 shadow-xl shadow-gray-100/50 hover:border-[#ba1f3d]/30 hover:shadow-2xl hover:shadow-red-100/40 transition-all duration-700 relative overflow-hidden cursor-default">
 
         {/* Background glow */}
         <div className="absolute inset-0 bg-gradient-to-br from-red-50/0 to-red-50/0 group-hover:from-red-50/40 group-hover:to-transparent transition-all duration-700 pointer-events-none" />
@@ -85,7 +85,7 @@ const StatsGrid = ({ totalSales, totalOrders, trend = 0, pendingOrders = 0 }) =>
             <AnimatedCounter
               value={totalOrders}
               duration={1600}
-              className="text-6xl font-black tracking-tighter text-gray-900 tabular-nums"
+              className="text-4xl sm:text-6xl font-black tracking-tighter text-gray-900 tabular-nums"
             />
             <span className="text-sm font-black uppercase tracking-widest text-gray-400">
               Total

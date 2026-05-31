@@ -86,12 +86,12 @@ const AdminOrders = () => {
   return (
     <div>
       {/* Header */}
-      <div className="flex items-center justify-between mb-10">
+      <div className="flex items-center justify-between mb-6 sm:mb-10">
         <div>
-          <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-2">
+          <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-1.5">
             Fulfillment Hub
           </p>
-          <h1 className="text-3xl font-black uppercase tracking-tighter text-gray-900">
+          <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tighter text-gray-900">
             Orders
           </h1>
         </div>
@@ -99,10 +99,10 @@ const AdminOrders = () => {
         <button
           onClick={handleExportCSV}
           disabled={filteredOrders.length === 0}
-          className="flex items-center space-x-2 px-4 py-2 border border-gray-200 rounded-xl text-xs font-black uppercase tracking-widest text-gray-500 hover:border-gray-900 hover:text-gray-900 transition-all disabled:opacity-40"
+          className="flex items-center space-x-2 px-3 sm:px-4 py-2 border border-gray-200 rounded-xl text-xs font-black uppercase tracking-widest text-gray-500 hover:border-gray-900 hover:text-gray-900 transition-all disabled:opacity-40"
         >
           <Download size={14} />
-          <span>Export CSV</span>
+          <span className="hidden sm:inline">Export CSV</span>
         </button>
       </div>
 

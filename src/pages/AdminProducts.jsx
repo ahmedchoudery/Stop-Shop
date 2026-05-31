@@ -371,7 +371,7 @@ const AdminProducts = () => {
           <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-2">
             Catalogue
           </p>
-          <h1 className="text-3xl font-black uppercase tracking-tighter text-gray-900">
+          <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tighter text-gray-900">
             Products
           </h1>
         </div>

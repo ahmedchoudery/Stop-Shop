@@ -120,7 +120,7 @@ const AdminAnalytics = () => {
       <div className="flex items-center justify-between mb-10">
         <div>
           <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-2">Business Intelligence</p>
-          <h1 className="text-3xl font-black uppercase tracking-tighter text-gray-900">Analytics</h1>
+          <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tighter text-gray-900">Analytics</h1>
         </div>
         <button
           onClick={refetch}
