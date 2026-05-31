@@ -869,13 +869,13 @@ app.get('/api/stats/revenue', authenticateToken, async (req, res, next) => {
           { $match: { status: { $ne: 'Cancelled' }, createdAt: { $gte: sevenDaysAgo } } },
           {
             $group: {
-              _id:     { $dateToString: { format: '%a', date: '$createdAt' } },
+              _id:     { $dateToString: { format: '%u', date: '$createdAt' } },
               revenue: { $sum: '$total' },
               orders:  { $sum: 1 },
             },
           },
           { $sort: { _id: 1 } },
-          { $project: { day: '$_id', revenue: 1, orders: 1, _id: 0 } },
+          { $project: { dayNum: '$_id', revenue: 1, orders: 1, _id: 0 } },
         ]),
       ]);
 
@@ -885,8 +885,16 @@ app.get('/api/stats/revenue', authenticateToken, async (req, res, next) => {
 
       // Ensure all 7 days appear even if no orders that day
       const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-      const weekMap = Object.fromEntries(weeklyRaw.map(d => [d.day, d]));
-      const weeklyData = days.map(day => weekMap[day] ?? { day, revenue: 0, orders: 0 });
+      const dayNames = { '1': 'Mon', '2': 'Tue', '3': 'Wed', '4': 'Thu', '5': 'Fri', '6': 'Sat', '7': 'Sun' };
+      const weekMap = Object.fromEntries(weeklyRaw.map(d => [dayNames[d.dayNum] || 'Mon', d]));
+      const weeklyData = days.map(day => {
+        const cached = weekMap[day];
+        return {
+          day,
+          revenue: cached?.revenue ?? 0,
+          orders: cached?.orders ?? 0,
+        };
+      });
 
       return { totalRevenue, trend, weeklyData };
     });
@@ -1383,6 +1391,13 @@ app.get('/api/public/settings', async (_req, res, next) => {
       return s ?? { announcement: 'Welcome to Stop & Shop', logo: '' };
     });
     res.json(data);
+  } catch (err) { next(err); }
+});
+
+app.get('/api/settings', authenticateToken, requireRole('admin', 'super-admin'), async (req, res, next) => {
+  try {
+    const s = await Settings.findOne().lean();
+    res.json(s ?? { announcement: 'Welcome to Stop & Shop', logo: '' });
   } catch (err) { next(err); }
 });
 
