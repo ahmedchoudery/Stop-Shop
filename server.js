@@ -987,7 +987,13 @@ app.post('/api/admin/upload', authenticateToken, upload.single('file'), async (r
       { folder: 'stopshop', resource_type: 'auto' },
       (error, result) => {
         if (error) return next(new AppError('Cloudinary upload failed: ' + error.message, 500));
-        res.json({ url: result.secure_url });
+        
+        // Inject f_auto,q_auto for optimal web delivery and format conversion (e.g. HEIC -> WebP)
+        let url = result.secure_url;
+        if (url && url.includes('/upload/')) {
+          url = url.replace('/upload/', '/upload/f_auto,q_auto/');
+        }
+        res.json({ url });
       }
     );
     uploadStream.end(req.file.buffer);

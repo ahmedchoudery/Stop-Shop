@@ -174,7 +174,7 @@ const MediaRenderer = ({ src, embedCode, mediaType, alt, className, onLoad }) =>
     return null;
   }
 
-  if (!src) return null;
+  if (!src || typeof src !== 'string') return null;
 
   const isVideo = src.match(/\.(mp4|webm|m4v|mov)$/i);
 
