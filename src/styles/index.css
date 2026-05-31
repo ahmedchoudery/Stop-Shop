@@ -434,7 +434,7 @@ img {
 }
 
 img[loading='lazy'] {
-  opacity: 0;
+  opacity: 1;
 }
 
 img[loading='lazy'].loaded,
