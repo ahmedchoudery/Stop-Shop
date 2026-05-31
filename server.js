@@ -853,11 +853,42 @@ app.delete('/api/admin/users/:id', authenticateToken, requireRole('super-admin')
 app.get('/api/stats/revenue', authenticateToken, async (req, res, next) => {
   try {
     const data = await cacheService.getOrSet(CACHE_KEYS.STATS_REVENUE, async () => {
-      const [result] = await Order.aggregate([
-        { $match: { status: { $in: ['Pending', 'Processing', 'Shipped', 'Delivered'] } } },
-        { $group: { _id: null, totalRevenue: { $sum: '$total' } } },
+      const yesterday    = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      const sevenDaysAgo = new Date(Date.now() - 7  * 24 * 60 * 60 * 1000);
+
+      const [[result], [yesterdayResult], weeklyRaw] = await Promise.all([
+        Order.aggregate([
+          { $match: { status: { $ne: 'Cancelled' } } },
+          { $group: { _id: null, totalRevenue: { $sum: '$total' }, totalOrders: { $sum: 1 } } },
+        ]),
+        Order.aggregate([
+          { $match: { status: { $ne: 'Cancelled' }, createdAt: { $gte: yesterday } } },
+          { $group: { _id: null, revenue: { $sum: '$total' } } },
+        ]),
+        Order.aggregate([
+          { $match: { status: { $ne: 'Cancelled' }, createdAt: { $gte: sevenDaysAgo } } },
+          {
+            $group: {
+              _id:     { $dateToString: { format: '%a', date: '$createdAt' } },
+              revenue: { $sum: '$total' },
+              orders:  { $sum: 1 },
+            },
+          },
+          { $sort: { _id: 1 } },
+          { $project: { day: '$_id', revenue: 1, orders: 1, _id: 0 } },
+        ]),
       ]);
-      return { totalRevenue: result?.totalRevenue ?? 0, trend: 0 };
+
+      const totalRevenue = result?.totalRevenue ?? 0;
+      const yesterdayRev = yesterdayResult?.revenue ?? 0;
+      const trend        = yesterdayRev > 0 ? ((totalRevenue - yesterdayRev) / yesterdayRev) * 100 : 0;
+
+      // Ensure all 7 days appear even if no orders that day
+      const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      const weekMap = Object.fromEntries(weeklyRaw.map(d => [d.day, d]));
+      const weeklyData = days.map(day => weekMap[day] ?? { day, revenue: 0, orders: 0 });
+
+      return { totalRevenue, trend, weeklyData };
     });
     res.json(data);
   } catch (err) { next(err); }
@@ -878,10 +909,13 @@ app.get('/api/stats/orders', authenticateToken, async (req, res, next) => {
 app.get('/api/stats/inventory', authenticateToken, async (req, res, next) => {
   try {
     const data = await cacheService.getOrSet(CACHE_KEYS.STATS_INVENTORY, async () => {
-      const total    = await Product.countDocuments();
-      const lowStock = await Product.countDocuments({ stock: { $gt: 0, $lt: 5 } });
-      const outStock = await Product.countDocuments({ stock: 0 });
-      return { total, lowStock, outStock };
+      const [total, lowStock, outOfStock, products] = await Promise.all([
+        Product.countDocuments(),
+        Product.countDocuments({ quantity: { $gt: 0, $lt: 5 } }),
+        Product.countDocuments({ quantity: 0 }),
+        Product.find({}, { id: 1, name: 1, quantity: 1, bucket: 1 }).lean(),
+      ]);
+      return { total, lowStock, outOfStock, products };
     });
     res.json(data);
   } catch (err) { next(err); }
@@ -1493,10 +1527,14 @@ app.get('/api/public/reviews/:productId', async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-app.get('/api/public/reviews', async (_req, res, next) => {
+app.get('/api/public/reviews', async (req, res, next) => {
   try {
+    const { productId } = req.query;
+    const filter = { status: 'approved' };
+    if (productId) filter.productId = String(productId);
+
     const reviews = await Review
-      .find({ status: 'approved' })
+      .find(filter)
       .sort({ createdAt: -1 })
       .limit(50)
       .lean();
@@ -1838,7 +1876,9 @@ app.get('/api/admin/analytics', authenticateToken, async (_req, res, next) => {
     const avgOrderValue   = totalOrders > 0 ? totalRevenue / totalOrders : 0;
     const pendingOrders   = ordersResult.find(o => o._id === 'Pending')?.count ?? 0;
     const yesterdayRev    = revenueYesterday[0]?.total ?? 0;
-    const revenueTrend    = yesterdayRev > 0 ? ((totalRevenue - yesterdayRev) / yesterdayRev) * 100 : 0;
+    const revenueTrend = (yesterdayRev > 0 && isFinite(totalRevenue))
+      ? ((totalRevenue - yesterdayRev) / yesterdayRev) * 100
+      : 0;
     const ordersByStatus  = ordersByStatusArr.reduce((acc, o) => ({ ...acc, [o._id]: o.count }), {});
 
     res.json({
@@ -1880,6 +1920,18 @@ app.post('/api/newsletter', async (req, res, next) => {
     if (!email) return res.status(400).json({ error: 'Email required' });
     await Subscriber.findOneAndUpdate({ email }, { email }, { upsert: true });
     res.json({ message: 'Subscribed successfully' });
+  } catch (err) { next(err); }
+});
+
+app.post('/api/newsletter/subscribe', async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      return res.status(400).json({ error: 'Valid email is required' });
+    }
+    const trimmed = email.toLowerCase().trim();
+    await Subscriber.findOneAndUpdate({ email: trimmed }, { email: trimmed }, { upsert: true });
+    res.json({ message: 'Subscribed! Use code CARDINAL20 for 20% off your first order.' });
   } catch (err) { next(err); }
 });
 
