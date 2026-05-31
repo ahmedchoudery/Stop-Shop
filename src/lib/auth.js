@@ -71,7 +71,8 @@ export const authFetch = async (url, options = {}) => {
   const headers = new Headers(options.headers ?? {});
 
   // Set content-type if body is present and not already set
-  if (options.body && !headers.has('Content-Type')) {
+  // Do NOT set it if body is FormData (browser will set multipart/form-data with boundary)
+  if (options.body && !(options.body instanceof FormData) && !headers.has('Content-Type')) {
     headers.set('Content-Type', 'application/json');
   }
 
