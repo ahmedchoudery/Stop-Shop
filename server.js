@@ -24,6 +24,8 @@ import compression from 'compression';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import cookieParser from 'cookie-parser';
+import multer from 'multer';
+import { v2 as cloudinary } from 'cloudinary';
 
 import { cacheService, CACHE_KEYS } from './src/services/cacheService.js';
 import { sanitizeInput, getClientIp, flattenQueryParams } from './src/middleware/security.js';
@@ -104,6 +106,21 @@ const isProduction = process.env.NODE_ENV === 'production';
 // ─────────────────────────────────────────────────────────────────
 // APP SETUP
 // ─────────────────────────────────────────────────────────────────
+
+// ─────────────────────────────────────────────────────────────────
+// CLOUDINARY & MULTER UPLOAD CONFIGURATION
+// ─────────────────────────────────────────────────────────────────
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+});
 
 const app = express();
 app.set('trust proxy', 1);
@@ -958,6 +975,22 @@ app.get('/api/admin/products', authenticateToken, async (req, res, next) => {
       id: p.id || p._id?.toString() || `GEN-${Math.random().toString(36).substr(2, 9)}`,
     }));
     res.json(docs);
+  } catch (err) { next(err); }
+});
+
+app.post('/api/admin/upload', authenticateToken, upload.single('file'), async (req, res, next) => {
+  try {
+    if (!req.file) throw new ValidationError('No file provided');
+    
+    // Upload to Cloudinary via buffer stream
+    const uploadStream = cloudinary.uploader.upload_stream(
+      { folder: 'stopshop', resource_type: 'auto' },
+      (error, result) => {
+        if (error) return next(new AppError('Cloudinary upload failed: ' + error.message, 500));
+        res.json({ url: result.secure_url });
+      }
+    );
+    uploadStream.end(req.file.buffer);
   } catch (err) { next(err); }
 });
 

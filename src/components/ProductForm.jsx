@@ -4,101 +4,10 @@ import {
   Play, CheckCircle, Copy
 } from 'lucide-react';
 import { CATEGORIES, CATEGORY_MAP, getDefaultSubCategory } from '../utils/categories.js';
+import { authFetch } from '../lib/auth.js';
+import { apiUrl } from '../config/api.js';
 
-const MEDIA_TABS = [
-  { id: 'upload', label: 'Upload', icon: Upload },
-  { id: 'url', label: 'Visual Asset (URL)', icon: Link2 },
-  { id: 'embed', label: 'Embedded Code', icon: Code2 },
-];
 
-function parseEmbed(raw) {
-  if (!raw?.trim()) return null;
-  if (/^https?:\/\//.test(raw.trim()) && !raw.includes('<')) {
-    const url = raw.trim().replace(/^['"`\s]+|['"`\s]+$/g, '');
-    const ytMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]{11})/);
-    if (ytMatch) return { type: 'iframe', src: `https://www.youtube.com/embed/${ytMatch[1]}` };
-    const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
-    if (vimeoMatch) return { type: 'iframe', src: `https://player.vimeo.com/video/${vimeoMatch[1]}` };
-    if (url.includes('instagram.com')) {
-      const igPostMatch = url.match(/https?:\/\/(?:www\.)?instagram\.com\/(?:p|reel|tv)\/[^/?#]+/i);
-      if (igPostMatch) return { type: 'iframe', src: `${igPostMatch[0]}/embed/captioned` };
-      return { type: 'raw', html: raw };
-    }
-    const ttMatch = url.match(/tiktok\.com\/@[^/]+\/video\/(\d+)/);
-    if (ttMatch) {
-      const safeUrl = url.replace(/"/g, '&quot;');
-      const videoId = ttMatch[1];
-      return {
-        type: 'raw',
-        html: `<blockquote class="tiktok-embed" cite="${safeUrl}" data-video-id="${videoId}" style="max-width:605px;min-width:325px;"><section><a target="_blank" href="${safeUrl}">View on TikTok</a></section></blockquote>`
-      };
-    }
-    if (/\.(mp4|webm|ogg)(\?.*)?$/i.test(url)) return { type: 'video', src: url };
-    if (/\.(jpg|jpeg|png|gif|webp|svg)(\?.*)?$/i.test(url)) return { type: 'image', src: url };
-    return { type: 'iframe', src: url };
-  }
-  if (/<blockquote[\s>]/i.test(raw) || /<script[\s>]/i.test(raw)) return { type: 'raw', html: raw };
-  const iframeMatch = raw.match(/<iframe[^>]*src=["']([^"']+)["']/i);
-  if (iframeMatch) return { type: 'iframe', src: iframeMatch[1] };
-  const videoMatch = raw.match(/<video[^>]*src=["']([^"']+)["']/i);
-  if (videoMatch) return { type: 'video', src: videoMatch[1] };
-  const imageMatch = raw.match(/<img[^>]*src=["']([^"']+)["']/i);
-  if (imageMatch) return { type: 'image', src: imageMatch[1] };
-  return { type: 'raw', html: raw };
-}
-
-const MediaPreview = memo(({ form }) => {
-  useEffect(() => {
-    if (form.mediaType === 'embed' && form.embedCode) {
-      const raw = form.embedCode;
-      if (raw.includes('instagram-media') || raw.includes('instagram.com/embed.js')) {
-        const existing = document.querySelector('script[src*="instagram.com/embed.js"]');
-        if (!existing) {
-          const s = document.createElement('script');
-          s.async = true;
-          s.src = 'https://www.instagram.com/embed.js';
-          s.onload = () => { if (window.instgrm?.Embeds?.process) window.instgrm.Embeds.process(); };
-          document.body.appendChild(s);
-        } else {
-          if (window.instgrm?.Embeds?.process) window.instgrm.Embeds.process();
-        }
-      }
-      if (raw.includes('tiktok-embed') || raw.includes('tiktok.com/embed.js')) {
-        const existing = document.querySelector('script[src*="tiktok.com/embed.js"]');
-        if (!existing) {
-          const s = document.createElement('script');
-          s.async = true;
-          s.src = 'https://www.tiktok.com/embed.js';
-          document.body.appendChild(s);
-        }
-      }
-    }
-  }, [form.mediaType, form.embedCode]);
-
-  if (form.mediaType === 'embed' && form.embedCode) {
-    const parsed = parseEmbed(form.embedCode);
-    if (!parsed) return null;
-    if (parsed.type === 'iframe') return (
-      <iframe src={parsed.src} className="w-full h-full" frameBorder="0"
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-        allowFullScreen title="product-media" />
-    );
-    if (parsed.type === 'video') return (
-      <video src={parsed.src} controls className="w-full h-full object-cover" />
-    );
-    if (parsed.type === 'raw') return (
-      <div className="w-full h-full flex items-center justify-center"
-        dangerouslySetInnerHTML={{ __html: parsed.html }} />
-    );
-    if (parsed.type === 'image') return (
-      <img src={parsed.src} alt="" className="w-full h-full object-cover" />
-    );
-  }
-  if (form.image) return <img src={form.image} alt="" className="w-full h-full object-cover" />;
-  return null;
-});
-
-MediaPreview.displayName = 'MediaPreview';
 
 const ProductForm = memo(({
   form, setForm,
@@ -111,57 +20,83 @@ const ProductForm = memo(({
   galleryUrl, setGalleryUrl,
   embedCopied, setEmbedCopied,
 }) => {
-  const [mediaTab, setMediaTab] = useState(form.mediaType || 'upload');
+  const [uploading, setUploading] = useState(false);
 
-  const handleTabSwitch = (tab) => {
-    setMediaTab(tab);
-    setForm(f => ({ ...f, mediaType: tab }));
-  };
-
-  const injectTemplate = (template) => {
-    setForm(f => ({ ...f, embedCode: template, mediaType: 'embed' }));
-    setMediaTab('embed');
-  };
-
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => setForm(f => ({ ...f, image: reader.result, mediaType: 'upload' }));
-    reader.readAsDataURL(file);
-  };
-
-  const handleSecondaryMediaUpload = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => setForm(f => ({ ...f, lifestyleImage: reader.result }));
-    reader.readAsDataURL(file);
-  };
-
-  const addGalleryItem = () => {
-    const value = galleryUrl.trim();
-    if (!value) return;
-    if (form.gallery.includes(value)) {
-      alert('Already in gallery');
-      return;
+  const uploadFileToCloudinary = async (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await authFetch(apiUrl('/api/admin/upload'), {
+      method: 'POST',
+      body: formData,
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || 'Upload failed');
     }
-    setForm(f => ({ ...f, gallery: [...(f.gallery || []), value] }));
-    setGalleryUrl('');
+    const data = await res.json();
+    return data.url;
+  };
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      setUploading(true);
+      const url = await uploadFileToCloudinary(file);
+      setForm(f => ({ ...f, image: url, mediaType: 'upload' }));
+    } catch (err) {
+      alert('Failed to upload image: ' + err.message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleSecondaryMediaUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      setUploading(true);
+      const url = await uploadFileToCloudinary(file);
+      setForm(f => ({ ...f, lifestyleImage: url }));
+    } catch (err) {
+      alert('Failed to upload lifestyle image: ' + err.message);
+    } finally {
+      setUploading(false);
+    }
   };
 
   const removeGalleryItem = (item) => {
     setForm(f => ({ ...f, gallery: (f.gallery || []).filter(g => g !== item) }));
   };
 
-  const handleGalleryUpload = (e) => {
+  const handleGalleryUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setForm(f => ({ ...f, gallery: [...(f.gallery || []), reader.result] }));
-    };
-    reader.readAsDataURL(file);
+    try {
+      setUploading(true);
+      const url = await uploadFileToCloudinary(file);
+      setForm(f => ({ ...f, gallery: [...(f.gallery || []), url] }));
+    } catch (err) {
+      alert('Failed to upload gallery image: ' + err.message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleVariantImageUpload = async (color, file) => {
+    if (!file) return;
+    try {
+      setUploading(true);
+      const url = await uploadFileToCloudinary(file);
+      setForm(f => ({
+        ...f,
+        variantImages: { ...(f.variantImages || {}), [color]: url }
+      }));
+    } catch (err) {
+      alert('Failed to upload variant image: ' + err.message);
+    } finally {
+      setUploading(false);
+    }
   };
 
   const addColor = () => {
@@ -224,21 +159,15 @@ const ProductForm = memo(({
         <div className="overflow-y-auto flex-grow p-6 space-y-7">
           <MediaSection
             form={form}
-            mediaTab={mediaTab}
-            onTabSwitch={handleTabSwitch}
             onImageUpload={handleImageUpload}
-            injectTemplate={injectTemplate}
-            embedCopied={embedCopied}
-            setEmbedCopied={setEmbedCopied}
+            uploading={uploading}
           />
 
           <GallerySection
             form={form}
-            galleryUrl={galleryUrl}
-            setGalleryUrl={setGalleryUrl}
-            onAddGallery={addGalleryItem}
-            onRemoveGallery={removeGalleryItem}
             onGalleryUpload={handleGalleryUpload}
+            onRemoveGallery={removeGalleryItem}
+            uploading={uploading}
           />
 
           <BasicInfoSection form={form} setForm={setForm} />
@@ -253,7 +182,8 @@ const ProductForm = memo(({
             setColorInput={setColorInput}
             onAddColor={addColor}
             onRemoveColor={removeColor}
-            onSetVariantImage={setVariantImageForColor}
+            onVariantImageUpload={handleVariantImageUpload}
+            uploading={uploading}
           />
 
           <SizesSection
@@ -285,101 +215,53 @@ const ProductForm = memo(({
 
 ProductForm.displayName = 'ProductForm';
 
-const MediaSection = memo(({ form, setForm, mediaTab, onTabSwitch, onImageUpload, injectTemplate, embedCopied, setEmbedCopied }) => (
+const MediaSection = memo(({ form, onImageUpload, uploading }) => (
   <div>
-    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-3">Product Media *</label>
-    <div className="flex space-x-1 bg-gray-100 rounded-xl p-1 mb-4">
-      {MEDIA_TABS.map(({ id, label, icon: Icon }) => (
-        <button key={id} onClick={() => onTabSwitch(id)}
-          className={`flex-1 flex items-center justify-center space-x-2 py-2.5 rounded-lg text-[11px] font-black uppercase tracking-widest transition-all ${mediaTab === id ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}>
-          <Icon size={14} /><span>{label}</span>
-        </button>
-      ))}
+    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-3">Product Media (Image or Video) *</label>
+    
+    <div className="flex items-start space-x-4">
+      <div className="w-28 h-28 bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl overflow-hidden flex-shrink-0 relative">
+        {uploading && (
+          <div className="absolute inset-0 bg-white/70 flex items-center justify-center z-10">
+            <div className="w-6 h-6 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+          </div>
+        )}
+        {form.image ? (
+          form.image.match(/\.(mp4|webm|ogg)(\?.*)?$/i) ? (
+            <video src={form.image} className="w-full h-full object-cover" autoPlay muted loop />
+          ) : (
+            <img src={form.image} alt="" className="w-full h-full object-cover" />
+          )
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <Image size={28} className="text-gray-300" />
+          </div>
+        )}
+      </div>
+      <div className="flex-grow">
+        <label className={`flex flex-col items-center justify-center w-full py-6 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-red-400 hover:bg-red-50 transition-all ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
+          <Upload size={20} className="text-gray-400 mb-2" />
+          <span className="text-[11px] font-black uppercase tracking-widest text-gray-500">
+            {uploading ? 'Uploading to Cloudinary...' : 'Click to Upload Media'}
+          </span>
+          <span className="text-[10px] text-gray-400 mt-1">JPG, PNG, WEBP, MP4</span>
+          <input type="file" accept="image/*,video/*" className="hidden" onChange={onImageUpload} disabled={uploading} />
+        </label>
+      </div>
     </div>
-
-    {mediaTab === 'upload' && (
-      <div className="flex items-start space-x-4">
-        <div className="w-28 h-28 bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl overflow-hidden flex-shrink-0">
-          {form.image ? <img src={form.image} alt="" className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center"><Image size={28} className="text-gray-300" /></div>}
-        </div>
-        <div className="flex-grow">
-          <label className="flex flex-col items-center justify-center w-full py-6 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-red-400 hover:bg-red-50 transition-all">
-            <Upload size={20} className="text-gray-400 mb-2" />
-            <span className="text-[11px] font-black uppercase tracking-widest text-gray-500">Click to Upload Image</span>
-            <span className="text-[10px] text-gray-400 mt-1">JPG, PNG, WEBP up to 5MB</span>
-            <input type="file" accept="image/*" className="hidden" onChange={onImageUpload} />
-          </label>
-        </div>
-      </div>
-    )}
-
-    {mediaTab === 'url' && (
-      <div className="space-y-3">
-        <div className="relative">
-          <Link2 className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-          <input type="text" placeholder="https://example.com/product-image.jpg"
-            value={form.image.startsWith('data:') ? '' : form.image}
-            onChange={e => setForm(f => ({ ...f, image: e.target.value, mediaType: 'url' }))}
-            className="w-full border-2 border-gray-200 rounded-xl pl-11 pr-4 py-3 text-sm font-bold focus:border-red-600 outline-none transition-colors" />
-        </div>
-        {form.image && !form.image.startsWith('data:') && (
-          <div className="w-full aspect-video bg-gray-50 rounded-xl overflow-hidden border border-gray-200">
-            <img src={form.image} alt="" className="w-full h-full object-cover" onError={e => e.target.style.display = 'none'} />
-          </div>
-        )}
-      </div>
-    )}
-
-    {mediaTab === 'embed' && (
-      <div className="space-y-4">
-        <div className="flex flex-wrap gap-2">
-          {[
-            { label: '▶ YouTube URL', t: 'https://www.youtube.com/watch?v=YOUR_VIDEO_ID' },
-            { label: '▶ Vimeo URL', t: 'https://vimeo.com/YOUR_VIDEO_ID' },
-            { label: '</> iframe', t: '<iframe src="https://www.youtube.com/embed/YOUR_VIDEO_ID" width="100%" height="315" frameborder="0" allowfullscreen></iframe>' },
-          ].map(({ label, t }) => (
-            <button key={label} onClick={() => injectTemplate(t)}
-              className="px-3 py-1.5 bg-gray-100 hover:bg-red-50 hover:text-red-700 border border-gray-200 hover:border-red-200 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all">
-              {label}
-            </button>
-          ))}
-        </div>
-        <div className="relative">
-          <textarea value={form.embedCode}
-            onChange={e => setForm(f => ({ ...f, embedCode: e.target.value, mediaType: 'embed' }))}
-            placeholder="Paste embed code or URL..."
-            rows={5}
-            className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-sm font-mono focus:border-red-600 outline-none transition-colors resize-none bg-gray-50" />
-          {form.embedCode && (
-            <button onClick={() => { navigator.clipboard.writeText(form.embedCode); setEmbedCopied(true); setTimeout(() => setEmbedCopied(false), 2000); }}
-              className="absolute top-3 right-3 p-1.5 bg-white border border-gray-200 rounded-lg text-gray-400 hover:text-gray-700 transition-all">
-              {embedCopied ? <CheckCircle size={14} className="text-green-500" /> : <Copy size={14} />}
-            </button>
-          )}
-        </div>
-        {form.embedCode && (
-          <div className="w-full aspect-video rounded-xl overflow-hidden border-2 border-gray-200 bg-gray-900">
-            <MediaPreview form={form} />
-          </div>
-        )}
-      </div>
-    )}
   </div>
 ));
 
 MediaSection.displayName = 'MediaSection';
 
-const GallerySection = memo(({ form, galleryUrl, setGalleryUrl, onAddGallery, onRemoveGallery, onGalleryUpload }) => (
+const GallerySection = memo(({ form, onGalleryUpload, onRemoveGallery, uploading }) => (
   <div>
     <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Gallery Images (optional)</label>
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
-      <input type="text" value={galleryUrl} onChange={e => setGalleryUrl(e.target.value)} placeholder="Image URL"
-        className="col-span-2 border-2 border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:border-red-600 outline-none transition-colors" />
-      <button onClick={onAddGallery} className="px-4 py-3 bg-gray-900 text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-red-600 transition-colors">Add</button>
-    </div>
-    <label className="flex items-center justify-center w-full py-3 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-red-400 hover:bg-red-50 transition-all mb-3">
-      <span className="text-[11px] font-black uppercase tracking-widest text-gray-500">Upload Gallery Image</span>
-      <input type="file" accept="image/*" className="hidden" onChange={onGalleryUpload} />
+    <label className={`flex items-center justify-center w-full py-4 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-red-400 hover:bg-red-50 transition-all mb-3 ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
+      <span className="text-[11px] font-black uppercase tracking-widest text-gray-500">
+        {uploading ? 'Uploading...' : 'Click to Upload Gallery Image'}
+      </span>
+      <input type="file" accept="image/*" className="hidden" onChange={onGalleryUpload} disabled={uploading} />
     </label>
     {form.gallery?.length > 0 && (
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
@@ -461,7 +343,7 @@ const SpecsSection = memo(({ form, setForm }) => (
 
 SpecsSection.displayName = 'SpecsSection';
 
-const ColorsSection = memo(({ form, colorInput, setColorInput, onAddColor, onRemoveColor, onSetVariantImage }) => (
+const ColorsSection = memo(({ form, colorInput, setColorInput, onAddColor, onRemoveColor, onVariantImageUpload, uploading }) => (
   <div>
     <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Color Variants</label>
     <div className="flex items-center space-x-3 mb-3">
@@ -475,17 +357,27 @@ const ColorsSection = memo(({ form, colorInput, setColorInput, onAddColor, onRem
     {form.colors.length > 0 && (
       <div className="space-y-3">
         {form.colors.map(c => (
-          <div key={c} className="grid grid-cols-3 items-center gap-2 bg-gray-50 border border-gray-200 rounded-xl p-2">
+          <div key={c} className="grid grid-cols-[auto_1fr_auto] items-center gap-3 bg-gray-50 border border-gray-200 rounded-xl p-2">
             <div className="flex items-center space-x-2">
-              <div className="w-4 h-4 rounded-full border border-gray-300"
+              <div className="w-6 h-6 rounded-full border border-gray-300"
                 style={c.includes('|') ? { background: `linear-gradient(to right, ${c.split('|')[0]} 50%, ${c.split('|')[1]} 50%)` } : { backgroundColor: c }} />
-              <span className="text-[11px] font-mono font-bold text-gray-600">{c}</span>
+              <span className="text-[11px] font-mono font-bold text-gray-600 w-16 truncate">{c}</span>
             </div>
-            <input type="text" value={form.variantImages?.[c] || ''}
-              onChange={e => onSetVariantImage(c, e.target.value)}
-              placeholder="Variant Image URL"
-              className="w-full border-2 border-gray-200 rounded-xl px-3 py-2 text-xs focus:border-red-600 outline-none" />
-            <button onClick={() => onRemoveColor(c)} className="text-gray-400 hover:text-red-500"><X size={16} /></button>
+            
+            <div className="flex items-center space-x-2">
+              {form.variantImages?.[c] && (
+                <img src={form.variantImages[c]} alt="Variant" className="w-8 h-8 rounded object-cover border border-gray-200" />
+              )}
+              <label className={`flex-grow flex items-center justify-center py-2 px-3 border border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-white transition-colors ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                <Upload size={12} className="text-gray-400 mr-2" />
+                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                  {uploading ? 'Uploading...' : 'Upload Image'}
+                </span>
+                <input type="file" accept="image/*" className="hidden" onChange={e => onVariantImageUpload(c, e.target.files[0])} disabled={uploading} />
+              </label>
+            </div>
+            
+            <button onClick={() => onRemoveColor(c)} className="text-gray-400 hover:text-red-500 p-1"><X size={16} /></button>
           </div>
         ))}
       </div>
