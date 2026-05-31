@@ -51,7 +51,7 @@ const productSchema = new mongoose.Schema({
   embedCode:   { type: String, default: '' },
   rating:      { type: Number, default: 5 },
   bucket:      { type: String, default: 'Tops' },
-  subCategory: { type: String, default: 'General' },
+  subCategory: { type: String, default: 'Tshirt' },
   specs:       [{ type: String }],
   colors:      [{ type: String }],
   sizes:       [{ type: String }],
@@ -236,7 +236,7 @@ async function run() {
 
     // 2d. Trim bucket and subCategory
     const trimmedBucket = (p.bucket || 'Tops').trim();
-    const trimmedSub    = (p.subCategory || 'General').trim();
+    const trimmedSub    = (p.subCategory || 'Tshirt').trim();
     if (p.bucket !== trimmedBucket || p.subCategory !== trimmedSub) {
       updates.bucket      = trimmedBucket;
       updates.subCategory = trimmedSub;
@@ -291,8 +291,8 @@ async function run() {
           productId,
           sku:           productId,
           name:          p.name,
-          category:      p.bucket || 'General',
-          subCategory:   p.subCategory || 'General',
+          category:      p.bucket || 'Tops',
+          subCategory:   p.subCategory || 'Tshirt',
           price:         p.price,
           image:         p.image || '',
           rating:        p.rating ?? 5,

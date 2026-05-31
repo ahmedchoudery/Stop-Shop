@@ -3,6 +3,7 @@ import {
   X, Save, Package, Image, DollarSign, Upload, Link2, Code2,
   Play, CheckCircle, Copy
 } from 'lucide-react';
+import { CATEGORIES, CATEGORY_MAP, getDefaultSubCategory } from '../utils/categories.js';
 
 const MEDIA_TABS = [
   { id: 'upload', label: 'Upload', icon: Upload },
@@ -417,14 +418,6 @@ const BasicInfoSection = memo(({ form, setForm }) => (
 
 BasicInfoSection.displayName = 'BasicInfoSection';
 
-const BUCKETS = ['Tops', 'Bottoms', 'Footwear', 'Accessories'];
-const SUBCATEGORIES = {
-  Tops: ['Polo', 'Shirt', 'T-Shirt', 'Hoodie', 'Jacket'],
-  Bottoms: ['Jeans', 'Trousers', 'Shorts'],
-  Footwear: ['Shoes', 'Slippers'],
-  Accessories: ['Belt', 'Cap', 'Bag', 'Socks'],
-};
-
 const StockCategorySection = memo(({ form, setForm }) => (
   <div className="grid grid-cols-3 gap-4">
     <div>
@@ -435,16 +428,16 @@ const StockCategorySection = memo(({ form, setForm }) => (
     </div>
     <div>
       <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Category</label>
-      <select value={form.bucket} onChange={e => setForm(f => ({ ...f, bucket: e.target.value, subCategory: SUBCATEGORIES[e.target.value][0] }))}
+      <select value={form.bucket} onChange={e => setForm(f => ({ ...f, bucket: e.target.value, subCategory: getDefaultSubCategory(e.target.value) }))}
         className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:border-red-600 outline-none bg-white">
-        {BUCKETS.map(b => <option key={b} value={b}>{b}</option>)}
+        {CATEGORIES.map(b => <option key={b} value={b}>{b}</option>)}
       </select>
     </div>
     <div>
       <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Sub-Category</label>
       <select value={form.subCategory} onChange={e => setForm(f => ({ ...f, subCategory: e.target.value }))}
         className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:border-red-600 outline-none bg-white">
-        {(SUBCATEGORIES[form.bucket] || []).map(s => <option key={s} value={s}>{s}</option>)}
+        {(CATEGORY_MAP[form.bucket] || []).map(s => <option key={s} value={s}>{s}</option>)}
       </select>
     </div>
   </div>

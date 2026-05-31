@@ -53,7 +53,7 @@ export const createProductSchema = z.object({
   embedCode:     z.string().max(5000).optional().default(''),
   rating:        z.number().min(1).max(5).optional().default(5),
   bucket:        z.string().trim().max(100).optional().default('Tops'),
-  subCategory:   z.string().trim().max(100).optional().default('General'),
+  subCategory:   z.string().trim().max(100).optional().default('Tshirt'),
   specs:         z.array(z.string().max(200)).optional().default([]),
   colors:        z.array(z.string().max(100)).optional().default([]),
   sizes:         z.array(z.string().max(20)).optional().default([]),

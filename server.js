@@ -269,7 +269,7 @@ const productSchema = new mongoose.Schema({
   embedCode:     { type: String, default: '' },
   rating:        { type: Number, default: 5, min: 1, max: 5 },
   bucket:        { type: String, default: 'Tops', trim: true },      // category
-  subCategory:   { type: String, default: 'General', trim: true },
+  subCategory:   { type: String, default: 'Tshirt', trim: true },
   specs:         [{ type: String }],
   colors:        [{ type: String }],
   sizes:         [{ type: String }],
@@ -559,8 +559,8 @@ const syncInventory = async (product, moveType = 'ADMIN_UPDATE', note = '', orde
           productId:    product.id,
           sku:          product.id,
           name:         product.name,
-          category:     product.bucket || 'General',
-          subCategory:  product.subCategory || 'General',
+          category:     product.bucket || 'Tops',
+          subCategory:  product.subCategory || 'Tshirt',
           price:        product.price,
           image:        product.image || '',
           rating:       product.rating ?? 5,
@@ -1223,8 +1223,8 @@ app.get('/api/public/products', async (req, res, next) => {
       return products.map(p => ({
         ...p,
         id:          p.id || p._id?.toString(),
-        bucket:      p.bucket || 'General',
-        subCategory: p.subCategory || 'General',
+        bucket:      p.bucket || 'Tops',
+        subCategory: p.subCategory || 'Tshirt',
       }));
     });
     res.json(data);

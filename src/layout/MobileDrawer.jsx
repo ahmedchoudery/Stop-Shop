@@ -1,24 +1,25 @@
 /**
  * @fileoverview MobileDrawer.jsx
  * FIXES:
+ *  - Added two-tier category navigation (Categories -> Sub-Categories)
  *  - Category links now scroll to product grid AND filter by category
  *  - Added Track Order link
  *  - Added WhatsApp contact link
- *  - Fixed transition classes (was using template literals inside className which Tailwind can't purge)
+ *  - Fixed transition classes
  *  - Added Search link
  *  - Added Returns link
  */
 
-import React, { useEffect } from 'react';
-import { X, MapPin, ChevronRight, Search, Package, RotateCcw, MessageCircle } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { X, MapPin, ChevronRight, ChevronLeft, Search, Package, RotateCcw, MessageCircle } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext.jsx';
-
-const CATEGORIES = ['Tops', 'Bottoms', 'Footwear', 'Accessories'];
+import { CATEGORIES, CATEGORY_MAP } from '../utils/categories.js';
 
 const MobileDrawer = ({ isOpen, onClose }) => {
   const { setActiveBucket } = useCart();
   const navigate = useNavigate();
+  const [activeCategoryView, setActiveCategoryView] = useState(null);
 
   // Lock body scroll when open
   useEffect(() => {
@@ -26,12 +27,18 @@ const MobileDrawer = ({ isOpen, onClose }) => {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
+      // Reset view when closed
+      setTimeout(() => setActiveCategoryView(null), 300);
     }
     return () => { document.body.style.overflow = ''; };
   }, [isOpen]);
 
-  const handleCategoryClick = (category) => {
-    setActiveBucket(category);
+  const handleCategorySelect = (category) => {
+    setActiveCategoryView(category);
+  };
+
+  const handleSubCategoryClick = (category, subCategory = null) => {
+    setActiveBucket(category, subCategory);
     navigate('/');
     onClose();
     // Small delay so navigation completes, then scroll to grid
@@ -65,14 +72,24 @@ const MobileDrawer = ({ isOpen, onClose }) => {
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 flex-shrink-0">
-          <Link to="/" onClick={onClose} className="flex items-center space-x-2.5">
-            <div className="w-7 h-7 bg-[#ba1f3d] flex items-center justify-center">
-              <span className="text-white text-[9px] font-black">S&S</span>
-            </div>
-            <span className="text-lg font-black italic uppercase tracking-tighter text-[#ba1f3d]">
-              Stop & Shop
-            </span>
-          </Link>
+          {activeCategoryView ? (
+            <button 
+              onClick={() => setActiveCategoryView(null)}
+              className="flex items-center space-x-2 text-gray-900 hover:text-[#ba1f3d] transition-colors font-black uppercase tracking-tighter"
+            >
+              <ChevronLeft size={20} />
+              <span>Back</span>
+            </button>
+          ) : (
+            <Link to="/" onClick={onClose} className="flex items-center space-x-2.5">
+              <div className="w-7 h-7 bg-[#ba1f3d] flex items-center justify-center">
+                <span className="text-white text-[9px] font-black">S&S</span>
+              </div>
+              <span className="text-lg font-black italic uppercase tracking-tighter text-[#ba1f3d]">
+                Stop & Shop
+              </span>
+            </Link>
+          )}
           <button
             onClick={onClose}
             className="p-2.5 hover:bg-gray-100 rounded-xl transition-all"
@@ -82,66 +99,98 @@ const MobileDrawer = ({ isOpen, onClose }) => {
         </div>
 
         {/* Scroll area */}
-        <div className="flex-grow overflow-y-auto">
-
-          {/* Categories section */}
-          <div className="px-6 py-6">
-            <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-4">
-              Collections
-            </p>
-            <ul className="space-y-1">
-              {/* All products */}
-              <li>
-                <button
-                  onClick={() => handleCategoryClick('All')}
-                  className="w-full flex items-center justify-between py-3 px-4 text-lg font-black uppercase tracking-tighter text-gray-900 hover:text-[#ba1f3d] hover:bg-red-50 rounded-xl transition-all duration-200 text-left group"
-                >
-                  <span>All Products</span>
-                  <ChevronRight size={18} className="text-gray-300 group-hover:text-[#ba1f3d] group-hover:translate-x-1 transition-all" />
-                </button>
-              </li>
-
-              {CATEGORIES.map((cat, i) => (
-                <li key={cat}>
+        <div className="flex-grow overflow-y-auto overflow-x-hidden relative">
+          
+          {/* Main Categories View */}
+          <div className={`absolute inset-0 transition-transform duration-300 ${activeCategoryView ? '-translate-x-full' : 'translate-x-0'}`}>
+            <div className="px-6 py-6">
+              <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-4">
+                Collections
+              </p>
+              <ul className="space-y-1">
+                <li>
                   <button
-                    onClick={() => handleCategoryClick(cat)}
-                    className="w-full flex items-center justify-between py-3 px-4 text-lg font-black uppercase tracking-tighter text-gray-700 hover:text-[#ba1f3d] hover:bg-red-50 rounded-xl transition-all duration-200 text-left group"
-                    style={{ transitionDelay: `${i * 30}ms` }}
+                    onClick={() => handleSubCategoryClick('All')}
+                    className="w-full flex items-center justify-between py-3 px-4 text-lg font-black uppercase tracking-tighter text-gray-900 hover:text-[#ba1f3d] hover:bg-red-50 rounded-xl transition-all duration-200 text-left group"
                   >
-                    <span>{cat}</span>
+                    <span>All Products</span>
                     <ChevronRight size={18} className="text-gray-300 group-hover:text-[#ba1f3d] group-hover:translate-x-1 transition-all" />
                   </button>
                 </li>
-              ))}
-            </ul>
+
+                {CATEGORIES.map((cat, i) => (
+                  <li key={cat}>
+                    <button
+                      onClick={() => handleCategorySelect(cat)}
+                      className="w-full flex items-center justify-between py-3 px-4 text-lg font-black uppercase tracking-tighter text-gray-700 hover:text-[#ba1f3d] hover:bg-red-50 rounded-xl transition-all duration-200 text-left group"
+                      style={{ transitionDelay: `${i * 30}ms` }}
+                    >
+                      <span>{cat}</span>
+                      <ChevronRight size={18} className="text-gray-300 group-hover:text-[#ba1f3d] group-hover:translate-x-1 transition-all" />
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Divider */}
+            <div className="mx-6 h-px bg-gray-100" />
+
+            {/* Quick links section */}
+            <div className="px-6 py-6">
+              <p className="text-[9px] font-black uppercase tracking-[0.5em] text-gray-400 mb-4">
+                Quick Links
+              </p>
+              <ul className="space-y-1">
+                {QUICK_LINKS.map(({ label, icon: Icon, action }) => (
+                  <li key={label}>
+                    <button
+                      onClick={action}
+                      className="w-full flex items-center space-x-3 py-3 px-4 text-sm font-black uppercase tracking-tight text-gray-600 hover:text-[#ba1f3d] hover:bg-red-50 rounded-xl transition-all duration-200 text-left group"
+                    >
+                      <Icon size={15} className="text-gray-400 group-hover:text-[#ba1f3d] transition-colors flex-shrink-0" />
+                      <span>{label}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
 
-          {/* Divider */}
-          <div className="mx-6 h-px bg-gray-100" />
-
-          {/* Quick links section */}
-          <div className="px-6 py-6">
-            <p className="text-[9px] font-black uppercase tracking-[0.5em] text-gray-400 mb-4">
-              Quick Links
-            </p>
-            <ul className="space-y-1">
-              {QUICK_LINKS.map(({ label, icon: Icon, action }) => (
-                <li key={label}>
+          {/* Sub-Categories View */}
+          <div className={`absolute inset-0 transition-transform duration-300 ${activeCategoryView ? 'translate-x-0' : 'translate-x-full'}`}>
+            <div className="px-6 py-6">
+              <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-4">
+                {activeCategoryView}
+              </p>
+              <ul className="space-y-1">
+                <li>
                   <button
-                    onClick={action}
-                    className="w-full flex items-center space-x-3 py-3 px-4 text-sm font-black uppercase tracking-tight text-gray-600 hover:text-[#ba1f3d] hover:bg-red-50 rounded-xl transition-all duration-200 text-left group"
+                    onClick={() => handleSubCategoryClick(activeCategoryView)}
+                    className="w-full flex items-center justify-between py-3 px-4 text-lg font-black uppercase tracking-tighter text-gray-900 hover:text-[#ba1f3d] hover:bg-red-50 rounded-xl transition-all duration-200 text-left group"
                   >
-                    <Icon size={15} className="text-gray-400 group-hover:text-[#ba1f3d] transition-colors flex-shrink-0" />
-                    <span>{label}</span>
+                    <span>Shop All {activeCategoryView}</span>
                   </button>
                 </li>
-              ))}
-            </ul>
+                {activeCategoryView && CATEGORY_MAP[activeCategoryView]?.map((sub, i) => (
+                  <li key={sub}>
+                    <button
+                      onClick={() => handleSubCategoryClick(activeCategoryView, sub)}
+                      className="w-full flex items-center justify-between py-3 px-4 text-lg font-black uppercase tracking-tighter text-gray-700 hover:text-[#ba1f3d] hover:bg-red-50 rounded-xl transition-all duration-200 text-left group"
+                      style={{ transitionDelay: `${i * 30}ms` }}
+                    >
+                      <span>{sub}</span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
+          
         </div>
 
         {/* Footer */}
-        <div className="flex-shrink-0 border-t border-gray-100 px-6 py-5">
+        <div className="flex-shrink-0 border-t border-gray-100 px-6 py-5 bg-white z-10">
           <a
             href="https://www.google.com/maps/search/Zaib+Market+Gujrat+Punjab"
             target="_blank"

@@ -15,8 +15,9 @@ import { useCart } from '../context/CartContext.jsx';
 import { useWishlist } from '../context/WishlistContext.jsx';
 import { useCustomer } from '../context/CustomerContext.jsx';
 import MobileDrawer from './MobileDrawer.jsx';
+import { CATEGORIES, CATEGORY_MAP } from '../utils/categories.js';
 
-const BUCKETS = ['All', 'Tops', 'Bottoms', 'Footwear', 'Accessories'];
+const BUCKETS = ['All', ...CATEGORIES];
 
 const Navbar = ({ products = [], onSearchOpen, scrolled, isHome }) => {
   const { cartCount, setActiveBucket, openDrawer } = useCart();
@@ -32,18 +33,7 @@ const Navbar = ({ products = [], onSearchOpen, scrolled, isHome }) => {
 
   const isTransparent = isHome && !scrolled;
 
-  const categoryMap = useMemo(() => {
-    const map = {};
-    BUCKETS.forEach(b => {
-      if (b === 'All') return;
-      map[b] = [...new Set(
-        products
-          .filter(p => p.bucket === b && p.subCategory && p.subCategory.toLowerCase() !== 'general')
-          .map(p => p.subCategory)
-      )].sort();
-    });
-    return map;
-  }, [products]);
+  const categoryMap = CATEGORY_MAP;
 
   const handleBucketClick = useCallback((bucket, sub = null) => {
     setActiveTab(bucket);

@@ -21,7 +21,9 @@ import { EASING } from '../hooks/useAnime.js';
 
 import { motion, AnimatePresence as MotionAnimatePresence } from 'framer-motion';
 
-const BUCKETS = ['All', 'Tops', 'Bottoms', 'Footwear', 'Accessories'];
+import { CATEGORIES, CATEGORY_MAP } from '../utils/categories.js';
+
+const BUCKETS = ['All', ...CATEGORIES];
 
 const CategoryBar = ({ active, activeSub, onChange, products }) => {
   // Count per bucket
@@ -30,14 +32,10 @@ const CategoryBar = ({ active, activeSub, onChange, products }) => {
     return acc;
   }, {}), [products]);
 
-  // Filter subcategories for the active bucket
   const subCategories = useMemo(() => {
     if (active === 'All') return [];
-    return [...new Set(products
-      .filter(p => p.bucket === active && p.subCategory && p.subCategory.toLowerCase() !== 'general')
-      .map(p => p.subCategory)
-    )].sort();
-  }, [active, products]);
+    return CATEGORY_MAP[active] || [];
+  }, [active]);
 
   return (
     <div className="sticky top-14 z-40 bg-white/80 backdrop-blur-xl border-b border-gray-100/50 shadow-sm">
