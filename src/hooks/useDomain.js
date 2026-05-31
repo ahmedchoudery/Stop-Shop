@@ -19,7 +19,7 @@ import { useAsync, useMutation } from './useAsync.js';
  */
 export function useProducts() {
   const fetchProducts = useCallback(async () => {
-    const res = await authFetch(apiUrl('/api/admin/products'));
+    const res = await authFetch(apiUrl(`/api/admin/products?_t=${Date.now()}`));
     handleAuthError(res.status);
     if (!res.ok) throw new Error('Failed to load administrative product catalog');
     const data = await res.json();
@@ -100,7 +100,7 @@ export function useProducts() {
  */
 export function usePublicProducts() {
   const fetchPublicProducts = useCallback(async () => {
-    const res = await fetch(apiUrl('/api/public/products'));
+    const res = await fetch(apiUrl(`/api/public/products?_t=${Date.now()}`));
     if (!res.ok) throw new Error('Failed to fetch products');
     const data = await res.json();
     return Array.isArray(data) ? data : (data.products ?? []);

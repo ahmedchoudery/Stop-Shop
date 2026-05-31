@@ -145,8 +145,8 @@ const ProductPage = () => {
       setError('');
       try {
         const [prodRes, allRes] = await Promise.all([
-          fetch(apiUrl(`/api/public/products/${id}`)),
-          fetch(apiUrl('/api/public/products')),
+          fetch(apiUrl(`/api/public/products/${id}?_t=${Date.now()}`)),
+          fetch(apiUrl(`/api/public/products?_t=${Date.now()}`)),
         ]);
         if (!prodRes.ok) { setError(prodRes.status === 404 ? 'Product not found' : 'Failed to load'); return; }
         const [prod, all] = await Promise.all([prodRes.json(), allRes.json()]);
