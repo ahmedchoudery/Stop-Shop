@@ -37,7 +37,7 @@ const Product = mongoose.model('Product', productSchema);
 async function seed() {
   try {
     console.log('Connecting to MongoDB...');
-    await mongoose.connect(MONGO_URI);
+    await mongoose.connect(MONGO_URI, { dbName: 'stopshop' });
     console.log('Connected.');
 
     console.log('Cleaning existing products...');
