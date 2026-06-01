@@ -16,6 +16,7 @@ const reviewSchema = new mongoose.Schema({
 }, { timestamps: true, versionKey: false });
 
 reviewSchema.index({ status: 1, createdAt: -1 });
+reviewSchema.index({ status: 1, productId: 1, createdAt: -1 });
 
 const Review = mongoose.models.Review || mongoose.model('Review', reviewSchema);
 

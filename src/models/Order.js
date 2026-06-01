@@ -37,6 +37,7 @@ const orderSchema = new mongoose.Schema({
 orderSchema.index({ status: 1, createdAt: -1 });
 orderSchema.index({ 'customer.email': 1 });
 orderSchema.index({ orderID: 1, createdAt: -1 });
+orderSchema.index({ createdAt: -1 });
 
 const Order = mongoose.models.Order || mongoose.model('Order', orderSchema);
 

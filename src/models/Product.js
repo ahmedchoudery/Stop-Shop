@@ -22,6 +22,7 @@ const productSchema = new mongoose.Schema({
 }, { timestamps: true, versionKey: false, autoIndex: true });
 
 productSchema.index({ bucket: 1, createdAt: -1 });
+productSchema.index({ createdAt: -1 });
 
 // Keep quantity + stock always in sync
 productSchema.pre('save', function syncStock() {

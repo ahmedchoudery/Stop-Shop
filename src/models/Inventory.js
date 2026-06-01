@@ -59,6 +59,7 @@ const inventorySchema = new mongoose.Schema({
 inventorySchema.index({ category: 1, status: 1 });
 inventorySchema.index({ totalStock: 1 });
 inventorySchema.index({ category: 1, totalStock: 1 });
+inventorySchema.index({ updatedAt: -1 });
 
 const Inventory = mongoose.models.Inventory || mongoose.model('Inventory', inventorySchema);
 
