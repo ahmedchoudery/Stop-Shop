@@ -47,6 +47,9 @@ const AccountPage      = lazy(() => import('../pages/AccountPage.jsx'));
 // ── Admin authentication (lazy) ───────────────────────────────────
 const LoginPage        = lazy(() => import('../pages/LoginPage.tsx'));
 
+// ── 404 page (lazy) ──────────────────────────────────────────────
+const NotFoundPage     = lazy(() => import('../pages/NotFoundPage.jsx'));
+
 const PageLoader = () => (
   <div className="flex items-center justify-center h-64">
     <div className="flex flex-col items-center space-y-3">
@@ -54,6 +57,15 @@ const PageLoader = () => (
       <p className="text-[9px] font-black uppercase tracking-[0.4em] text-gray-300">Loading</p>
     </div>
   </div>
+);
+
+/**
+ * PageSuspense — Reusable Suspense boundary with branded PageLoader.
+ * Eliminates repeated <Suspense fallback={<PageLoader />}> boilerplate.
+ * (frontend-dev-guidelines §2: Lazy Load Anything Heavy)
+ */
+const PageSuspense = ({ children }) => (
+  <Suspense fallback={<PageLoader />}>{children}</Suspense>
 );
 
 const PageContent = () => {
@@ -72,74 +84,74 @@ const PageContent = () => {
 
         <Route path="/product/:id" element={
           <Layout>
-            <Suspense fallback={<PageLoader />}>
+            <PageSuspense>
               <ProductPage />
-            </Suspense>
+            </PageSuspense>
           </Layout>
         } />
 
         <Route path="/search" element={
           <Layout>
-            <Suspense fallback={<PageLoader />}>
+            <PageSuspense>
               <SearchPage />
-            </Suspense>
+            </PageSuspense>
           </Layout>
         } />
 
         <Route path="/checkout" element={
           <Layout>
-            <Suspense fallback={<PageLoader />}>
+            <PageSuspense>
               <CheckoutPage />
-            </Suspense>
+            </PageSuspense>
           </Layout>
         } />
 
         <Route path="/order-success" element={
           <Layout>
-            <Suspense fallback={<PageLoader />}>
+            <PageSuspense>
               <OrderSuccessPage />
-            </Suspense>
+            </PageSuspense>
           </Layout>
         } />
 
         <Route path="/track" element={
           <Layout>
-            <Suspense fallback={<PageLoader />}>
+            <PageSuspense>
               <OrderTrackingPage />
-            </Suspense>
+            </PageSuspense>
           </Layout>
         } />
 
         <Route path="/returns" element={
           <Layout>
-            <Suspense fallback={<PageLoader />}>
+            <PageSuspense>
               <ReturnsPage />
-            </Suspense>
+            </PageSuspense>
           </Layout>
         } />
 
         {/* ── Customer Account ────────────────────────── */}
         <Route path="/account/login" element={
           <Layout>
-            <Suspense fallback={<PageLoader />}>
+            <PageSuspense>
               <CustomerAuthPage />
-            </Suspense>
+            </PageSuspense>
           </Layout>
         } />
 
         <Route path="/account" element={
           <Layout>
-            <Suspense fallback={<PageLoader />}>
+            <PageSuspense>
               <AccountPage />
-            </Suspense>
+            </PageSuspense>
           </Layout>
         } />
 
         {/* ── Admin auth ──────────────────────────────── */}
         <Route path="/login" element={
-          <Suspense fallback={<PageLoader />}>
+          <PageSuspense>
             <LoginPage />
-          </Suspense>
+          </PageSuspense>
         } />
 
         {/* ── Admin panel ─────────────────────────────── */}
@@ -147,41 +159,34 @@ const PageContent = () => {
           path="/admin"
           element={
             <ProtectedRoute>
-              <Suspense fallback={<PageLoader />}>
+              <PageSuspense>
                 <AdminDashboard />
-              </Suspense>
+              </PageSuspense>
             </ProtectedRoute>
           }
         >
           <Route index element={<Navigate to="/admin/dashboard" replace />} />
           <Route path="dashboard"  element={
-            <Suspense fallback={<PageLoader />}>
+            <PageSuspense>
               <DashboardHome />
-            </Suspense>
+            </PageSuspense>
           } />
-          <Route path="orders"     element={<Suspense fallback={<PageLoader />}><AdminOrders /></Suspense>} />
-          <Route path="inventory"  element={<Suspense fallback={<PageLoader />}><AdminInventory /></Suspense>} />
-          <Route path="products"   element={<Suspense fallback={<PageLoader />}><AdminProducts /></Suspense>} />
-          <Route path="users"      element={<Suspense fallback={<PageLoader />}><AdminUsers /></Suspense>} />
-          <Route path="audits"     element={<Suspense fallback={<PageLoader />}><AdminAuditPanel /></Suspense>} />
-          <Route path="settings"   element={<Suspense fallback={<PageLoader />}><AdminSettings /></Suspense>} />
-          <Route path="coupons"    element={<Suspense fallback={<PageLoader />}><AdminCoupons /></Suspense>} />
-          <Route path="analytics"  element={<Suspense fallback={<PageLoader />}><AdminAnalytics /></Suspense>} />
-          <Route path="reviews"    element={<Suspense fallback={<PageLoader />}><AdminReviews /></Suspense>} />
+          <Route path="orders"     element={<PageSuspense><AdminOrders /></PageSuspense>} />
+          <Route path="inventory"  element={<PageSuspense><AdminInventory /></PageSuspense>} />
+          <Route path="products"   element={<PageSuspense><AdminProducts /></PageSuspense>} />
+          <Route path="users"      element={<PageSuspense><AdminUsers /></PageSuspense>} />
+          <Route path="audits"     element={<PageSuspense><AdminAuditPanel /></PageSuspense>} />
+          <Route path="settings"   element={<PageSuspense><AdminSettings /></PageSuspense>} />
+          <Route path="coupons"    element={<PageSuspense><AdminCoupons /></PageSuspense>} />
+          <Route path="analytics"  element={<PageSuspense><AdminAnalytics /></PageSuspense>} />
+          <Route path="reviews"    element={<PageSuspense><AdminReviews /></PageSuspense>} />
         </Route>
 
         {/* ── 404 ─────────────────────────────────────── */}
         <Route path="*" element={
-          <div className="min-h-screen bg-white flex items-center justify-center">
-            <div className="text-center">
-              <h1 className="text-[160px] sm:text-[180px] font-black text-gray-50 leading-none select-none">404</h1>
-              <p className="text-xl font-black uppercase tracking-tighter text-gray-900 mt-4">Page Not Found</p>
-              <p className="text-gray-400 mt-2 text-sm uppercase tracking-widest font-black">The design doesn't exist here.</p>
-              <a href="/" className="mt-8 inline-flex items-center space-x-2 px-10 py-5 bg-[#ba1f3d] text-white text-[10px] font-black uppercase tracking-[0.3em] hover:bg-gray-900 transition-all shadow-xl">
-                <span>Return Home</span>
-              </a>
-            </div>
-          </div>
+          <PageSuspense>
+            <NotFoundPage />
+          </PageSuspense>
         } />
       </Routes>
     </AnimatePresence>

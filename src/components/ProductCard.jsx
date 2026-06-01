@@ -191,4 +191,4 @@ const ProductCard = ({ product, onImageLoad }) => {
   );
 };
 
-export default ProductCard;
+export default React.memo(ProductCard);

@@ -1,12 +1,13 @@
 /**
  * ProductGrid — Premium Minimalist Edition
- * Clean section header, tight grid gaps, smooth filter transitions.
+ * Pure layout renderer — all filtering/sorting delegated to useProducts hook.
  */
 
-import React, { useState, useEffect, useMemo, useCallback, memo } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SlidersHorizontal } from 'lucide-react';
 import ProductCard from './ProductCard';
+import { useProducts } from '../hooks/useProducts.js';
 
 const SORT_OPTIONS = [
   { label: 'Featured',          value: 'popular' },
@@ -37,19 +38,8 @@ const ProductGrid = ({ products, activeBucket = 'All', activeSubCategory = null 
 
   useEffect(() => { setVisibleCount(20); }, [activeBucket, activeSubCategory]);
 
-  const sortedProducts = useMemo(() => {
-    const filtered = products.filter(item => {
-      const bucketMatch = activeBucket === 'All' || item.bucket === activeBucket;
-      const subMatch = !activeSubCategory || item.subCategory === activeSubCategory;
-      return bucketMatch && subMatch;
-    });
-    return [...filtered].sort((a, b) => {
-      if (sortBy === 'popular')    return b.rating - a.rating;
-      if (sortBy === 'price-high') return b.price - a.price;
-      if (sortBy === 'price-low')  return a.price - b.price;
-      return 0;
-    });
-  }, [products, activeBucket, activeSubCategory, sortBy]);
+  // ── Data: delegated to useProducts hook (frontend-dev-guidelines §3)
+  const { sortedProducts } = useProducts(products, activeBucket, activeSubCategory, sortBy);
 
   return (
     <div id="product-grid" className="bg-white py-16 sm:py-24">

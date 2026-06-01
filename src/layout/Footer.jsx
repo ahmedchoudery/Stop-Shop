@@ -1,24 +1,75 @@
 /**
- * Footer — Premium Minimalist Edition
- * Surgical grid, razor-thin dividers, Cardinal Red accents as status signals.
+ * @fileoverview Footer — Premium Editorial Edition
+ *
+ * Design Direction: Luxury Editorial (DESIGN.md §1)
+ * Tone: Confident, authoritative, brand-first.
+ *
+ * Upgrades in this version:
+ *  - Scroll-triggered Cardinal Red top border draw animation
+ *  - Obsidian dark bottom colophon strip with brand manifesto
+ *  - Brand manifesto quote replaces generic copyright
+ *  - Payment method tags preserved in colophon
+ *
+ * Color Tokens (DESIGN.md §2):
+ *   Cardinal Red    #ba1f3d  — accent labels, top border
+ *   Obsidian Black  #111827  — colophon canvas
+ *   Surgical White  #FFFFFF  — page background
+ *   Ash             #9CA3AF  — secondary text
  */
 
-import React from 'react';
+import React, { useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Facebook, Instagram, MapPin, Phone, Mail, ArrowUpRight } from 'lucide-react';
 
+// Brand manifesto — displayed as colophon in the dark bottom strip
+const MANIFESTO =
+  'Every piece is a decision. Every purchase is a statement. ' +
+  'Stop \u0026 Shop exists for those who choose deliberately.';
+
 const Footer = () => {
+  const borderRef = useRef(null);
   const year = new Date().getFullYear();
 
+  // Scroll-triggered Cardinal Red border draw (left → right)
+  const observeBorder = useCallback(() => {
+    const el = borderRef.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          el.style.transform = 'scaleX(1)';
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.3 }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(observeBorder, [observeBorder]);
+
   return (
-    <footer className="bg-white border-t border-gray-100">
-      {/* ── Main Grid ──────────────────────────────────── */}
+    <footer className="bg-white" aria-label="Site footer">
+
+      {/* ── Animated Cardinal Red top border ────────────────── */}
+      <div
+        ref={borderRef}
+        className="h-px bg-[#ba1f3d] origin-left"
+        style={{
+          transform: 'scaleX(0)',
+          transition: 'transform 1.2s cubic-bezier(0.16, 1, 0.3, 1)',
+        }}
+        aria-hidden="true"
+      />
+
+      {/* ── Main Grid ─────────────────────────────────────── */}
       <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 pt-20 pb-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-y-16 gap-x-8">
 
           {/* Brand Block — 4 cols */}
           <div className="lg:col-span-4">
-            <Link to="/" className="inline-block mb-8">
+            <Link to="/" className="inline-block mb-8" aria-label="Stop & Shop home">
               <span className="text-2xl font-black italic uppercase tracking-tighter text-[#ba1f3d]">
                 Stop<span className="text-gray-900 not-italic">&</span>Shop
               </span>
@@ -42,7 +93,7 @@ const Footer = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={label}
-                  className="w-9 h-9 border border-gray-200 flex items-center justify-center text-gray-500 hover:border-[#ba1f3d] hover:text-[#ba1f3d] transition-all duration-300 group"
+                  className="w-9 h-9 border border-gray-200 flex items-center justify-center text-gray-500 hover:border-[#ba1f3d] hover:text-[#ba1f3d] transition-all duration-300"
                 >
                   {Icon
                     ? <Icon size={14} />
@@ -143,27 +194,36 @@ const Footer = () => {
             </a>
           </div>
         </div>
+      </div>
 
-        {/* ── Bottom Bar ──────────────────────────────────── */}
-        <div className="mt-16 pt-8 border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between space-y-4 sm:space-y-0">
+      {/* ── Obsidian colophon strip — luxury magazine bottom rule ── */}
+      <div className="bg-[#111827]">
+        <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 py-7 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
 
-          <p className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.4em]">
-            © {year} Stop & Shop · Gujrat, Pakistan
+          {/* Brand manifesto — editorial identity over generic copyright */}
+          <p className="text-[8px] font-black uppercase tracking-[0.3em] text-[#374151] max-w-md leading-relaxed">
+            {MANIFESTO}
           </p>
 
-          {/* Payment badges */}
-          <div className="flex items-center space-x-1.5 flex-wrap gap-y-1.5">
-            {['JazzCash', 'Easypaisa', 'ATM Card', 'Bank Transfer', 'COD'].map(m => (
-              <span
-                key={m}
-                className="text-[7px] font-black uppercase tracking-widest text-gray-400 border border-gray-100 px-2 py-1"
-              >
-                {m}
-              </span>
-            ))}
+          {/* Right side: payment methods + year */}
+          <div className="flex flex-col sm:items-end gap-3 flex-shrink-0">
+            <div className="flex items-center flex-wrap gap-1.5">
+              {['JazzCash', 'Easypaisa', 'ATM Card', 'Bank Transfer', 'COD'].map(m => (
+                <span
+                  key={m}
+                  className="text-[7px] font-black uppercase tracking-widest text-[#4B5563] border border-[#374151] px-2 py-1"
+                >
+                  {m}
+                </span>
+              ))}
+            </div>
+            <p className="text-[8px] font-bold uppercase tracking-[0.35em] text-[#374151]">
+              © {year} Stop &amp; Shop · Gujrat, Pakistan
+            </p>
           </div>
         </div>
       </div>
+
     </footer>
   );
 };
