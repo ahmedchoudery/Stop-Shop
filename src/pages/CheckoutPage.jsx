@@ -10,7 +10,7 @@ import {
   ShoppingBag, ArrowLeft, Lock, ChevronRight,
   CreditCard, Banknote, Smartphone, CheckCircle, AlertCircle
 } from 'lucide-react';
-import { useCart } from '../context/CartContext.jsx';
+import { useCart } from '../context/CartContext.tsx';
 import { useCurrency } from '../context/CurrencyContext.jsx';
 import { apiUrl } from '../config/api.js';
 import { useMutation } from '../hooks/useAsync.js';

@@ -1,12 +1,13 @@
 /**
- * @fileoverview Cart Context — refactored with useReducer
+ * @fileoverview Cart Context in strict TypeScript.
  * Applies: react-patterns (useReducer for complex state, stable callbacks),
- *          javascript-mastery (pure functions, immutability, switch/case),
- *          react-ui-patterns (predictable state transitions)
+ *          react-state-management (type-safe global state context, derived state memoization),
+ *          javascript-mastery (pure functions, immutability, switch/case)
  */
 
-import React, { createContext, useContext, useReducer, useMemo, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useReducer, useMemo, useCallback, useEffect, ReactNode } from 'react';
 import { useLocalStorage } from '../hooks/useUtils.js';
+import { CartItem, Product } from '../types/index.ts';
 
 // ─────────────────────────────────────────────────────────────────
 // TYPES & CONSTANTS
@@ -14,39 +15,46 @@ import { useLocalStorage } from '../hooks/useUtils.js';
 
 const CART_STORAGE_KEY = 'stopshop-cart';
 
-const ActionTypes = Object.freeze({
-  ADD_ITEM: 'ADD_ITEM',
-  REMOVE_ITEM: 'REMOVE_ITEM',
-  UPDATE_QUANTITY: 'UPDATE_QUANTITY',
-  SET_ITEM_OPTIONS: 'SET_ITEM_OPTIONS',
-  CLEAR_CART: 'CLEAR_CART',
-  LOAD_FROM_STORAGE: 'LOAD_FROM_STORAGE',
-  OPEN_DRAWER: 'OPEN_DRAWER',
-  CLOSE_DRAWER: 'CLOSE_DRAWER',
-  SET_BUCKET: 'SET_BUCKET',
-  SET_SUB: 'SET_SUB',
-  SET_SORT: 'SET_SORT',
-});
+export interface CartState {
+  cartItems: CartItem[];
+  isDrawerOpen: boolean;
+  drawerMode: 'cart' | 'product' | 'wishlist';
+  selectedProduct: Product | null;
+  activeBucket: string;
+  activeSub: string | null;
+  lastViewedBucket: string;
+  sortBy: string;
+  scrollGridTick: number;
+  shakeCount: number;
+}
+
+export type CartAction =
+  | { type: 'LOAD_FROM_STORAGE'; payload: CartItem[] }
+  | { type: 'ADD_ITEM'; payload: { product: CartItem } }
+  | { type: 'REMOVE_ITEM'; payload: { id: string; activeColor?: string; selectedSize?: string; cartId?: number | null } }
+  | { type: 'UPDATE_QUANTITY'; payload: { id: string; activeColor?: string; selectedSize?: string; delta: number; cartId?: number | null } }
+  | { type: 'SET_ITEM_OPTIONS'; payload: { cartId: number; activeColor?: string; selectedSize?: string } }
+  | { type: 'CLEAR_CART' }
+  | { type: 'OPEN_DRAWER'; payload: { mode: 'cart' | 'product' | 'wishlist'; product?: Product | null } }
+  | { type: 'CLOSE_DRAWER' }
+  | { type: 'SET_BUCKET'; payload: string | { bucket: string; sub: string | null } }
+  | { type: 'SET_SUB'; payload: string | null }
+  | { type: 'SET_SORT'; payload: string };
 
 // ─────────────────────────────────────────────────────────────────
 // INITIAL STATE
 // ─────────────────────────────────────────────────────────────────
 
-const initialState = {
-  // Cart items
+const initialState: CartState = {
   cartItems: [],
-  // UI state
   isDrawerOpen: false,
-  drawerMode: 'cart',       // 'cart' | 'product' | 'wishlist'
+  drawerMode: 'cart',
   selectedProduct: null,
-  // Filter/sort state
   activeBucket: 'All',
   activeSub: null,
   lastViewedBucket: 'Tops',
   sortBy: 'featured',
-  // Scroll trigger counter (increment to scroll grid into view)
   scrollGridTick: 0,
-  // Animation
   shakeCount: 0,
 };
 
@@ -54,25 +62,26 @@ const initialState = {
 // PURE REDUCER — all state transitions in one place
 // ─────────────────────────────────────────────────────────────────
 
-/**
- * Find cart item index by composite key (id + color + size) or cartId.
- * @param {Array} items
- * @param {Object} params
- * @returns {number}
- */
-const findItemIndex = (items, { id, activeColor, selectedSize, cartId }) => {
+interface ItemKeyParams {
+  id: string;
+  activeColor?: string;
+  selectedSize?: string;
+  cartId?: number | null;
+}
+
+const findItemIndex = (items: CartItem[], { id, activeColor, selectedSize, cartId }: ItemKeyParams): number => {
   if (cartId) return items.findIndex(item => item.cartId === cartId);
   return items.findIndex(
     item => item.id === id && item.activeColor === activeColor && item.selectedSize === selectedSize
   );
 };
 
-const cartReducer = (state, action) => {
+const cartReducer = (state: CartState, action: CartAction): CartState => {
   switch (action.type) {
-    case ActionTypes.LOAD_FROM_STORAGE:
+    case 'LOAD_FROM_STORAGE':
       return { ...state, cartItems: action.payload ?? [] };
 
-    case ActionTypes.ADD_ITEM: {
+    case 'ADD_ITEM': {
       const { product } = action.payload;
       const existingIdx = findItemIndex(state.cartItems, {
         id: product.id,
@@ -95,7 +104,7 @@ const cartReducer = (state, action) => {
       };
     }
 
-    case ActionTypes.REMOVE_ITEM: {
+    case 'REMOVE_ITEM': {
       const idx = findItemIndex(state.cartItems, action.payload);
       if (idx === -1) return state;
       return {
@@ -104,7 +113,7 @@ const cartReducer = (state, action) => {
       };
     }
 
-    case ActionTypes.UPDATE_QUANTITY: {
+    case 'UPDATE_QUANTITY': {
       const { delta, ...key } = action.payload;
       const idx = findItemIndex(state.cartItems, key);
       if (idx === -1) return state;
@@ -112,7 +121,6 @@ const cartReducer = (state, action) => {
       const current = state.cartItems[idx];
       const newQty = (current.quantity ?? 1) + delta;
 
-      // Remove if quantity drops to 0
       if (newQty <= 0) {
         return {
           ...state,
@@ -128,7 +136,7 @@ const cartReducer = (state, action) => {
       };
     }
 
-    case ActionTypes.SET_ITEM_OPTIONS: {
+    case 'SET_ITEM_OPTIONS': {
       const { cartId, activeColor, selectedSize } = action.payload;
       return {
         ...state,
@@ -144,10 +152,10 @@ const cartReducer = (state, action) => {
       };
     }
 
-    case ActionTypes.CLEAR_CART:
+    case 'CLEAR_CART':
       return { ...state, cartItems: [] };
 
-    case ActionTypes.OPEN_DRAWER:
+    case 'OPEN_DRAWER':
       return {
         ...state,
         isDrawerOpen: true,
@@ -155,10 +163,10 @@ const cartReducer = (state, action) => {
         selectedProduct: action.payload.product ?? null,
       };
 
-    case ActionTypes.CLOSE_DRAWER:
+    case 'CLOSE_DRAWER':
       return { ...state, isDrawerOpen: false };
 
-    case ActionTypes.SET_BUCKET:
+    case 'SET_BUCKET':
       return {
         ...state,
         activeBucket: typeof action.payload === 'object' ? action.payload.bucket : action.payload,
@@ -166,14 +174,14 @@ const cartReducer = (state, action) => {
         scrollGridTick: state.scrollGridTick + 1,
       };
 
-    case ActionTypes.SET_SUB:
+    case 'SET_SUB':
       return {
         ...state,
         activeSub: action.payload,
         scrollGridTick: state.scrollGridTick + 1,
       };
 
-    case ActionTypes.SET_SORT:
+    case 'SET_SORT':
       return { ...state, sortBy: action.payload };
 
     default:
@@ -185,15 +193,45 @@ const cartReducer = (state, action) => {
 // CONTEXT & PROVIDER
 // ─────────────────────────────────────────────────────────────────
 
-const CartContext = createContext(null);
+export interface CartContextType {
+  cartItems: CartItem[];
+  cartCount: number;
+  total: number;
+  isDrawerOpen: boolean;
+  drawerMode: 'cart' | 'product' | 'wishlist';
+  selectedProduct: Product | null;
+  activeBucket: string;
+  activeSub: string | null;
+  lastViewedBucket: string;
+  sortBy: string;
+  shouldScrollGrid: number;
+  isBouncing: boolean;
+  addToCart: (product: CartItem) => void;
+  removeFromCart: (id: string, activeColor: string | undefined, selectedSize: string | undefined, cartId?: number | null) => void;
+  updateQuantity: (id: string, activeColor: string | undefined, selectedSize: string | undefined, delta: number, cartId?: number | null) => void;
+  setCartItemOptions: (cartId: number, activeColor?: string, selectedSize?: string) => void;
+  clearCart: () => void;
+  openDrawer: (mode: 'cart' | 'product' | 'wishlist', product?: Product | null) => void;
+  closeDrawer: () => void;
+  setActiveBucket: (bucket: string | { bucket: string; sub: string | null }, sub?: string | null) => void;
+  setActiveSub: (sub: string | null) => void;
+  setLastViewedBucket: (b: string | { bucket: string; sub: string | null }) => void;
+  setSortBy: (sort: string) => void;
+}
 
-export const CartProvider = ({ children }) => {
+const CartContext = createContext<CartContextType | null>(null);
+
+export interface CartProviderProps {
+  children: ReactNode;
+}
+
+export const CartProvider = ({ children }: CartProviderProps) => {
   const [state, dispatch] = useReducer(cartReducer, initialState);
-  const [storedCart, setStoredCart] = useLocalStorage(CART_STORAGE_KEY, []);
+  const [storedCart, setStoredCart] = useLocalStorage<CartItem[]>(CART_STORAGE_KEY, []);
 
   // Hydrate cart from localStorage on mount
   useEffect(() => {
-    dispatch({ type: ActionTypes.LOAD_FROM_STORAGE, payload: storedCart });
+    dispatch({ type: 'LOAD_FROM_STORAGE', payload: storedCart });
   }, []);  
 
   // Persist cart to localStorage on changes
@@ -216,61 +254,64 @@ export const CartProvider = ({ children }) => {
   // ── STABLE ACTION CREATORS ─────────────────────────────────────
 
   const addToCart = useCallback(
-    (product) => dispatch({ type: ActionTypes.ADD_ITEM, payload: { product } }),
+    (product: CartItem) => dispatch({ type: 'ADD_ITEM', payload: { product } }),
     []
   );
 
   const removeFromCart = useCallback(
-    (id, activeColor, selectedSize, cartId = null) =>
-      dispatch({ type: ActionTypes.REMOVE_ITEM, payload: { id, activeColor, selectedSize, cartId } }),
+    (id: string, activeColor: string | undefined, selectedSize: string | undefined, cartId: number | null = null) =>
+      dispatch({ type: 'REMOVE_ITEM', payload: { id, activeColor, selectedSize, cartId } }),
     []
   );
 
   const updateQuantity = useCallback(
-    (id, activeColor, selectedSize, delta, cartId = null) =>
-      dispatch({ type: ActionTypes.UPDATE_QUANTITY, payload: { id, activeColor, selectedSize, delta, cartId } }),
+    (id: string, activeColor: string | undefined, selectedSize: string | undefined, delta: number, cartId: number | null = null) =>
+      dispatch({ type: 'UPDATE_QUANTITY', payload: { id, activeColor, selectedSize, delta, cartId } }),
     []
   );
 
   const setCartItemOptions = useCallback(
-    (cartId, activeColor, selectedSize) =>
-      dispatch({ type: ActionTypes.SET_ITEM_OPTIONS, payload: { cartId, activeColor, selectedSize } }),
+    (cartId: number, activeColor?: string, selectedSize?: string) =>
+      dispatch({ type: 'SET_ITEM_OPTIONS', payload: { cartId, activeColor, selectedSize } }),
     []
   );
 
   const clearCart = useCallback(
-    () => dispatch({ type: ActionTypes.CLEAR_CART }),
+    () => dispatch({ type: 'CLEAR_CART' }),
     []
   );
 
   const openDrawer = useCallback(
-    (mode, product = null) =>
-      dispatch({ type: ActionTypes.OPEN_DRAWER, payload: { mode, product } }),
+    (mode: 'cart' | 'product' | 'wishlist', product: Product | null = null) =>
+      dispatch({ type: 'OPEN_DRAWER', payload: { mode, product } }),
     []
   );
 
   const closeDrawer = useCallback(
-    () => dispatch({ type: ActionTypes.CLOSE_DRAWER }),
+    () => dispatch({ type: 'CLOSE_DRAWER' }),
     []
   );
 
   const setActiveBucket = useCallback(
-    (bucket, sub = null) => dispatch({ type: ActionTypes.SET_BUCKET, payload: { bucket, sub } }),
+    (bucket: string | { bucket: string; sub: string | null }, sub: string | null = null) => {
+      const payload = typeof bucket === 'string' ? { bucket, sub } : bucket;
+      dispatch({ type: 'SET_BUCKET', payload });
+    },
     []
   );
 
   const setActiveSub = useCallback(
-    (sub) => dispatch({ type: ActionTypes.SET_SUB, payload: sub }),
+    (sub: string | null) => dispatch({ type: 'SET_SUB', payload: sub }),
     []
   );
 
   const setLastViewedBucket = useCallback(
-    (b) => dispatch({ type: ActionTypes.SET_BUCKET, payload: b }),
+    (b: string | { bucket: string; sub: string | null }) => dispatch({ type: 'SET_BUCKET', payload: b }),
     []
   );
 
   const setSortBy = useCallback(
-    (sort) => dispatch({ type: ActionTypes.SET_SORT, payload: sort }),
+    (sort: string) => dispatch({ type: 'SET_SORT', payload: sort }),
     []
   );
 
@@ -309,7 +350,7 @@ export const CartProvider = ({ children }) => {
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 };
 
-export const useCart = () => {
+export const useCart = (): CartContextType => {
   const context = useContext(CartContext);
   if (!context) throw new Error('useCart must be used within a CartProvider');
   return context;

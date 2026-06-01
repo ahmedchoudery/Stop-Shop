@@ -11,7 +11,7 @@ import {
   Search, ShoppingBag, Heart, Menu,
   User, LogOut, ChevronDown
 } from 'lucide-react';
-import { useCart } from '../context/CartContext.jsx';
+import { useCart } from '../context/CartContext.tsx';
 import { useWishlist } from '../context/WishlistContext.jsx';
 import { useCustomer } from '../context/CustomerContext.jsx';
 import MobileDrawer from './MobileDrawer.jsx';

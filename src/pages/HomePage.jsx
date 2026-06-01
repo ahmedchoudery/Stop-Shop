@@ -12,7 +12,7 @@ import ReviewsSection from '../components/ReviewsSection.jsx';
 import Newsletter from '../components/Newsletter.jsx';
 import RecentlyViewedSection from '../components/RecentlyViewedSection.jsx';
 import { usePublicProducts } from '../hooks/useDomain.js';
-import { useCart } from '../context/CartContext.jsx';
+import { useCart } from '../context/CartContext.tsx';
 import { EASING } from '../hooks/useAnime.js';
 
 // ─────────────────────────────────────────────────────────────────

@@ -8,7 +8,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Search, ArrowRight, TrendingUp, Tag, Command } from 'lucide-react';
-import { useCart } from '../context/CartContext.jsx';
+import { useCart } from '../context/CartContext.tsx';
 import { useCurrency } from '../context/CurrencyContext.jsx';
 import { useDebounce, useScrollLock } from '../hooks/useUtils.js';
 

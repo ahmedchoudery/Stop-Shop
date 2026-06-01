@@ -13,7 +13,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { Search, X, Filter, Package, ArrowLeft, SlidersHorizontal } from 'lucide-react';
-import { useCart } from '../context/CartContext.jsx';
+import { useCart } from '../context/CartContext.tsx';
 import { useCurrency } from '../context/CurrencyContext.jsx';
 import { apiUrl } from '../config/api.js';
 

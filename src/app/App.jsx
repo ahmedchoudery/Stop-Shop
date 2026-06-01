@@ -9,7 +9,7 @@ import { AnimatePresence } from 'framer-motion';
 import Layout from '../layout/Layout.jsx';
 import UniversalDrawer from '../layout/UniversalDrawer.jsx';
 
-import { CartProvider } from '../context/CartContext.jsx';
+import { CartProvider } from '../context/CartContext.tsx';
 import { WishlistProvider } from '../context/WishlistContext.jsx';
 import { RecentlyViewedProvider } from '../context/RecentlyViewedContext.jsx';
 import { CurrencyProvider } from '../context/CurrencyContext.jsx';

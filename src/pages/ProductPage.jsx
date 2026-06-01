@@ -12,7 +12,7 @@ import {
   Shield, ArrowLeft, AlertTriangle, ChevronLeft,
   Minus, Plus
 } from 'lucide-react';
-import { useCart } from '../context/CartContext.jsx';
+import { useCart } from '../context/CartContext.tsx';
 import { useWishlist } from '../context/WishlistContext.jsx';
 import { useCurrency } from '../context/CurrencyContext.jsx';
 import { apiUrl } from '../config/api.js';

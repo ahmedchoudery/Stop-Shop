@@ -13,7 +13,7 @@
 import React, { useEffect, useState } from 'react';
 import { X, MapPin, ChevronRight, ChevronLeft, Search, Package, RotateCcw, MessageCircle, User, LogOut } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useCart } from '../context/CartContext.jsx';
+import { useCart } from '../context/CartContext.tsx';
 import { useCustomer } from '../context/CustomerContext.jsx';
 import { CATEGORIES, CATEGORY_MAP } from '../utils/categories.js';
 

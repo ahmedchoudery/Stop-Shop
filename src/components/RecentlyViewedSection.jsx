@@ -9,7 +9,7 @@ import React, { useRef, useEffect } from 'react';
 import anime from 'animejs';
 import { ChevronLeft, ChevronRight, Clock, X, Star, Heart } from 'lucide-react';
 import { useRecentlyViewed } from '../context/RecentlyViewedContext.jsx';
-import { useCart } from '../context/CartContext.jsx';
+import { useCart } from '../context/CartContext.tsx';
 import { useWishlist } from '../context/WishlistContext.jsx';
 import { useCurrency } from '../context/CurrencyContext.jsx';
 import { EASING } from '../hooks/useAnime.js';

@@ -7,7 +7,7 @@ import React, { useEffect, useRef } from 'react';
 import anime from 'animejs';
 import { X, Heart, ShoppingBag, Trash2, ArrowRight } from 'lucide-react';
 import { useWishlist } from '../context/WishlistContext.jsx';
-import { useCart } from '../context/CartContext.jsx';
+import { useCart } from '../context/CartContext.tsx';
 import { useCurrency } from '../context/CurrencyContext.jsx';
 import { useScrollLock } from '../hooks/useUtils.js';
 import { EASING } from '../hooks/useAnime.js';

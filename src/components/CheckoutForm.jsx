@@ -13,7 +13,7 @@ import {
   UserCheck, X
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useCart } from '../context/CartContext.jsx';
+import { useCart } from '../context/CartContext.tsx';
 import { useCurrency } from '../context/CurrencyContext.jsx';
 import { useCustomer } from '../context/CustomerContext.jsx';
 import CouponInput from './CouponInput.jsx';
