@@ -8,7 +8,7 @@ import React, { useState, useMemo, useCallback } from 'react';
 import { Package, Search, Download } from 'lucide-react';
 import OrderTable from '../components/OrderTable.jsx';
 import OrderDetails from '../components/OrderDetails.jsx';
-import { AsyncContent } from '../components/ErrorBoundary.jsx';
+import { AsyncContent } from '../components/ErrorBoundary.tsx';
 import { useOrders } from '../hooks/useDomain.js';
 import { useDebounce } from '../hooks/useUtils.js';
 import { generateInvoice } from '../utils/generateInvoice.js';

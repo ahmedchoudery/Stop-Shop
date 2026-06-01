@@ -5,7 +5,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { Shield, Search, Filter, RefreshCw, AlertTriangle, Info, AlertCircle, X } from 'lucide-react';
-import { AsyncContent } from '../components/ErrorBoundary.jsx';
+import { AsyncContent } from '../components/ErrorBoundary.tsx';
 import { authFetch } from '../lib/auth.js';
 import { apiUrl } from '../config/api.js';
 import { useAsync } from '../hooks/useAsync.js';

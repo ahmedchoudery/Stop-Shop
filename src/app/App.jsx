@@ -15,7 +15,7 @@ import { RecentlyViewedProvider } from '../context/RecentlyViewedContext.jsx';
 import { CurrencyProvider } from '../context/CurrencyContext.jsx';
 import { LocaleProvider } from '../context/LocaleContext.jsx';
 import { CustomerProvider } from '../context/CustomerContext.jsx';
-import ErrorBoundary from '../components/ErrorBoundary.jsx';
+import ErrorBoundary from '../components/ErrorBoundary.tsx';
 import HomePage from '../pages/HomePage.jsx';
 import CheckoutPage from '../pages/CheckoutPage.jsx';
 import AdminDashboard from '../pages/AdminDashboard.jsx';

@@ -1,41 +1,54 @@
 /**
- * @fileoverview Error Boundary components
+ * @fileoverview Error Boundary components written in strict TypeScript.
  * Applies: react-patterns (error boundaries at every level), react-ui-patterns (always surface errors)
  */
 
-import React from 'react';
+import React, { Component, ReactNode, ErrorInfo } from 'react';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 
 // ─────────────────────────────────────────────────────────────────
 // CLASS-BASED ERROR BOUNDARY (required by React API)
 // ─────────────────────────────────────────────────────────────────
 
+export interface ErrorBoundaryProps {
+  children: ReactNode;
+  fallback?: (args: { error: Error | null; reset: () => void }) => ReactNode;
+  title?: string;
+  minimal?: boolean;
+}
+
+export interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+  errorInfo: ErrorInfo | null;
+}
+
 /**
  * Catches render-time errors in the component tree.
  * Shows a fallback UI and logs the error.
  */
-export class ErrorBoundary extends React.Component {
-  constructor(props) {
+export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+  constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false, error: null, errorInfo: null };
     this.handleReset = this.handleReset.bind(this);
   }
 
-  static getDerivedStateFromError(error) {
+  static getDerivedStateFromError(error: Error): Partial<ErrorBoundaryState> {
     return { hasError: true, error };
   }
 
-  componentDidCatch(error, errorInfo) {
+  override componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
     this.setState({ errorInfo });
     // In production, send to error tracking service (Sentry, etc.)
     console.error('[ErrorBoundary] Caught error:', error, errorInfo);
   }
 
-  handleReset() {
+  handleReset(): void {
     this.setState({ hasError: false, error: null, errorInfo: null });
   }
 
-  render() {
+  override render(): ReactNode {
     if (this.state.hasError) {
       // Allow custom fallback
       if (this.props.fallback) {
@@ -63,12 +76,22 @@ export class ErrorBoundary extends React.Component {
 // ERROR STATE UI COMPONENT
 // ─────────────────────────────────────────────────────────────────
 
+export interface ErrorStateProps {
+  error: Error | { message: string } | null;
+  onRetry?: () => void;
+  title?: string;
+  minimal?: boolean;
+}
+
 /**
  * Presentational error state — shown after catching an error.
- *
- * @param {{ error: Error|null, onRetry?: function, title?: string, minimal?: boolean }} props
  */
-export const ErrorState = ({ error, onRetry, title = 'Something went wrong', minimal = false }) => {
+export const ErrorState = ({
+  error,
+  onRetry,
+  title = 'Something went wrong',
+  minimal = false,
+}: ErrorStateProps) => {
   if (minimal) {
     return (
       <div className="flex items-center space-x-3 p-4 bg-red-50 border border-red-100 rounded-xl text-red-700">
@@ -114,6 +137,16 @@ export const ErrorState = ({ error, onRetry, title = 'Something went wrong', min
 // ASYNC STATE UI — loading / error / empty / data
 // ─────────────────────────────────────────────────────────────────
 
+export interface AsyncContentProps {
+  loading: boolean;
+  error: string | null;
+  data: any;
+  children: ReactNode;
+  empty?: ReactNode;
+  skeleton?: ReactNode;
+  onRetry?: () => void;
+}
+
 /**
  * Unified async content renderer following React UI Patterns golden rules.
  *
@@ -121,9 +154,6 @@ export const ErrorState = ({ error, onRetry, title = 'Something went wrong', min
  * - Show loading ONLY when there is no data (loading && !data)
  * - Always surface errors with a retry button
  * - Always provide empty states
- *
- * @param {{ loading: boolean, error: string|null, data: any, children: React.ReactNode,
- *           empty?: React.ReactNode, skeleton?: React.ReactNode, onRetry?: function }} props
  */
 export const AsyncContent = ({
   loading,
@@ -133,7 +163,7 @@ export const AsyncContent = ({
   empty,
   skeleton,
   onRetry,
-}) => {
+}: AsyncContentProps) => {
   // 1. Error always surfaced first
   if (error) {
     return (
@@ -157,7 +187,7 @@ export const AsyncContent = ({
   }
 
   // 4. Render data
-  return children;
+  return <>{children}</>;
 };
 
 // ─────────────────────────────────────────────────────────────────

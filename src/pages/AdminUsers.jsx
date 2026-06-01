@@ -5,7 +5,7 @@
 
 import React, { useState, useCallback } from 'react';
 import { Plus, UserCheck, UserX, Shield, Clock, AlertCircle, X, Save } from 'lucide-react';
-import { AsyncContent } from '../components/ErrorBoundary.jsx';
+import { AsyncContent } from '../components/ErrorBoundary.tsx';
 import { useAdminUsers } from '../hooks/useDomain.js';
 import { EASING } from '../hooks/useAnime.js';
 import { useTimeout } from '../hooks/useUtils.js';

@@ -6,7 +6,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Save, Eye, Zap, Image, Megaphone, AlertCircle, CheckCircle } from 'lucide-react';
 import { useSettings } from '../hooks/useDomain.js';
-import { AsyncContent } from '../components/ErrorBoundary.jsx';
+import { AsyncContent } from '../components/ErrorBoundary.tsx';
 import { useTimeout } from '../hooks/useUtils.js';
 
 const AdminSettings = () => {

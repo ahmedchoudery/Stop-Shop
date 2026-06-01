@@ -15,7 +15,7 @@ import {
   RefreshCw, AlertTriangle, CheckCircle, X,
   ChevronDown, Filter
 } from 'lucide-react';
-import { AsyncContent } from '../components/ErrorBoundary.jsx';
+import { AsyncContent } from '../components/ErrorBoundary.tsx';
 import ProductForm from '../components/ProductForm.jsx';
 import ProductTable from '../components/ProductTable.jsx';
 import ProductFilters from '../components/ProductFilters.jsx';

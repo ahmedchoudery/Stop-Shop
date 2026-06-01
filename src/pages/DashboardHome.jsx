@@ -9,7 +9,7 @@ import React from 'react';
 import StatsGrid from '../components/StatsGrid.jsx';
 import RevenueChart from '../components/RevenueChart.jsx';
 import InventoryHealthChart from '../components/InventoryHealthChart.jsx';
-import { AsyncContent } from '../components/ErrorBoundary.jsx';
+import { AsyncContent } from '../components/ErrorBoundary.tsx';
 import { useDashboardStats } from '../hooks/useDomain.js';
 import { RefreshCw } from 'lucide-react';
 

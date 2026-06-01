@@ -8,7 +8,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import anime from 'animejs';
 import { Search, Package, AlertTriangle, X, Filter } from 'lucide-react';
-import { AsyncContent } from '../components/ErrorBoundary.jsx';
+import { AsyncContent } from '../components/ErrorBoundary.tsx';
 import InventoryHealthChart from '../components/InventoryHealthChart.jsx';
 import { authFetch, handleAuthError } from '../lib/auth.js';
 import { apiUrl } from '../config/api.js';
