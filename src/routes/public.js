@@ -316,6 +316,7 @@ router.get('/public/reviews/:productId', async (req, res, next) => {
   try {
     const reviews = await Review
       .find({ status: 'approved', productId: req.params.productId })
+      .select('customerName rating title body createdAt')
       .sort({ createdAt: -1 })
       .limit(50)
       .lean();
@@ -331,6 +332,7 @@ router.get('/public/reviews', async (req, res, next) => {
 
     const reviews = await Review
       .find(filter)
+      .select('customerName rating title body createdAt productId')
       .sort({ createdAt: -1 })
       .limit(50)
       .lean();
