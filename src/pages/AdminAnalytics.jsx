@@ -25,6 +25,7 @@ import {
 import { authFetch, handleAuthError } from '../lib/auth.js';
 import { apiUrl } from '../config/api.js';
 import { useAsync } from '../hooks/useAsync.js';
+import InteractiveBusinessFlow from '../components/InteractiveBusinessFlow.jsx';
 
 // ─────────────────────────────────────────────────────────────────
 // COLORS
@@ -288,6 +289,13 @@ const AdminAnalytics = () => {
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* ── Interactive Business Flow ────────────────── */}
+          {d.ordersByStatus && (
+            <div className="mb-8">
+              <InteractiveBusinessFlow ordersByStatus={d.ordersByStatus} />
             </div>
           )}
 
