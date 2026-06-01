@@ -1,29 +1,15 @@
 "use client";
 
 /**
- * @fileoverview Footer — Premium Editorial Edition
- *
- * Design Direction: Luxury Editorial (DESIGN.md §1)
- * Tone: Confident, authoritative, brand-first.
- *
- * Upgrades in this version:
- *  - Scroll-triggered Cardinal Red top border draw animation
- *  - Obsidian dark bottom colophon strip with brand manifesto
- *  - Brand manifesto quote replaces generic copyright
- *  - Payment method tags preserved in colophon
- *
- * Color Tokens (DESIGN.md §2):
- *   Cardinal Red    #ba1f3d  — accent labels, top border
- *   Obsidian Black  #111827  — colophon canvas
- *   Surgical White  #FFFFFF  — page background
- *   Ash             #9CA3AF  — secondary text
+ * @fileoverview Footer — Unified Dark Edition
+ * Theme: Full dark, section headers neutral grey, social icons white hover.
+ * Cardinal Red: logo only.
  */
 
 import React, { useEffect, useRef, useCallback } from 'react';
 import { Link } from '../utils/router-compat.jsx';
 import { Facebook, Instagram, MapPin, Phone, Mail, ArrowUpRight } from 'lucide-react';
 
-// Brand manifesto — displayed as colophon in the dark bottom strip
 const MANIFESTO =
   'Every piece is a decision. Every purchase is a statement. ' +
   'Stop \u0026 Shop exists for those who choose deliberately.';
@@ -32,7 +18,7 @@ const Footer = () => {
   const borderRef = useRef(null);
   const year = new Date().getFullYear();
 
-  // Scroll-triggered Cardinal Red border draw (left → right)
+  // Subtle white border draw on scroll into view
   const observeBorder = useCallback(() => {
     const el = borderRef.current;
     if (!el) return;
@@ -52,12 +38,12 @@ const Footer = () => {
   useEffect(observeBorder, [observeBorder]);
 
   return (
-    <footer className="bg-white" aria-label="Site footer">
+    <footer className="bg-[#0d0d0d]" aria-label="Site footer">
 
-      {/* ── Animated Cardinal Red top border ────────────────── */}
+      {/* ── Thin white separator ─────────────────────────────── */}
       <div
         ref={borderRef}
-        className="h-px bg-[#ba1f3d] origin-left"
+        className="h-px bg-[#1f1f1f] origin-left"
         style={{
           transform: 'scaleX(0)',
           transition: 'transform 1.2s cubic-bezier(0.16, 1, 0.3, 1)',
@@ -65,24 +51,25 @@ const Footer = () => {
         aria-hidden="true"
       />
 
-      {/* ── Main Grid ─────────────────────────────────────── */}
+      {/* ── Main Grid ──────────────────────────────────────── */}
       <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 pt-20 pb-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-y-16 gap-x-8">
 
           {/* Brand Block — 4 cols */}
           <div className="lg:col-span-4">
             <Link to="/" className="inline-block mb-8" aria-label="Stop & Shop home">
+              {/* Logo — red stays (brand) */}
               <span className="text-2xl font-black italic uppercase tracking-tighter text-[#ba1f3d]">
-                Stop<span className="text-gray-900 not-italic">&</span>Shop
+                Stop<span className="text-white not-italic">&</span>Shop
               </span>
             </Link>
 
-            <p className="text-sm text-gray-500 leading-relaxed mb-10 max-w-[280px]">
+            <p className="text-sm text-[#555] leading-relaxed mb-10 max-w-[280px]">
               Premium clothing for those who demand excellence in every thread.
               Gujrat, Pakistan.
             </p>
 
-            {/* Social */}
+            {/* Social — hover white */}
             <div className="flex items-center space-x-3">
               {[
                 { href: 'https://www.facebook.com/p/StopShop-100088444777668/', label: 'Facebook', Icon: Facebook },
@@ -95,7 +82,7 @@ const Footer = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={label}
-                  className="w-9 h-9 border border-gray-200 flex items-center justify-center text-gray-500 hover:border-[#ba1f3d] hover:text-[#ba1f3d] transition-all duration-300"
+                  className="w-9 h-9 border border-[#1f1f1f] flex items-center justify-center text-[#555] hover:border-[#444] hover:text-white transition-all duration-300"
                 >
                   {Icon
                     ? <Icon size={14} />
@@ -108,7 +95,7 @@ const Footer = () => {
 
           {/* Collections — 2 cols */}
           <div className="lg:col-span-2">
-            <h4 className="text-[8px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-7">
+            <h4 className="text-[8px] font-black uppercase tracking-[0.5em] text-[#444] mb-7">
               Shop
             </h4>
             <ul className="space-y-4">
@@ -122,7 +109,7 @@ const Footer = () => {
                 <li key={label}>
                   <Link
                     to={to}
-                    className="text-xs font-bold text-gray-500 hover:text-gray-900 transition-colors duration-200 uppercase tracking-[0.15em]"
+                    className="text-xs font-bold text-[#555] hover:text-white transition-colors duration-200 uppercase tracking-[0.15em]"
                   >
                     {label}
                   </Link>
@@ -133,7 +120,7 @@ const Footer = () => {
 
           {/* Help — 2 cols */}
           <div className="lg:col-span-2">
-            <h4 className="text-[8px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-7">
+            <h4 className="text-[8px] font-black uppercase tracking-[0.5em] text-[#444] mb-7">
               Help
             </h4>
             <ul className="space-y-4">
@@ -147,7 +134,7 @@ const Footer = () => {
                 <li key={label}>
                   <Link
                     to={to}
-                    className="text-xs font-bold text-gray-500 hover:text-gray-900 transition-colors duration-200 uppercase tracking-[0.15em]"
+                    className="text-xs font-bold text-[#555] hover:text-white transition-colors duration-200 uppercase tracking-[0.15em]"
                   >
                     {label}
                   </Link>
@@ -158,7 +145,7 @@ const Footer = () => {
 
           {/* Contact — 4 cols */}
           <div className="lg:col-span-4">
-            <h4 className="text-[8px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-7">
+            <h4 className="text-[8px] font-black uppercase tracking-[0.5em] text-[#444] mb-7">
               Visit Us
             </h4>
 
@@ -173,23 +160,23 @@ const Footer = () => {
                 { Icon: Mail, text: 'concierge@stop-shop.pk', sub: null },
               ].map(({ Icon, text, sub }) => (
                 <div key={text} className="flex items-start space-x-3">
-                  <div className="w-7 h-7 border border-gray-100 flex items-center justify-center flex-shrink-0">
-                    <Icon size={12} className="text-[#ba1f3d]" />
+                  <div className="w-7 h-7 border border-[#1f1f1f] flex items-center justify-center flex-shrink-0">
+                    <Icon size={12} className="text-[#555]" />
                   </div>
                   <div>
-                    <p className="text-xs font-bold text-gray-800">{text}</p>
-                    {sub && <p className="text-[10px] text-gray-400 mt-0.5">{sub}</p>}
+                    <p className="text-xs font-bold text-[#888]">{text}</p>
+                    {sub && <p className="text-[10px] text-[#444] mt-0.5">{sub}</p>}
                   </div>
                 </div>
               ))}
             </div>
 
-            {/* WhatsApp CTA */}
+            {/* WhatsApp CTA — stays green (brand colour) */}
             <a
               href="https://wa.me/923068458655"
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-8 inline-flex items-center space-x-2 text-[10px] font-black uppercase tracking-[0.25em] text-[#25D366] border border-[#25D366]/30 px-4 py-2.5 hover:bg-[#25D366] hover:text-white hover:border-[#25D366] transition-all duration-300"
+              className="mt-8 inline-flex items-center space-x-2 text-[10px] font-black uppercase tracking-[0.25em] text-[#25D366] border border-[#25D366]/20 px-4 py-2.5 hover:bg-[#25D366] hover:text-white hover:border-[#25D366] transition-all duration-300"
             >
               <span>Chat on WhatsApp</span>
               <ArrowUpRight size={11} />
@@ -198,28 +185,26 @@ const Footer = () => {
         </div>
       </div>
 
-      {/* ── Obsidian colophon strip — luxury magazine bottom rule ── */}
-      <div className="bg-[#111827]">
+      {/* ── Colophon strip ──────────────────────────────────── */}
+      <div className="border-t border-[#1a1a1a]">
         <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 py-7 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
 
-          {/* Brand manifesto — editorial identity over generic copyright */}
-          <p className="text-[8px] font-black uppercase tracking-[0.3em] text-[#374151] max-w-md leading-relaxed">
+          <p className="text-[8px] font-black uppercase tracking-[0.3em] text-[#333] max-w-md leading-relaxed">
             {MANIFESTO}
           </p>
 
-          {/* Right side: payment methods + year */}
           <div className="flex flex-col sm:items-end gap-3 flex-shrink-0">
             <div className="flex items-center flex-wrap gap-1.5">
               {['JazzCash', 'Easypaisa', 'ATM Card', 'Bank Transfer', 'COD'].map(m => (
                 <span
                   key={m}
-                  className="text-[7px] font-black uppercase tracking-widest text-[#4B5563] border border-[#374151] px-2 py-1"
+                  className="text-[7px] font-black uppercase tracking-widest text-[#333] border border-[#222] px-2 py-1"
                 >
                   {m}
                 </span>
               ))}
             </div>
-            <p className="text-[8px] font-bold uppercase tracking-[0.35em] text-[#374151]">
+            <p className="text-[8px] font-bold uppercase tracking-[0.35em] text-[#2a2a2a]">
               © {year} Stop &amp; Shop · Gujrat, Pakistan
             </p>
           </div>

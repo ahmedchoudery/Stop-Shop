@@ -2,8 +2,7 @@
 
 /**
  * @fileoverview CategoryTiles.jsx — Visual Men's Category Navigator
- * Shows 4 category tiles (Tops, Bottoms, Footwear, Accessories) with
- * editorial background images + hover effects. Clicking filters the product grid.
+ * Theme: Unified dark, white accent on hover (not red).
  */
 
 import React, { useRef, useEffect } from 'react';
@@ -70,13 +69,13 @@ export default function CategoryTiles({ onSelect, activeBucket }) {
   };
 
   return (
-    <section ref={ref} className="bg-[#0a0a0a] py-16 sm:py-24">
+    <section ref={ref} className="bg-[#0d0d0d] py-16 sm:py-24">
       <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16">
 
         {/* Section Header */}
         <div className="flex items-end justify-between mb-10 sm:mb-14">
           <div>
-            <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-2">
+            <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#555] mb-2">
               Shop by Category
             </p>
             <h2 className="text-3xl sm:text-4xl font-black uppercase tracking-tighter text-white leading-none">
@@ -85,7 +84,7 @@ export default function CategoryTiles({ onSelect, activeBucket }) {
           </div>
           <button
             onClick={() => { onSelect?.('All'); scrollToGrid(); }}
-            className="hidden sm:flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.35em] text-gray-400 hover:text-white transition-colors duration-300 border-b border-gray-700 hover:border-white pb-0.5"
+            className="hidden sm:flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.35em] text-[#555] hover:text-white transition-colors duration-300 border-b border-[#2a2a2a] hover:border-white pb-0.5"
           >
             View All
             <ArrowUpRight size={12} />
@@ -112,29 +111,29 @@ export default function CategoryTiles({ onSelect, activeBucket }) {
                 />
 
                 {/* Dark gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-black/10 transition-opacity duration-300 group-hover:from-black/90" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/0 transition-opacity duration-300 group-hover:from-black/90" />
 
-                {/* Active border */}
+                {/* Active border — white */}
                 {isActive && (
-                  <div className="absolute inset-0 border-2 border-[#ba1f3d] pointer-events-none z-20" />
+                  <div className="absolute inset-0 border-2 border-white pointer-events-none z-20" />
                 )}
 
-                {/* Red top-left accent bar on hover */}
-                <div className="absolute top-0 left-0 w-0 h-0.5 bg-[#ba1f3d] group-hover:w-full transition-all duration-500 z-10" />
+                {/* White top accent bar on hover */}
+                <div className="absolute top-0 left-0 w-0 h-px bg-white group-hover:w-full transition-all duration-500 z-10" />
 
                 {/* Content */}
                 <div className="absolute bottom-0 left-0 right-0 p-5 z-10">
                   <div className="flex items-end justify-between">
                     <div>
-                      <p className="text-[8px] font-bold uppercase tracking-[0.4em] text-gray-400 mb-1.5">
+                      <p className="text-[8px] font-bold uppercase tracking-[0.4em] text-white/40 mb-1.5">
                         {sub}
                       </p>
-                      <h3 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-white leading-none group-hover:text-[#ba1f3d] transition-colors duration-300">
+                      <h3 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-white leading-none group-hover:text-white transition-colors duration-300">
                         {label}
                       </h3>
                     </div>
-                    <div className="w-8 h-8 border border-white/30 flex items-center justify-center group-hover:border-[#ba1f3d] group-hover:bg-[#ba1f3d] transition-all duration-300">
-                      <ArrowUpRight size={14} className="text-white" />
+                    <div className="w-8 h-8 border border-white/20 flex items-center justify-center group-hover:border-white group-hover:bg-white transition-all duration-300">
+                      <ArrowUpRight size={14} className="text-white group-hover:text-black transition-colors duration-300" />
                     </div>
                   </div>
                 </div>
@@ -147,7 +146,7 @@ export default function CategoryTiles({ onSelect, activeBucket }) {
         <div className="mt-6 flex justify-center sm:hidden">
           <button
             onClick={() => { onSelect?.('All'); scrollToGrid(); }}
-            className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.35em] text-gray-400 hover:text-white transition-colors duration-300 border-b border-gray-700 hover:border-white pb-0.5"
+            className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.35em] text-[#555] hover:text-white transition-colors duration-300 border-b border-[#2a2a2a] hover:border-white pb-0.5"
           >
             View All Products
             <ArrowUpRight size={12} />

@@ -1,6 +1,6 @@
 /**
  * @fileoverview PowerOfChoiceHero — Premium Menswear Editorial Hero
- * Upgraded: Credibility stats row, refined brand copy, dual-image desktop panel.
+ * Theme: Eyebrow neutral, dot pattern white, CTA + headline accent word stays red.
  */
 
 import React, { useEffect, useRef, useCallback } from 'react';
@@ -40,12 +40,12 @@ const PowerOfChoiceHero = () => {
       className="relative bg-[#080808] overflow-hidden w-full flex flex-col lg:h-[100dvh]"
       style={{ minHeight: '100dvh' }}
     >
-      {/* ── BACKGROUND: Hero duo image ───────────────────────────── */}
+      {/* ── BACKGROUND ──────────────────────────────────────────── */}
       <div className="absolute left-0 right-0 bottom-0 top-[110px] lg:top-[120px] z-0">
         <div className="relative w-full h-full">
           <img
             src="/hero-models-duo.jpg"
-            alt="SS'26 Luxury Duo"
+            alt="SS'26 Collection"
             className="w-full h-full object-cover lg:object-contain lg:object-right object-[center_20%]"
             loading="eager"
           />
@@ -58,11 +58,11 @@ const PowerOfChoiceHero = () => {
         </div>
       </div>
 
-      {/* ── Dot pattern overlay ──────────────────────────────────── */}
+      {/* ── Dot pattern — subtle white ───────────────────────────── */}
       <div
-        className="absolute inset-0 z-20 opacity-[0.015] pointer-events-none"
+        className="absolute inset-0 z-20 opacity-[0.012] pointer-events-none"
         style={{
-          backgroundImage: `radial-gradient(#ba1f3d 0.5px, transparent 0.5px)`,
+          backgroundImage: `radial-gradient(#ffffff 0.5px, transparent 0.5px)`,
           backgroundSize: '32px 32px',
         }}
       />
@@ -72,7 +72,7 @@ const PowerOfChoiceHero = () => {
 
         {/* Mobile: season tag */}
         <div className="w-full px-6 flex justify-center lg:hidden mt-4">
-          <span className="text-[10px] font-black uppercase tracking-[0.45em] text-[#ba1f3d] text-center">
+          <span className="text-[10px] font-black uppercase tracking-[0.45em] text-white/30 text-center">
             Pakistan's Premium Fashion Hub · SS '26
           </span>
         </div>
@@ -82,13 +82,13 @@ const PowerOfChoiceHero = () => {
 
             {/* Desktop: season tag */}
             <div data-anime className="hidden lg:flex items-center gap-3 mb-8" style={{ opacity: 0 }}>
-              <span className="w-8 h-px bg-[#ba1f3d]" />
-              <span className="text-[10px] font-black uppercase tracking-[0.45em] text-[#ba1f3d]">
+              <span className="w-8 h-px bg-white/20" />
+              <span className="text-[10px] font-black uppercase tracking-[0.45em] text-white/30">
                 Pakistan's Premium Fashion Hub · SS '26
               </span>
             </div>
 
-            {/* Headline */}
+            {/* Headline — one red word stays (hero-level emphasis is correct) */}
             <h1
               data-anime
               className="text-white font-black uppercase leading-[1.2] lg:leading-[0.88] tracking-[-0.03em] mb-6 lg:mb-8 text-[1.85rem] md:text-[2.6rem] lg:text-[clamp(2.4rem,7vw,4.3rem)]"
@@ -102,18 +102,18 @@ const PowerOfChoiceHero = () => {
             {/* Sub-copy */}
             <p
               data-anime
-              className="text-gray-200 text-xs md:text-sm lg:text-xl leading-relaxed max-w-[280px] md:max-w-md lg:max-w-xl mb-8 lg:mb-10 font-medium"
+              className="text-white/50 text-xs md:text-sm lg:text-xl leading-relaxed max-w-[280px] md:max-w-md lg:max-w-xl mb-8 lg:mb-10 font-medium"
               style={{ opacity: 0, textShadow: '0 2px 10px rgba(0,0,0,0.8)' }}
             >
               Elite fabrics. Bold designs. We don't just sell clothes — we build your identity.
               Join 2,000+ trendsetters who make their own rules.
             </p>
 
-            {/* CTA */}
+            {/* CTA — stays red (hero primary action) */}
             <div data-anime className="flex w-full sm:w-auto mb-12 lg:mb-14" style={{ opacity: 0 }}>
               <button
                 onClick={scrollToGrid}
-                className="group relative flex-grow sm:flex-grow-0 flex items-center justify-center gap-5 px-14 py-5 bg-[#ba1f3d] text-white text-[12px] lg:text-[13px] font-black uppercase tracking-[0.4em] overflow-hidden transition-all duration-300 hover:shadow-[0_20px_50px_rgba(186,31,61,0.5)] active:scale-95"
+                className="group relative flex-grow sm:flex-grow-0 flex items-center justify-center gap-5 px-14 py-5 bg-[#ba1f3d] text-white text-[12px] lg:text-[13px] font-black uppercase tracking-[0.4em] overflow-hidden transition-all duration-300 hover:brightness-110 active:scale-95"
               >
                 <span className="relative z-10">Shop Collection</span>
                 <ArrowRight size={18} className="relative z-10 group-hover:translate-x-1.5 transition-transform" />
@@ -121,7 +121,7 @@ const PowerOfChoiceHero = () => {
               </button>
             </div>
 
-            {/* ── Credibility Stats Row ─────────────────────────── */}
+            {/* ── Credibility Stats ──────────────────────────────── */}
             <div
               data-anime
               className="flex items-center gap-8 sm:gap-12 pt-8 border-t border-white/10"
@@ -136,7 +136,7 @@ const PowerOfChoiceHero = () => {
                   <span className="text-xl lg:text-2xl font-black text-white tracking-tight leading-none">
                     {stat}
                   </span>
-                  <span className="text-[8px] font-bold uppercase tracking-[0.35em] text-gray-500 mt-1.5">
+                  <span className="text-[8px] font-bold uppercase tracking-[0.35em] text-white/30 mt-1.5">
                     {label}
                   </span>
                 </div>

@@ -55,8 +55,8 @@ const ProductCard = ({ product, onImageLoad }) => {
       onMouseLeave={() => setIsHovered(false)}
       onClick={handleCardClick}
     >
-      {/* ── Image Container ─────────────────────────────── */}
-      <div className="relative aspect-[3/4] overflow-hidden bg-[#F8F7F5] mb-4">
+      {/* ── Image Container ───────────────────────────── */}
+      <div className="relative aspect-[3/4] overflow-hidden bg-[#141414] mb-4">
 
         {/* Main Image */}
         <MediaRenderer
@@ -67,19 +67,18 @@ const ProductCard = ({ product, onImageLoad }) => {
           onLoad={() => onImageLoad?.()}
           className={`w-full h-full object-cover transition-transform duration-700 ease-out ${
             isHovered ? 'scale-[1.06]' : 'scale-100'
-          } ${outOfStock ? 'opacity-50' : ''}`}
+          } ${outOfStock ? 'opacity-40' : ''}`}
         />
 
-        {/* Overlay on hover — actions */}
+        {/* Overlay on hover */}
         <div className={`absolute inset-0 transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
-          {/* Gradient veil */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
 
-          {/* Quick view button */}
+          {/* Quick view */}
           <div className="absolute bottom-4 left-4 right-4">
             <button
               onClick={(e) => { e.stopPropagation(); navigate(`/product/${product.id}`); }}
-              className="w-full flex items-center justify-center space-x-2 bg-white text-gray-900 py-2.5 text-[10px] font-black uppercase tracking-[0.25em] transition-all duration-300 hover:bg-[#ba1f3d] hover:text-white"
+              className="w-full flex items-center justify-center space-x-2 bg-white text-black py-2.5 text-[10px] font-black uppercase tracking-[0.25em] transition-all duration-300 hover:bg-[#f0f0f0]"
             >
               <Eye size={12} />
               <span>Quick View</span>
@@ -87,41 +86,40 @@ const ProductCard = ({ product, onImageLoad }) => {
           </div>
         </div>
 
-        {/* Wishlist button — top right */}
+        {/* Wishlist — top right */}
         <button
           onClick={handleWishlist}
           className={`absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center transition-all duration-300 ${
             wishlisted
               ? 'bg-[#ba1f3d] opacity-100'
-              : 'bg-white opacity-100 lg:opacity-0 lg:group-hover:opacity-100'
+              : 'bg-black/60 opacity-100 lg:opacity-0 lg:group-hover:opacity-100'
           }`}
-          style={{ backdropFilter: 'blur(4px)' }}
         >
           <Heart
             size={13}
-            className={wishlisted ? 'fill-white text-white' : 'text-gray-700'}
+            className={wishlisted ? 'fill-white text-white' : 'text-white'}
           />
         </button>
 
-        {/* Add to cart — top left, appears on hover */}
+        {/* Add to cart — top left */}
         {!outOfStock && (
           <button
             onClick={handleAddToCart}
             className={`absolute top-3 left-3 z-10 w-8 h-8 flex items-center justify-center transition-all duration-300 ${
-              cartAdded ? 'bg-[#ba1f3d]' : 'bg-white'
+              cartAdded ? 'bg-[#ba1f3d]' : 'bg-black/60'
             } opacity-100 lg:opacity-0 lg:group-hover:opacity-100`}
           >
             <ShoppingBag
               size={13}
-              className={cartAdded ? 'text-white' : 'text-gray-700'}
+              className="text-white"
             />
           </button>
         )}
 
         {/* Sold out badge */}
         {outOfStock && (
-          <div className="absolute top-3 left-3 z-10 bg-white px-2 py-1">
-            <span className="text-[8px] font-black uppercase tracking-[0.3em] text-gray-500">
+          <div className="absolute top-3 left-3 z-10 bg-black/80 px-2 py-1 border border-[#2a2a2a]">
+            <span className="text-[8px] font-black uppercase tracking-[0.3em] text-[#888]">
               Sold Out
             </span>
           </div>
@@ -137,21 +135,21 @@ const ProductCard = ({ product, onImageLoad }) => {
         )}
       </div>
 
-      {/* ── Product Info ─────────────────────────────────── */}
+      {/* ── Product Info ──────────────────────────────── */}
       <div className="px-0.5">
         {/* Category */}
-        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.35em] mb-1.5">
+        <p className="text-[9px] font-bold text-[#555] uppercase tracking-[0.35em] mb-1.5">
           {category}
         </p>
 
         {/* Name */}
-        <h3 className="text-sm font-black text-gray-900 uppercase tracking-tight leading-snug mb-2 group-hover:text-[#ba1f3d] transition-colors duration-300 line-clamp-1">
+        <h3 className="text-sm font-black text-[#f0f0f0] uppercase tracking-tight leading-snug mb-2 group-hover:text-white transition-colors duration-300 line-clamp-1">
           {product.name}
         </h3>
 
         {/* Price + Colors */}
         <div className="flex items-center justify-between">
-          <span className="text-sm font-black text-gray-900 tracking-wide">
+          <span className="text-sm font-black text-white tracking-wide">
             {formatPrice(product.price)}
           </span>
 
@@ -166,15 +164,15 @@ const ProductCard = ({ product, onImageLoad }) => {
                     onClick={(e) => { e.stopPropagation(); setActiveColor(color); }}
                     className={`w-2.5 h-2.5 rounded-full border transition-all duration-200 ${
                       activeColor === color
-                        ? 'border-[#ba1f3d] ring-1 ring-[#ba1f3d] ring-offset-1'
-                        : 'border-gray-200 hover:border-gray-400'
+                        ? 'border-white ring-1 ring-white ring-offset-1 ring-offset-[#0d0d0d]'
+                        : 'border-[#333] hover:border-[#666]'
                     }`}
                     style={{ backgroundColor: hex }}
                   />
                 );
               })}
               {product.colors.length > 4 && (
-                <span className="text-[8px] text-gray-400 font-bold">+{product.colors.length - 4}</span>
+                <span className="text-[8px] text-[#555] font-bold">+{product.colors.length - 4}</span>
               )}
             </div>
           )}

@@ -2,12 +2,7 @@
 
 /**
  * @fileoverview FeaturedCarousel.jsx — Horizontal Product Carousel
- * 
- * A premium horizontal scrolling product showcase with:
- * - Left/Right navigation arrows
- * - Strategic marketing headline above
- * - Smooth scroll-snap behavior
- * - Cardinal Red accent on active/hover states
+ * Theme: Unified dark, white accents on hover/active states.
  */
 
 import React, { useRef, useState, useEffect, useCallback } from 'react';
@@ -18,7 +13,7 @@ import { useWishlist } from '../context/WishlistContext.jsx';
 import { useCurrency } from '../context/CurrencyContext.jsx';
 import MediaRenderer from './MediaRenderer.jsx';
 
-/* ─── Carousel Card ──────────────────────────────────────────────────────── */
+/* ─── Carousel Card ─────────────────────────────────────────────────────── */
 
 const CarouselCard = ({ product }) => {
   const navigate = useNavigate();
@@ -64,41 +59,41 @@ const CarouselCard = ({ product }) => {
         />
 
         {/* Hover overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-        {/* Red top bar on hover */}
-        <div className="absolute top-0 left-0 w-0 h-0.5 bg-[#ba1f3d] group-hover:w-full transition-all duration-500" />
+        {/* White top bar on hover */}
+        <div className="absolute top-0 left-0 w-0 h-px bg-white group-hover:w-full transition-all duration-500" />
 
         {/* Action buttons */}
         <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           <button
             onClick={handleWishlist}
-            className={`w-8 h-8 flex items-center justify-center ${wishlisted ? 'bg-[#ba1f3d]' : 'bg-white'} transition-colors duration-200`}
+            className={`w-8 h-8 flex items-center justify-center ${wishlisted ? 'bg-[#ba1f3d]' : 'bg-black/60'} transition-colors duration-200`}
           >
-            <Heart size={12} className={wishlisted ? 'fill-white text-white' : 'text-gray-700'} />
+            <Heart size={12} className={wishlisted ? 'fill-white text-white' : 'text-white'} />
           </button>
           {!outOfStock && (
             <button
               onClick={handleAddToCart}
-              className={`w-8 h-8 flex items-center justify-center ${cartAdded ? 'bg-[#ba1f3d]' : 'bg-white'} transition-colors duration-200`}
+              className={`w-8 h-8 flex items-center justify-center ${cartAdded ? 'bg-[#ba1f3d]' : 'bg-black/60'} transition-colors duration-200`}
             >
-              <ShoppingBag size={12} className={cartAdded ? 'text-white' : 'text-gray-700'} />
+              <ShoppingBag size={12} className="text-white" />
             </button>
           )}
         </div>
 
         {/* Out of stock */}
         {outOfStock && (
-          <div className="absolute top-3 left-3 bg-white/90 px-2 py-1">
-            <span className="text-[8px] font-black uppercase tracking-[0.3em] text-gray-500">Sold Out</span>
+          <div className="absolute top-3 left-3 bg-black/80 border border-[#2a2a2a] px-2 py-1">
+            <span className="text-[8px] font-black uppercase tracking-[0.3em] text-[#888]">Sold Out</span>
           </div>
         )}
       </div>
 
       {/* Info */}
       <div>
-        <p className="text-[8px] font-bold uppercase tracking-[0.4em] text-gray-500 mb-1">{category}</p>
-        <h3 className="text-sm font-black uppercase tracking-tight text-white leading-snug group-hover:text-[#ba1f3d] transition-colors duration-300 line-clamp-1 mb-1.5">
+        <p className="text-[8px] font-bold uppercase tracking-[0.4em] text-[#555] mb-1">{category}</p>
+        <h3 className="text-sm font-black uppercase tracking-tight text-[#f0f0f0] leading-snug group-hover:text-white transition-colors duration-300 line-clamp-1 mb-1.5">
           {product.name}
         </h3>
         <span className="text-sm font-black text-white tracking-wide">
@@ -112,16 +107,16 @@ const CarouselCard = ({ product }) => {
   );
 };
 
-/* ─── FeaturedCarousel ───────────────────────────────────────────────────── */
+/* ─── FeaturedCarousel ──────────────────────────────────────────────────── */
 
-export default function FeaturedCarousel({ products = [], headline, subline, accent = '#ba1f3d' }) {
+export default function FeaturedCarousel({ products = [], headline, subline }) {
   const scrollRef = useRef(null);
   const sectionRef = useRef(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
   const [visible, setVisible] = useState(false);
 
-  const CARD_WIDTH = 316; // ~300px card + 16px gap
+  const CARD_WIDTH = 316;
 
   const updateScrollState = useCallback(() => {
     const el = scrollRef.current;
@@ -138,7 +133,6 @@ export default function FeaturedCarousel({ products = [], headline, subline, acc
     return () => el.removeEventListener('scroll', updateScrollState);
   }, [updateScrollState]);
 
-  // Intersection reveal
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => { if (entry.isIntersecting) { setVisible(true); observer.disconnect(); } },
@@ -159,7 +153,7 @@ export default function FeaturedCarousel({ products = [], headline, subline, acc
   return (
     <section
       ref={sectionRef}
-      className="bg-[#0a0a0a] py-16 sm:py-24 overflow-hidden"
+      className="bg-[#0d0d0d] py-16 sm:py-24 overflow-hidden"
       style={{
         opacity: visible ? 1 : 0,
         transform: visible ? 'translateY(0)' : 'translateY(32px)',
@@ -171,7 +165,7 @@ export default function FeaturedCarousel({ products = [], headline, subline, acc
         {/* Section Header */}
         <div className="flex items-end justify-between mb-10 sm:mb-14">
           <div>
-            <p className="text-[9px] font-black uppercase tracking-[0.5em] mb-2" style={{ color: accent }}>
+            <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#555] mb-2">
               {subline}
             </p>
             <h2 className="text-3xl sm:text-4xl font-black uppercase tracking-tighter text-white leading-none max-w-md">
@@ -179,21 +173,21 @@ export default function FeaturedCarousel({ products = [], headline, subline, acc
             </h2>
           </div>
 
-          {/* Navigation Arrows */}
+          {/* Navigation Arrows — white hover */}
           <div className="flex items-center gap-2">
             <button
               onClick={() => scroll(-1)}
               disabled={!canScrollLeft}
-              className="w-11 h-11 border border-[#2a2a2a] flex items-center justify-center transition-all duration-300 hover:border-[#ba1f3d] hover:bg-[#ba1f3d] disabled:opacity-20 disabled:cursor-not-allowed group"
+              className="w-11 h-11 border border-[#2a2a2a] flex items-center justify-center transition-all duration-300 hover:border-white hover:bg-white disabled:opacity-20 disabled:cursor-not-allowed group"
             >
-              <ArrowLeft size={16} className="text-white" />
+              <ArrowLeft size={16} className="text-white group-hover:text-black transition-colors duration-300" />
             </button>
             <button
               onClick={() => scroll(1)}
               disabled={!canScrollRight}
-              className="w-11 h-11 border border-[#2a2a2a] flex items-center justify-center transition-all duration-300 hover:border-[#ba1f3d] hover:bg-[#ba1f3d] disabled:opacity-20 disabled:cursor-not-allowed group"
+              className="w-11 h-11 border border-[#2a2a2a] flex items-center justify-center transition-all duration-300 hover:border-white hover:bg-white disabled:opacity-20 disabled:cursor-not-allowed group"
             >
-              <ArrowRight size={16} className="text-white" />
+              <ArrowRight size={16} className="text-white group-hover:text-black transition-colors duration-300" />
             </button>
           </div>
         </div>
@@ -215,11 +209,11 @@ export default function FeaturedCarousel({ products = [], headline, subline, acc
           ))}
         </div>
 
-        {/* Scroll indicator dots */}
+        {/* Scroll indicator dots — white */}
         <div className="flex items-center gap-1.5 mt-6">
-          <div className={`h-0.5 transition-all duration-300 ${canScrollLeft ? 'w-6 bg-[#ba1f3d]' : 'w-3 bg-[#333]'}`} />
-          <div className={`h-0.5 transition-all duration-300 ${!canScrollLeft && !canScrollRight ? 'w-6 bg-[#ba1f3d]' : 'w-3 bg-[#333]'}`} />
-          <div className={`h-0.5 transition-all duration-300 ${!canScrollRight ? 'w-6 bg-[#ba1f3d]' : 'w-3 bg-[#333]'}`} />
+          <div className={`h-px transition-all duration-300 ${canScrollLeft ? 'w-6 bg-white' : 'w-3 bg-[#2a2a2a]'}`} />
+          <div className={`h-px transition-all duration-300 ${!canScrollLeft && !canScrollRight ? 'w-6 bg-white' : 'w-3 bg-[#2a2a2a]'}`} />
+          <div className={`h-px transition-all duration-300 ${!canScrollRight ? 'w-6 bg-white' : 'w-3 bg-[#2a2a2a]'}`} />
         </div>
       </div>
     </section>

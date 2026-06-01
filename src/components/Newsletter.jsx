@@ -1,7 +1,6 @@
 /**
  * @fileoverview Newsletter — Design Spells Edition
- * Fix: replaced require('animejs') with ESM import
- * Fix: wired actual /api/newsletter/subscribe endpoint (was simulating with setTimeout)
+ * Theme: Unified dark, neutral text, white border focus, red CTA.
  */
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -113,34 +112,18 @@ const Newsletter = () => {
   return (
     <section
       ref={setSectionRef}
-      className="relative overflow-hidden bg-white py-40 border-t border-gray-50"
+      className="relative overflow-hidden bg-[#0d0d0d] py-40 border-t border-[#1f1f1f]"
     >
-      {/* Ambient gradient */}
-      <div
-        className="absolute inset-0 pointer-events-none"
-        style={{
-          background: 'radial-gradient(ellipse 70% 60% at 50% 100%, rgba(186,31,61,0.04) 0%, transparent 70%)',
-        }}
-      />
-
-      {/* Grain texture */}
-      <div
-        className="absolute inset-0 opacity-[0.025] pointer-events-none"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-        }}
-      />
-
       <div className="relative max-w-5xl mx-auto px-6 sm:px-8 lg:px-12 text-center">
 
         {/* Badge */}
         <div
           ref={badgeRef}
-          className="inline-flex items-center space-x-3 bg-white border border-gray-100 shadow-sm px-8 py-3.5 mb-16 rounded-full"
+          className="inline-flex items-center space-x-3 bg-[#141414] border border-[#2a2a2a] px-8 py-3.5 mb-16 rounded-full"
           style={{ opacity: 0 }}
         >
-          <Sparkles size={14} className="text-[#ba1f3d] animate-pulse" />
-          <span className="text-gray-900 text-[10px] font-black uppercase tracking-[0.6em]">
+          <Sparkles size={14} className="text-[#888888] animate-pulse" />
+          <span className="text-[#f0f0f0] text-[10px] font-black uppercase tracking-[0.6em]">
             The Cardinal Circle
           </span>
         </div>
@@ -148,13 +131,13 @@ const Newsletter = () => {
         {/* Headline */}
         <h2
           ref={headlineRef}
-          className="text-5xl sm:text-7xl lg:text-[8rem] font-black text-gray-900 uppercase tracking-tighter leading-[0.82] mb-10"
+          className="text-5xl sm:text-7xl lg:text-[8rem] font-black text-white uppercase tracking-tighter leading-[0.82] mb-10"
         >
           {['Elevate', 'Your', 'Wardrobe.'].map((word, i) => (
             <span
               key={i}
               data-word
-              className={`inline-block mr-[0.15em] ${i === 2 ? 'text-[#ba1f3d]' : ''}`}
+              className="inline-block mr-[0.15em] text-white"
               style={{ opacity: 0 }}
             >
               {word}
@@ -165,7 +148,7 @@ const Newsletter = () => {
             <span
               key={i}
               data-word
-              className="inline-block mr-[0.15em] text-gray-900"
+              className="inline-block mr-[0.15em] text-white"
               style={{ opacity: 0 }}
             >
               {word}
@@ -173,7 +156,7 @@ const Newsletter = () => {
           ))}
         </h2>
 
-        <p className="text-gray-400 text-lg font-medium mb-16 max-w-xl mx-auto leading-relaxed uppercase tracking-tighter opacity-70">
+        <p className="text-[#888888] text-lg font-medium mb-16 max-w-xl mx-auto leading-relaxed uppercase tracking-tighter opacity-70">
           Join Pakistan's elite fashion community. First access to limited drops and private collections.
         </p>
 
@@ -185,14 +168,14 @@ const Newsletter = () => {
         {/* Form / Success */}
         {status === 'success' ? (
           <div className="flex flex-col items-center space-y-6 animate-fade-up">
-            <div className="w-20 h-20 bg-[#ba1f3d] rounded-full flex items-center justify-center shadow-[0_20px_60px_rgba(186,31,61,0.35)] animate-scale-in">
+            <div className="w-20 h-20 bg-[#ba1f3d] rounded-full flex items-center justify-center shadow-[0_20px_60px_rgba(186,31,61,0.2)] animate-scale-in">
               <CheckCircle size={36} className="text-white" />
             </div>
             <div>
-              <p className="text-gray-900 font-black uppercase tracking-[0.4em] text-2xl mb-2">
+              <p className="text-white font-black uppercase tracking-[0.4em] text-2xl mb-2">
                 You've Arrived.
               </p>
-              <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.3em]">
+              <p className="text-[#888888] text-[10px] font-black uppercase tracking-[0.3em]">
                 Check your inbox for the elite access code.
               </p>
             </div>
@@ -204,7 +187,7 @@ const Newsletter = () => {
             className="max-w-xl mx-auto"
             style={{ opacity: 0 }}
           >
-            <div className="relative flex items-stretch border-2 border-gray-900 shadow-[0_20px_60px_rgba(0,0,0,0.08)] group hover:shadow-[0_25px_70px_rgba(0,0,0,0.12)] transition-shadow duration-500">
+            <div className="relative flex items-stretch border border-[#2a2a2a] focus-within:border-white transition-all duration-300 bg-[#141414]">
 
               <div className="relative flex-grow">
                 <input
@@ -214,7 +197,7 @@ const Newsletter = () => {
                   onFocus={() => setIsFocused(true)}
                   onBlur={() => setIsFocused(false)}
                   required
-                  className="w-full bg-transparent px-8 py-6 text-gray-900 font-bold text-sm outline-none placeholder:text-transparent peer"
+                  className="w-full bg-transparent px-8 py-6 text-white font-bold text-sm outline-none placeholder:text-transparent peer"
                   placeholder="your@email.com"
                   id="newsletter-email"
                 />
@@ -222,8 +205,8 @@ const Newsletter = () => {
                   htmlFor="newsletter-email"
                   className={`absolute left-8 pointer-events-none font-black uppercase transition-all duration-300 ${
                     isFocused || email
-                      ? 'top-2 text-[9px] tracking-[0.4em] text-[#ba1f3d]'
-                      : 'top-1/2 -translate-y-1/2 text-[10px] tracking-[0.3em] text-gray-400'
+                      ? 'top-2 text-[9px] tracking-[0.4em] text-white'
+                      : 'top-1/2 -translate-y-1/2 text-[10px] tracking-[0.3em] text-[#888888]'
                   }`}
                 >
                   {isFocused || email ? 'Email Address' : 'THE-ELITE@DOMAIN.COM'}
@@ -233,7 +216,7 @@ const Newsletter = () => {
               <button
                 type="submit"
                 disabled={status === 'loading'}
-                className="bg-[#ba1f3d] hover:bg-gray-900 text-white px-10 py-6 font-black uppercase tracking-[0.35em] text-[10px] transition-all duration-300 flex-shrink-0 flex items-center space-x-3 border-l-2 border-gray-900 disabled:opacity-60 relative overflow-hidden group/btn"
+                className="bg-[#ba1f3d] hover:bg-white hover:text-black text-white px-10 py-6 font-black uppercase tracking-[0.35em] text-[10px] transition-all duration-300 flex-shrink-0 flex items-center space-x-3 border-l border-[#2a2a2a] disabled:opacity-60 relative overflow-hidden group/btn"
               >
                 {status === 'loading' ? (
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -243,13 +226,13 @@ const Newsletter = () => {
                     <ArrowRight size={16} className="group-hover/btn:translate-x-1 transition-transform duration-200" />
                   </>
                 )}
-                <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/15 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-600 ease-out" />
+                <span className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover/btn:translate-x-full transition-transform duration-600 ease-out" />
               </button>
             </div>
 
-            <p className="text-gray-400 text-[9px] font-black uppercase tracking-[0.5em] mt-6 opacity-50">
+            <p className="text-[#888888] text-[9px] font-black uppercase tracking-[0.5em] mt-6 opacity-50">
               Privacy first. Use code{' '}
-              <span className="text-[#ba1f3d] underline decoration-2 underline-offset-4 cursor-pointer">
+              <span className="text-white underline decoration-2 underline-offset-4 cursor-pointer">
                 CARDINAL20
               </span>{' '}
               for 20% off your first order.

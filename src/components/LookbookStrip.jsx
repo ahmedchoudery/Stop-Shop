@@ -2,7 +2,7 @@
 
 /**
  * @fileoverview LookbookStrip.jsx — Full-Bleed Editorial Image Strip
- * A dramatic full-width lifestyle image with editorial text overlay.
+ * Theme: Eyebrow neutral grey, headline fully white, CTA stays red.
  */
 
 import React, { useRef, useEffect, useState } from 'react';
@@ -50,9 +50,9 @@ export default function LookbookStrip({ onShopNow }) {
         }}
       />
 
-      {/* Dark overlay gradient */}
-      <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/40 to-black/20" />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent" />
+      {/* Dark overlay */}
+      <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-black/10" />
+      <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
       {/* Content */}
       <div className="absolute inset-0 flex items-center">
@@ -64,20 +64,23 @@ export default function LookbookStrip({ onShopNow }) {
             transition: 'opacity 0.8s ease 0.3s, transform 0.8s ease 0.3s',
           }}
         >
-          <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-4">
+          {/* Eyebrow — neutral grey */}
+          <p className="text-[9px] font-black uppercase tracking-[0.5em] text-white/40 mb-4">
             The Lookbook · SS '26
           </p>
+          {/* Headline — fully white, no red word */}
           <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black uppercase tracking-tighter text-white leading-none mb-6">
             Defined by<br />
-            <span className="text-[#ba1f3d]">Attitude.</span>
+            Attitude.
           </h2>
-          <p className="text-sm text-gray-300 font-medium leading-relaxed mb-8 max-w-sm">
+          <p className="text-sm text-white/60 font-medium leading-relaxed mb-8 max-w-sm">
             Every piece tells a story. Every outfit, a statement.
             Dress how you want the world to see you.
           </p>
+          {/* CTA — red stays (primary action) */}
           <button
             onClick={() => { onShopNow?.('All'); scrollToGrid(); }}
-            className="group inline-flex items-center gap-4 bg-[#ba1f3d] text-white px-10 py-4 text-[11px] font-black uppercase tracking-[0.4em] transition-all duration-300 hover:shadow-[0_16px_40px_rgba(186,31,61,0.45)] active:scale-95"
+            className="group inline-flex items-center gap-4 bg-[#ba1f3d] text-white px-10 py-4 text-[11px] font-black uppercase tracking-[0.4em] transition-all duration-300 hover:brightness-110 active:scale-95"
           >
             Shop The Look
             <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform duration-300" />
