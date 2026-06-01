@@ -1,68 +1,79 @@
 /**
- * @fileoverview Admin Login Page
+ * @fileoverview Admin Login Page in strict TypeScript.
  * Applies: react-ui-patterns (button disabled during submit, error always surfaced),
  *          javascript-pro (async/await, proper error propagation),
  *          react-patterns (form state management, single responsibility)
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, FormEvent, ChangeEvent } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Eye, EyeOff, Shield, AlertCircle } from 'lucide-react';
 import { adminLogin } from '../lib/auth.js';
 import { useMutation } from '../hooks/useAsync.js';
+
+interface FieldErrors {
+  email?: string;
+  password?: string;
+}
 
 const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
   // Redirect to intended page after login (or default to /admin)
-  const from = location.state?.from?.pathname ?? '/admin';
+  const from = (location.state as any)?.from?.pathname ?? '/admin';
 
   const [form, setForm] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
-  const [fieldErrors, setFieldErrors] = useState({});
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
   // ── Validation ────────────────────────────────────────────────
 
-  const validateForm = useCallback(() => {
-    const errors = {};
-    if (!form.email.trim()) errors.email = 'Email is required';
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) errors.email = 'Enter a valid email';
-    if (!form.password) errors.password = 'Password is required';
+  const validateForm = useCallback((): boolean => {
+    const errors: FieldErrors = {};
+    if (!form.email.trim()) {
+      errors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) {
+      errors.email = 'Enter a valid email';
+    }
+    if (!form.password) {
+      errors.password = 'Password is required';
+    }
     setFieldErrors(errors);
     return Object.keys(errors).length === 0;
   }, [form]);
 
   // ── Login mutation ────────────────────────────────────────────
 
-  const { mutate: doLogin, loading, error: loginError } = useMutation(
+  const { mutate: doLogin, loading, error: loginError } = useMutation<any>(
     () => adminLogin(form.email.trim(), form.password),
     {
       onSuccess: () => navigate(from, { replace: true }),
     }
   );
 
-  const handleSubmit = useCallback(async (e) => {
+  const handleSubmit = useCallback(async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!validateForm()) return;
     await doLogin();
   }, [validateForm, doLogin]);
 
-  const handleChange = useCallback((e) => {
+  const handleChange = useCallback((e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setForm(prev => ({ ...prev, [name]: value }));
     // Clear field error on change
     setFieldErrors(prev => {
-      if (!prev[name]) return prev;
+      const field = name as keyof FieldErrors;
+      if (!prev[field]) return prev;
       const next = { ...prev };
-      delete next[name];
+      delete next[field];
       return next;
     });
   }, []);
 
   // ── Styles ────────────────────────────────────────────────────
 
-  const inputCls = (field) => `w-full border-b-2 py-3 text-sm font-bold bg-transparent outline-none transition-all placeholder:text-gray-300 ${
+  const inputCls = (field: keyof FieldErrors) => `w-full border-b-2 py-3 text-sm font-bold bg-transparent outline-none transition-all placeholder:text-gray-300 ${
     fieldErrors[field] ? 'border-red-400 text-red-900' : 'border-gray-100 focus:border-[#ba1f3d]'
   }`;
 

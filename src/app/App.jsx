@@ -20,7 +20,7 @@ import HomePage from '../pages/HomePage.jsx';
 import CheckoutPage from '../pages/CheckoutPage.jsx';
 import AdminDashboard from '../pages/AdminDashboard.jsx';
 import DashboardHome from '../pages/DashboardHome.jsx';
-import LoginPage from '../pages/LoginPage.jsx';
+import LoginPage from '../pages/LoginPage.tsx';
 import ProtectedRoute from '../components/ProtectedRoute.jsx';
 
 // ── Admin pages (lazy) ─────────────────────────────────────────────
