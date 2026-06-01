@@ -76,3 +76,18 @@ export interface SystemSettings {
   logo?: string;
   announcement?: string;
 }
+
+export interface StageNodeData extends Record<string, unknown> {
+  title: string;
+  icon: any;
+  color: string;
+  bg: string;
+  description: string;
+  metricName: string;
+  processTime: string;
+  system: string;
+}
+
+export interface FulfillmentFlowData {
+  ordersByStatus: Record<string, number>;
+}

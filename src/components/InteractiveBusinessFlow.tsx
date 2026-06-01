@@ -1,16 +1,18 @@
 /**
- * @fileoverview InteractiveBusinessFlow.jsx — Premium fulfillment lifecycle graph
- * Designed following react-flow-architect patterns:
+ * @fileoverview InteractiveBusinessFlow.tsx — Premium fulfillment lifecycle graph
+ * Designed following react-flow-architect and react-flow-node-ts patterns:
  * - Hierarchical processing navigation (nodes + edges structure).
- * - Stable, memoized component leaf rows (memo + useCallback props preservation).
+ * - Stable, memoized component leaf nodes (memo + useCallback props preservation).
  * - Pure SVG animated connector edges.
  * - Responsive, non-overflow layout (horizontal flex-row on desktop, vertical flex-col on mobile).
+ * - Strict type checking using defined TS models.
  */
 
 import React, { useState, memo, useCallback, useMemo } from 'react';
 import { ShieldCheck, CreditCard, Box, Truck, CheckCircle, ArrowRight, Sparkles } from 'lucide-react';
+import { StageNodeData } from '../types/index.ts';
 
-const STAGE_DETAILS = {
+const STAGE_DETAILS: Record<string, StageNodeData> = {
   received: {
     title: '1. Order Received',
     icon: ShieldCheck,
@@ -66,7 +68,15 @@ const STAGE_DETAILS = {
 // ─────────────────────────────────────────────────────────────────
 // MEMOIZED STAGE NODE RENDERER
 // ─────────────────────────────────────────────────────────────────
-const StageNode = memo(({ stageKey, config, isActive, onClick, liveCount }) => {
+interface StageNodeProps {
+  stageKey: string;
+  config: StageNodeData;
+  isActive: boolean;
+  onClick: (stageKey: string) => void;
+  liveCount: number;
+}
+
+const StageNode = memo(({ stageKey, config, isActive, onClick, liveCount }: StageNodeProps) => {
   const Icon = config.icon;
 
   return (
@@ -113,14 +123,18 @@ StageNode.displayName = 'StageNode';
 // ─────────────────────────────────────────────────────────────────
 // MAIN GRAPH LIFECYCLE COMPONENT
 // ─────────────────────────────────────────────────────────────────
-export const InteractiveBusinessFlow = memo(({ ordersByStatus = {} }) => {
-  const [activeStage, setActiveStage] = useState('received');
+interface InteractiveBusinessFlowProps {
+  ordersByStatus: Record<string, number>;
+}
 
-  const handleStageSelect = useCallback((key) => {
+export const InteractiveBusinessFlow = memo(({ ordersByStatus = {} }: InteractiveBusinessFlowProps) => {
+  const [activeStage, setActiveStage] = useState<string>('received');
+
+  const handleStageSelect = useCallback((key: string) => {
     setActiveStage(key);
   }, []);
 
-  const liveCounts = useMemo(() => {
+  const liveCounts = useMemo<Record<string, number>>(() => {
     return {
       received: ordersByStatus.Pending ?? 0,
       payment: ordersByStatus.Processing ?? 0,
@@ -130,7 +144,7 @@ export const InteractiveBusinessFlow = memo(({ ordersByStatus = {} }) => {
     };
   }, [ordersByStatus]);
 
-  const activeDetails = useMemo(() => {
+  const activeDetails = useMemo<StageNodeData>(() => {
     return STAGE_DETAILS[activeStage];
   }, [activeStage]);
 

@@ -25,7 +25,7 @@ import {
 import { authFetch, handleAuthError } from '../lib/auth.js';
 import { apiUrl } from '../config/api.js';
 import { useAsync } from '../hooks/useAsync.js';
-import InteractiveBusinessFlow from '../components/InteractiveBusinessFlow.jsx';
+import InteractiveBusinessFlow from '../components/InteractiveBusinessFlow.tsx';
 
 // ─────────────────────────────────────────────────────────────────
 // COLORS
