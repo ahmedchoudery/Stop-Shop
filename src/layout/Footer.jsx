@@ -1,3 +1,5 @@
+"use client";
+
 /**
  * @fileoverview Footer — Premium Editorial Edition
  *
@@ -18,7 +20,7 @@
  */
 
 import React, { useEffect, useRef, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link } from '../utils/router-compat.jsx';
 import { Facebook, Instagram, MapPin, Phone, Mail, ArrowUpRight } from 'lucide-react';
 
 // Brand manifesto — displayed as colophon in the dark bottom strip

@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * @fileoverview Error Boundary components written in strict TypeScript.
  * Applies: react-patterns (error boundaries at every level), react-ui-patterns (always surface errors)

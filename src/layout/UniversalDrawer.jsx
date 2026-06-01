@@ -1,3 +1,5 @@
+"use client";
+
 /**
  * UniversalDrawer — Premium Minimalist Edition
  * Handles: cart mode, product quick-view mode, wishlist redirect.
@@ -6,7 +8,7 @@
 
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { X, ShoppingBag, Trash2, Plus, Minus, ArrowRight, Package, Tag } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from '../utils/router-compat.jsx';
 import { useCart } from '../context/CartContext.tsx';
 import { useCurrency } from '../context/CurrencyContext.jsx';
 import { useScrollLock } from '../hooks/useUtils.js';

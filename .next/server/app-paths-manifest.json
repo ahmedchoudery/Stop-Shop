@@ -1,0 +1,15 @@
+{
+  "/_not-found/page": "app/_not-found/page.js",
+  "/[...not-found]/page": "app/[...not-found]/page.js",
+  "/api/public/products/route": "app/api/public/products/route.js",
+  "/api/public/reviews/route": "app/api/public/reviews/route.js",
+  "/api/public/track/[orderID]/route": "app/api/public/track/[orderID]/route.js",
+  "/api/public/settings/route": "app/api/public/settings/route.js",
+  "/order-success/page": "app/order-success/page.js",
+  "/page": "app/page.js",
+  "/checkout/page": "app/checkout/page.js",
+  "/track/page": "app/track/page.js",
+  "/returns/page": "app/returns/page.js",
+  "/search/page": "app/search/page.js",
+  "/product/[id]/page": "app/product/[id]/page.js"
+}

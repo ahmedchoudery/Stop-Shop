@@ -1,3 +1,5 @@
+"use client";
+
 /**
  * Navbar — Premium Minimalist Edition
  * Sits at top-[34px] to clear the 34px MarqueeBar.
@@ -5,7 +7,7 @@
  */
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from '../utils/router-compat.jsx';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
   Search, ShoppingBag, Heart, Menu,

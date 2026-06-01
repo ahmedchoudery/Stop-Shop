@@ -9,8 +9,23 @@
 // ─────────────────────────────────────────────────────────────────
 
 const isBrowser = typeof window !== 'undefined';
-const isDev = import.meta.env.DEV ?? false;
-const isTest = import.meta.env.MODE === 'test';
+const getEnv = (key) => {
+  if (typeof process !== 'undefined' && process.env) {
+    return process.env[key];
+  }
+  if (typeof import.meta !== 'undefined' && import.meta.env) {
+    return import.meta.env[key];
+  }
+  return undefined;
+};
+
+const isDev = (typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'development') || 
+  (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.DEV) || 
+  false;
+
+const isTest = (typeof process !== 'undefined' && process.env && process.env.NODE_ENV === 'test') || 
+  (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.MODE === 'test') || 
+  false;
 
 /**
  * Detect if currently running on localhost
@@ -62,7 +77,7 @@ const resolveEnvApiUrl = (raw) => {
   return url;
 };
 
-const envBase = resolveEnvApiUrl(import.meta.env.VITE_API_URL ?? '');
+const envBase = resolveEnvApiUrl(getEnv('NEXT_PUBLIC_API_URL') || getEnv('VITE_API_URL') || '');
 
 /**
  * Final API base URL.
@@ -79,8 +94,8 @@ export const API_BASE = (isLocalhost || isTest)
 
 if (isDev && isBrowser) {
   console.group('[API] Configuration');
-  console.log('Mode:', import.meta.env.MODE);
-  console.log('VITE_API_URL:', import.meta.env.VITE_API_URL);
+  console.log('Mode:', typeof process !== 'undefined' ? process.env.NODE_ENV : (typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env.MODE : ''));
+  console.log('VITE_API_URL:', getEnv('VITE_API_URL') || getEnv('NEXT_PUBLIC_API_URL'));
   console.log('Resolved API_BASE:', API_BASE || '(empty — using Vite proxy)');
   console.groupEnd();
 }

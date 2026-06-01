@@ -7,6 +7,7 @@ import reactRefresh from 'eslint-plugin-react-refresh';
 export default [
   {
     ignores: [
+      '.next/**',
       'dist/**',
       'node_modules/**',
       'playground-1.mongodb.js',

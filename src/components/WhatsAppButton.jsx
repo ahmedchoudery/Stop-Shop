@@ -8,7 +8,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from '../utils/router-compat.jsx';
 
 // ── Config — change these to your actual WhatsApp number ──────────
 const WHATSAPP_NUMBER = '923068458655'; // Format: country code + number, no + or spaces

@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * @fileoverview Layout — Updated for Premium Redesign
  * Changes:
@@ -7,7 +9,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from '../utils/router-compat.jsx';
 import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from './Navbar.jsx';
 import Footer from './Footer.jsx';
