@@ -10,8 +10,33 @@ const productSchema = new mongoose.Schema({
   mediaType:     { type: String, enum: ['upload', 'url', 'embed'], default: 'upload' },
   embedCode:     { type: String, default: '' },
   rating:        { type: Number, default: 5, min: 1, max: 5 },
-  bucket:        { type: String, default: 'Tops', trim: true },      // category
-  subCategory:   { type: String, default: 'Tshirt', trim: true },
+  bucket:        {
+    type: String,
+    enum: ['Tops', 'Bottoms', 'Footwear', 'Accessories'],
+    default: 'Tops',
+    trim: true
+  },
+  subCategory:   {
+    type: String,
+    validate: {
+      validator: function(v) {
+        const CATEGORY_MAP = {
+          Tops: ['Polo', 'Shirt', 'Tshirt', 'Sweatshirt', 'Hoodie', 'Jacket'],
+          Bottoms: ['Jeans', 'Trousers', 'Shorts'],
+          Footwear: ['Shoes', 'Slippers', 'Socks'],
+          Accessories: ['Glasses', 'Watches', 'Rings', 'Bracelet', 'Chains', 'Caps', 'Belts', 'Bags'],
+        };
+        // If there's a bucket defined, validate against that bucket's options, otherwise allow any from all buckets
+        if (this.bucket && CATEGORY_MAP[this.bucket]) {
+          return CATEGORY_MAP[this.bucket].includes(v);
+        }
+        return Object.values(CATEGORY_MAP).flat().includes(v);
+      },
+      message: props => `${props.value} is not a valid subCategory for the selected category!`
+    },
+    default: 'Polo',
+    trim: true
+  },
   specs:         [{ type: String }],
   colors:        [{ type: String }],
   sizes:         [{ type: String }],

@@ -24,6 +24,7 @@ import { apiUrl } from '../config/api.js';
 import { useAsync } from '../hooks/useAsync.js';
 import { useDebounce, useTimeout } from '../hooks/useUtils.js';
 import CsvImport from '../components/CsvImport.jsx';
+import { getDefaultSubCategory } from '../utils/categories.js';
 // ─────────────────────────────────────────────────────────────────
 // DEFAULT FORM STATE
 // ─────────────────────────────────────────────────────────────────
@@ -39,7 +40,7 @@ const DEFAULT_FORM = {
   embedCode:      '',
   rating:         5,
   bucket:         'Tops',
-  subCategory:    'General',
+  subCategory:    'Polo',
   specs:          [],
   colors:         [],
   sizes:          [],
@@ -235,7 +236,9 @@ const AdminProducts = () => {
       embedCode:      product.embedCode      ?? '',
       rating:         product.rating         ?? 5,
       bucket:         product.bucket         ?? 'Tops',
-      subCategory:    product.subCategory    ?? 'General',
+      subCategory:    (product.subCategory && product.subCategory !== 'General')
+                        ? product.subCategory
+                        : getDefaultSubCategory(product.bucket ?? 'Tops'),
       specs:          product.specs          ?? [],
       colors:         product.colors         ?? [],
       sizes:          product.sizes          ?? [],

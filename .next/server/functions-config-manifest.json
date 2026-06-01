@@ -1,1 +1,1 @@
-{"version":1,"functions":{"/checkout":{},"/returns":{},"/":{},"/search":{},"/track":{},"/product/[id]":{},"/order-success":{}}}
+{"version":1,"functions":{"/order-success":{},"/checkout":{},"/":{},"/returns":{},"/search":{},"/track":{},"/product/[id]":{}}}
