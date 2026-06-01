@@ -314,12 +314,18 @@ router.post('/public/coupons/validate', validateRequest(couponValidationSchema),
 
 router.get('/public/reviews/:productId', async (req, res, next) => {
   try {
-    const reviews = await Review
-      .find({ status: 'approved', productId: req.params.productId })
-      .select('customerName rating title body createdAt')
-      .sort({ createdAt: -1 })
-      .limit(50)
-      .lean();
+    const { productId } = req.params;
+    const cacheKey = `${CACHE_KEYS.PUBLIC_REVIEWS_PRODUCT}:${productId}`;
+
+    const reviews = await cacheService.getOrSet(cacheKey, async () =>
+      Review
+        .find({ status: 'approved', productId })
+        .select('customerName rating title body createdAt')
+        .sort({ createdAt: -1 })
+        .limit(50)
+        .lean()
+    , 300);
+
     res.json(reviews);
   } catch (err) { next(err); }
 });
@@ -327,15 +333,24 @@ router.get('/public/reviews/:productId', async (req, res, next) => {
 router.get('/public/reviews', async (req, res, next) => {
   try {
     const { productId } = req.query;
-    const filter = { status: 'approved' };
-    if (productId) filter.productId = String(productId);
 
-    const reviews = await Review
-      .find(filter)
-      .select('customerName rating title body createdAt productId')
-      .sort({ createdAt: -1 })
-      .limit(50)
-      .lean();
+    // For product-filtered reviews: use per-product key.
+    // For global list: use the shared PUBLIC_REVIEWS key.
+    const cacheKey = productId
+      ? `${CACHE_KEYS.PUBLIC_REVIEWS_PRODUCT}:${String(productId)}`
+      : CACHE_KEYS.PUBLIC_REVIEWS;
+
+    const reviews = await cacheService.getOrSet(cacheKey, async () => {
+      const filter = { status: 'approved' };
+      if (productId) filter.productId = String(productId);
+      return Review
+        .find(filter)
+        .select('customerName rating title body createdAt productId')
+        .sort({ createdAt: -1 })
+        .limit(50)
+        .lean();
+    }, 300);
+
     res.json(reviews);
   } catch (err) { next(err); }
 });
@@ -368,6 +383,9 @@ router.post('/public/reviews', validateRequest(reviewSchema), async (req, res, n
       productId:     productId ?? '',
       status:        'pending',
     });
+
+    // Invalidate global reviews cache so moderators see the queue
+    await cacheService.invalidateMany([CACHE_KEYS.PUBLIC_REVIEWS]);
 
     res.status(201).json({
       message: 'Review submitted successfully. It will appear after moderation.',

@@ -372,6 +372,37 @@
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+/* Glassmorphism navbar — activates on scroll (scrolled state) */
+.navbar-glass {
+  background: rgba(255, 255, 255, 0.88) !important;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.25) !important;
+  box-shadow: 0 1px 24px rgba(0, 0, 0, 0.06);
+}
+
+/* ── 9b. Flash Sale Banner ────────────────────────────────────── */
+
+@keyframes flashBannerIn {
+  from { transform: translateY(-100%); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
+}
+
+@keyframes countdownPulse {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.05); }
+}
+
+.flash-banner {
+  animation: flashBannerIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  will-change: transform, opacity;
+}
+
+.flash-countdown {
+  animation: countdownPulse 1s ease-in-out infinite;
+  will-change: transform;
+}
+
 /* ── 10. Cursor follower override for touch ──────────────────── */
 
 @media (hover: none) {

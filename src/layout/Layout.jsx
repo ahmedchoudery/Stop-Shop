@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from './Navbar.jsx';
 import Footer from './Footer.jsx';
 import MarqueeBar from '../components/MarqueeBar.jsx';
+import FlashSaleBanner from '../components/FlashSaleBanner.jsx';
 import SearchOverlay from '../components/SearchOverlay.jsx';
 import WhatsAppButton from '../components/WhatsAppButton.jsx';
 import { useSettings } from '../hooks/useDomain.js';
@@ -61,7 +62,10 @@ const Layout = ({ children, products = [] }) => {
   return (
     <div className="min-h-screen flex flex-col bg-white">
 
-      {/* ── Marquee announcement bar (topmost, 34px) ─── */}
+      {/* ── Flash sale banner (topmost, 36px, dismissible) ─── */}
+      <FlashSaleBanner />
+
+      {/* ── Marquee announcement bar (34px) ─────────────────── */}
       <MarqueeBar
         announcement={settings?.announcement}
         scrolled={scrolled}

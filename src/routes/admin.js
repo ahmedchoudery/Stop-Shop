@@ -28,6 +28,7 @@ import {
 
 import { authLimiter } from '../middleware/rateLimiters.js';
 import { syncInventory } from '../services/inventoryService.js';
+import { sendEmail, sendOrderStatusEmail } from '../services/emailService.js';
 
 // Models
 import Product from '../models/Product.js';
@@ -558,10 +559,18 @@ router.get('/orders', authenticateToken, async (req, res, next) => {
 
 router.patch('/orders/:id', authenticateToken, validateRequest(updateOrderStatusSchema), async (req, res, next) => {
   try {
-    const order = await Order.findByIdAndUpdate(req.params.id, { status: req.body.status }, { new: true }).lean();
+    const { status } = req.body;
+    const order = await Order.findByIdAndUpdate(req.params.id, { status }, { new: true }).lean();
     if (!order) throw new NotFoundError('Order not found');
-    await logAudit('ORDER_STATUS_UPDATE', { id: req.params.id, status: req.body.status }, req);
+
+    await logAudit('ORDER_STATUS_UPDATE', { id: req.params.id, status }, req);
     await cacheService.invalidateMany([CACHE_KEYS.STATS_REVENUE, CACHE_KEYS.STATS_ORDERS]);
+
+    // Fire-and-forget: notify customer on fulfilment milestones
+    if (status === 'Shipped' || status === 'Delivered') {
+      sendOrderStatusEmail(order, status).catch(() => {});
+    }
+
     res.json(order);
   } catch (err) { next(err); }
 });

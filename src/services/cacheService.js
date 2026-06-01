@@ -19,6 +19,8 @@ export const CACHE_KEYS = Object.freeze({
   PRODUCTS: 'admin:products',
   PUBLIC_PRODUCTS: 'public:products',
   SETTINGS: 'public:settings',
+  PUBLIC_REVIEWS: 'public:reviews',
+  PUBLIC_REVIEWS_PRODUCT: 'public:reviews:product',
 });
 
 // ─────────────────────────────────────────────────────────────────
@@ -32,6 +34,8 @@ const TTL = Object.freeze({
   [CACHE_KEYS.PRODUCTS]: 300,           // 5 minutes
   [CACHE_KEYS.PUBLIC_PRODUCTS]: 300,    // 5 minutes
   [CACHE_KEYS.SETTINGS]: 600,           // 10 minutes
+  [CACHE_KEYS.PUBLIC_REVIEWS]: 300,     // 5 minutes
+  [CACHE_KEYS.PUBLIC_REVIEWS_PRODUCT]: 300, // 5 minutes per-product
   DEFAULT: 120,
 });
 

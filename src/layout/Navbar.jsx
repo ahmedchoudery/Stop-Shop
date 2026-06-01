@@ -56,7 +56,8 @@ const Navbar = ({ products = [], onSearchOpen, scrolled, isHome }) => {
   const iconHover = isTransparent ? 'hover:text-white hover:bg-white/10' : 'hover:text-gray-900 hover:bg-gray-50';
   const navBg     = isTransparent
     ? 'bg-transparent border-b border-white/10'
-    : 'bg-white border-b border-gray-100 shadow-[0_1px_0_rgba(0,0,0,0.04)]';
+    : `border-b border-gray-100/60 ${scrolled ? 'navbar-glass' : 'bg-white'} shadow-[0_1px_0_rgba(0,0,0,0.04)]`;
+
 
   return (
     <>

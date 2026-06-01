@@ -136,3 +136,125 @@ This is an automated message from your Stop & Shop store.
     console.error('[LowStock] Alert failed:', err.message);
   }
 };
+
+// ─────────────────────────────────────────────────────────────────
+// ORDER STATUS EMAIL
+// ─────────────────────────────────────────────────────────────────
+
+const STATUS_ICONS = {
+  Shipped:   '📦',
+  Delivered: '✅',
+};
+
+const STATUS_COLORS = {
+  Shipped:   '#2563eb',
+  Delivered: '#16a34a',
+};
+
+/**
+ * Sends a branded order status notification email to the customer.
+ * Triggered by admin when marking an order as Shipped or Delivered.
+ * Fire-and-forget — never throws so the admin PATCH response is unaffected.
+ *
+ * @param {{ orderID: string, customer: { name: string, email: string }, total: number }} order
+ * @param {'Shipped'|'Delivered'} status
+ * @returns {Promise<void>}
+ */
+export const sendOrderStatusEmail = async (order, status) => {
+  if (!['Shipped', 'Delivered'].includes(status)) return;
+
+  const customerEmail = order?.customer?.email;
+  if (!customerEmail) return;
+
+  const icon        = STATUS_ICONS[status]  ?? '📋';
+  const accentColor = STATUS_COLORS[status] ?? '#ba1f3d';
+  const trackUrl    = `https://stop-shop-gamma.vercel.app/track?orderID=${order.orderID}`;
+  const subject     = `${icon} Your order ${order.orderID} has been ${status.toLowerCase()}`;
+
+  const deliveryNote = status === 'Delivered'
+    ? `<p style="margin: 0 0 20px; font-size: 14px; color: #6b7280; line-height: 1.6;">
+         Enjoyed your purchase? Leave a review — it helps others find the perfect item.
+       </p>`
+    : '';
+
+  const html = `
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; max-width: 600px; margin: 0 auto; color: #111827;">
+
+      <!-- Header -->
+      <div style="background: #ba1f3d; padding: 28px 32px; text-align: center;">
+        <h1 style="margin: 0; color: #fff; font-size: 11px; font-weight: 900; letter-spacing: 4px; text-transform: uppercase;">
+          Stop &amp; Shop
+        </h1>
+      </div>
+
+      <!-- Status badge -->
+      <div style="background: ${accentColor}; padding: 24px 32px; text-align: center;">
+        <p style="margin: 0 0 6px; font-size: 32px;">${icon}</p>
+        <h2 style="margin: 0; color: #fff; font-size: 22px; font-weight: 900; letter-spacing: -0.5px;">
+          Order ${status}!
+        </h2>
+        <p style="margin: 8px 0 0; color: rgba(255,255,255,0.8); font-size: 12px; letter-spacing: 2px; text-transform: uppercase; font-weight: 700;">
+          ${order.orderID}
+        </p>
+      </div>
+
+      <!-- Body -->
+      <div style="padding: 32px; background: #ffffff; border: 1px solid #f3f4f6; border-top: none;">
+        <p style="margin: 0 0 20px; font-size: 15px; line-height: 1.6; color: #374151;">
+          Hi <strong>${order.customer?.name ?? 'Valued Customer'}</strong>,
+          ${status === 'Shipped'
+            ? 'your order is on its way! You should receive it within 2–5 business days.'
+            : 'your order has been delivered. We hope you love your new purchase!'}
+        </p>
+
+        ${deliveryNote}
+
+        <!-- Order summary -->
+        <div style="background: #f9fafb; border: 1px solid #e5e7eb; padding: 20px 24px; margin-bottom: 28px;">
+          <p style="margin: 0 0 8px; font-size: 10px; font-weight: 900; letter-spacing: 3px; text-transform: uppercase; color: #9ca3af;">Order Summary</p>
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr>
+              <td style="padding: 6px 0; font-size: 12px; color: #6b7280;">Order ID</td>
+              <td style="padding: 6px 0; font-size: 12px; font-weight: 700; text-align: right; font-family: monospace;">${order.orderID}</td>
+            </tr>
+            <tr>
+              <td style="padding: 6px 0; font-size: 12px; color: #6b7280;">Status</td>
+              <td style="padding: 6px 0; font-size: 12px; font-weight: 700; text-align: right; color: ${accentColor};">${icon} ${status}</td>
+            </tr>
+            <tr>
+              <td style="padding: 6px 0; font-size: 12px; color: #6b7280;">Total</td>
+              <td style="padding: 6px 0; font-size: 12px; font-weight: 900; text-align: right;">PKR ${(order.total ?? 0).toLocaleString('en-PK')}</td>
+            </tr>
+          </table>
+        </div>
+
+        <!-- CTA -->
+        <div style="text-align: center;">
+          <a href="${trackUrl}"
+             style="display: inline-block; background: #ba1f3d; color: #fff; padding: 14px 32px; font-size: 10px; font-weight: 900; letter-spacing: 3px; text-transform: uppercase; text-decoration: none;">
+            Track Your Order &rarr;
+          </a>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div style="padding: 16px 32px; background: #f9fafb; text-align: center; border: 1px solid #f3f4f6; border-top: none;">
+        <p style="margin: 0; color: #9ca3af; font-size: 10px; letter-spacing: 1px;">
+          Stop &amp; Shop &nbsp;&middot;&nbsp; Karachi, Pakistan
+        </p>
+      </div>
+    </div>
+  `;
+
+  try {
+    await sendEmail({
+      to:      customerEmail,
+      from:    `"Stop & Shop" <${getEnv('EMAIL_USER', 'email_user')}>`,
+      subject,
+      html,
+    });
+    console.log(`📧 [OrderStatus] ${status} email sent → ${customerEmail}`);
+  } catch (err) {
+    console.error('[OrderStatus] Email failed:', err.message);
+  }
+};
