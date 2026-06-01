@@ -17,13 +17,11 @@ import { LocaleProvider } from '../context/LocaleContext.jsx';
 import { CustomerProvider } from '../context/CustomerContext.jsx';
 import ErrorBoundary from '../components/ErrorBoundary.tsx';
 import HomePage from '../pages/HomePage.jsx';
-import CheckoutPage from '../pages/CheckoutPage.jsx';
-import AdminDashboard from '../pages/AdminDashboard.jsx';
-import DashboardHome from '../pages/DashboardHome.jsx';
-import LoginPage from '../pages/LoginPage.tsx';
 import ProtectedRoute from '../components/ProtectedRoute.jsx';
 
 // ── Admin pages (lazy) ─────────────────────────────────────────────
+const AdminDashboard = lazy(() => import('../pages/AdminDashboard.jsx'));
+const DashboardHome  = lazy(() => import('../pages/DashboardHome.jsx'));
 const AdminOrders    = lazy(() => import('../pages/AdminOrders.jsx'));
 const AdminInventory = lazy(() => import('../pages/AdminInventory.jsx'));
 const AdminProducts  = lazy(() => import('../pages/AdminProducts.jsx'));
@@ -40,10 +38,14 @@ const SearchPage         = lazy(() => import('../pages/SearchPage.jsx'));
 const OrderTrackingPage  = lazy(() => import('../pages/OrderTrackingPage.jsx'));
 const OrderSuccessPage   = lazy(() => import('../pages/OrderSuccessPage.jsx'));
 const ReturnsPage        = lazy(() => import('../pages/ReturnsPage.jsx'));
+const CheckoutPage       = lazy(() => import('../pages/CheckoutPage.jsx'));
 
 // ── Customer account pages (lazy) ─────────────────────────────────
 const CustomerAuthPage = lazy(() => import('../pages/CustomerAuthPage.jsx'));
 const AccountPage      = lazy(() => import('../pages/AccountPage.jsx'));
+
+// ── Admin authentication (lazy) ───────────────────────────────────
+const LoginPage        = lazy(() => import('../pages/LoginPage.tsx'));
 
 const PageLoader = () => (
   <div className="flex items-center justify-center h-64">
@@ -86,7 +88,9 @@ const PageContent = () => {
 
         <Route path="/checkout" element={
           <Layout>
-            <CheckoutPage />
+            <Suspense fallback={<PageLoader />}>
+              <CheckoutPage />
+            </Suspense>
           </Layout>
         } />
 
@@ -132,19 +136,29 @@ const PageContent = () => {
         } />
 
         {/* ── Admin auth ──────────────────────────────── */}
-        <Route path="/login" element={<LoginPage />} />
+        <Route path="/login" element={
+          <Suspense fallback={<PageLoader />}>
+            <LoginPage />
+          </Suspense>
+        } />
 
         {/* ── Admin panel ─────────────────────────────── */}
         <Route
           path="/admin"
           element={
             <ProtectedRoute>
-              <AdminDashboard />
+              <Suspense fallback={<PageLoader />}>
+                <AdminDashboard />
+              </Suspense>
             </ProtectedRoute>
           }
         >
           <Route index element={<Navigate to="/admin/dashboard" replace />} />
-          <Route path="dashboard"  element={<DashboardHome />} />
+          <Route path="dashboard"  element={
+            <Suspense fallback={<PageLoader />}>
+              <DashboardHome />
+            </Suspense>
+          } />
           <Route path="orders"     element={<Suspense fallback={<PageLoader />}><AdminOrders /></Suspense>} />
           <Route path="inventory"  element={<Suspense fallback={<PageLoader />}><AdminInventory /></Suspense>} />
           <Route path="products"   element={<Suspense fallback={<PageLoader />}><AdminProducts /></Suspense>} />

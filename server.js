@@ -163,7 +163,11 @@ if (fs.existsSync(distPath)) {
   app.use(express.static(distPath, {
     maxAge: '1d',
     setHeaders: (res, filePath) => {
-      if (filePath.endsWith('.html')) res.setHeader('Cache-Control', 'no-cache');
+      if (filePath.includes('/assets/') || filePath.includes('\\assets\\')) {
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+      } else if (filePath.endsWith('.html')) {
+        res.setHeader('Cache-Control', 'no-cache');
+      }
     },
   }));
 } else {
