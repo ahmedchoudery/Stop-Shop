@@ -1,6 +1,16 @@
 import React, { memo } from 'react';
 import { Search, Filter, X } from 'lucide-react';
 
+export interface ProductFiltersProps {
+  searchTerm: string;
+  onSearchChange: (value: string) => void;
+  categoryFilter: string;
+  onCategoryChange: (value: string) => void;
+  stockFilter: string;
+  onStockChange: (value: string) => void;
+  categories?: string[];
+}
+
 const ProductFilters = memo(({
   searchTerm,
   onSearchChange,
@@ -9,7 +19,7 @@ const ProductFilters = memo(({
   stockFilter,
   onStockChange,
   categories = [],
-}) => {
+}: ProductFiltersProps) => {
   const stockOptions = [
     { value: 'all', label: 'All Stock' },
     { value: 'in-stock', label: 'In Stock' },
