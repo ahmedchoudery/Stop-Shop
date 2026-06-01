@@ -63,14 +63,14 @@ const MobileDrawer = ({ isOpen, onClose }) => {
     <>
       {/* Overlay backdrop */}
       <div
-        className={`fixed inset-0 bg-black/60 backdrop-blur-md z-[100] transition-opacity duration-500 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+        className={`fixed inset-0 bg-black/60 backdrop-blur-md z-[150] transition-opacity duration-500 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
           }`}
         onClick={onClose}
       />
 
       {/* Drawer panel */}
       <div
-        className="fixed top-0 left-0 h-full w-[85%] sm:w-[380px] bg-white z-[101] shadow-2xl transition-transform duration-500 ease-out flex flex-col"
+        className="fixed top-0 left-0 h-full w-[85%] sm:w-[380px] bg-white z-[151] shadow-2xl transition-transform duration-500 ease-out flex flex-col"
         style={{
           transform: isOpen ? 'translate3d(0%, 0, 0)' : 'translate3d(-100%, 0, 0)',
           willChange: 'transform'
