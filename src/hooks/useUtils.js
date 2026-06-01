@@ -303,7 +303,7 @@ export function useAbortableFetch(url, fetchOptions = {}) {
       });
 
     return () => controller.abort();
-  }, [url]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [url]);
 
   return state;
 }
