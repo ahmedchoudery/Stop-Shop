@@ -93,7 +93,7 @@ const ProductCard = ({ product, onImageLoad }) => {
           className={`absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center transition-all duration-300 ${
             wishlisted
               ? 'bg-[#ba1f3d] opacity-100'
-              : 'bg-white opacity-0 group-hover:opacity-100'
+              : 'bg-white opacity-100 lg:opacity-0 lg:group-hover:opacity-100'
           }`}
           style={{ backdropFilter: 'blur(4px)' }}
         >
@@ -107,9 +107,9 @@ const ProductCard = ({ product, onImageLoad }) => {
         {!outOfStock && (
           <button
             onClick={handleAddToCart}
-            className={`absolute top-3 left-3 z-10 w-8 h-8 flex items-center justify-center bg-white transition-all duration-300 ${
-              cartAdded ? 'bg-[#ba1f3d]' : ''
-            } ${isHovered ? 'opacity-100' : 'opacity-0'}`}
+            className={`absolute top-3 left-3 z-10 w-8 h-8 flex items-center justify-center transition-all duration-300 ${
+              cartAdded ? 'bg-[#ba1f3d]' : 'bg-white'
+            } opacity-100 lg:opacity-0 lg:group-hover:opacity-100`}
           >
             <ShoppingBag
               size={13}

@@ -16,6 +16,7 @@
     box-sizing: border-box;
     margin: 0;
     padding: 0;
+    -webkit-tap-highlight-color: transparent;
   }
 
   html {
@@ -32,6 +33,11 @@
     color: #111827;
     line-height: 1.5;
     overflow-x: hidden;
+  }
+
+  /* Momentum scroll container rule for iOS Safari */
+  .overflow-y-auto {
+    -webkit-overflow-scrolling: touch;
   }
 
   /* Selection color — Cardinal Red */

@@ -68,9 +68,11 @@ const MobileDrawer = ({ isOpen, onClose }) => {
 
       {/* Drawer panel */}
       <div
-        className={`fixed top-0 left-0 h-full w-[85%] sm:w-[380px] bg-white z-[101] shadow-2xl transition-transform duration-500 ease-out flex flex-col ${isOpen ? 'translate-x-0' : '-translate-x-full'
-          }`}
-        style={{ willChange: 'transform' }}
+        className="fixed top-0 left-0 h-full w-[85%] sm:w-[380px] bg-white z-[101] shadow-2xl transition-transform duration-500 ease-out flex flex-col"
+        style={{
+          transform: isOpen ? 'translate3d(0%, 0, 0)' : 'translate3d(-100%, 0, 0)',
+          willChange: 'transform'
+        }}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 flex-shrink-0">

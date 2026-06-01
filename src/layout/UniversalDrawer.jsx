@@ -74,27 +74,30 @@ const CartItem = ({ item, onRemove, onQtyChange }) => {
             <div className="flex items-center border border-gray-200">
               <button
                 onClick={() => onQtyChange(item, -1)}
-                className="w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-900 hover:bg-gray-50 transition-colors"
+                className="w-11 h-11 sm:w-6 sm:h-6 flex items-center justify-center text-gray-400 hover:text-gray-900 hover:bg-gray-50 transition-colors"
+                aria-label="Decrease quantity"
               >
-                <Minus size={10} />
+                <Minus size={11} />
               </button>
-              <span className="w-7 text-center text-[11px] font-black text-gray-900">
+              <span className="w-11 sm:w-7 text-center text-[11px] font-black text-gray-900 select-none">
                 {item.quantity ?? 1}
               </span>
               <button
                 onClick={() => onQtyChange(item, 1)}
-                className="w-6 h-6 flex items-center justify-center text-gray-400 hover:text-gray-900 hover:bg-gray-50 transition-colors"
+                className="w-11 h-11 sm:w-6 sm:h-6 flex items-center justify-center text-gray-400 hover:text-gray-900 hover:bg-gray-50 transition-colors"
+                aria-label="Increase quantity"
               >
-                <Plus size={10} />
+                <Plus size={11} />
               </button>
             </div>
 
             {/* Remove */}
             <button
               onClick={() => onRemove(item)}
-              className="w-6 h-6 flex items-center justify-center text-gray-300 hover:text-[#ba1f3d] transition-colors ml-1"
+              className="w-11 h-11 sm:w-6 sm:h-6 flex items-center justify-center text-gray-300 hover:text-[#ba1f3d] transition-colors ml-1"
+              aria-label="Remove item"
             >
-              <Trash2 size={12} />
+              <Trash2 size={13} />
             </button>
           </div>
         </div>
@@ -132,11 +135,11 @@ const UniversalDrawer = () => {
   // Slide in animation
   useEffect(() => {
     if (!drawerRef.current || !isDrawerOpen || isWishlistMode) return;
-    drawerRef.current.style.transform = 'translateX(100%)';
+    drawerRef.current.style.transform = 'translate3d(100%, 0, 0)';
     requestAnimationFrame(() => {
       if (drawerRef.current) {
         drawerRef.current.style.transition = 'transform 0.45s cubic-bezier(0.16, 1, 0.3, 1)';
-        drawerRef.current.style.transform = 'translateX(0%)';
+        drawerRef.current.style.transform = 'translate3d(0%, 0, 0)';
       }
     });
   }, [isDrawerOpen, isWishlistMode]);
@@ -144,7 +147,7 @@ const UniversalDrawer = () => {
   const handleClose = useCallback(() => {
     if (!drawerRef.current) { closeDrawer(); return; }
     drawerRef.current.style.transition = 'transform 0.35s cubic-bezier(0.7, 0, 1, 1)';
-    drawerRef.current.style.transform = 'translateX(100%)';
+    drawerRef.current.style.transform = 'translate3d(100%, 0, 0)';
     setTimeout(closeDrawer, 340);
   }, [closeDrawer]);
 
@@ -185,7 +188,7 @@ const UniversalDrawer = () => {
           <div
             ref={drawerRef}
             className="absolute inset-y-0 right-0 w-full max-w-[420px] bg-white flex flex-col shadow-2xl"
-            style={{ transform: 'translateX(100%)', willChange: 'transform' }}
+            style={{ transform: 'translate3d(100%, 0, 0)', willChange: 'transform' }}
           >
             {/* Header */}
             <div className="flex items-center justify-between px-8 py-6 border-b border-gray-100 flex-shrink-0">
