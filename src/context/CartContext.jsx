@@ -264,6 +264,11 @@ export const CartProvider = ({ children }) => {
     []
   );
 
+  const setLastViewedBucket = useCallback(
+    (b) => dispatch({ type: ActionTypes.SET_BUCKET, payload: b }),
+    []
+  );
+
   const setSortBy = useCallback(
     (sort) => dispatch({ type: ActionTypes.SET_SORT, payload: sort }),
     []
@@ -295,11 +300,11 @@ export const CartProvider = ({ children }) => {
     closeDrawer,
     setActiveBucket,
     setActiveSub,
-    setLastViewedBucket: (b) => dispatch({ type: ActionTypes.SET_BUCKET, payload: b }),
+    setLastViewedBucket,
     setSortBy,
   }), [state, cartCount, total, addToCart, removeFromCart, updateQuantity,
       setCartItemOptions, clearCart, openDrawer, closeDrawer,
-      setActiveBucket, setActiveSub, setSortBy]);
+      setActiveBucket, setActiveSub, setLastViewedBucket, setSortBy]);
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 };
