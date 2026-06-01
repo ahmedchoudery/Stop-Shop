@@ -211,18 +211,18 @@ const AdminProducts = () => {
 
   // ── Open form for CREATE ──────────────────────────────────────────
 
-  const handleOpenCreate = () => {
+  const handleOpenCreate = useCallback(() => {
     setEditing(null);
     setForm(DEFAULT_FORM);
     setColorInput('');
     setSizeInput('');
     setGalleryUrl('');
     setShowForm(true);
-  };
+  }, []);
 
   // ── Open form for EDIT ────────────────────────────────────────────
 
-  const handleOpenEdit = (product) => {
+  const handleOpenEdit = useCallback((product) => {
     setEditing(product);
     setForm({
       id:             product.id             ?? '',
@@ -252,13 +252,17 @@ const AdminProducts = () => {
     setSizeInput('');
     setGalleryUrl('');
     setShowForm(true);
-  };
+  }, []);
 
-  const handleCloseForm = () => {
+  const handleCloseForm = useCallback(() => {
     setShowForm(false);
     setEditing(null);
     setForm(DEFAULT_FORM);
-  };
+  }, []);
+
+  const handleDeleteTarget = useCallback((product) => {
+    setDeleteTarget(product);
+  }, []);
 
   // ─────────────────────────────────────────────────────────────────
   // CREATE / UPDATE → MongoDB
@@ -466,7 +470,7 @@ const AdminProducts = () => {
           <ProductTable
             products={filtered}
             onEdit={handleOpenEdit}
-            onDelete={(product) => setDeleteTarget(product)}
+            onDelete={handleDeleteTarget}
           />
         </AsyncContent>
 
