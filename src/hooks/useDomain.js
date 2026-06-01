@@ -195,7 +195,9 @@ export function useDashboardStats() {
   }, []);
 
   const [state, { execute: refetch }] = useAsync(fetchAllStats);
-  useEffect(() => { refetch(); }, [refetch]);
+  useEffect(() => {
+    refetch().catch(() => {});
+  }, [refetch]);
 
   return {
     revenue: state.data?.revenue,
@@ -215,7 +217,9 @@ export function useRevenueStats() {
   }, []);
 
   const [state, { execute: refetch }] = useAsync(fetchRevenue);
-  useEffect(() => { refetch(); }, [refetch]);
+  useEffect(() => {
+    refetch().catch(() => {});
+  }, [refetch]);
   return { ...state, refetch };
 }
 
@@ -227,7 +231,9 @@ export function useOrderStats() {
   }, []);
 
   const [state, { execute: refetch }] = useAsync(fetchStats);
-  useEffect(() => { refetch(); }, [refetch]);
+  useEffect(() => {
+    refetch().catch(() => {});
+  }, [refetch]);
   return { ...state, refetch };
 }
 
@@ -239,7 +245,9 @@ export function useInventoryStats() {
   }, []);
 
   const [state, { execute: refetch }] = useAsync(fetchInventory);
-  useEffect(() => { refetch(); }, [refetch]);
+  useEffect(() => {
+    refetch().catch(() => {});
+  }, [refetch]);
   return { ...state, refetch };
 }
 
