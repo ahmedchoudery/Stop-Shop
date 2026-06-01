@@ -2,6 +2,7 @@
 
 import React, { useEffect, useMemo, useCallback } from 'react';
 import PowerOfChoiceHero from '../components/PowerOfChoiceHero.jsx';
+import BrandStrip from '../components/BrandStrip.jsx';
 import CategoryTiles from '../components/CategoryTiles.jsx';
 import FeaturedCarousel from '../components/FeaturedCarousel.jsx';
 import LookbookStrip from '../components/LookbookStrip.jsx';
@@ -52,6 +53,9 @@ export default function HomePageClient({ products = [] }) {
     <div>
       {/* 1 ─ Full-Screen Editorial Hero */}
       <PowerOfChoiceHero />
+
+      {/* 2 ─ Brand USP Trust Strip */}
+      <BrandStrip />
 
       {/* 3 ─ Category Navigator Tiles */}
       <CategoryTiles
