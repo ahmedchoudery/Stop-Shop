@@ -42,12 +42,20 @@ const PowerOfChoiceHero = () => {
       style={{ minHeight: '100dvh' }}
     >
       {/* ── Background Image ──────────────────────────────────────── */}
-      <div className="absolute left-0 right-0 bottom-0 top-[110px] lg:top-[120px] z-0">
+      <div className="absolute inset-0 z-0">
         <div className="relative w-full h-full bg-[#ba1f3d]">
+          {/* Mobile Resolution Image */}
           <img
-            src="/hero-red.png"
-            alt="SS'26 Collection"
-            className="w-full h-full object-cover lg:object-contain lg:object-right object-center"
+            src="/hero-red-mobile.png"
+            alt="SS'26 Collection Mobile"
+            className="block md:hidden w-full h-full object-cover object-center"
+            loading="eager"
+          />
+          {/* Laptop / Desktop Resolution Image */}
+          <img
+            src="/hero-red-desktop.png"
+            alt="SS'26 Collection Desktop"
+            className="hidden md:block w-full h-full object-cover object-center"
             loading="eager"
           />
         </div>
