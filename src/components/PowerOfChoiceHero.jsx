@@ -46,14 +46,14 @@ const PowerOfChoiceHero = () => {
         <div className="relative w-full h-full bg-[#a21b32]">
           {/* Mobile Resolution Image */}
           <img
-            src="/hero-red-mobile.png"
+            src="/hero-red-mobile-v4.png"
             alt="SS'26 Collection Mobile"
             className="block md:hidden w-full h-full object-cover object-center"
             loading="eager"
           />
           {/* Laptop / Desktop Resolution Image */}
           <img
-            src="/hero-red-desktop.png"
+            src="/hero-red-desktop-v4.png"
             alt="SS'26 Collection Desktop"
             className="hidden md:block w-full h-full object-cover object-center"
             loading="eager"
