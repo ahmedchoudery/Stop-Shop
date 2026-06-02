@@ -27,7 +27,7 @@ const MarqueeBar = ({ announcement, scrolled = true, isHome = false }) => {
   return (
     <div
       className={`fixed top-0 left-0 w-full z-[110] overflow-hidden select-none transition-all duration-500 ${
-        useTransparent ? 'bg-transparent' : 'bg-white border-b border-gray-200'
+        useTransparent ? 'bg-transparent' : 'bg-black border-b border-white/10'
       }`}
       style={{ height: '34px' }}
       onMouseEnter={() => {
@@ -41,9 +41,9 @@ const MarqueeBar = ({ announcement, scrolled = true, isHome = false }) => {
       {!useTransparent && (
         <>
           <div className="absolute left-0 top-0 bottom-0 w-12 z-10 pointer-events-none"
-            style={{ background: 'linear-gradient(to right, #0d0d0d, transparent)' }} />
+            style={{ background: 'linear-gradient(to right, #000000, transparent)' }} />
           <div className="absolute right-0 top-0 bottom-0 w-12 z-10 pointer-events-none"
-            style={{ background: 'linear-gradient(to left, #0d0d0d, transparent)' }} />
+            style={{ background: 'linear-gradient(to left, #000000, transparent)' }} />
         </>
       )}
 
@@ -60,8 +60,8 @@ const MarqueeBar = ({ announcement, scrolled = true, isHome = false }) => {
             key={i}
             className={`inline-flex items-center text-[9px] font-black uppercase px-8 flex-shrink-0 cursor-default transition-colors duration-500 ${
               useTransparent
-                ? 'text-black/30 tracking-[0.3em]'
-                : 'text-gray-500 tracking-[0.35em] hover:text-gray-600'
+                ? 'text-white/70 tracking-[0.3em]'
+                : 'text-white/80 tracking-[0.35em] hover:text-white'
             }`}
           >
             {item}

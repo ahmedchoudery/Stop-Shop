@@ -77,7 +77,7 @@ const ProductCard = ({ product, onImageLoad }) => {
       onClick={handleCardClick}
     >
       {/* ── Image Container ─────────────────────────────────── */}
-      <div className="relative aspect-[3/4] overflow-hidden bg-gray-50 mb-3.5">
+      <div className="relative aspect-[3/4] overflow-hidden bg-neutral-50 mb-3.5">
 
         {/* Main Image */}
         <MediaRenderer
@@ -118,11 +118,11 @@ const ProductCard = ({ product, onImageLoad }) => {
             'absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center transition-all duration-300',
             wishlisted
               ? 'bg-[#ba1f3d] opacity-100'
-              : 'bg-white/60 opacity-100 lg:opacity-0 lg:group-hover:opacity-100',
+              : 'bg-white/80 opacity-100 lg:opacity-0 lg:group-hover:opacity-100',
           ].join(' ')}
           aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
         >
-          <Heart size={12} className={wishlisted ? 'fill-white text-black' : 'text-black'} />
+          <Heart size={12} className={wishlisted ? 'fill-white text-white' : 'text-black'} />
         </button>
 
         {/* Add to cart — top left */}
@@ -131,25 +131,25 @@ const ProductCard = ({ product, onImageLoad }) => {
             onClick={handleAddToCart}
             className={[
               'absolute top-3 left-3 z-10 w-8 h-8 flex items-center justify-center transition-all duration-300',
-              cartAdded ? 'bg-[#ba1f3d]' : 'bg-white/60',
+              cartAdded ? 'bg-[#ba1f3d]' : 'bg-white/80',
               'opacity-100 lg:opacity-0 lg:group-hover:opacity-100',
             ].join(' ')}
             aria-label="Add to cart"
           >
-            <ShoppingBag size={12} className="text-black" />
+            <ShoppingBag size={12} className={cartAdded ? 'text-white' : 'text-black'} />
           </button>
         )}
 
         {/* Status badges — mutually exclusive */}
         {outOfStock ? (
-          <div className="absolute top-3 left-3 z-10 bg-white/80 px-2 py-1 border border-gray-300">
+          <div className="absolute top-3 left-3 z-10 bg-white/90 px-2 py-1 border border-gray-300">
             <span className="text-[7px] font-black uppercase tracking-[0.35em] text-gray-500">
               Sold Out
             </span>
           </div>
         ) : isNew && (
           <div className="absolute top-3 left-3 z-10 bg-[#ba1f3d] px-2.5 py-1">
-            <span className="text-[7px] font-black uppercase tracking-[0.35em] text-black">
+            <span className="text-[7px] font-black uppercase tracking-[0.35em] text-white">
               New
             </span>
           </div>
@@ -165,13 +165,13 @@ const ProductCard = ({ product, onImageLoad }) => {
         </p>
 
         {/* Name */}
-        <h3 className="text-[13px] font-black text-[#e0e0e0] uppercase tracking-tight leading-snug mb-2.5 group-hover:text-black transition-colors duration-300 line-clamp-1">
+        <h3 className="text-[13px] font-bold text-gray-900 uppercase tracking-wider leading-snug mb-2 group-hover:text-[#ba1f3d] transition-colors duration-300 line-clamp-1">
           {product.name}
         </h3>
 
         {/* Price + Colors */}
         <div className="flex items-center justify-between">
-          <span className="text-sm font-black text-black tracking-tight">
+          <span className="text-sm font-bold text-gray-900 tracking-tight">
             {formatPrice(product.price)}
           </span>
 
@@ -188,8 +188,8 @@ const ProductCard = ({ product, onImageLoad }) => {
                     className={[
                       'w-2.5 h-2.5 rounded-full border transition-all duration-200',
                       activeColor === color
-                        ? 'border-white ring-1 ring-white ring-offset-1 ring-offset-[#0d0d0d]'
-                        : 'border-gray-300 hover:border-[#555]',
+                        ? 'border-black ring-1 ring-black ring-offset-1 ring-offset-white'
+                        : 'border-gray-300 hover:border-gray-500',
                     ].join(' ')}
                     style={{ backgroundColor: hex }}
                   />
