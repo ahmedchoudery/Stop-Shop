@@ -38,24 +38,24 @@ const PowerOfChoiceHero = () => {
 
   return (
     <section
-      className="relative bg-[#ba1f3d] overflow-hidden w-full flex flex-col"
+      className="relative bg-[#a21b32] overflow-hidden w-full flex flex-col"
       style={{ minHeight: '100dvh' }}
     >
       {/* ── Background Image ──────────────────────────────────────── */}
       <div className="absolute inset-0 z-0">
-        <div className="relative w-full h-full bg-[#ba1f3d]">
+        <div className="relative w-full h-full bg-[#a21b32]">
           {/* Mobile Resolution Image */}
           <img
             src="/hero-red-mobile.png"
             alt="SS'26 Collection Mobile"
-            className="block md:hidden w-full h-full object-cover object-center"
+            className="block md:hidden w-full h-full object-contain object-bottom"
             loading="eager"
           />
           {/* Laptop / Desktop Resolution Image */}
           <img
             src="/hero-red-desktop.png"
             alt="SS'26 Collection Desktop"
-            className="hidden md:block w-full h-full object-cover object-center"
+            className="hidden md:block w-full h-full object-contain object-right-bottom"
             loading="eager"
           />
         </div>
@@ -72,7 +72,7 @@ const PowerOfChoiceHero = () => {
         </div>
 
         {/* Main content */}
-        <div className="w-full flex-grow flex flex-col justify-center px-6 md:px-12 lg:px-20">
+        <div className="w-full flex-grow flex flex-col justify-start md:justify-center px-6 md:px-12 lg:px-20 pt-8 md:pt-0">
           <div ref={contentRef} className="max-w-4xl flex flex-col items-start text-left">
 
             {/* Desktop: season eyebrow */}
