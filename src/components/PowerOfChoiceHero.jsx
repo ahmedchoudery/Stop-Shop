@@ -38,24 +38,31 @@ const PowerOfChoiceHero = () => {
 
   return (
     <section
-      className="relative bg-[#a21b32] overflow-hidden w-full flex flex-col"
+      className="relative bg-[#ba1f3e] overflow-hidden w-full flex flex-col"
       style={{ minHeight: '100dvh' }}
     >
       {/* ── Background Image ──────────────────────────────────────── */}
       <div className="absolute inset-0 z-0">
-        <div className="relative w-full h-full bg-[#a21b32]">
-          {/* Mobile Resolution Image */}
+        <div className="relative w-full h-full bg-[#ba1f3e]">
+          {/* Mobile Viewport: Centered layout */}
           <img
-            src="/hero-red-mobile-v4.png"
+            src="/hero-red-mobile-v5.png"
             alt="SS'26 Collection Mobile"
             className="block md:hidden w-full h-full object-cover object-center"
             loading="eager"
           />
-          {/* Laptop / Desktop Resolution Image */}
+          {/* Tablet Viewport: Centered layout */}
           <img
-            src="/hero-red-desktop-v4.png"
+            src="/hero-red-tablet-v5.png"
+            alt="SS'26 Collection Tablet"
+            className="hidden md:block lg:hidden w-full h-full object-cover object-center"
+            loading="eager"
+          />
+          {/* Desktop Viewport: Full-bleed wide layout */}
+          <img
+            src="/hero-red-desktop-v5.png"
             alt="SS'26 Collection Desktop"
-            className="hidden md:block w-full h-full object-cover object-center"
+            className="hidden lg:block w-full h-full object-cover object-center"
             loading="eager"
           />
         </div>
