@@ -48,14 +48,14 @@ const PowerOfChoiceHero = () => {
           <img
             src="/hero-red-mobile.png"
             alt="SS'26 Collection Mobile"
-            className="block md:hidden w-full h-full object-contain object-bottom"
+            className="block md:hidden w-full h-full object-cover object-center"
             loading="eager"
           />
           {/* Laptop / Desktop Resolution Image */}
           <img
             src="/hero-red-desktop.png"
             alt="SS'26 Collection Desktop"
-            className="hidden md:block w-full h-full object-contain object-right-bottom"
+            className="hidden md:block w-full h-full object-cover object-center"
             loading="eager"
           />
         </div>
