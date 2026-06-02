@@ -1,9 +1,22 @@
 import React from 'react';
+import { Barlow_Condensed, DM_Sans } from 'next/font/google';
 import Providers from './providers.jsx';
 import Layout from '../layout/Layout.jsx';
 import UniversalDrawer from '../layout/UniversalDrawer.jsx';
 import ErrorBoundary from '../components/ErrorBoundary.tsx';
 import '../styles/index.css';
+
+const barlow = Barlow_Condensed({
+  weight: ['900'],
+  subsets: ['latin'],
+  variable: '--font-barlow',
+});
+
+const dmSans = DM_Sans({
+  weight: ['400', '700'],
+  subsets: ['latin'],
+  variable: '--font-dm-sans',
+});
 
 export const metadata = {
   title: 'Stop & Shop — Premium Editorial E-Commerce Store',
@@ -17,8 +30,8 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
-      <body>
+    <html lang="en" className={`${dmSans.variable} ${barlow.variable}`}>
+      <body className="font-sans antialiased selection:bg-white/10 selection:text-white">
         <ErrorBoundary title="Fatal App Error">
           <Providers>
             <Layout>

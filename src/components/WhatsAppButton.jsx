@@ -19,6 +19,7 @@ const WhatsAppButton = () => {
   const [visible, setVisible]   = useState(false);
   const [tooltip, setTooltip]   = useState(false);
   const [pulse,   setPulse]     = useState(false);
+  const [isScrollingDown, setIsScrollingDown] = useState(false);
 
   // Hide on admin and login pages
   const isAdminPage = location.pathname.startsWith('/admin') ||
@@ -32,6 +33,24 @@ const WhatsAppButton = () => {
     return () => { clearTimeout(t1); clearTimeout(t2); };
   }, [isAdminPage]);
 
+  // Auto-hide on scroll down
+  useEffect(() => {
+    let lastScrollY = window.scrollY;
+    
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      if (currentScrollY > lastScrollY && currentScrollY > 100) {
+        setIsScrollingDown(true);
+      } else {
+        setIsScrollingDown(false);
+      }
+      lastScrollY = currentScrollY;
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   if (isAdminPage) return null;
 
   const handleClick = () => {
@@ -44,11 +63,11 @@ const WhatsAppButton = () => {
       {/* ── Floating Button ──────────────────────────────────── */}
       <div
         className={`
-          fixed bottom-6 right-6 z-[999]
-          transition-all duration-700
-          ${visible
+          fixed bottom-6 md:bottom-8 right-4 md:right-8 z-[999]
+          transition-all duration-500 ease-in-out
+          ${visible && !isScrollingDown
             ? 'opacity-100 translate-y-0'
-            : 'opacity-0 translate-y-8 pointer-events-none'
+            : 'opacity-0 translate-y-12 pointer-events-none'
           }
         `}
         style={{ willChange: 'transform, opacity' }}
