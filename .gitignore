@@ -38,3 +38,7 @@ lint_results.txt
 lint_report.json
 current_lint_errors*.txt
 test_output.txt
+
+# Next.js Build Output
+.next/
+
