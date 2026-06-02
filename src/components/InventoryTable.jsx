@@ -170,7 +170,7 @@ const InventoryTable = () => {
                     <td className="p-4 text-center">
                       <div className="flex justify-center">
                         {isOutOfStock ? (
-                          <span className="px-5 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest bg-red-600 text-white shadow-xl shadow-red-100">
+                          <span className="px-5 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest bg-red-600 text-black shadow-xl shadow-red-100">
                             Sold Out
                           </span>
                         ) : (

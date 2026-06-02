@@ -529,7 +529,7 @@ const OrderTrackingPage = () => {
             className="flex items-center space-x-3 group"
           >
             <div className="w-7 h-7 bg-[#ba1f3d] flex items-center justify-center">
-              <span className="text-white text-[9px] font-black">S&S</span>
+              <span className="text-black text-[9px] font-black">S&S</span>
             </div>
             <span className="text-sm font-black uppercase tracking-tighter text-gray-900 group-hover:text-[#ba1f3d] transition-colors">
               Stop & Shop

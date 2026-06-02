@@ -50,7 +50,7 @@ export default function BrandStrip() {
   return (
     <section
       ref={ref}
-      className="bg-[#0d0d0d] border-y border-[#1a1a1a] overflow-hidden"
+      className="bg-white border-y border-gray-200 overflow-hidden"
     >
       {/* Mobile: horizontal scroll */}
       <div className="flex lg:hidden items-stretch overflow-x-auto scrollbar-hide px-6 divide-x divide-[#1a1a1a]">
@@ -61,14 +61,14 @@ export default function BrandStrip() {
             className="flex items-center gap-3 py-8 px-7 flex-shrink-0 transition-all duration-500"
             style={{ opacity: 0, transform: 'translateY(10px)' }}
           >
-            <div className="w-9 h-9 border border-[#1f1f1f] flex items-center justify-center bg-[#141414] flex-shrink-0">
-              <Icon size={14} className="text-[#666]" strokeWidth={1.5} />
+            <div className="w-9 h-9 border border-gray-200 flex items-center justify-center bg-gray-50 flex-shrink-0">
+              <Icon size={14} className="text-gray-500" strokeWidth={1.5} />
             </div>
             <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#d0d0d0] whitespace-nowrap leading-tight">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-900 whitespace-nowrap leading-tight">
                 {label}
               </p>
-              <p className="text-[8px] font-medium text-[#444] uppercase tracking-[0.2em] whitespace-nowrap mt-0.5">
+              <p className="text-[8px] font-medium text-gray-500 uppercase tracking-[0.2em] whitespace-nowrap mt-0.5">
                 {sub}
               </p>
             </div>
@@ -82,17 +82,17 @@ export default function BrandStrip() {
           <div
             key={label}
             data-usp
-            className="flex items-center gap-4 px-10 py-9 transition-all duration-500 hover:bg-[#111111] group"
+            className="flex items-center gap-4 px-10 py-9 transition-all duration-500 hover:bg-gray-50 group"
             style={{ opacity: 0, transform: 'translateY(10px)' }}
           >
-            <div className="w-9 h-9 border border-[#1f1f1f] group-hover:border-[#2a2a2a] flex items-center justify-center bg-[#141414] flex-shrink-0 transition-colors duration-300">
-              <Icon size={14} className="text-[#555] group-hover:text-[#888] transition-colors duration-300" strokeWidth={1.5} />
+            <div className="w-9 h-9 border border-gray-200 group-hover:border-gray-300 flex items-center justify-center bg-gray-50 flex-shrink-0 transition-colors duration-300">
+              <Icon size={14} className="text-gray-500 group-hover:text-gray-600 transition-colors duration-300" strokeWidth={1.5} />
             </div>
             <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#d0d0d0] leading-tight">
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-900 leading-tight">
                 {label}
               </p>
-              <p className="text-[8px] font-medium text-[#444] uppercase tracking-[0.2em] mt-0.5">
+              <p className="text-[8px] font-medium text-gray-500 uppercase tracking-[0.2em] mt-0.5">
                 {sub}
               </p>
             </div>

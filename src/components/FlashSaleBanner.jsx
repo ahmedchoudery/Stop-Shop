@@ -113,7 +113,7 @@ const FlashSaleBanner = () => {
         <div className="flex-grow flex items-center justify-center space-x-4">
           <div className="flex items-center space-x-1.5">
             <Zap size={11} className="fill-white opacity-80 flex-shrink-0" />
-            <p className="text-[9px] font-black uppercase tracking-[0.35em] text-white/95 truncate">
+            <p className="text-[9px] font-black uppercase tracking-[0.35em] text-black/95 truncate">
               {announcement}
             </p>
           </div>
@@ -123,12 +123,12 @@ const FlashSaleBanner = () => {
 
           {/* Countdown */}
           <div className="hidden sm:flex items-center space-x-1.5">
-            <Clock size={10} className="text-white/70 flex-shrink-0" />
-            <span className="text-[9px] font-black uppercase tracking-widest text-white/70">
+            <Clock size={10} className="text-black/70 flex-shrink-0" />
+            <span className="text-[9px] font-black uppercase tracking-widest text-black/70">
               Ends in
             </span>
             <span
-              className="flash-countdown text-[9px] font-black tabular-nums text-white bg-white/20 px-1.5 py-0.5"
+              className="flash-countdown text-[9px] font-black tabular-nums text-black bg-white/20 px-1.5 py-0.5"
               aria-live="polite"
               aria-label={`Time remaining: ${formatCountdown(secondsLeft)}`}
             >
@@ -140,7 +140,7 @@ const FlashSaleBanner = () => {
         {/* Dismiss button */}
         <button
           onClick={handleDismiss}
-          className="w-6 h-6 flex items-center justify-center text-white/60 hover:text-white transition-colors flex-shrink-0"
+          className="w-6 h-6 flex items-center justify-center text-black/60 hover:text-black transition-colors flex-shrink-0"
           aria-label="Dismiss announcement"
         >
           <X size={13} />

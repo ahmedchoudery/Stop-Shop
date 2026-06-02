@@ -31,7 +31,7 @@ const OrderSuccessPage = () => {
           {/* Pulse ring */}
           <div className="absolute inset-0 rounded-full bg-green-400 animate-ping opacity-20" />
           <div className="relative w-24 h-24 bg-green-500 rounded-full flex items-center justify-center shadow-2xl shadow-green-200/60 mx-auto">
-            <CheckCircle size={44} className="text-white" strokeWidth={1.5} />
+            <CheckCircle size={44} className="text-black" strokeWidth={1.5} />
           </div>
         </div>
 
@@ -103,7 +103,7 @@ const OrderSuccessPage = () => {
           {/* Continue Shopping */}
           <Link
             to="/"
-            className="flex-1 flex items-center justify-center space-x-2 px-6 py-4 border-2 border-gray-900 text-gray-900 text-[10px] font-black uppercase tracking-widest hover:bg-gray-900 hover:text-white transition-all"
+            className="flex-1 flex items-center justify-center space-x-2 px-6 py-4 border-2 border-gray-900 text-gray-900 text-[10px] font-black uppercase tracking-widest hover:bg-gray-900 hover:text-black transition-all"
           >
             <Home size={14} />
             <span>Continue Shopping</span>

@@ -47,7 +47,7 @@ const CouponInput = ({ cartTotal, onApply, onRemove, appliedCoupon }) => {
       <div className="flex items-center justify-between py-3 px-4 bg-[#ba1f3d]/5 border border-[#ba1f3d]/20 animate-fade-up">
         <div className="flex items-center space-x-3">
           <div className="w-5 h-5 bg-[#ba1f3d] flex items-center justify-center flex-shrink-0">
-            <Check size={10} className="text-white" />
+            <Check size={10} className="text-black" />
           </div>
           <div>
             <p className="text-[9px] font-black uppercase tracking-[0.3em] text-gray-900">

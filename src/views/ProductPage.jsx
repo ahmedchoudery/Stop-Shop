@@ -333,7 +333,7 @@ const ProductPage = () => {
               )}
               {!outOfStock && stockQty < 5 && (
                 <div className="absolute top-4 left-4 bg-orange-500 px-2.5 py-1.5">
-                  <span className="text-[8px] font-black uppercase tracking-[0.3em] text-white">Only {stockQty} left</span>
+                  <span className="text-[8px] font-black uppercase tracking-[0.3em] text-black">Only {stockQty} left</span>
                 </div>
               )}
             </div>
@@ -450,7 +450,7 @@ const ProductPage = () => {
                           unavail
                             ? 'border-gray-100 text-gray-300 cursor-not-allowed line-through'
                             : selectedSize === size
-                              ? 'border-gray-900 bg-gray-900 text-white'
+                              ? 'border-gray-900 bg-gray-900 text-black'
                               : 'border-gray-200 text-gray-900 hover:border-gray-500'
                         }`}
                       >
@@ -493,7 +493,7 @@ const ProductPage = () => {
                   outOfStock
                     ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                     : cartAdded
-                      ? 'bg-gray-900 text-white'
+                      ? 'bg-gray-900 text-black'
                       : 'bg-[#ba1f3d] text-white hover:bg-gray-900'
                 }`}
               >
@@ -523,7 +523,7 @@ const ProductPage = () => {
             <div className="flex space-x-2 mb-8">
               <button
                 onClick={handleWhatsAppShare}
-                className="flex items-center space-x-2 px-4 py-2.5 bg-[#25D366] text-white text-[9px] font-black uppercase tracking-[0.25em] hover:bg-[#1ebe5d] transition-colors"
+                className="flex items-center space-x-2 px-4 py-2.5 bg-[#25D366] text-black text-[9px] font-black uppercase tracking-[0.25em] hover:bg-[#1ebe5d] transition-colors"
               >
                 <MessageCircle size={12} />
                 <span>WhatsApp</span>
@@ -532,7 +532,7 @@ const ProductPage = () => {
                 onClick={handleCopyLink}
                 className={`flex items-center space-x-2 px-4 py-2.5 border text-[9px] font-black uppercase tracking-[0.25em] transition-all duration-200 ${
                   copied
-                    ? 'border-gray-900 bg-gray-900 text-white'
+                    ? 'border-gray-900 bg-gray-900 text-black'
                     : 'border-gray-200 text-gray-500 hover:border-gray-400'
                 }`}
               >

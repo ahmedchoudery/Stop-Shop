@@ -169,15 +169,15 @@ const AdminReviews = () => {
                         key={key}
                         onClick={() => setStatusFilter(key)}
                         className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all ${statusFilter === key
-                                ? key === 'pending' ? 'bg-amber-500 text-white'
-                                    : key === 'approved' ? 'bg-green-600 text-white'
-                                        : key === 'rejected' ? 'bg-red-600 text-white'
-                                            : 'bg-gray-900 text-white'
+                                ? key === 'pending' ? 'bg-amber-500 text-black'
+                                    : key === 'approved' ? 'bg-green-600 text-black'
+                                        : key === 'rejected' ? 'bg-red-600 text-black'
+                                            : 'bg-gray-900 text-black'
                                 : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
                             }`}
                     >
                         <span>{label}</span>
-                        <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${statusFilter === key ? 'bg-white/20 text-white' : 'bg-white text-gray-500'
+                        <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${statusFilter === key ? 'bg-white/20 text-black' : 'bg-white text-gray-500'
                             }`}>
                             {counts[key]}
                         </span>

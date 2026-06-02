@@ -65,15 +65,15 @@ export default function LookbookStrip({ onShopNow }) {
           }}
         >
           {/* Eyebrow — neutral grey */}
-          <p className="text-[9px] font-black uppercase tracking-[0.5em] text-white/40 mb-4">
+          <p className="text-[9px] font-black uppercase tracking-[0.5em] text-black/40 mb-4">
             The Lookbook · SS '26
           </p>
           {/* Headline — fully white, no red word */}
-          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black uppercase tracking-tighter text-white leading-none mb-6">
+          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black uppercase tracking-tighter text-black leading-none mb-6">
             Defined by<br />
             Attitude.
           </h2>
-          <p className="text-sm text-white/60 font-medium leading-relaxed mb-8 max-w-sm">
+          <p className="text-sm text-black/60 font-medium leading-relaxed mb-8 max-w-sm">
             Every piece tells a story. Every outfit, a statement.
             Dress how you want the world to see you.
           </p>

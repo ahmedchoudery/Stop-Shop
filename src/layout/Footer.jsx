@@ -62,7 +62,7 @@ const PAYMENT_METHODS = ['JazzCash', 'Easypaisa', 'ATM Card', 'Bank Transfer', '
 const FooterLink = ({ to, children }) => (
   <Link
     to={to}
-    className="group flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-[#555] hover:text-white transition-colors duration-250"
+    className="group flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-gray-500 hover:text-black transition-colors duration-250"
   >
     <span className="w-0 h-px bg-[#ba1f3d] group-hover:w-3 transition-all duration-300 flex-shrink-0" />
     {children}
@@ -93,12 +93,12 @@ const Footer = () => {
   useEffect(observeBorder, [observeBorder]);
 
   return (
-    <footer className="bg-[#0d0d0d]" aria-label="Site footer">
+    <footer className="bg-white" aria-label="Site footer">
 
       {/* ── Animated separator ───────────────────────────────────── */}
       <div
         ref={borderRef}
-        className="h-px bg-[#1a1a1a] origin-left"
+        className="h-px bg-gray-200 origin-left"
         style={{ transform: 'scaleX(0)', transition: 'transform 1.4s cubic-bezier(0.16, 1, 0.3, 1)' }}
         aria-hidden="true"
       />
@@ -111,11 +111,11 @@ const Footer = () => {
           <div className="lg:col-span-4">
             <Link to="/" className="inline-block mb-7" aria-label="Stop & Shop home">
               <span className="text-2xl font-black italic uppercase tracking-tighter text-[#ba1f3d]">
-                Stop<span className="text-white not-italic">&</span>Shop
+                Stop<span className="text-black not-italic">&</span>Shop
               </span>
             </Link>
 
-            <p className="text-[11px] text-[#444] leading-relaxed mb-9 max-w-[260px] font-medium">
+            <p className="text-[11px] text-gray-500 leading-relaxed mb-9 max-w-[260px] font-medium">
               Premium clothing for those who demand excellence in every thread.
               Gujrat, Pakistan.
             </p>
@@ -129,7 +129,7 @@ const Footer = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={label}
-                  className="group w-9 h-9 border border-[#1a1a1a] flex items-center justify-center text-[#444] hover:border-[#333] hover:text-white transition-all duration-300"
+                  className="group w-9 h-9 border border-gray-200 flex items-center justify-center text-gray-500 hover:border-gray-400 hover:text-black transition-all duration-300"
                 >
                   {SvgIcon ? (
                     <SvgIcon size={14} />
@@ -178,8 +178,8 @@ const Footer = () => {
             <div className="space-y-5">
               {CONTACT_INFO.map(({ Icon, text, sub }) => (
                 <div key={text} className="flex items-start gap-3">
-                  <div className="w-7 h-7 border border-[#1a1a1a] flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <Icon size={11} className="text-[#444]" />
+                  <div className="w-7 h-7 border border-gray-200 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <Icon size={11} className="text-gray-500" />
                   </div>
                   <div>
                     <p className="text-[11px] font-bold text-[#777]">{text}</p>
@@ -196,7 +196,7 @@ const Footer = () => {
               href="https://wa.me/923068458655"
               target="_blank"
               rel="noopener noreferrer"
-              className="group mt-9 inline-flex items-center gap-2.5 text-[9px] font-black uppercase tracking-[0.3em] text-[#25D366] border border-[#25D366]/15 px-5 py-3 hover:bg-[#25D366] hover:text-white hover:border-[#25D366] transition-all duration-300"
+              className="group mt-9 inline-flex items-center gap-2.5 text-[9px] font-black uppercase tracking-[0.3em] text-[#25D366] border border-[#25D366]/15 px-5 py-3 hover:bg-[#25D366] hover:text-black hover:border-[#25D366] transition-all duration-300"
             >
               <span>Chat on WhatsApp</span>
               <ArrowUpRight size={10} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-200" />
@@ -206,7 +206,7 @@ const Footer = () => {
       </div>
 
       {/* ── Colophon ─────────────────────────────────────────────── */}
-      <div className="border-t border-[#141414]">
+      <div className="border-t border-gray-200">
         <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 py-7 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
 
           <p className="text-[8px] font-bold uppercase tracking-[0.25em] text-[#2a2a2a] max-w-sm leading-relaxed">
@@ -219,7 +219,7 @@ const Footer = () => {
               {PAYMENT_METHODS.map((m) => (
                 <span
                   key={m}
-                  className="text-[7px] font-black uppercase tracking-widest text-[#2a2a2a] border border-[#1a1a1a] px-2.5 py-1"
+                  className="text-[7px] font-black uppercase tracking-widest text-[#2a2a2a] border border-gray-200 px-2.5 py-1"
                 >
                   {m}
                 </span>

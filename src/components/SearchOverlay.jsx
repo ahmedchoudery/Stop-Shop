@@ -98,7 +98,7 @@ const SearchOverlay = ({ isOpen, onClose, products = [] }) => {
               onClick={onClose}
               className="p-4 rounded-full glass-premium hover:bg-white/10 transition-all group active:scale-90"
             >
-              <X size={24} className="text-white group-hover:rotate-90 transition-transform duration-500" />
+              <X size={24} className="text-black group-hover:rotate-90 transition-transform duration-500" />
             </button>
           </div>
 
@@ -118,9 +118,9 @@ const SearchOverlay = ({ isOpen, onClose, products = [] }) => {
                   value={query}
                   onChange={e => setQuery(e.target.value)}
                   placeholder="START TYPING..."
-                  className="w-full bg-transparent border-b-4 border-white/10 text-white placeholder:text-white/10 text-4xl lg:text-7xl py-10 pl-16 lg:pl-24 pr-10 outline-none focus:border-[#ba1f3d] transition-all duration-700 font-black tracking-tighter uppercase"
+                  className="w-full bg-transparent border-b-4 border-white/10 text-black placeholder:text-black/10 text-4xl lg:text-7xl py-10 pl-16 lg:pl-24 pr-10 outline-none focus:border-[#ba1f3d] transition-all duration-700 font-black tracking-tighter uppercase"
                 />
-                <div className="absolute right-0 bottom-4 hidden lg:flex items-center space-x-2 text-white/20">
+                <div className="absolute right-0 bottom-4 hidden lg:flex items-center space-x-2 text-black/20">
                   <Command size={14} />
                   <span className="text-[10px] font-black uppercase tracking-widest">ESC to close</span>
                 </div>
@@ -150,16 +150,16 @@ const SearchOverlay = ({ isOpen, onClose, products = [] }) => {
                             <div className="absolute inset-0 bg-[#ba1f3d]/0 group-hover:bg-[#ba1f3d]/20 transition-colors" />
                           </div>
                           <div className="flex-grow">
-                            <p className="text-white/30 text-[9px] font-black uppercase tracking-widest mb-1">{product.bucket}</p>
-                            <h3 className="text-white font-black uppercase tracking-tight text-lg leading-none mb-2 underline-draw">{product.name}</h3>
+                            <p className="text-black/30 text-[9px] font-black uppercase tracking-widest mb-1">{product.bucket}</p>
+                            <h3 className="text-black font-black uppercase tracking-tight text-lg leading-none mb-2 underline-draw">{product.name}</h3>
                             <p className="text-[#ba1f3d] font-black text-sm tracking-widest">{formatPrice(product.price)}</p>
                           </div>
-                          <ArrowRight className="text-white/0 group-hover:text-white/40 -translate-x-4 group-hover:translate-x-0 transition-all duration-500" />
+                          <ArrowRight className="text-black/0 group-hover:text-black/40 -translate-x-4 group-hover:translate-x-0 transition-all duration-500" />
                         </motion.button>
                       ))}
                     </div>
                   ) : (
-                    <p className="text-white/20 text-xs font-bold py-10 uppercase tracking-widest">
+                    <p className="text-black/20 text-xs font-bold py-10 uppercase tracking-widest">
                       {query ? 'No matching products found.' : 'Enter a search term to begin.'}
                     </p>
                   )}
@@ -168,7 +168,7 @@ const SearchOverlay = ({ isOpen, onClose, products = [] }) => {
                 {/* Discovery / Trending Column */}
                 <div className="space-y-8">
                   <div className="flex items-center space-x-4 border-b border-white/5 pb-4">
-                    <span className="text-[10px] font-black uppercase tracking-[0.4em] text-white/40">Popular Discovery</span>
+                    <span className="text-[10px] font-black uppercase tracking-[0.4em] text-black/40">Popular Discovery</span>
                     <span className="h-[1px] flex-1 bg-white/5" />
                   </div>
 
@@ -181,7 +181,7 @@ const SearchOverlay = ({ isOpen, onClose, products = [] }) => {
                         className="px-6 py-4 bg-white/5 hover:bg-[#ba1f3d] border border-white/10 hover:border-[#ba1f3d] rounded-full text-white text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-500 hover:-translate-y-2 group"
                       >
                         <span className="flex items-center space-x-3">
-                          <TrendingUp size={14} className="text-[#ba1f3d] group-hover:text-white" />
+                          <TrendingUp size={14} className="text-[#ba1f3d] group-hover:text-black" />
                           <span>{term}</span>
                         </span>
                       </motion.button>
@@ -195,9 +195,9 @@ const SearchOverlay = ({ isOpen, onClose, products = [] }) => {
                   >
                     <div className="flex items-center space-x-3 mb-4">
                       <Tag size={16} className="text-[#ba1f3d]" />
-                      <h4 className="text-white font-black uppercase tracking-widest text-xs">Cardinal Collections</h4>
+                      <h4 className="text-black font-black uppercase tracking-widest text-xs">Cardinal Collections</h4>
                     </div>
-                    <p className="text-white/40 text-[11px] leading-relaxed mb-6 font-medium">
+                    <p className="text-black/40 text-[11px] leading-relaxed mb-6 font-medium">
                       Explore our hand-picked selections for the current season. From linen essentials to signature Pakistan-made accessories.
                     </p>
                     <button className="text-[#ba1f3d] text-[10px] font-black uppercase tracking-[0.3em] hover:tracking-[0.4em] transition-all flex items-center space-x-2">

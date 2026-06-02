@@ -121,7 +121,7 @@ const Newsletter = () => {
   return (
     <section
       ref={setSectionRef}
-      className="relative overflow-hidden bg-[#0d0d0d] py-28 sm:py-36 border-t border-[#1a1a1a]"
+      className="relative overflow-hidden bg-white py-28 sm:py-36 border-t border-gray-200"
     >
       {/* Subtle radial glow */}
       <div
@@ -136,7 +136,7 @@ const Newsletter = () => {
         {/* Badge */}
         <div
           ref={badgeRef}
-          className="inline-flex items-center gap-3 bg-[#141414] border border-[#1f1f1f] px-7 py-3 mb-12 rounded-full"
+          className="inline-flex items-center gap-3 bg-gray-50 border border-gray-200 px-7 py-3 mb-12 rounded-full"
         >
           <Sparkles size={13} className="text-[#ba1f3d]" />
           <span className="text-[#999] text-[9px] font-black uppercase tracking-[0.55em]">
@@ -147,7 +147,7 @@ const Newsletter = () => {
         {/* Headline */}
         <h2
           ref={headlineRef}
-          className="text-4xl sm:text-6xl lg:text-7xl font-black text-white uppercase tracking-tighter leading-[0.85] mb-8"
+          className="text-4xl sm:text-6xl lg:text-7xl font-black text-black uppercase tracking-tighter leading-[0.85] mb-8"
         >
           {['Elevate', 'Your', 'Wardrobe.'].map((word) => (
             <span key={word} data-word className="inline-block mr-[0.12em]">
@@ -163,7 +163,7 @@ const Newsletter = () => {
         </h2>
 
         {/* Subtext */}
-        <p className="text-[#555] text-sm font-medium mb-14 max-w-sm mx-auto leading-relaxed">
+        <p className="text-gray-500 text-sm font-medium mb-14 max-w-sm mx-auto leading-relaxed">
           Join Pakistan's elite fashion community. First access to limited drops and private collections.
         </p>
 
@@ -176,13 +176,13 @@ const Newsletter = () => {
         {status === 'success' ? (
           <div className="flex flex-col items-center gap-5">
             <div className="w-16 h-16 bg-[#ba1f3d] flex items-center justify-center shadow-[0_20px_60px_rgba(186,31,61,0.18)]">
-              <CheckCircle size={30} className="text-white" />
+              <CheckCircle size={30} className="text-black" />
             </div>
             <div>
-              <p className="text-white font-black uppercase tracking-[0.4em] text-lg mb-1.5">
+              <p className="text-black font-black uppercase tracking-[0.4em] text-lg mb-1.5">
                 You've Arrived.
               </p>
-              <p className="text-[#555] text-[9px] font-black uppercase tracking-[0.3em]">
+              <p className="text-gray-500 text-[9px] font-black uppercase tracking-[0.3em]">
                 Check your inbox for the elite access code.
               </p>
             </div>
@@ -191,7 +191,7 @@ const Newsletter = () => {
           <form ref={formRef} onSubmit={handleSubmit} className="max-w-lg mx-auto">
 
             {/* Input + Button */}
-            <div className="flex items-stretch border border-[#1f1f1f] hover:border-[#2a2a2a] focus-within:border-[#444] transition-all duration-300 bg-[#111111]">
+            <div className="flex items-stretch border border-gray-200 hover:border-gray-300 focus-within:border-[#444] transition-all duration-300 bg-gray-50">
 
               {/* Email input with floating label */}
               <div className="relative flex-grow">
@@ -204,14 +204,14 @@ const Newsletter = () => {
                   required
                   placeholder=" "
                   id="nl-email"
-                  className="peer w-full bg-transparent px-6 pt-7 pb-3 text-white font-bold text-sm outline-none placeholder:text-transparent"
+                  className="peer w-full bg-transparent px-6 pt-7 pb-3 text-black font-bold text-sm outline-none placeholder:text-transparent"
                 />
                 <label
                   htmlFor="nl-email"
                   className={`absolute left-6 pointer-events-none font-black uppercase transition-all duration-300 ${
                     isFocused || email
-                      ? 'top-2.5 text-[8px] tracking-[0.4em] text-[#555]'
-                      : 'top-1/2 -translate-y-1/2 text-[9px] tracking-[0.3em] text-[#555]'
+                      ? 'top-2.5 text-[8px] tracking-[0.4em] text-gray-500'
+                      : 'top-1/2 -translate-y-1/2 text-[9px] tracking-[0.3em] text-gray-500'
                   }`}
                 >
                   {isFocused || email ? 'Email Address' : 'THE-ELITE@DOMAIN.COM'}
@@ -222,7 +222,7 @@ const Newsletter = () => {
               <button
                 type="submit"
                 disabled={status === 'loading'}
-                className="group/btn relative flex-shrink-0 flex items-center gap-3 px-8 py-4 bg-[#ba1f3d] text-white text-[9px] font-black uppercase tracking-[0.35em] hover:brightness-110 transition-all duration-300 disabled:opacity-60 border-l border-[#1f1f1f] overflow-hidden"
+                className="group/btn relative flex-shrink-0 flex items-center gap-3 px-8 py-4 bg-[#ba1f3d] text-white text-[9px] font-black uppercase tracking-[0.35em] hover:brightness-110 transition-all duration-300 disabled:opacity-60 border-l border-gray-200 overflow-hidden"
               >
                 {status === 'loading' ? (
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -243,7 +243,7 @@ const Newsletter = () => {
             {/* Privacy note */}
             <p className="text-[#333] text-[8px] font-black uppercase tracking-[0.45em] mt-5 leading-relaxed">
               Privacy first. Use code{' '}
-              <span className="text-white border-b border-white/20 cursor-pointer">CARDINAL20</span>
+              <span className="text-black border-b border-white/20 cursor-pointer">CARDINAL20</span>
               {' '}for 20% off your first order.
             </p>
           </form>

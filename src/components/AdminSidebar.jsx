@@ -68,7 +68,7 @@ const SidebarContent = ({ onClose }) => {
         {onClose && (
           <button
             onClick={onClose}
-            className="lg:hidden p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-all"
+            className="lg:hidden p-2 rounded-lg text-gray-400 hover:text-black hover:bg-white/10 transition-all"
             aria-label="Close menu"
           >
             <X size={18} />
@@ -87,7 +87,7 @@ const SidebarContent = ({ onClose }) => {
               `flex items-center space-x-3 px-4 py-3 rounded-xl text-[11px] font-bold uppercase tracking-wider transition-all ${
                 isActive
                   ? 'bg-[#ba1f3d] text-white shadow-lg shadow-[#ba1f3d]/30'
-                  : 'text-gray-400 hover:text-white hover:bg-white/8'
+                  : 'text-gray-400 hover:text-black hover:bg-white/8'
               }`
             }
           >
@@ -115,7 +115,7 @@ const AdminSidebar = ({ mobileOpen = false, onClose }) => {
   return (
     <>
       {/* ── Desktop: fixed sidebar ─────────────────────────── */}
-      <aside className="hidden lg:flex fixed left-0 top-0 h-screen w-64 bg-gray-900 text-white flex-col z-40">
+      <aside className="hidden lg:flex fixed left-0 top-0 h-screen w-64 bg-gray-900 text-black flex-col z-40">
         <SidebarContent />
       </aside>
 
@@ -132,7 +132,7 @@ const AdminSidebar = ({ mobileOpen = false, onClose }) => {
 
       {/* Drawer panel */}
       <aside
-        className={`lg:hidden fixed left-0 top-0 h-full w-72 bg-gray-900 text-white z-50 flex flex-col transition-transform duration-300 ease-in-out ${
+        className={`lg:hidden fixed left-0 top-0 h-full w-72 bg-gray-900 text-black z-50 flex flex-col transition-transform duration-300 ease-in-out ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >

@@ -14,7 +14,7 @@ const ReturnsPage = () => (
   <div className="min-h-screen bg-white">
 
     {/* ── Hero ──────────────────────────────────────────── */}
-    <div className="bg-gray-900 text-white py-20 px-6">
+    <div className="bg-gray-900 text-black py-20 px-6">
       <div className="max-w-3xl mx-auto text-center">
         <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-4">
           Customer Care
@@ -121,7 +121,7 @@ const ReturnsPage = () => (
           ].map(({ step, title, desc }) => (
             <div key={step} className="flex items-start space-x-5">
               <div className="w-10 h-10 bg-[#ba1f3d] flex items-center justify-center flex-shrink-0">
-                <span className="text-white text-[10px] font-black">{step}</span>
+                <span className="text-black text-[10px] font-black">{step}</span>
               </div>
               <div className="pt-1">
                 <p className="font-black uppercase tracking-tight text-gray-900 mb-1">{title}</p>
@@ -145,7 +145,7 @@ const ReturnsPage = () => (
       </section>
 
       {/* ── Contact ───────────────────────────────────────── */}
-      <section className="bg-gray-900 text-white p-10 rounded-sm">
+      <section className="bg-gray-900 text-black p-10 rounded-sm">
         <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-4">
           Need Help?
         </p>
@@ -157,14 +157,14 @@ const ReturnsPage = () => (
             href="https://wa.me/923068458655?text=Hi%2C%20I%20need%20help%20with%20a%20return"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center space-x-3 text-sm font-bold text-gray-300 hover:text-white transition-colors"
+            className="flex items-center space-x-3 text-sm font-bold text-gray-300 hover:text-black transition-colors"
           >
             <Phone size={14} className="text-[#ba1f3d]" />
             <span>+92 306-8458655 (WhatsApp preferred)</span>
           </a>
           <a
             href="mailto:concierge@stop-shop.pk"
-            className="flex items-center space-x-3 text-sm font-bold text-gray-300 hover:text-white transition-colors"
+            className="flex items-center space-x-3 text-sm font-bold text-gray-300 hover:text-black transition-colors"
           >
             <Mail size={14} className="text-[#ba1f3d]" />
             <span>concierge@stop-shop.pk</span>
@@ -176,7 +176,7 @@ const ReturnsPage = () => (
         <div className="mt-8 pt-6 border-t border-white/10">
           <Link
             to="/"
-            className="text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-white transition-colors"
+            className="text-[10px] font-black uppercase tracking-widest text-gray-500 hover:text-black transition-colors"
           >
             ← Back to Shopping
           </Link>

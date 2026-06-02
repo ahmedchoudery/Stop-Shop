@@ -166,7 +166,7 @@ const OrdersTab = () => {
                   </div>
                   <Link
                     to={`/track?orderID=${order.orderID || order._id}`}
-                    className="flex items-center space-x-1 px-4 py-2 border border-gray-900 text-gray-900 text-[9px] font-black uppercase tracking-widest hover:bg-gray-900 hover:text-white transition-all"
+                    className="flex items-center space-x-1 px-4 py-2 border border-gray-900 text-gray-900 text-[9px] font-black uppercase tracking-widest hover:bg-gray-900 hover:text-black transition-all"
                   >
                     <span>Track Order</span>
                     <ChevronRight size={11} />
@@ -283,7 +283,7 @@ const ProfileTab = () => {
         ) : (
           <button
             onClick={() => setEditing(true)}
-            className={`flex items-center space-x-2 px-6 py-3 border-2 border-gray-900 text-gray-900 text-[10px] font-black uppercase tracking-widest hover:bg-gray-900 hover:text-white transition-all ${saved ? 'border-green-600 text-green-600' : ''}`}
+            className={`flex items-center space-x-2 px-6 py-3 border-2 border-gray-900 text-gray-900 text-[10px] font-black uppercase tracking-widest hover:bg-gray-900 hover:text-black transition-all ${saved ? 'border-green-600 text-green-600' : ''}`}
           >
             {saved ? <Check size={13} /> : <Edit3 size={13} />}
             <span>{saved ? 'Saved!' : 'Edit Profile'}</span>
@@ -397,7 +397,7 @@ const AddressTab = () => {
           </>
         ) : (
           <button onClick={() => setEditing(true)}
-            className={`flex items-center space-x-2 px-6 py-3 border-2 border-gray-900 text-gray-900 text-[10px] font-black uppercase tracking-widest hover:bg-gray-900 hover:text-white transition-all ${saved ? 'border-green-600 text-green-600' : ''}`}>
+            className={`flex items-center space-x-2 px-6 py-3 border-2 border-gray-900 text-gray-900 text-[10px] font-black uppercase tracking-widest hover:bg-gray-900 hover:text-black transition-all ${saved ? 'border-green-600 text-green-600' : ''}`}>
             {saved ? <Check size={13} /> : <Edit3 size={13} />}
             <span>{saved ? 'Saved!' : (hasAddress ? 'Edit Address' : 'Add Address')}</span>
           </button>
@@ -431,11 +431,11 @@ const AccountPage = () => {
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <div className="bg-gray-900 text-white py-12 px-6">
+      <div className="bg-gray-900 text-black py-12 px-6">
         <div className="max-w-4xl mx-auto">
           <button
             onClick={() => navigate('/')}
-            className="flex items-center space-x-2 text-gray-500 hover:text-white transition-colors mb-6 text-[10px] font-black uppercase tracking-widest"
+            className="flex items-center space-x-2 text-gray-500 hover:text-black transition-colors mb-6 text-[10px] font-black uppercase tracking-widest"
           >
             <ArrowLeft size={13} />
             <span>Continue Shopping</span>

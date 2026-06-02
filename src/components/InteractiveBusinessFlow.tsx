@@ -84,14 +84,14 @@ const StageNode = memo(({ stageKey, config, isActive, onClick, liveCount }: Stag
       onClick={() => onClick(stageKey)}
       className={`w-full md:w-48 p-5 border text-left rounded-xl transition-all duration-300 relative group outline-none ${
         isActive
-          ? 'bg-gray-900 border-gray-900 shadow-xl -translate-y-1 text-white'
+          ? 'bg-gray-900 border-gray-900 shadow-xl -translate-y-1 text-black'
           : 'bg-white border-gray-100 shadow-sm hover:shadow-md hover:border-gray-300 text-gray-800'
       }`}
     >
       <div className="flex items-start justify-between mb-4">
         <div className={`w-9 h-9 rounded-lg flex items-center justify-center border transition-colors ${
           isActive
-            ? 'bg-white/10 border-white/20 text-white'
+            ? 'bg-white/10 border-white/20 text-black'
             : `${config.bg} border-current/20`
         }`}>
           <Icon size={16} />

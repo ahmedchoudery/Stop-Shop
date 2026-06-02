@@ -10,14 +10,14 @@
 /* ── Design Tokens ───────────────────────────────────────────── */
 
 :root {
-  --bg-base:      #0d0d0d;   /* unified page background */
-  --bg-surface:   #141414;   /* card / panel */
-  --bg-elevated:  #1a1a1a;   /* inputs, hover surfaces */
-  --border:       #1f1f1f;   /* hairline dividers */
-  --border-mid:   #2a2a2a;   /* medium dividers */
-  --text-primary: #f0f0f0;   /* headings */
-  --text-secondary:#888888;  /* labels, captions */
-  --text-muted:   #444444;   /* de-emphasised */
+  --bg-base:      #ffffff;   /* unified page background */
+  --bg-surface:   #f9fafb;   /* card / panel */
+  --bg-elevated:  #f3f4f6;   /* inputs, hover surfaces */
+  --border:       #e5e7eb;   /* hairline dividers */
+  --border-mid:   #d1d5db;   /* medium dividers */
+  --text-primary: #111827;   /* headings */
+  --text-secondary:#4b5563;  /* labels, captions */
+  --text-muted:   #9ca3af;   /* de-emphasised */
   --accent:       #ba1f3d;   /* logo, CTAs, badges — use sparingly */
 }
 
@@ -56,13 +56,13 @@
 
   /* Selection */
   ::selection {
-    background-color: rgba(255, 255, 255, 0.1);
-    color: #f0f0f0;
+    background-color: rgba(0, 0, 0, 0.1);
+    color: var(--text-primary);
   }
 
   /* Focus — clean white ring */
   :focus-visible {
-    outline: 1px solid rgba(255, 255, 255, 0.4);
+    outline: 1px solid rgba(0, 0, 0, 0.4);
     outline-offset: 2px;
   }
 
@@ -90,12 +90,12 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #2a2a2a;
+  background: var(--border-mid);
   border-radius: 2px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #444;
+  background: var(--text-muted);
 }
 
 .scrollbar-hide {
@@ -126,11 +126,11 @@
   /* Secondary — dark outlined */
   .btn-secondary {
     @apply inline-flex items-center justify-center space-x-2
-           border border-[#2a2a2a] text-[#f0f0f0]
+           border border-[var(--border-mid)] text-[var(--text-primary)]
            px-8 py-4
            text-[10px] font-black uppercase tracking-[0.35em]
            transition-all duration-300
-           hover:border-white hover:text-white
+           hover:border-[var(--text-primary)] hover:bg-[var(--bg-elevated)]
            active:scale-[0.98]
            disabled:opacity-40 disabled:cursor-not-allowed;
   }
@@ -138,23 +138,23 @@
   /* Ghost */
   .btn-ghost {
     @apply inline-flex items-center justify-center space-x-2
-           text-[#888]
+           text-[var(--text-secondary)]
            text-[10px] font-black uppercase tracking-[0.3em]
            transition-colors duration-200
-           hover:text-white
+           hover:text-[var(--text-primary)]
            disabled:opacity-40 disabled:cursor-not-allowed;
   }
 
   /* Premium Input — dark context */
   .input-premium {
     @apply w-full bg-transparent
-           border-b border-[#2a2a2a]
+           border-b border-[var(--border-mid)]
            py-3 px-0
-           text-sm font-bold text-[#f0f0f0]
-           placeholder:text-[#444] placeholder:font-normal
+           text-sm font-bold text-[var(--text-primary)]
+           placeholder:text-[var(--text-muted)] placeholder:font-normal
            outline-none
            transition-all duration-200
-           focus:border-[#f0f0f0];
+           focus:border-[var(--text-primary)];
   }
 
   .input-premium-error {
@@ -164,24 +164,24 @@
   /* Select */
   .select-premium {
     @apply appearance-none w-full bg-transparent
-           border-b border-[#2a2a2a]
+           border-b border-[var(--border-mid)]
            py-3 pr-8
-           text-sm font-bold text-[#f0f0f0]
+           text-sm font-bold text-[var(--text-primary)]
            outline-none cursor-pointer
            transition-colors duration-200
-           focus:border-white;
+           focus:border-[var(--text-primary)];
   }
 
   /* Eyebrow label — neutral grey, NOT red */
   .eyebrow {
-    @apply text-[8px] font-black uppercase tracking-[0.55em] text-[#666];
+    @apply text-[8px] font-black uppercase tracking-[0.55em] text-[var(--text-muted)];
   }
 
   /* Card */
   .card-premium {
-    @apply bg-[#141414] border border-[#1f1f1f]
+    @apply bg-[var(--bg-surface)] border border-[var(--border)]
            transition-all duration-300
-           hover:border-[#2a2a2a];
+           hover:border-[var(--border-mid)];
   }
 
   /* Badge */
@@ -196,15 +196,15 @@
   }
 
   .badge-dark {
-    @apply badge bg-[#1a1a1a] border border-[#2a2a2a] text-[#888];
+    @apply badge bg-[var(--bg-elevated)] border border-[var(--border-mid)] text-[var(--text-secondary)];
   }
 
   .badge-outline {
-    @apply badge border border-[#2a2a2a] text-[#666];
+    @apply badge border border-[var(--border-mid)] text-[var(--text-secondary)];
   }
 
   .divider {
-    @apply h-px w-full bg-[#1f1f1f] my-6;
+    @apply h-px w-full bg-[var(--border)] my-6;
   }
 }
 
@@ -307,7 +307,7 @@
   }
 
   .animate-shimmer {
-    background: linear-gradient(90deg, #1a1a1a 25%, #222 37%, #1a1a1a 63%);
+    background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--border) 37%, var(--bg-elevated) 63%);
     background-size: 800px 100%;
     animation: shimmer 1.6s infinite linear;
   }
@@ -374,18 +374,18 @@
 /* ── 9. Glassmorphism Navbar — dark edition ──────────────────── */
 
 .glass-premium {
-  background: rgba(13, 13, 13, 0.6);
+  background: rgba(255, 255, 255, 0.6);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 .navbar-glass {
-  background: rgba(13, 13, 13, 0.92) !important;
+  background: rgba(255, 255, 255, 0.92) !important;
   backdrop-filter: blur(20px) saturate(160%);
   -webkit-backdrop-filter: blur(20px) saturate(160%);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06) !important;
-  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.5);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06) !important;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.05);
 }
 
 /* ── 9b. Flash Sale Banner ───────────────────────────────────── */
@@ -429,7 +429,7 @@
 /* ── 12. Admin sidebar ───────────────────────────────────────── */
 
 .admin-sidebar {
-  background: #080808;
+  background: var(--bg-surface);
 }
 
 /* ── 13. Underline draw animation ────────────────────────────── */
@@ -445,7 +445,7 @@
   left: 0;
   width: 0;
   height: 1px;
-  background: #f0f0f0;
+  background: var(--text-primary);
   transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
 }
 

@@ -242,7 +242,7 @@ export default function ProductPageClient({ product, allProducts = [] }) {
                           ${soldOut
                             ? 'border-gray-100 text-gray-300 line-through cursor-not-allowed'
                             : selectedSize === size
-                              ? 'border-gray-900 bg-gray-900 text-white'
+                              ? 'border-gray-900 bg-gray-900 text-black'
                               : 'border-gray-200 text-gray-600 hover:border-gray-900'
                           }
                         `}

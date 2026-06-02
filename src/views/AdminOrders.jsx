@@ -120,7 +120,7 @@ const AdminOrders = () => {
           >
             <span>{status}</span>
             <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${
-              statusFilter === status ? 'bg-white/20 text-white' : 'bg-white text-gray-500'
+              statusFilter === status ? 'bg-white/20 text-black' : 'bg-white text-gray-500'
             }`}>
               {statusCounts[status] ?? 0}
             </span>

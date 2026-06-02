@@ -78,7 +78,7 @@ const DeleteConfirmModal = ({ product, onConfirm, onCancel, deleting }) => {
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm animate-fade-in"
+        className="absolute inset-0 bg-white/60 backdrop-blur-sm animate-fade-in"
         onClick={onCancel}
       />
 
@@ -493,7 +493,7 @@ const AdminProducts = () => {
         <div className="fixed inset-0 z-[100] flex items-start justify-end overflow-hidden">
           {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            className="absolute inset-0 bg-white/50 backdrop-blur-sm"
             onClick={handleCloseForm}
           />
 
@@ -501,9 +501,9 @@ const AdminProducts = () => {
           <div className="relative h-full w-full max-w-2xl bg-white shadow-2xl overflow-y-auto animate-slide-in flex flex-col">
 
             {/* Panel header */}
-            <div className="sticky top-0 z-10 bg-gray-900 text-white px-6 py-5 flex items-center justify-between flex-shrink-0">
+            <div className="sticky top-0 z-10 bg-gray-900 text-black px-6 py-5 flex items-center justify-between flex-shrink-0">
               <div>
-                <p className="text-[9px] font-black uppercase tracking-[0.4em] text-white/40 mb-1">
+                <p className="text-[9px] font-black uppercase tracking-[0.4em] text-black/40 mb-1">
                   {editingProduct ? 'Editing Product' : 'New Product'}
                 </p>
                 <h2 className="text-base font-black uppercase tracking-tight">

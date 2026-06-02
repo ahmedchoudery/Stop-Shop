@@ -255,7 +255,7 @@ const CustomerAuthPage = () => {
           <div className="mb-8">
             <div className="flex items-center space-x-2 mb-3">
               <div className="w-6 h-6 bg-[#ba1f3d] flex items-center justify-center">
-                <span className="text-white text-[8px] font-black">S&S</span>
+                <span className="text-black text-[8px] font-black">S&S</span>
               </div>
               <span className="text-sm font-black italic uppercase tracking-tighter text-[#ba1f3d]">Stop & Shop</span>
             </div>

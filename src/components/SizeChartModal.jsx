@@ -180,7 +180,7 @@ const SizeChartModal = ({ isOpen, onClose, defaultCategory = 'Tops', highlightSi
   return (
     <div className="fixed inset-0 z-[300] flex items-end sm:items-center justify-center p-0 sm:p-4">
       {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm animate-fade-in" onClick={onClose} />
+      <div className="absolute inset-0 bg-white/70 backdrop-blur-sm animate-fade-in" onClick={onClose} />
 
       {/* Modal */}
       <div className="relative bg-white w-full sm:max-w-2xl max-h-[92vh] sm:max-h-[85vh] rounded-t-3xl sm:rounded-2xl overflow-hidden flex flex-col shadow-2xl animate-slide-up">
@@ -268,7 +268,7 @@ const SizeChartModal = ({ isOpen, onClose, defaultCategory = 'Tops', highlightSi
           <div ref={tableRef} className="overflow-x-auto rounded-xl border border-gray-100 mb-5">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-gray-900 text-white">
+                <tr className="bg-gray-900 text-black">
                   {data.headers.map((h, i) => (
                     <th
                       key={h}
@@ -358,7 +358,7 @@ const SizeChartModal = ({ isOpen, onClose, defaultCategory = 'Tops', highlightSi
               href="https://wa.me/923068458656"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center space-x-2 text-[10px] font-black uppercase tracking-widest bg-green-600 text-white px-4 py-2.5 rounded-xl hover:bg-green-500 transition-all duration-200 btn-shimmer"
+              className="flex items-center space-x-2 text-[10px] font-black uppercase tracking-widest bg-green-600 text-black px-4 py-2.5 rounded-xl hover:bg-green-500 transition-all duration-200 btn-shimmer"
             >
               <MessageCircle size={12} />
               <span>Ask on WhatsApp</span>

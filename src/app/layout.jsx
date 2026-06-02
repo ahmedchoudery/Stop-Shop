@@ -31,7 +31,7 @@ export const viewport = {
 export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${dmSans.variable} ${barlow.variable}`}>
-      <body className="font-sans antialiased selection:bg-white/10 selection:text-white">
+      <body className="font-sans antialiased selection:bg-white/10 selection:text-black">
         <ErrorBoundary title="Fatal App Error">
           <Providers>
             <Layout>

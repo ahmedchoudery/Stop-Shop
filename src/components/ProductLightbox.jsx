@@ -154,17 +154,17 @@ const ProductLightbox = ({ images = [], startIndex = 0, isOpen, onClose }) => {
   return (
     <div
       ref={overlayRef}
-      className="fixed inset-0 z-[400] flex flex-col bg-black"
+      className="fixed inset-0 z-[400] flex flex-col bg-white"
       style={{ opacity: 0 }}
     >
       {/* Top Bar */}
-      <div className="flex items-center justify-between px-6 py-4 bg-black/80 backdrop-blur-sm flex-shrink-0">
+      <div className="flex items-center justify-between px-6 py-4 bg-white/80 backdrop-blur-sm flex-shrink-0">
         <div className="flex items-center space-x-4">
-          <span className="text-white/40 text-[10px] font-black uppercase tracking-widest">
+          <span className="text-black/40 text-[10px] font-black uppercase tracking-widest">
             {current + 1} / {images.length}
           </span>
           {img.label && (
-            <span className="text-white/60 text-[10px] font-bold uppercase tracking-widest">
+            <span className="text-black/60 text-[10px] font-bold uppercase tracking-widest">
               {img.label}
             </span>
           )}
@@ -178,14 +178,14 @@ const ProductLightbox = ({ images = [], startIndex = 0, isOpen, onClose }) => {
             { Icon: ZoomIn, onClick: zoomIn, disabled: zoom >= 4, title: 'Zoom in (+)' },
           ].map((item, i) =>
             item.text ? (
-              <span key={i} className="text-white/50 text-[10px] font-black w-10 text-center">{item.text}</span>
+              <span key={i} className="text-black/50 text-[10px] font-black w-10 text-center">{item.text}</span>
             ) : (
               <button
                 key={i}
                 onClick={item.onClick}
                 disabled={item.disabled}
                 title={item.title}
-                className="p-2.5 bg-white/8 hover:bg-white/20 disabled:opacity-30 rounded-xl transition-all text-white"
+                className="p-2.5 bg-white/8 hover:bg-white/20 disabled:opacity-30 rounded-xl transition-all text-black"
               >
                 <item.Icon size={16} />
               </button>
@@ -218,7 +218,7 @@ const ProductLightbox = ({ images = [], startIndex = 0, isOpen, onClose }) => {
         {images.length > 1 && (
           <button
             onClick={(e) => { e.stopPropagation(); prev(); }}
-            className="absolute left-4 z-10 p-3 bg-white/10 hover:bg-white/25 backdrop-blur-sm rounded-2xl text-white transition-all group"
+            className="absolute left-4 z-10 p-3 bg-white/10 hover:bg-white/25 backdrop-blur-sm rounded-2xl text-black transition-all group"
           >
             <ChevronLeft size={22} className="group-hover:-translate-x-0.5 transition-transform" />
           </button>
@@ -249,7 +249,7 @@ const ProductLightbox = ({ images = [], startIndex = 0, isOpen, onClose }) => {
         {images.length > 1 && (
           <button
             onClick={(e) => { e.stopPropagation(); next(); }}
-            className="absolute right-4 z-10 p-3 bg-white/10 hover:bg-white/25 backdrop-blur-sm rounded-2xl text-white transition-all group"
+            className="absolute right-4 z-10 p-3 bg-white/10 hover:bg-white/25 backdrop-blur-sm rounded-2xl text-black transition-all group"
           >
             <ChevronRight size={22} className="group-hover:translate-x-0.5 transition-transform" />
           </button>
@@ -257,7 +257,7 @@ const ProductLightbox = ({ images = [], startIndex = 0, isOpen, onClose }) => {
 
         {/* Hint */}
         {zoom === 1 && isLoaded && (
-          <p className="absolute bottom-4 left-1/2 -translate-x-1/2 text-white/25 text-[9px] font-black uppercase tracking-widest pointer-events-none">
+          <p className="absolute bottom-4 left-1/2 -translate-x-1/2 text-black/25 text-[9px] font-black uppercase tracking-widest pointer-events-none">
             Double-click or +/− to zoom
           </p>
         )}
@@ -265,7 +265,7 @@ const ProductLightbox = ({ images = [], startIndex = 0, isOpen, onClose }) => {
 
       {/* Thumbnails */}
       {images.length > 1 && (
-        <div ref={thumbsRef} className="flex-shrink-0 py-4 px-6 bg-black/80 backdrop-blur-sm">
+        <div ref={thumbsRef} className="flex-shrink-0 py-4 px-6 bg-white/80 backdrop-blur-sm">
           <div className="flex items-center justify-center space-x-3 overflow-x-auto scrollbar-hide">
             {images.map((img, idx) => (
               <button
@@ -288,7 +288,7 @@ const ProductLightbox = ({ images = [], startIndex = 0, isOpen, onClose }) => {
 
       {/* Keyboard hints */}
       <div className="flex-shrink-0 pb-3 flex justify-center">
-        <p className="text-white/20 text-[8px] font-black uppercase tracking-widest">
+        <p className="text-black/20 text-[8px] font-black uppercase tracking-widest">
           ← → Navigate · + − Zoom · Esc Close · Double-click Toggle Zoom
         </p>
       </div>

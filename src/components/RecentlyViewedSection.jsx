@@ -76,13 +76,13 @@ const RecentlyViewedSection = () => {
           <div className="flex items-center space-x-2">
             <button
               onClick={() => scroll(-1)}
-              className="hidden sm:flex w-9 h-9 border border-gray-200 items-center justify-center hover:bg-gray-900 hover:text-white hover:border-gray-900 transition-all duration-300"
+              className="hidden sm:flex w-9 h-9 border border-gray-200 items-center justify-center hover:bg-gray-900 hover:text-black hover:border-gray-900 transition-all duration-300"
             >
               <ChevronLeft size={16} />
             </button>
             <button
               onClick={() => scroll(1)}
-              className="hidden sm:flex w-9 h-9 border border-gray-200 items-center justify-center hover:bg-gray-900 hover:text-white hover:border-gray-900 transition-all duration-300"
+              className="hidden sm:flex w-9 h-9 border border-gray-200 items-center justify-center hover:bg-gray-900 hover:text-black hover:border-gray-900 transition-all duration-300"
             >
               <ChevronRight size={16} />
             </button>
@@ -134,10 +134,10 @@ const RecentlyViewedSection = () => {
 
                   {/* Quick add overlay */}
                   {product.stock !== 0 && (
-                    <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-4">
+                    <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-4">
                       <button
                         onClick={(e) => { e.stopPropagation(); addToCart(product); }}
-                        className="bg-white text-black text-[9px] font-black uppercase tracking-widest px-4 py-2.5 rounded-xl shadow-xl hover:bg-[#ba1f3d] hover:text-white transition-all duration-300 active:scale-95"
+                        className="bg-white text-white text-[9px] font-black uppercase tracking-widest px-4 py-2.5 rounded-xl shadow-xl hover:bg-[#ba1f3d] hover:text-white transition-all duration-300 active:scale-95"
                       >
                         + Add to Bag
                       </button>

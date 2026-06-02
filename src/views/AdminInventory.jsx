@@ -219,7 +219,7 @@ const AdminInventory = () => {
                       <td className="p-4">
                         <span className={`px-3 py-1.5 rounded-full text-[8px] font-black uppercase tracking-widest ${
                           outOfStock
-                            ? 'bg-red-600 text-white'
+                            ? 'bg-red-600 text-black'
                             : lowStock
                               ? 'bg-orange-100 text-orange-700'
                               : 'bg-green-100 text-green-700'

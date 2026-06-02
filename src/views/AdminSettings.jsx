@@ -182,7 +182,7 @@ const AdminSettings = () => {
           </div>
 
           {/* System info card */}
-          <div className="lg:col-span-2 bg-gray-900 text-white rounded-2xl p-8">
+          <div className="lg:col-span-2 bg-gray-900 text-black rounded-2xl p-8">
             <div className="flex items-center space-x-3 mb-6">
               <Zap size={16} className="text-[#FBBF24]" />
               <h3 className="text-sm font-black uppercase tracking-widest">System Status</h3>
@@ -196,7 +196,7 @@ const AdminSettings = () => {
               ].map(item => (
                 <div key={item.label}>
                   <p className="text-[9px] font-black uppercase tracking-widest text-gray-500 mb-1">{item.label}</p>
-                  <p className="text-sm font-black text-white uppercase tracking-tight">{item.value}</p>
+                  <p className="text-sm font-black text-black uppercase tracking-tight">{item.value}</p>
                 </div>
               ))}
             </div>

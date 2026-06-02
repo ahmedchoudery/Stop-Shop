@@ -38,7 +38,7 @@ const StarPicker = ({ value, onChange }) => (
           className={
             n <= value
               ? 'fill-[#ba1f3d] text-[#ba1f3d]'
-              : 'text-[#333] fill-[#333] hover:text-[#555] hover:fill-[#555]'
+              : 'text-[#333] fill-[#333] hover:text-gray-500 hover:fill-[#555]'
           }
         />
       </button>
@@ -81,12 +81,12 @@ const ReviewForm = ({ onClose, onSuccess }) => {
     <div className="fixed inset-0 z-[300] flex items-end sm:items-center justify-center px-4 pb-0 sm:pb-4">
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+        className="absolute inset-0 bg-white/80 backdrop-blur-sm"
         onClick={onClose}
       />
 
       {/* Drawer */}
-      <div className="relative w-full max-w-lg bg-[#111111] border border-[#1f1f1f] p-8 shadow-2xl animate-fade-up">
+      <div className="relative w-full max-w-lg bg-gray-50 border border-gray-200 p-8 shadow-2xl animate-fade-up">
 
         {/* Header */}
         <div className="flex items-start justify-between mb-8">
@@ -94,13 +94,13 @@ const ReviewForm = ({ onClose, onSuccess }) => {
             <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-2">
               Share Your Experience
             </p>
-            <h3 className="text-xl font-black uppercase tracking-tighter text-white leading-none">
+            <h3 className="text-xl font-black uppercase tracking-tighter text-black leading-none">
               Write a Review
             </h3>
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 border border-[#2a2a2a] flex items-center justify-center text-[#555] hover:border-white hover:text-white transition-all duration-200"
+            className="w-8 h-8 border border-gray-300 flex items-center justify-center text-gray-500 hover:border-white hover:text-black transition-all duration-200"
           >
             <X size={13} />
           </button>
@@ -109,12 +109,12 @@ const ReviewForm = ({ onClose, onSuccess }) => {
         {done ? (
           <div className="text-center py-8">
             <div className="w-14 h-14 bg-[#ba1f3d] flex items-center justify-center mx-auto mb-5">
-              <CheckCircle size={26} className="text-white" />
+              <CheckCircle size={26} className="text-black" />
             </div>
-            <p className="font-black uppercase tracking-[0.3em] text-white text-sm mb-1.5">
+            <p className="font-black uppercase tracking-[0.3em] text-black text-sm mb-1.5">
               Review Submitted
             </p>
-            <p className="text-[10px] font-bold uppercase tracking-widest text-[#555]">
+            <p className="text-[10px] font-bold uppercase tracking-widest text-gray-500">
               Awaiting moderation — thank you.
             </p>
           </div>
@@ -123,7 +123,7 @@ const ReviewForm = ({ onClose, onSuccess }) => {
 
             {/* Rating */}
             <div>
-              <p className="text-[9px] font-black uppercase tracking-[0.4em] text-[#555] mb-3">
+              <p className="text-[9px] font-black uppercase tracking-[0.4em] text-gray-500 mb-3">
                 Your Rating
               </p>
               <StarPicker value={form.rating} onChange={(r) => setForm((p) => ({ ...p, rating: r }))} />
@@ -142,9 +142,9 @@ const ReviewForm = ({ onClose, onSuccess }) => {
                     value={form[field]}
                     onChange={set(field)}
                     placeholder=" "
-                    className="peer w-full bg-transparent border-b border-[#2a2a2a] focus:border-white py-3 text-white text-xs font-bold outline-none transition-colors duration-300 placeholder:text-transparent"
+                    className="peer w-full bg-transparent border-b border-gray-300 focus:border-white py-3 text-black text-xs font-bold outline-none transition-colors duration-300 placeholder:text-transparent"
                   />
-                  <label className="absolute left-0 top-3 text-[9px] font-black uppercase tracking-[0.35em] text-[#555] peer-focus:text-white peer-[:not(:placeholder-shown)]:text-white transition-colors duration-300 pointer-events-none">
+                  <label className="absolute left-0 top-3 text-[9px] font-black uppercase tracking-[0.35em] text-gray-500 peer-focus:text-black peer-[:not(:placeholder-shown)]:text-black transition-colors duration-300 pointer-events-none">
                     {label}
                   </label>
                 </div>
@@ -158,9 +158,9 @@ const ReviewForm = ({ onClose, onSuccess }) => {
                 value={form.title}
                 onChange={set('title')}
                 placeholder=" "
-                className="peer w-full bg-transparent border-b border-[#2a2a2a] focus:border-white py-3 text-white text-xs font-bold outline-none transition-colors duration-300 placeholder:text-transparent"
+                className="peer w-full bg-transparent border-b border-gray-300 focus:border-white py-3 text-black text-xs font-bold outline-none transition-colors duration-300 placeholder:text-transparent"
               />
-              <label className="absolute left-0 top-3 text-[9px] font-black uppercase tracking-[0.35em] text-[#555] peer-focus:text-white peer-[:not(:placeholder-shown)]:text-white transition-colors duration-300 pointer-events-none">
+              <label className="absolute left-0 top-3 text-[9px] font-black uppercase tracking-[0.35em] text-gray-500 peer-focus:text-black peer-[:not(:placeholder-shown)]:text-black transition-colors duration-300 pointer-events-none">
                 Review Title
               </label>
             </div>
@@ -173,9 +173,9 @@ const ReviewForm = ({ onClose, onSuccess }) => {
                 value={form.body}
                 onChange={set('body')}
                 placeholder=" "
-                className="peer w-full bg-transparent border-b border-[#2a2a2a] focus:border-white py-3 text-white text-xs font-bold outline-none transition-colors duration-300 resize-none placeholder:text-transparent"
+                className="peer w-full bg-transparent border-b border-gray-300 focus:border-white py-3 text-black text-xs font-bold outline-none transition-colors duration-300 resize-none placeholder:text-transparent"
               />
-              <label className="absolute left-0 top-3 text-[9px] font-black uppercase tracking-[0.35em] text-[#555] peer-focus:text-white peer-[:not(:placeholder-shown)]:text-white transition-colors duration-300 pointer-events-none">
+              <label className="absolute left-0 top-3 text-[9px] font-black uppercase tracking-[0.35em] text-gray-500 peer-focus:text-black peer-[:not(:placeholder-shown)]:text-black transition-colors duration-300 pointer-events-none">
                 Your Review *
               </label>
             </div>
@@ -218,7 +218,7 @@ const ReviewCard = ({ review, index }) => {
 
   return (
     <article
-      className="bg-[#111111] border border-[#1a1a1a] p-7 hover:border-[#2a2a2a] transition-all duration-500 group"
+      className="bg-gray-50 border border-gray-200 p-7 hover:border-gray-300 transition-all duration-500 group"
       style={{ animationDelay: `${index * 80}ms` }}
     >
       {/* Stars + date */}
@@ -229,23 +229,23 @@ const ReviewCard = ({ review, index }) => {
 
       {/* Title */}
       {review.title && (
-        <h4 className="font-black uppercase tracking-tight text-white text-sm leading-tight mb-3 group-hover:text-white transition-colors">
+        <h4 className="font-black uppercase tracking-tight text-black text-sm leading-tight mb-3 group-hover:text-black transition-colors">
           {review.title}
         </h4>
       )}
 
       {/* Body */}
-      <p className="text-[11px] text-[#666] leading-relaxed font-medium mb-6 line-clamp-4">
+      <p className="text-[11px] text-gray-500 leading-relaxed font-medium mb-6 line-clamp-4">
         "{review.body}"
       </p>
 
       {/* Author */}
-      <div className="flex items-center gap-3 border-t border-[#1a1a1a] pt-5">
-        <div className="w-8 h-8 bg-[#1a1a1a] border border-[#2a2a2a] flex items-center justify-center flex-shrink-0">
-          <span className="text-[10px] font-black text-[#555]">{initial}</span>
+      <div className="flex items-center gap-3 border-t border-gray-200 pt-5">
+        <div className="w-8 h-8 bg-gray-100 border border-gray-300 flex items-center justify-center flex-shrink-0">
+          <span className="text-[10px] font-black text-gray-500">{initial}</span>
         </div>
         <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#888]">{review.name}</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-600">{review.name}</p>
           <p className="text-[8px] font-bold uppercase tracking-widest text-[#333] mt-0.5">Verified Purchase</p>
         </div>
       </div>
@@ -294,7 +294,7 @@ const ReviewsSection = () => {
   return (
     <>
       {/* ── Editorial Brand Statement ──────────────────────────────────── */}
-      <section className="bg-[#0d0d0d] border-t border-[#1a1a1a]">
+      <section className="bg-white border-t border-gray-200">
         <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 py-20 sm:py-28">
           <div
             ref={setHeaderRef}
@@ -306,7 +306,7 @@ const ReviewsSection = () => {
               <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-5">
                 The Cardinal Experience
               </p>
-              <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black uppercase tracking-tighter leading-[0.9] text-white mb-1">
+              <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black uppercase tracking-tighter leading-[0.9] text-black mb-1">
                 Elite Quality.
               </h2>
               <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black uppercase tracking-tighter leading-[0.9] text-[#2a2a2a]">
@@ -317,7 +317,7 @@ const ReviewsSection = () => {
             {/* Right: Aggregate rating */}
             <div className="flex items-end gap-6 lg:pb-2">
               <div>
-                <span className="block text-[4.5rem] sm:text-[6rem] font-black text-white leading-none tracking-tighter tabular-nums">
+                <span className="block text-[4.5rem] sm:text-[6rem] font-black text-black leading-none tracking-tighter tabular-nums">
                   {loading ? '—' : avgRating}
                 </span>
                 <Stars rating={Math.round(parseFloat(avgRating))} size={14} />
@@ -333,16 +333,16 @@ const ReviewsSection = () => {
       </section>
 
       {/* ── Reviews Grid ──────────────────────────────────────────────── */}
-      <section className="bg-[#0d0d0d] border-t border-[#1a1a1a]">
+      <section className="bg-white border-t border-gray-200">
         <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 py-16 sm:py-20">
 
           {/* Sub-header + CTA */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-12">
             <div>
-              <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#555] mb-2">
+              <p className="text-[9px] font-black uppercase tracking-[0.5em] text-gray-500 mb-2">
                 Best Sellers · Fan Favourites
               </p>
-              <h3 className="text-2xl sm:text-3xl font-black uppercase tracking-tighter text-white leading-none">
+              <h3 className="text-2xl sm:text-3xl font-black uppercase tracking-tighter text-black leading-none">
                 {reviews.length > 0
                   ? 'What Our Customers Say.'
                   : 'No Reviews Yet.'}
@@ -351,7 +351,7 @@ const ReviewsSection = () => {
 
             <button
               onClick={() => setShowForm(true)}
-              className="group flex items-center gap-3 px-7 py-3.5 border border-[#2a2a2a] text-[9px] font-black uppercase tracking-[0.35em] text-[#888] hover:border-white hover:text-white transition-all duration-300 self-start sm:self-auto flex-shrink-0"
+              className="group flex items-center gap-3 px-7 py-3.5 border border-gray-300 text-[9px] font-black uppercase tracking-[0.35em] text-gray-600 hover:border-white hover:text-black transition-all duration-300 self-start sm:self-auto flex-shrink-0"
             >
               <MessageCircle size={12} className="group-hover:text-[#ba1f3d] transition-colors duration-300" />
               <span>Write a Review</span>
@@ -362,28 +362,28 @@ const ReviewsSection = () => {
           {loading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {[...Array(3)].map((_, i) => (
-                <div key={i} className="bg-[#111111] border border-[#1a1a1a] p-7 animate-pulse">
+                <div key={i} className="bg-gray-50 border border-gray-200 p-7 animate-pulse">
                   <div className="flex gap-1 mb-5">
                     {[...Array(5)].map((_, j) => (
-                      <div key={j} className="w-3 h-3 bg-[#1f1f1f] rounded-sm" />
+                      <div key={j} className="w-3 h-3 bg-gray-200 rounded-sm" />
                     ))}
                   </div>
-                  <div className="h-3 bg-[#1f1f1f] rounded mb-3 w-3/4" />
+                  <div className="h-3 bg-gray-200 rounded mb-3 w-3/4" />
                   <div className="space-y-2 mb-6">
-                    <div className="h-2.5 bg-[#1f1f1f] rounded w-full" />
-                    <div className="h-2.5 bg-[#1f1f1f] rounded w-4/5" />
-                    <div className="h-2.5 bg-[#1f1f1f] rounded w-2/3" />
+                    <div className="h-2.5 bg-gray-200 rounded w-full" />
+                    <div className="h-2.5 bg-gray-200 rounded w-4/5" />
+                    <div className="h-2.5 bg-gray-200 rounded w-2/3" />
                   </div>
-                  <div className="h-px bg-[#1a1a1a] mb-5" />
+                  <div className="h-px bg-gray-100 mb-5" />
                   <div className="flex gap-3 items-center">
-                    <div className="w-8 h-8 bg-[#1a1a1a] rounded-none" />
-                    <div className="h-2.5 bg-[#1f1f1f] rounded w-24" />
+                    <div className="w-8 h-8 bg-gray-100 rounded-none" />
+                    <div className="h-2.5 bg-gray-200 rounded w-24" />
                   </div>
                 </div>
               ))}
             </div>
           ) : reviews.length === 0 ? (
-            <div className="border border-dashed border-[#1f1f1f] py-24 text-center">
+            <div className="border border-dashed border-gray-200 py-24 text-center">
               <div className="flex justify-center mb-6">
                 <Stars rating={5} size={18} />
               </div>

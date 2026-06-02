@@ -146,9 +146,9 @@ const ProductForm = memo(({
   };
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/60 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-white/60 backdrop-blur-sm">
       <div className="bg-white w-full sm:max-w-2xl max-h-[95vh] sm:max-h-[90vh] rounded-t-3xl sm:rounded-2xl overflow-hidden flex flex-col shadow-2xl">
-        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 flex-shrink-0 bg-gray-900 text-white">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 flex-shrink-0 bg-gray-900 text-black">
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 bg-red-600 rounded-xl flex items-center justify-center"><Package size={16} /></div>
             <h3 className="font-black uppercase tracking-tight">{editingProduct ? 'Edit Product' : 'Add New Product'}</h3>
@@ -201,7 +201,7 @@ const ProductForm = memo(({
         <div className="flex items-center space-x-3 px-6 py-5 border-t border-gray-100 flex-shrink-0">
           <button onClick={onClose} className="flex-1 py-4 border-2 border-gray-200 rounded-xl font-black uppercase text-xs tracking-widest hover:border-gray-400 transition-colors">Cancel</button>
           <button onClick={onSave} disabled={saving}
-            className="flex-[2] py-4 bg-red-600 hover:bg-red-700 text-white rounded-xl font-black uppercase text-xs tracking-widest transition-all shadow-xl disabled:opacity-50 flex items-center justify-center space-x-2">
+            className="flex-[2] py-4 bg-red-600 hover:bg-red-700 text-black rounded-xl font-black uppercase text-xs tracking-widest transition-all shadow-xl disabled:opacity-50 flex items-center justify-center space-x-2">
             {saving
               ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               : <><Save size={16} /><span>{editingProduct ? 'Save Changes' : 'Add Product'}</span></>
@@ -356,7 +356,7 @@ const ColorsSection = memo(({ form, colorInput, setColorInput, onAddColor, onRem
       <input type="text" value={colorInput} onChange={e => setColorInput(e.target.value)}
         placeholder="#FF0000"
         className="flex-grow border-2 border-gray-200 rounded-xl px-4 py-2.5 text-sm font-mono font-bold focus:border-red-600 outline-none" />
-      <button onClick={onAddColor} className="px-4 py-2.5 bg-gray-900 text-white rounded-xl text-[11px] font-black uppercase tracking-widest hover:bg-red-600 transition-colors">Add</button>
+      <button onClick={onAddColor} className="px-4 py-2.5 bg-gray-900 text-black rounded-xl text-[11px] font-black uppercase tracking-widest hover:bg-red-600 transition-colors">Add</button>
     </div>
     {form.colors.length > 0 && (
       <div className="space-y-3">
@@ -398,7 +398,7 @@ const SizesSection = memo(({ form, sizeInput, setSizeInput, onAddSize, onRemoveS
       <input type="text" value={sizeInput} onChange={e => setSizeInput(e.target.value)}
         placeholder="e.g. M, L, XL"
         className="flex-grow border-2 border-gray-200 rounded-xl px-4 py-2.5 text-sm font-black uppercase tracking-widest focus:border-red-600 outline-none" />
-      <button onClick={onAddSize} className="px-4 py-2.5 bg-gray-900 text-white rounded-xl text-[11px] font-black uppercase tracking-widest hover:bg-red-600 transition-colors">Add</button>
+      <button onClick={onAddSize} className="px-4 py-2.5 bg-gray-900 text-black rounded-xl text-[11px] font-black uppercase tracking-widest hover:bg-red-600 transition-colors">Add</button>
     </div>
     {form.sizes.length > 0 && (
       <div className="flex flex-wrap gap-2">

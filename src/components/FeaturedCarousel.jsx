@@ -49,7 +49,7 @@ const CarouselCard = ({ product }) => {
       onClick={() => navigate(`/product/${product.id}`)}
     >
       {/* Image */}
-      <div className="relative aspect-[3/4] overflow-hidden bg-[#141414] mb-4">
+      <div className="relative aspect-[3/4] overflow-hidden bg-gray-50 mb-4">
         <MediaRenderer
           src={product.mediaType === 'embed' ? null : product.image}
           embedCode={product.mediaType === 'embed' ? product.embedCode : undefined}
@@ -68,35 +68,35 @@ const CarouselCard = ({ product }) => {
         <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           <button
             onClick={handleWishlist}
-            className={`w-8 h-8 flex items-center justify-center ${wishlisted ? 'bg-[#ba1f3d]' : 'bg-black/60'} transition-colors duration-200`}
+            className={`w-8 h-8 flex items-center justify-center ${wishlisted ? 'bg-[#ba1f3d]' : 'bg-white/60'} transition-colors duration-200`}
           >
-            <Heart size={12} className={wishlisted ? 'fill-white text-white' : 'text-white'} />
+            <Heart size={12} className={wishlisted ? 'fill-white text-black' : 'text-black'} />
           </button>
           {!outOfStock && (
             <button
               onClick={handleAddToCart}
-              className={`w-8 h-8 flex items-center justify-center ${cartAdded ? 'bg-[#ba1f3d]' : 'bg-black/60'} transition-colors duration-200`}
+              className={`w-8 h-8 flex items-center justify-center ${cartAdded ? 'bg-[#ba1f3d]' : 'bg-white/60'} transition-colors duration-200`}
             >
-              <ShoppingBag size={12} className="text-white" />
+              <ShoppingBag size={12} className="text-black" />
             </button>
           )}
         </div>
 
         {/* Out of stock */}
         {outOfStock && (
-          <div className="absolute top-3 left-3 bg-black/80 border border-[#2a2a2a] px-2 py-1">
-            <span className="text-[8px] font-black uppercase tracking-[0.3em] text-[#888]">Sold Out</span>
+          <div className="absolute top-3 left-3 bg-white/80 border border-gray-300 px-2 py-1">
+            <span className="text-[8px] font-black uppercase tracking-[0.3em] text-gray-600">Sold Out</span>
           </div>
         )}
       </div>
 
       {/* Info */}
       <div>
-        <p className="text-[8px] font-bold uppercase tracking-[0.4em] text-[#555] mb-1">{category}</p>
-        <h3 className="text-sm font-black uppercase tracking-tight text-[#f0f0f0] leading-snug group-hover:text-white transition-colors duration-300 line-clamp-1 mb-1.5">
+        <p className="text-[8px] font-bold uppercase tracking-[0.4em] text-gray-500 mb-1">{category}</p>
+        <h3 className="text-sm font-black uppercase tracking-tight text-gray-900 leading-snug group-hover:text-black transition-colors duration-300 line-clamp-1 mb-1.5">
           {product.name}
         </h3>
-        <span className="text-sm font-black text-white tracking-wide">
+        <span className="text-sm font-black text-black tracking-wide">
           {formatPrice(product.price)}
         </span>
         {cartAdded && (
@@ -153,7 +153,7 @@ export default function FeaturedCarousel({ products = [], headline, subline }) {
   return (
     <section
       ref={sectionRef}
-      className="bg-[#0d0d0d] py-16 sm:py-24 overflow-hidden"
+      className="bg-white py-16 sm:py-24 overflow-hidden"
       style={{
         opacity: visible ? 1 : 0,
         transform: visible ? 'translateY(0)' : 'translateY(32px)',
@@ -165,10 +165,10 @@ export default function FeaturedCarousel({ products = [], headline, subline }) {
         {/* Section Header */}
         <div className="flex items-end justify-between mb-10 sm:mb-14">
           <div>
-            <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#555] mb-2">
+            <p className="text-[9px] font-black uppercase tracking-[0.5em] text-gray-500 mb-2">
               {subline}
             </p>
-            <h2 className="text-3xl sm:text-4xl font-black uppercase tracking-tighter text-white leading-none max-w-md">
+            <h2 className="text-3xl sm:text-4xl font-black uppercase tracking-tighter text-black leading-none max-w-md">
               {headline}
             </h2>
           </div>
@@ -178,16 +178,16 @@ export default function FeaturedCarousel({ products = [], headline, subline }) {
             <button
               onClick={() => scroll(-1)}
               disabled={!canScrollLeft}
-              className="w-11 h-11 border border-[#2a2a2a] flex items-center justify-center transition-all duration-300 hover:border-white hover:bg-white disabled:opacity-20 disabled:cursor-not-allowed group"
+              className="w-11 h-11 border border-gray-300 flex items-center justify-center transition-all duration-300 hover:border-white hover:bg-white disabled:opacity-20 disabled:cursor-not-allowed group"
             >
-              <ArrowLeft size={16} className="text-white group-hover:text-black transition-colors duration-300" />
+              <ArrowLeft size={16} className="text-black group-hover:text-black transition-colors duration-300" />
             </button>
             <button
               onClick={() => scroll(1)}
               disabled={!canScrollRight}
-              className="w-11 h-11 border border-[#2a2a2a] flex items-center justify-center transition-all duration-300 hover:border-white hover:bg-white disabled:opacity-20 disabled:cursor-not-allowed group"
+              className="w-11 h-11 border border-gray-300 flex items-center justify-center transition-all duration-300 hover:border-white hover:bg-white disabled:opacity-20 disabled:cursor-not-allowed group"
             >
-              <ArrowRight size={16} className="text-white group-hover:text-black transition-colors duration-300" />
+              <ArrowRight size={16} className="text-black group-hover:text-black transition-colors duration-300" />
             </button>
           </div>
         </div>

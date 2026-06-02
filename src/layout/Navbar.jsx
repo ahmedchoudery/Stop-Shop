@@ -53,11 +53,11 @@ const Navbar = ({ products = [], onSearchOpen, scrolled, isHome }) => {
     return () => document.removeEventListener('click', handler);
   }, [accountOpen]);
 
-  const iconColor = isTransparent ? 'text-white/50' : 'text-[#888]';
-  const iconHover = isTransparent ? 'hover:text-white hover:bg-white/10' : 'hover:text-white hover:bg-white/5';
+  const iconColor = isTransparent ? 'text-black/50' : 'text-gray-600';
+  const iconHover = isTransparent ? 'hover:text-black hover:bg-white/10' : 'hover:text-black hover:bg-white/5';
   const navBg = isTransparent
-    ? 'bg-transparent border-b border-white/5'
-    : `border-b border-white/5 ${scrolled ? 'navbar-glass' : 'bg-[#0d0d0d]'}`;
+    ? 'bg-transparent border-b border-black/5'
+    : `border-b border-black/5 ${scrolled ? 'navbar-glass' : 'bg-white'}`;
 
   return (
     <>
@@ -74,7 +74,7 @@ const Navbar = ({ products = [], onSearchOpen, scrolled, isHome }) => {
             }`}>
               Stop
               <span className={`not-italic font-black mx-0.5 transition-colors duration-300 ${
-                isTransparent ? 'text-white/80' : 'text-white'
+                isTransparent ? 'text-black/80' : 'text-black'
               }`}>&</span>
               Shop
             </span>
@@ -93,8 +93,8 @@ const Navbar = ({ products = [], onSearchOpen, scrolled, isHome }) => {
                   onClick={() => handleBucketClick(bucket)}
                   className={`relative flex items-center space-x-1.5 px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] transition-colors duration-200 ${
                     activeTab === bucket
-                      ? isTransparent ? 'text-white' : 'text-white'
-                      : isTransparent ? 'text-white/40 hover:text-white' : 'text-[#555] hover:text-white'
+                      ? isTransparent ? 'text-black' : 'text-black'
+                      : isTransparent ? 'text-black/40 hover:text-black' : 'text-gray-500 hover:text-black'
                   }`}
                 >
                   <span>{bucket}</span>
@@ -116,20 +116,20 @@ const Navbar = ({ products = [], onSearchOpen, scrolled, isHome }) => {
                     initial={{ opacity: 0, y: 5 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.18 }}
-                    className="absolute top-full left-0 mt-1 min-w-[180px] bg-[#111] border border-[#1f1f1f] shadow-2xl z-50 py-2"
+                    className="absolute top-full left-0 mt-1 min-w-[180px] bg-white border border-gray-200 shadow-2xl z-50 py-2"
                   >
                     <button
                       onClick={() => handleBucketClick(bucket)}
-                      className="w-full text-left px-5 py-2.5 text-[9px] font-black uppercase tracking-widest text-[#555] hover:text-white hover:bg-white/5 transition-all"
+                      className="w-full text-left px-5 py-2.5 text-[9px] font-black uppercase tracking-widest text-gray-500 hover:text-black hover:bg-white/5 transition-all"
                     >
                       All {bucket}
                     </button>
-                    <div className="mx-4 h-px bg-[#1f1f1f] mb-1" />
+                    <div className="mx-4 h-px bg-gray-200 mb-1" />
                     {categoryMap[bucket].map(sub => (
                       <button
                         key={sub}
                         onClick={() => handleBucketClick(bucket, sub)}
-                        className="w-full text-left px-5 py-2.5 text-[9px] font-black uppercase tracking-widest text-[#888] hover:text-white hover:bg-white/5 transition-all"
+                        className="w-full text-left px-5 py-2.5 text-[9px] font-black uppercase tracking-widest text-gray-600 hover:text-black hover:bg-white/5 transition-all"
                       >
                         {sub}
                       </button>
@@ -161,17 +161,17 @@ const Navbar = ({ products = [], onSearchOpen, scrolled, isHome }) => {
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 6, scale: 0.97 }}
                     transition={{ duration: 0.16 }}
-                    className="absolute right-0 top-full mt-2 min-w-[200px] bg-[#111] border border-[#1f1f1f] shadow-2xl z-50"
+                    className="absolute right-0 top-full mt-2 min-w-[200px] bg-white border border-gray-200 shadow-2xl z-50"
                   >
-                    <div className="px-5 py-4 border-b border-[#1f1f1f]">
-                      <p className="text-[10px] font-black uppercase tracking-tight text-white truncate">{customer?.name}</p>
-                      <p className="text-[9px] text-[#555] mt-0.5 truncate">{customer?.email}</p>
+                    <div className="px-5 py-4 border-b border-gray-200">
+                      <p className="text-[10px] font-black uppercase tracking-tight text-black truncate">{customer?.name}</p>
+                      <p className="text-[9px] text-gray-500 mt-0.5 truncate">{customer?.email}</p>
                     </div>
                     <div className="py-2">
-                      <Link to="/account" onClick={() => setAccountOpen(false)} className="flex items-center space-x-2.5 px-5 py-2.5 text-[9px] font-black uppercase tracking-widest text-[#888] hover:text-white hover:bg-white/5 transition-all">
+                      <Link to="/account" onClick={() => setAccountOpen(false)} className="flex items-center space-x-2.5 px-5 py-2.5 text-[9px] font-black uppercase tracking-widest text-gray-600 hover:text-black hover:bg-white/5 transition-all">
                         <User size={11} strokeWidth={2} /><span>My Account</span>
                       </Link>
-                      <button onClick={() => { logout(); setAccountOpen(false); }} className="w-full flex items-center space-x-2.5 px-5 py-2.5 text-[9px] font-black uppercase tracking-widest text-[#555] hover:text-white hover:bg-white/5 transition-all">
+                      <button onClick={() => { logout(); setAccountOpen(false); }} className="w-full flex items-center space-x-2.5 px-5 py-2.5 text-[9px] font-black uppercase tracking-widest text-gray-500 hover:text-black hover:bg-white/5 transition-all">
                         <LogOut size={11} strokeWidth={2} /><span>Sign Out</span>
                       </button>
                     </div>
@@ -191,10 +191,10 @@ const Navbar = ({ products = [], onSearchOpen, scrolled, isHome }) => {
             </button>
 
             {/* Cart — badge stays red */}
-            <button onClick={() => openDrawer('cart')} className={`relative w-9 h-9 flex items-center justify-center ml-1 transition-all duration-300 ${isTransparent ? 'bg-white/10 text-white hover:bg-white/20' : 'bg-white/8 text-white hover:bg-white/12 border border-[#2a2a2a]'}`} aria-label="Cart">
+            <button onClick={() => openDrawer('cart')} className={`relative w-9 h-9 flex items-center justify-center ml-1 transition-all duration-300 ${isTransparent ? 'bg-white/10 text-black hover:bg-white/20' : 'bg-white/5 text-black hover:bg-white/10 border border-gray-200'}`} aria-label="Cart">
               <ShoppingBag size={16} strokeWidth={1.8} />
               {cartCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 w-[16px] h-[16px] bg-[#ba1f3d] flex items-center justify-center text-[7px] font-black text-white leading-none border-[1.5px] border-[#0d0d0d]">
+                <span className="absolute -top-1.5 -right-1.5 w-[16px] h-[16px] bg-[#ba1f3d] flex items-center justify-center text-[7px] font-black text-white leading-none border-[1.5px] border-white">
                   {cartCount > 9 ? '9+' : cartCount}
                 </span>
               )}

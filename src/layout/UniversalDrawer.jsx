@@ -181,7 +181,7 @@ const UniversalDrawer = () => {
         <div className="fixed inset-0 z-[150]">
           {/* Backdrop */}
           <div
-            className="absolute inset-0 bg-black/40 backdrop-blur-[2px]"
+            className="absolute inset-0 bg-white/40 backdrop-blur-[2px]"
             style={{ animation: 'fadeIn 0.3s ease forwards' }}
             onClick={handleClose}
           />

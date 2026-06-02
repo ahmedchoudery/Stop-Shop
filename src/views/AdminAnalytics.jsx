@@ -85,7 +85,7 @@ const StatCard = ({ label, value, sub, icon: Icon, trend, color = 'red' }) => {
 const CustomTooltip = ({ active, payload, label, prefix = 'Rs.' }) => {
   if (!active || !payload?.length) return null;
   return (
-    <div className="bg-gray-900 text-white px-4 py-3 rounded-sm shadow-2xl">
+    <div className="bg-gray-900 text-black px-4 py-3 rounded-sm shadow-2xl">
       <p className="text-[9px] font-black uppercase tracking-widest text-gray-400 mb-1">{label}</p>
       {payload.map((p, i) => (
         <p key={i} className="text-sm font-black" style={{ color: p.color }}>
@@ -263,9 +263,9 @@ const AdminAnalytics = () => {
                 {d.bestSellers.map((p, i) => (
                   <div key={p.productId ?? i} className="flex items-center space-x-4 px-6 py-4 hover:bg-gray-50/60 transition-colors">
                     <div className={`w-7 h-7 flex items-center justify-center flex-shrink-0 font-black text-[10px] ${
-                      i === 0 ? 'bg-[#FBBF24] text-white'
-                      : i === 1 ? 'bg-gray-400 text-white'
-                      : i === 2 ? 'bg-orange-400 text-white'
+                      i === 0 ? 'bg-[#FBBF24] text-black'
+                      : i === 1 ? 'bg-gray-400 text-black'
+                      : i === 2 ? 'bg-orange-400 text-black'
                       : 'bg-gray-100 text-gray-500'
                     }`}>
                       {i + 1}

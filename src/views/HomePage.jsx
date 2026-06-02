@@ -46,13 +46,13 @@ const CategoryBar = ({ active, activeSub, onChange, products }) => {
               key={bucket}
               onClick={() => onChange(bucket)}
               className={`relative px-5 py-2 text-[10px] font-black uppercase tracking-[0.2em] whitespace-nowrap transition-colors duration-300 rounded-full flex-shrink-0 ${
-                active === bucket ? 'text-white' : 'text-gray-500 hover:text-gray-900 group'
+                active === bucket ? 'text-black' : 'text-gray-500 hover:text-gray-900 group'
               }`}
             >
               <span className="relative z-10">{bucket}</span>
               {counts[bucket] > 0 && (
                 <span className={`relative z-10 ml-2 text-[8px] font-black opacity-60 ${
-                  active === bucket ? 'text-white' : 'text-gray-400 group-hover:text-gray-900'
+                  active === bucket ? 'text-black' : 'text-gray-400 group-hover:text-gray-900'
                 }`}>
                   {counts[bucket]}
                 </span>
@@ -83,7 +83,7 @@ const CategoryBar = ({ active, activeSub, onChange, products }) => {
               <button
                 onClick={() => onChange(active, null)}
                 className={`relative px-5 py-2 text-[9px] font-black uppercase tracking-widest rounded-full transition-all whitespace-nowrap ${
-                  !activeSub ? 'text-white' : 'bg-gray-50 text-gray-400 hover:bg-gray-100'
+                  !activeSub ? 'text-black' : 'bg-gray-50 text-gray-400 hover:bg-gray-100'
                 }`}
               >
                 <span className="relative z-10">All {active}</span>
@@ -100,7 +100,7 @@ const CategoryBar = ({ active, activeSub, onChange, products }) => {
                   key={sub}
                   onClick={() => onChange(active, sub)}
                   className={`relative px-5 py-2 text-[9px] font-black uppercase tracking-widest rounded-full transition-all whitespace-nowrap ${
-                    activeSub === sub ? 'text-white' : 'bg-gray-50 text-gray-400 hover:bg-gray-100'
+                    activeSub === sub ? 'text-black' : 'bg-gray-50 text-gray-400 hover:bg-gray-100'
                   }`}
                 >
                   <span className="relative z-10">{sub}</span>

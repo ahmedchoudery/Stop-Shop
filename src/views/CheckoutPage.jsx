@@ -59,7 +59,7 @@ const SummaryItem = ({ item, formatPrice }) => (
       {item.image && (
         <img src={item.image} alt={item.name} className="w-full h-full object-cover" loading="lazy" />
       )}
-      <span className="absolute -top-1 -right-1 w-[18px] h-[18px] bg-gray-900 text-white text-[8px] font-black rounded-full flex items-center justify-center">
+      <span className="absolute -top-1 -right-1 w-[18px] h-[18px] bg-gray-900 text-black text-[8px] font-black rounded-full flex items-center justify-center">
         {item.quantity ?? 1}
       </span>
     </div>
@@ -324,7 +324,7 @@ const CheckoutPage = () => {
                     key={value}
                     className={`flex items-center space-x-4 p-4 border cursor-pointer transition-all duration-200 ${
                       form.paymentMethod === value
-                        ? 'border-gray-900 bg-gray-900 text-white'
+                        ? 'border-gray-900 bg-gray-900 text-black'
                         : 'border-gray-200 bg-white hover:border-gray-400'
                     }`}
                   >
@@ -339,11 +339,11 @@ const CheckoutPage = () => {
                     <div className={`w-8 h-8 flex items-center justify-center flex-shrink-0 ${
                       form.paymentMethod === value ? 'bg-[#ba1f3d]' : 'bg-gray-50 border border-gray-200'
                     }`}>
-                      <Icon size={14} className={form.paymentMethod === value ? 'text-white' : 'text-gray-500'} />
+                      <Icon size={14} className={form.paymentMethod === value ? 'text-black' : 'text-gray-500'} />
                     </div>
                     <div className="flex-grow">
                       <p className={`text-[10px] font-black uppercase tracking-[0.2em] ${
-                        form.paymentMethod === value ? 'text-white' : 'text-gray-900'
+                        form.paymentMethod === value ? 'text-black' : 'text-gray-900'
                       }`}>
                         {label}
                       </p>

@@ -12,7 +12,7 @@ import MediaRenderer from './MediaRenderer.jsx';
 const StockBadge = ({ qty }) => {
   if (qty === 0) {
     return (
-      <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-[8px] font-black uppercase tracking-widest bg-red-600 text-white">
+      <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-full text-[8px] font-black uppercase tracking-widest bg-red-600 text-black">
         <span>Sold Out</span>
       </span>
     );
@@ -179,7 +179,7 @@ const ProductTable = memo(({ products = [], onEdit, onDelete }) => {
                   <button
                     onClick={() => onEdit(product)}
                     title="Edit product — updates MongoDB"
-                    className="flex items-center space-x-1.5 px-3 py-2 bg-gray-100 text-gray-600 text-[9px] font-black uppercase tracking-widest rounded-lg hover:bg-gray-900 hover:text-white transition-all duration-200"
+                    className="flex items-center space-x-1.5 px-3 py-2 bg-gray-100 text-gray-600 text-[9px] font-black uppercase tracking-widest rounded-lg hover:bg-gray-900 hover:text-black transition-all duration-200"
                   >
                     <Edit3 size={11} />
                     <span>Edit</span>

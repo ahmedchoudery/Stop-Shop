@@ -167,7 +167,7 @@ Slim Fit Jeans,3500,30,Bottoms,Jeans,Slim fit|Stretch denim|5-pocket design,#1a1
   }
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-white/50 backdrop-blur-sm">
       <div className="bg-white w-full max-w-2xl max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
 
         {/* Header */}

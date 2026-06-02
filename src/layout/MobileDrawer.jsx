@@ -53,7 +53,7 @@ const MobileDrawer = ({ isOpen, onClose }) => {
     <>
       {/* Backdrop */}
       <div
-        className={`fixed inset-0 bg-black/70 backdrop-blur-md z-[150] transition-opacity duration-500 ${
+        className={`fixed inset-0 bg-white/70 backdrop-blur-md z-[150] transition-opacity duration-500 ${
           isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
         }`}
         onClick={onClose}
@@ -61,18 +61,18 @@ const MobileDrawer = ({ isOpen, onClose }) => {
 
       {/* Drawer panel — dark */}
       <div
-        className="fixed top-0 left-0 h-full w-[85%] sm:w-[380px] bg-[#0f0f0f] border-r border-[#1a1a1a] z-[151] shadow-2xl transition-transform duration-500 ease-out flex flex-col"
+        className="fixed top-0 left-0 h-full w-[85%] sm:w-[380px] bg-[#0f0f0f] border-r border-gray-200 z-[151] shadow-2xl transition-transform duration-500 ease-out flex flex-col"
         style={{
           transform: isOpen ? 'translate3d(0%, 0, 0)' : 'translate3d(-100%, 0, 0)',
           willChange: 'transform'
         }}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-[#1a1a1a] flex-shrink-0">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-200 flex-shrink-0">
           {activeCategoryView ? (
             <button
               onClick={() => setActiveCategoryView(null)}
-              className="flex items-center space-x-2 text-[#888] hover:text-white transition-colors font-black uppercase tracking-tighter"
+              className="flex items-center space-x-2 text-gray-600 hover:text-black transition-colors font-black uppercase tracking-tighter"
             >
               <ChevronLeft size={20} />
               <span>Back</span>
@@ -80,7 +80,7 @@ const MobileDrawer = ({ isOpen, onClose }) => {
           ) : (
             <Link to="/" onClick={onClose} className="flex items-center space-x-2.5">
               <span className="text-lg font-black italic uppercase tracking-tighter text-[#ba1f3d]">
-                Stop<span className="not-italic text-white/80">&</span>Shop
+                Stop<span className="not-italic text-black/80">&</span>Shop
               </span>
             </Link>
           )}
@@ -88,7 +88,7 @@ const MobileDrawer = ({ isOpen, onClose }) => {
             onClick={onClose}
             className="p-2.5 hover:bg-white/5 transition-all"
           >
-            <X size={20} className="text-[#888]" />
+            <X size={20} className="text-gray-600" />
           </button>
         </div>
 
@@ -98,17 +98,17 @@ const MobileDrawer = ({ isOpen, onClose }) => {
           {/* Main Categories View */}
           <div className={`absolute inset-0 transition-transform duration-300 ${activeCategoryView ? '-translate-x-full' : 'translate-x-0'}`}>
             <div className="px-6 py-6">
-              <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#444] mb-4">
+              <p className="text-[9px] font-black uppercase tracking-[0.5em] text-gray-500 mb-4">
                 Collections
               </p>
               <ul className="space-y-0.5">
                 <li>
                   <button
                     onClick={() => handleSubCategoryClick('All')}
-                    className="w-full flex items-center justify-between py-3.5 px-4 text-base font-black uppercase tracking-tight text-white hover:bg-white/5 transition-all duration-200 text-left group"
+                    className="w-full flex items-center justify-between py-3.5 px-4 text-base font-black uppercase tracking-tight text-black hover:bg-white/5 transition-all duration-200 text-left group"
                   >
                     <span>All Products</span>
-                    <ChevronRight size={16} className="text-[#333] group-hover:text-[#888] group-hover:translate-x-0.5 transition-all" />
+                    <ChevronRight size={16} className="text-[#333] group-hover:text-gray-600 group-hover:translate-x-0.5 transition-all" />
                   </button>
                 </li>
 
@@ -116,11 +116,11 @@ const MobileDrawer = ({ isOpen, onClose }) => {
                   <li key={cat}>
                     <button
                       onClick={() => handleCategorySelect(cat)}
-                      className="w-full flex items-center justify-between py-3.5 px-4 text-base font-black uppercase tracking-tight text-[#888] hover:text-white hover:bg-white/5 transition-all duration-200 text-left group"
+                      className="w-full flex items-center justify-between py-3.5 px-4 text-base font-black uppercase tracking-tight text-gray-600 hover:text-black hover:bg-white/5 transition-all duration-200 text-left group"
                       style={{ transitionDelay: `${i * 30}ms` }}
                     >
                       <span>{cat}</span>
-                      <ChevronRight size={16} className="text-[#333] group-hover:text-[#555] group-hover:translate-x-0.5 transition-all" />
+                      <ChevronRight size={16} className="text-[#333] group-hover:text-gray-500 group-hover:translate-x-0.5 transition-all" />
                     </button>
                   </li>
                 ))}
@@ -128,11 +128,11 @@ const MobileDrawer = ({ isOpen, onClose }) => {
             </div>
 
             {/* Divider */}
-            <div className="mx-6 h-px bg-[#1a1a1a]" />
+            <div className="mx-6 h-px bg-gray-100" />
 
             {/* Quick links */}
             <div className="px-6 py-6">
-              <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#444] mb-4">
+              <p className="text-[9px] font-black uppercase tracking-[0.5em] text-gray-500 mb-4">
                 Quick Links
               </p>
               <ul className="space-y-0.5">
@@ -140,9 +140,9 @@ const MobileDrawer = ({ isOpen, onClose }) => {
                   <li key={label}>
                     <button
                       onClick={action}
-                      className="w-full flex items-center space-x-3 py-3 px-4 text-sm font-black uppercase tracking-tight text-[#666] hover:text-white hover:bg-white/5 transition-all duration-200 text-left group"
+                      className="w-full flex items-center space-x-3 py-3 px-4 text-sm font-black uppercase tracking-tight text-gray-500 hover:text-black hover:bg-white/5 transition-all duration-200 text-left group"
                     >
-                      <Icon size={14} className="text-[#444] group-hover:text-[#888] transition-colors flex-shrink-0" />
+                      <Icon size={14} className="text-gray-500 group-hover:text-gray-600 transition-colors flex-shrink-0" />
                       <span>{label}</span>
                     </button>
                   </li>
@@ -154,14 +154,14 @@ const MobileDrawer = ({ isOpen, onClose }) => {
           {/* Sub-Categories View */}
           <div className={`absolute inset-0 transition-transform duration-300 ${activeCategoryView ? 'translate-x-0' : 'translate-x-full'}`}>
             <div className="px-6 py-6">
-              <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#444] mb-4">
+              <p className="text-[9px] font-black uppercase tracking-[0.5em] text-gray-500 mb-4">
                 {activeCategoryView}
               </p>
               <ul className="space-y-0.5">
                 <li>
                   <button
                     onClick={() => handleSubCategoryClick(activeCategoryView)}
-                    className="w-full flex items-center justify-between py-3.5 px-4 text-base font-black uppercase tracking-tight text-white hover:bg-white/5 transition-all duration-200 text-left"
+                    className="w-full flex items-center justify-between py-3.5 px-4 text-base font-black uppercase tracking-tight text-black hover:bg-white/5 transition-all duration-200 text-left"
                   >
                     <span>Shop All {activeCategoryView}</span>
                   </button>
@@ -170,7 +170,7 @@ const MobileDrawer = ({ isOpen, onClose }) => {
                   <li key={sub}>
                     <button
                       onClick={() => handleSubCategoryClick(activeCategoryView, sub)}
-                      className="w-full flex items-center justify-between py-3.5 px-4 text-base font-black uppercase tracking-tight text-[#888] hover:text-white hover:bg-white/5 transition-all duration-200 text-left"
+                      className="w-full flex items-center justify-between py-3.5 px-4 text-base font-black uppercase tracking-tight text-gray-600 hover:text-black hover:bg-white/5 transition-all duration-200 text-left"
                       style={{ transitionDelay: `${i * 30}ms` }}
                     >
                       <span>{sub}</span>
@@ -183,10 +183,10 @@ const MobileDrawer = ({ isOpen, onClose }) => {
         </div>
 
         {/* Footer */}
-        <div className="flex-shrink-0 border-t border-[#1a1a1a] px-6 py-5 bg-[#0f0f0f] z-10 space-y-4">
+        <div className="flex-shrink-0 border-t border-gray-200 px-6 py-5 bg-[#0f0f0f] z-10 space-y-4">
 
           {/* Account */}
-          <div className="border-b border-[#1a1a1a] pb-4">
+          <div className="border-b border-gray-200 pb-4">
             {isLoggedIn ? (
               <div className="flex items-center justify-between">
                 <Link
@@ -194,21 +194,21 @@ const MobileDrawer = ({ isOpen, onClose }) => {
                   onClick={onClose}
                   className="flex items-center space-x-3 group"
                 >
-                  <div className="w-9 h-9 bg-[#1a1a1a] border border-[#2a2a2a] text-[#888] flex items-center justify-center group-hover:border-white group-hover:text-white transition-all">
+                  <div className="w-9 h-9 bg-gray-100 border border-gray-300 text-gray-600 flex items-center justify-center group-hover:border-white group-hover:text-black transition-all">
                     <User size={15} strokeWidth={2} />
                   </div>
                   <div className="min-w-0">
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#f0f0f0] truncate max-w-[130px] group-hover:text-white transition-colors">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-900 truncate max-w-[130px] group-hover:text-black transition-colors">
                       {customer?.name}
                     </p>
-                    <p className="text-[8px] text-[#555] font-bold tracking-wider mt-0.5 uppercase">
+                    <p className="text-[8px] text-gray-500 font-bold tracking-wider mt-0.5 uppercase">
                       My Account
                     </p>
                   </div>
                 </Link>
                 <button
                   onClick={() => { logout(); onClose(); }}
-                  className="flex items-center space-x-1.5 px-3 py-1.5 border border-[#2a2a2a] text-[#555] text-[8px] font-black uppercase tracking-widest hover:text-white hover:border-[#444] transition-all"
+                  className="flex items-center space-x-1.5 px-3 py-1.5 border border-gray-300 text-gray-500 text-[8px] font-black uppercase tracking-widest hover:text-black hover:border-[#444] transition-all"
                 >
                   <LogOut size={10} strokeWidth={2.5} />
                   <span>Sign Out</span>
@@ -233,14 +233,14 @@ const MobileDrawer = ({ isOpen, onClose }) => {
             onClick={onClose}
             className="flex items-center space-x-3 group"
           >
-            <div className="p-2.5 border border-[#2a2a2a] group-hover:border-[#444] group-hover:bg-white/5 transition-all duration-300">
-              <MapPin size={16} className="text-[#555] group-hover:text-[#888] transition-colors" />
+            <div className="p-2.5 border border-gray-300 group-hover:border-[#444] group-hover:bg-white/5 transition-all duration-300">
+              <MapPin size={16} className="text-gray-500 group-hover:text-gray-600 transition-colors" />
             </div>
             <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-[#888] group-hover:text-white transition-colors">
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-600 group-hover:text-black transition-colors">
                 Find Our Store
               </p>
-              <p className="text-[9px] font-bold text-[#444] mt-0.5">
+              <p className="text-[9px] font-bold text-gray-500 mt-0.5">
                 Zaib Market, Gujrat
               </p>
             </div>

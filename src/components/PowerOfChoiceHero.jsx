@@ -81,7 +81,7 @@ const PowerOfChoiceHero = () => {
 
         {/* Mobile: season eyebrow */}
         <div className="w-full px-6 flex justify-center lg:hidden mt-5">
-          <span className="text-[9px] font-black uppercase tracking-[0.45em] text-white/25 text-center">
+          <span className="text-[9px] font-black uppercase tracking-[0.45em] text-black/25 text-center">
             Pakistan's Premium Fashion Hub · SS '26
           </span>
         </div>
@@ -97,7 +97,7 @@ const PowerOfChoiceHero = () => {
               style={{ opacity: 0 }}
             >
               <span className="w-7 h-px bg-white/15" />
-              <span className="text-[9px] font-black uppercase tracking-[0.5em] text-white/25">
+              <span className="text-[9px] font-black uppercase tracking-[0.5em] text-black/25">
                 Pakistan's Premium Fashion Hub · SS '26
               </span>
             </div>
@@ -106,7 +106,7 @@ const PowerOfChoiceHero = () => {
             <h1
               data-anime
               className={[
-                'text-white font-black uppercase',
+                'text-black font-black uppercase',
                 'leading-[1.15] lg:leading-[0.88]',
                 'tracking-[-0.03em]',
                 'mb-6 lg:mb-8',
@@ -126,7 +126,7 @@ const PowerOfChoiceHero = () => {
             {/* Sub-copy */}
             <p
               data-anime
-              className="text-white/45 text-[13px] md:text-sm lg:text-[1.05rem] leading-relaxed max-w-[280px] md:max-w-md lg:max-w-lg mb-8 lg:mb-11 font-medium"
+              className="text-black/45 text-[13px] md:text-sm lg:text-[1.05rem] leading-relaxed max-w-[280px] md:max-w-md lg:max-w-lg mb-8 lg:mb-11 font-medium"
               style={{ opacity: 0, textShadow: '0 2px 12px rgba(0,0,0,0.9)' }}
             >
               Elite fabrics. Bold designs. We don't just sell clothes — we build your identity.
@@ -164,10 +164,10 @@ const PowerOfChoiceHero = () => {
                   key={label}
                   className={`flex flex-col flex-1 ${i > 0 ? 'border-l border-white/[0.06] pl-6 sm:pl-10' : 'pr-6 sm:pr-10'}`}
                 >
-                  <span className="text-lg lg:text-2xl font-black text-white tracking-tight leading-none mb-1.5">
+                  <span className="text-lg lg:text-2xl font-black text-black tracking-tight leading-none mb-1.5">
                     {stat}
                   </span>
-                  <span className="text-[7px] sm:text-[8px] font-bold uppercase tracking-[0.35em] text-white/25">
+                  <span className="text-[7px] sm:text-[8px] font-bold uppercase tracking-[0.35em] text-black/25">
                     {label}
                   </span>
                 </div>

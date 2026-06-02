@@ -87,9 +87,9 @@ const AdminAuditPanel = () => {
               onClick={() => setSeverityFilter(s)}
               className={`px-3 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all duration-200 ${
                 severityFilter === s
-                  ? s === 'all' ? 'bg-gray-900 text-white' :
-                    s === 'critical' ? 'bg-red-600 text-white' :
-                    s === 'warning' ? 'bg-yellow-500 text-white' : 'bg-blue-600 text-white'
+                  ? s === 'all' ? 'bg-gray-900 text-black' :
+                    s === 'critical' ? 'bg-red-600 text-black' :
+                    s === 'warning' ? 'bg-yellow-500 text-black' : 'bg-blue-600 text-black'
                   : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
               }`}
             >
