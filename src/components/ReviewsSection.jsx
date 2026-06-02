@@ -1,238 +1,283 @@
+'use client';
+
 /**
- * @fileoverview ReviewsSection.jsx — Live reviews from MongoDB
- * Replaced hardcoded REVIEWS array with real data from /api/public/reviews.
- * Added review submission form — posts to /api/public/reviews.
- * Falls back to placeholder UI while loading or if no reviews exist yet.
- *
- * Applies: animejs-animation, design-spells, react-ui-patterns
+ * @fileoverview ReviewsSection — Unified Dark Edition
+ * Fetches store-wide reviews and displays them with premium dark styling.
+ * Theme: Obsidian bg, white text hierarchy, Cardinal Red accents.
  */
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import anime from 'animejs';
-import { Star, Quote, ChevronLeft, ChevronRight, Send, CheckCircle, AlertCircle, X } from 'lucide-react';
-import { useIntersectionObserver } from '../hooks/useUtils.js';
-import { EASING } from '../hooks/useAnime.js';
+import { Star, MessageCircle, CheckCircle, AlertCircle, X } from 'lucide-react';
 import { apiUrl } from '../config/api.js';
+import { useIntersectionObserver } from '../hooks/useUtils.js';
 
-// ─────────────────────────────────────────────────────────────────
-// HELPERS
-// ─────────────────────────────────────────────────────────────────
-
-const Stars = ({ rating, size = 13 }) => (
-  <div className="flex space-x-0.5">
-    {[...Array(5)].map((_, i) => (
+// ── Helpers ───────────────────────────────────────────────────────────
+const Stars = ({ rating, size = 12 }) => (
+  <div className="flex items-center gap-0.5">
+    {[1, 2, 3, 4, 5].map((n) => (
       <Star
-        key={i}
+        key={n}
         size={size}
-        className={i < rating ? 'fill-[#ba1f3d] text-[#ba1f3d]' : 'text-gray-200'}
+        className={n <= rating ? 'fill-[#ba1f3d] text-[#ba1f3d]' : 'text-[#2a2a2a] fill-[#2a2a2a]'}
       />
     ))}
   </div>
 );
 
 const StarPicker = ({ value, onChange }) => (
-  <div className="flex space-x-1">
-    {[1, 2, 3, 4, 5].map(n => (
+  <div className="flex gap-1">
+    {[1, 2, 3, 4, 5].map((n) => (
       <button
         key={n}
         type="button"
         onClick={() => onChange(n)}
-        className="transition-transform hover:scale-110"
+        className="transition-transform duration-150 hover:scale-110 active:scale-95"
       >
         <Star
-          size={24}
-          className={n <= value ? 'fill-[#ba1f3d] text-[#ba1f3d]' : 'text-gray-300 hover:text-gray-400'}
+          size={22}
+          className={
+            n <= value
+              ? 'fill-[#ba1f3d] text-[#ba1f3d]'
+              : 'text-[#333] fill-[#333] hover:text-[#555] hover:fill-[#555]'
+          }
         />
       </button>
     ))}
   </div>
 );
 
-// ─────────────────────────────────────────────────────────────────
-// REVIEW SUBMIT FORM
-// ─────────────────────────────────────────────────────────────────
-
-const ReviewForm = ({ onSubmitted }) => {
-  const [form, setForm]       = useState({ name: '', email: '', title: '', body: '', rating: 5 });
-  const [errors, setErrors]   = useState({});
-  const [loading, setLoading] = useState(false);
-  const [done, setDone]       = useState(false);
+// ── Review Form Modal ─────────────────────────────────────────────────
+const ReviewForm = ({ onClose, onSuccess }) => {
+  const [form, setForm] = useState({ name: '', email: '', title: '', body: '', rating: 5 });
+  const [submitting, setSubmitting] = useState(false);
+  const [done, setDone] = useState(false);
   const [apiError, setApiError] = useState('');
-
-  const validate = () => {
-    const e = {};
-    if (!form.name.trim())  e.name  = 'Name is required';
-    if (!form.email.trim()) e.email = 'Email is required';
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = 'Enter a valid email';
-    if (!form.title.trim()) e.title = 'Review title is required';
-    if (!form.body.trim())  e.body  = 'Review text is required';
-    return e;
-  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const errs = validate();
-    setErrors(errs);
-    if (Object.keys(errs).length) return;
-
-    setLoading(true);
+    if (!form.name || !form.email || !form.body) return;
+    setSubmitting(true);
     setApiError('');
     try {
-      const res  = await fetch(apiUrl('/api/public/reviews'), {
-        method:  'POST',
+      const res = await fetch(apiUrl('/api/public/reviews'), {
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify(form),
+        body: JSON.stringify(form),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? 'Failed to submit review');
+      if (!res.ok) throw new Error(data.error || 'Submission failed');
       setDone(true);
-      onSubmitted?.();
+      setTimeout(() => { setDone(false); onClose(); onSuccess?.(); }, 2800);
     } catch (err) {
       setApiError(err.message);
     } finally {
-      setLoading(false);
+      setSubmitting(false);
     }
   };
 
-  const inputCls = (field) =>
-    `w-full border-b-2 py-3 text-sm font-bold bg-transparent outline-none transition-all placeholder:text-gray-300 placeholder:font-normal ${
-      errors[field] ? 'border-[#ba1f3d]' : 'border-gray-200 focus:border-[#ba1f3d]'
-    }`;
-
-  if (done) {
-    return (
-      <div className="text-center py-10 animate-fade-up">
-        <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
-          <CheckCircle size={28} className="text-green-500" />
-        </div>
-        <p className="font-black uppercase tracking-tight text-gray-900 mb-1">
-          Thank You!
-        </p>
-        <p className="text-sm text-gray-400 font-bold">
-          Your review has been submitted and is pending approval.
-        </p>
-      </div>
-    );
-  }
+  const set = (field) => (e) => setForm((prev) => ({ ...prev, [field]: e.target.value }));
 
   return (
-    <form onSubmit={handleSubmit} noValidate className="space-y-5">
-      {/* Rating */}
-      <div>
-        <p className="text-[9px] font-black uppercase tracking-[0.4em] text-gray-400 mb-2">
-          Your Rating *
-        </p>
-        <StarPicker value={form.rating} onChange={r => setForm(f => ({ ...f, rating: r }))} />
-      </div>
+    <div className="fixed inset-0 z-[300] flex items-end sm:items-center justify-center px-4 pb-0 sm:pb-4">
+      {/* Backdrop */}
+      <div
+        className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+        onClick={onClose}
+      />
 
-      {/* Name + Email */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-        <div>
-          <label className="text-[9px] font-black uppercase tracking-[0.4em] text-gray-400 block mb-1">Name *</label>
-          <input
-            type="text"
-            value={form.name}
-            onChange={e => { setForm(f => ({ ...f, name: e.target.value })); setErrors(er => ({ ...er, name: '' })); }}
-            placeholder="Ahmed Khan"
-            className={inputCls('name')}
-          />
-          {errors.name && <p className="text-[9px] text-[#ba1f3d] mt-1">{errors.name}</p>}
+      {/* Drawer */}
+      <div className="relative w-full max-w-lg bg-[#111111] border border-[#1f1f1f] p-8 shadow-2xl animate-fade-up">
+
+        {/* Header */}
+        <div className="flex items-start justify-between mb-8">
+          <div>
+            <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-2">
+              Share Your Experience
+            </p>
+            <h3 className="text-xl font-black uppercase tracking-tighter text-white leading-none">
+              Write a Review
+            </h3>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-8 h-8 border border-[#2a2a2a] flex items-center justify-center text-[#555] hover:border-white hover:text-white transition-all duration-200"
+          >
+            <X size={13} />
+          </button>
         </div>
-        <div>
-          <label className="text-[9px] font-black uppercase tracking-[0.4em] text-gray-400 block mb-1">Email *</label>
-          <input
-            type="email"
-            value={form.email}
-            onChange={e => { setForm(f => ({ ...f, email: e.target.value })); setErrors(er => ({ ...er, email: '' })); }}
-            placeholder="ahmed@email.com"
-            className={inputCls('email')}
-          />
-          {errors.email && <p className="text-[9px] text-[#ba1f3d] mt-1">{errors.email}</p>}
-        </div>
+
+        {done ? (
+          <div className="text-center py-8">
+            <div className="w-14 h-14 bg-[#ba1f3d] flex items-center justify-center mx-auto mb-5">
+              <CheckCircle size={26} className="text-white" />
+            </div>
+            <p className="font-black uppercase tracking-[0.3em] text-white text-sm mb-1.5">
+              Review Submitted
+            </p>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-[#555]">
+              Awaiting moderation — thank you.
+            </p>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-5">
+
+            {/* Rating */}
+            <div>
+              <p className="text-[9px] font-black uppercase tracking-[0.4em] text-[#555] mb-3">
+                Your Rating
+              </p>
+              <StarPicker value={form.rating} onChange={(r) => setForm((p) => ({ ...p, rating: r }))} />
+            </div>
+
+            {/* Name + Email */}
+            <div className="grid grid-cols-2 gap-3">
+              {[
+                { label: 'Name', field: 'name', type: 'text', required: true },
+                { label: 'Email', field: 'email', type: 'email', required: true },
+              ].map(({ label, field, type, required }) => (
+                <div key={field} className="relative">
+                  <input
+                    type={type}
+                    required={required}
+                    value={form[field]}
+                    onChange={set(field)}
+                    placeholder=" "
+                    className="peer w-full bg-transparent border-b border-[#2a2a2a] focus:border-white py-3 text-white text-xs font-bold outline-none transition-colors duration-300 placeholder:text-transparent"
+                  />
+                  <label className="absolute left-0 top-3 text-[9px] font-black uppercase tracking-[0.35em] text-[#555] peer-focus:text-white peer-[:not(:placeholder-shown)]:text-white transition-colors duration-300 pointer-events-none">
+                    {label}
+                  </label>
+                </div>
+              ))}
+            </div>
+
+            {/* Title */}
+            <div className="relative">
+              <input
+                type="text"
+                value={form.title}
+                onChange={set('title')}
+                placeholder=" "
+                className="peer w-full bg-transparent border-b border-[#2a2a2a] focus:border-white py-3 text-white text-xs font-bold outline-none transition-colors duration-300 placeholder:text-transparent"
+              />
+              <label className="absolute left-0 top-3 text-[9px] font-black uppercase tracking-[0.35em] text-[#555] peer-focus:text-white peer-[:not(:placeholder-shown)]:text-white transition-colors duration-300 pointer-events-none">
+                Review Title
+              </label>
+            </div>
+
+            {/* Body */}
+            <div className="relative">
+              <textarea
+                required
+                rows={4}
+                value={form.body}
+                onChange={set('body')}
+                placeholder=" "
+                className="peer w-full bg-transparent border-b border-[#2a2a2a] focus:border-white py-3 text-white text-xs font-bold outline-none transition-colors duration-300 resize-none placeholder:text-transparent"
+              />
+              <label className="absolute left-0 top-3 text-[9px] font-black uppercase tracking-[0.35em] text-[#555] peer-focus:text-white peer-[:not(:placeholder-shown)]:text-white transition-colors duration-300 pointer-events-none">
+                Your Review *
+              </label>
+            </div>
+
+            {apiError && (
+              <div className="flex items-center gap-2 text-red-400">
+                <AlertCircle size={12} />
+                <p className="text-[10px] font-bold">{apiError}</p>
+              </div>
+            )}
+
+            <button
+              type="submit"
+              disabled={submitting}
+              className="w-full py-4 bg-[#ba1f3d] text-white text-[10px] font-black uppercase tracking-[0.4em] hover:brightness-110 transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-3"
+            >
+              {submitting ? (
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <>
+                  <MessageCircle size={13} />
+                  <span>Submit Review</span>
+                </>
+              )}
+            </button>
+          </form>
+        )}
       </div>
-
-      {/* Title */}
-      <div>
-        <label className="text-[9px] font-black uppercase tracking-[0.4em] text-gray-400 block mb-1">Review Title *</label>
-        <input
-          type="text"
-          value={form.title}
-          onChange={e => { setForm(f => ({ ...f, title: e.target.value })); setErrors(er => ({ ...er, title: '' })); }}
-          placeholder="Amazing quality!"
-          className={inputCls('title')}
-        />
-        {errors.title && <p className="text-[9px] text-[#ba1f3d] mt-1">{errors.title}</p>}
-      </div>
-
-      {/* Body */}
-      <div>
-        <label className="text-[9px] font-black uppercase tracking-[0.4em] text-gray-400 block mb-1">Your Review *</label>
-        <textarea
-          value={form.body}
-          onChange={e => { setForm(f => ({ ...f, body: e.target.value })); setErrors(er => ({ ...er, body: '' })); }}
-          placeholder="Tell others what you think about Stop & Shop..."
-          rows={4}
-          className={`w-full border-b-2 py-3 text-sm font-bold bg-transparent outline-none transition-all resize-none placeholder:text-gray-300 placeholder:font-normal ${
-            errors.body ? 'border-[#ba1f3d]' : 'border-gray-200 focus:border-[#ba1f3d]'
-          }`}
-        />
-        {errors.body && <p className="text-[9px] text-[#ba1f3d] mt-1">{errors.body}</p>}
-      </div>
-
-      {apiError && (
-        <div className="flex items-center space-x-2 p-3 bg-red-50 border border-red-100 rounded-sm">
-          <AlertCircle size={13} className="text-[#ba1f3d] flex-shrink-0" />
-          <p className="text-xs font-bold text-[#ba1f3d]">{apiError}</p>
-        </div>
-      )}
-
-      <button
-        type="submit"
-        disabled={loading}
-        className="flex items-center space-x-2 px-8 py-4 bg-[#ba1f3d] text-white text-[10px] font-black uppercase tracking-[0.3em] hover:bg-gray-900 transition-all disabled:opacity-50"
-      >
-        {loading
-          ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-          : <><Send size={13} /><span>Submit Review</span></>
-        }
-      </button>
-      <p className="text-[8px] font-bold text-gray-300 uppercase tracking-widest">
-        Reviews are moderated and published within 24 hours.
-      </p>
-    </form>
+    </div>
   );
 };
 
-// ─────────────────────────────────────────────────────────────────
-// MAIN COMPONENT
-// ─────────────────────────────────────────────────────────────────
+// ── Individual Review Card ────────────────────────────────────────────
+const ReviewCard = ({ review, index }) => {
+  const initial = review.name?.charAt(0)?.toUpperCase() ?? '?';
+  const date = new Date(review.createdAt || Date.now()).toLocaleDateString('en-PK', {
+    month: 'short',
+    year: 'numeric',
+  });
 
+  return (
+    <article
+      className="bg-[#111111] border border-[#1a1a1a] p-7 hover:border-[#2a2a2a] transition-all duration-500 group"
+      style={{ animationDelay: `${index * 80}ms` }}
+    >
+      {/* Stars + date */}
+      <div className="flex items-center justify-between mb-5">
+        <Stars rating={review.rating} size={12} />
+        <span className="text-[9px] font-black uppercase tracking-[0.35em] text-[#333]">{date}</span>
+      </div>
+
+      {/* Title */}
+      {review.title && (
+        <h4 className="font-black uppercase tracking-tight text-white text-sm leading-tight mb-3 group-hover:text-white transition-colors">
+          {review.title}
+        </h4>
+      )}
+
+      {/* Body */}
+      <p className="text-[11px] text-[#666] leading-relaxed font-medium mb-6 line-clamp-4">
+        "{review.body}"
+      </p>
+
+      {/* Author */}
+      <div className="flex items-center gap-3 border-t border-[#1a1a1a] pt-5">
+        <div className="w-8 h-8 bg-[#1a1a1a] border border-[#2a2a2a] flex items-center justify-center flex-shrink-0">
+          <span className="text-[10px] font-black text-[#555]">{initial}</span>
+        </div>
+        <div>
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-[#888]">{review.name}</p>
+          <p className="text-[8px] font-bold uppercase tracking-widest text-[#333] mt-0.5">Verified Purchase</p>
+        </div>
+      </div>
+    </article>
+  );
+};
+
+// ── Main Component ────────────────────────────────────────────────────
 const ReviewsSection = () => {
-  const [reviews,      setReviews]      = useState([]);
-  const [loading,      setLoading]      = useState(true);
-  const [activeIdx,    setActiveIdx]    = useState(0);
-  const [isTransitioning, setTransition] = useState(false);
-  const [isPaused,     setIsPaused]     = useState(false);
-  const [progress,     setProgress]     = useState(0);
-  const [showForm,     setShowForm]     = useState(false);
+  const [reviews, setReviews] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showForm, setShowForm] = useState(false);
+  const headerRef = useRef(null);
 
-  const cardRef       = useRef(null);
-  const progressAnim  = useRef(null);
-  const intervalRef   = useRef(null);
+  const { ref: observerRef, isIntersecting } = useIntersectionObserver({
+    threshold: 0.15,
+    triggerOnce: true,
+  });
 
-  const { ref: sectionRef, isIntersecting } = useIntersectionObserver({ threshold: 0.1, triggerOnce: true });
-  const hasAnimated = useRef(false);
+  // Merge refs
+  const setHeaderRef = (el) => {
+    headerRef.current = el;
+    observerRef.current = el;
+  };
 
-  // ── Fetch approved reviews ─────────────────────────────────────
   const fetchReviews = useCallback(async () => {
     try {
-      const res  = await fetch(apiUrl('/api/public/reviews'));
+      const res = await fetch(apiUrl('/api/public/reviews'));
       const data = await res.json();
-      if (Array.isArray(data) && data.length > 0) {
-        setReviews(data);
-      }
-    } catch {
-      // Silently fall through to placeholder
+      if (Array.isArray(data)) setReviews(data);
+    } catch (err) {
+      console.error('Failed to fetch reviews:', err);
     } finally {
       setLoading(false);
     }
@@ -240,241 +285,140 @@ const ReviewsSection = () => {
 
   useEffect(() => { fetchReviews(); }, [fetchReviews]);
 
-  // ── Entrance animation ─────────────────────────────────────────
-  useEffect(() => {
-    if (!isIntersecting || hasAnimated.current || !sectionRef.current) return;
-    hasAnimated.current = true;
-
-    const heading = sectionRef.current.querySelector('[data-heading]');
-    const rating  = sectionRef.current.querySelector('[data-rating]');
-    const avatars = sectionRef.current.querySelectorAll('[data-avatar]');
-
-    if (heading) { anime.set(heading, { opacity: 0, translateY: 40 }); anime({ targets: heading, opacity: [0, 1], translateY: [40, 0], duration: 800, easing: EASING.FABRIC }); }
-    if (rating)  { anime.set(rating,  { opacity: 0, scale: 0.8 });     anime({ targets: rating,  opacity: [0, 1], scale: [0.8, 1], duration: 600, delay: 200, easing: EASING.SPRING }); }
-    if (avatars?.length) { anime.set(avatars, { opacity: 0, scale: 0.8 }); anime({ targets: avatars, opacity: [0, 1], scale: [0.8, 1], duration: 400, delay: anime.stagger(60, { start: 400 }), easing: EASING.SPRING }); }
-  }, [isIntersecting]);
-
-  // ── Progress bar ───────────────────────────────────────────────
-  const startProgress = useCallback(() => {
-    setProgress(0);
-    progressAnim.current?.pause();
-    const obj = { value: 0 };
-    progressAnim.current = anime({ targets: obj, value: [0, 100], duration: 7000, easing: 'linear', update: () => setProgress(obj.value) });
-  }, []);
-
-  const goTo = useCallback((idx) => {
-    if (isTransitioning || !reviews.length) return;
-    setTransition(true);
-    if (cardRef.current) {
-      anime({ targets: cardRef.current, opacity: [1, 0], translateX: [0, -30], duration: 280, easing: EASING.SILK,
-        complete: () => {
-          setActiveIdx(idx % reviews.length);
-          setTransition(false);
-          anime({ targets: cardRef.current, opacity: [0, 1], translateX: [30, 0], duration: 400, easing: EASING.FABRIC });
-        }
-      });
-    } else {
-      setActiveIdx(idx % reviews.length);
-      setTransition(false);
-    }
-    startProgress();
-  }, [isTransitioning, reviews.length, startProgress]);
-
-  const next = useCallback(() => goTo((activeIdx + 1) % Math.max(reviews.length, 1)), [activeIdx, goTo, reviews.length]);
-  const prev = useCallback(() => goTo((activeIdx - 1 + Math.max(reviews.length, 1)) % Math.max(reviews.length, 1)), [activeIdx, goTo, reviews.length]);
-
-  useEffect(() => {
-    if (isPaused || reviews.length === 0) return;
-    startProgress();
-    intervalRef.current = setInterval(next, 7000);
-    return () => { clearInterval(intervalRef.current); progressAnim.current?.pause(); };
-  }, [activeIdx, isPaused, reviews.length]);
-
-  // ── Average rating ─────────────────────────────────────────────
-  const avgRating = reviews.length
-    ? (reviews.reduce((s, r) => s + (r.rating ?? 5), 0) / reviews.length).toFixed(1)
-    : '5.0';
-
-  const review = reviews[activeIdx] ?? null;
+  // Compute aggregate rating
+  const avgRating =
+    reviews.length > 0
+      ? (reviews.reduce((sum, r) => sum + (r.rating ?? 5), 0) / reviews.length).toFixed(1)
+      : '5.0';
 
   return (
-    <section
-      ref={sectionRef}
-      className="bg-white py-28 overflow-hidden border-t border-gray-50"
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
-    >
-      <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
+    <>
+      {/* ── Editorial Brand Statement ──────────────────────────────────── */}
+      <section className="bg-[#0d0d0d] border-t border-[#1a1a1a]">
+        <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 py-20 sm:py-28">
+          <div
+            ref={setHeaderRef}
+            className={`flex flex-col lg:flex-row lg:items-end justify-between gap-10 transition-all duration-1000 ${isIntersecting ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+              }`}
+          >
+            {/* Left: Brand claim */}
+            <div className="lg:max-w-xl">
+              <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-5">
+                The Cardinal Experience
+              </p>
+              <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black uppercase tracking-tighter leading-[0.9] text-white mb-1">
+                Elite Quality.
+              </h2>
+              <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black uppercase tracking-tighter leading-[0.9] text-[#2a2a2a]">
+                Local Legacy.
+              </h2>
+            </div>
 
-        {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-20">
-          <div data-heading style={{ opacity: 0 }}>
-            <p className="text-[10px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-4">
-              The Cardinal Experience
-            </p>
-            <h2 className="text-4xl md:text-6xl font-black uppercase tracking-tighter text-gray-900 leading-[0.88]">
-              Elite Quality.<br />
-              <span className="text-gray-200">Local Legacy.</span>
-            </h2>
-          </div>
-
-          <div data-rating className="mt-10 md:mt-0 text-right" style={{ opacity: 0 }}>
-            <p className="text-6xl font-black text-gray-900 leading-none">{avgRating}</p>
-            <Stars rating={5} />
-            <p className="text-[8px] font-black uppercase tracking-[0.4em] text-gray-400 mt-2">
-              {reviews.length > 0 ? `${reviews.length} verified review${reviews.length !== 1 ? 's' : ''}` : "Pakistan's Premium Choice"}
-            </p>
+            {/* Right: Aggregate rating */}
+            <div className="flex items-end gap-6 lg:pb-2">
+              <div>
+                <span className="block text-[4.5rem] sm:text-[6rem] font-black text-white leading-none tracking-tighter tabular-nums">
+                  {loading ? '—' : avgRating}
+                </span>
+                <Stars rating={Math.round(parseFloat(avgRating))} size={14} />
+              </div>
+              <div className="pb-3">
+                <p className="text-[8px] font-black uppercase tracking-[0.4em] text-[#333] leading-relaxed">
+                  Pakistan's<br />Premium<br />Choice
+                </p>
+              </div>
+            </div>
           </div>
         </div>
+      </section>
 
-        {/* Review carousel or placeholder */}
-        {loading ? (
-          <div className="h-64 flex items-center justify-center">
-            <div className="w-8 h-8 border-2 border-gray-100 border-t-[#ba1f3d] rounded-full animate-spin" />
-          </div>
-        ) : reviews.length === 0 ? (
-          /* No reviews yet — prompt to be first */
-          <div className="text-center py-16 border border-dashed border-gray-200 rounded-sm">
-            <div className="flex justify-center mb-4">
-              <Stars rating={5} size={20} />
+      {/* ── Reviews Grid ──────────────────────────────────────────────── */}
+      <section className="bg-[#0d0d0d] border-t border-[#1a1a1a]">
+        <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 py-16 sm:py-20">
+
+          {/* Sub-header + CTA */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6 mb-12">
+            <div>
+              <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#555] mb-2">
+                Best Sellers · Fan Favourites
+              </p>
+              <h3 className="text-2xl sm:text-3xl font-black uppercase tracking-tighter text-white leading-none">
+                {reviews.length > 0
+                  ? 'What Our Customers Say.'
+                  : 'No Reviews Yet.'}
+              </h3>
             </div>
-            <p className="font-black uppercase tracking-tight text-gray-900 mb-2">
-              No reviews yet
-            </p>
-            <p className="text-sm text-gray-400 font-bold mb-6">
-              Be the first to share your experience with Stop & Shop.
-            </p>
+
             <button
               onClick={() => setShowForm(true)}
-              className="px-8 py-3 bg-[#ba1f3d] text-white text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all"
+              className="group flex items-center gap-3 px-7 py-3.5 border border-[#2a2a2a] text-[9px] font-black uppercase tracking-[0.35em] text-[#888] hover:border-white hover:text-white transition-all duration-300 self-start sm:self-auto flex-shrink-0"
             >
-              Write the First Review
+              <MessageCircle size={12} className="group-hover:text-[#ba1f3d] transition-colors duration-300" />
+              <span>Write a Review</span>
             </button>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-14 items-start">
 
-            {/* Featured review card */}
-            <div
-              ref={cardRef}
-              className="lg:col-span-7 relative overflow-hidden"
-              style={{ willChange: 'transform, opacity' }}
-            >
-              {/* Progress bar */}
-              <div className="absolute top-0 left-0 right-0 h-[2px] bg-gray-100">
-                <div className="h-full bg-[#ba1f3d] transition-none" style={{ width: `${progress}%`, willChange: 'width' }} />
-              </div>
-
-              <div className="bg-white border border-gray-100 p-10 md:p-16 shadow-sm relative overflow-hidden pt-8">
-                <Quote size={100} className="text-gray-50 absolute -top-3 -right-3 rotate-12 pointer-events-none" />
-
-                <div className="relative z-10">
-                  <Stars rating={review?.rating ?? 5} />
-
-                  <h3 className="text-3xl md:text-4xl font-black uppercase tracking-tight text-gray-900 mt-7 mb-5 leading-tight">
-                    "{review?.title ?? ''}"
-                  </h3>
-
-                  <p className="text-gray-500 text-lg font-medium leading-relaxed mb-10 italic">
-                    {review?.body ?? review?.review ?? ''}
-                  </p>
-
-                  <div className="flex items-center justify-between border-t border-gray-100 pt-8">
-                    <div className="flex items-center space-x-5">
-                      <div
-                        data-avatar
-                        className="w-14 h-14 rounded-full flex items-center justify-center text-base font-black text-white flex-shrink-0"
-                        style={{ backgroundColor: '#ba1f3d', opacity: 0 }}
-                      >
-                        {(review?.customerName ?? review?.name ?? 'A').charAt(0).toUpperCase()}
-                      </div>
-                      <div>
-                        <p className="font-black uppercase tracking-tight text-gray-900">
-                          {review?.customerName ?? review?.name ?? 'Customer'}
-                        </p>
-                        <p className="text-[9px] font-black uppercase tracking-widest text-gray-400 mt-0.5">
-                          {review?.createdAt
-                            ? new Date(review.createdAt).toLocaleDateString('en-PK', { month: 'long', year: 'numeric' })
-                            : 'Verified Customer'}
-                        </p>
-                      </div>
-                    </div>
-
-                    {/* Navigation */}
-                    <div className="flex items-center space-x-2">
-                      <button onClick={prev} className="w-10 h-10 border border-gray-200 flex items-center justify-center hover:border-[#ba1f3d] hover:text-[#ba1f3d] transition-all">
-                        <ChevronLeft size={16} />
-                      </button>
-                      <button onClick={next} className="w-10 h-10 border border-gray-200 flex items-center justify-center hover:border-[#ba1f3d] hover:text-[#ba1f3d] transition-all">
-                        <ChevronRight size={16} />
-                      </button>
-                    </div>
+          {/* States */}
+          {loading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="bg-[#111111] border border-[#1a1a1a] p-7 animate-pulse">
+                  <div className="flex gap-1 mb-5">
+                    {[...Array(5)].map((_, j) => (
+                      <div key={j} className="w-3 h-3 bg-[#1f1f1f] rounded-sm" />
+                    ))}
+                  </div>
+                  <div className="h-3 bg-[#1f1f1f] rounded mb-3 w-3/4" />
+                  <div className="space-y-2 mb-6">
+                    <div className="h-2.5 bg-[#1f1f1f] rounded w-full" />
+                    <div className="h-2.5 bg-[#1f1f1f] rounded w-4/5" />
+                    <div className="h-2.5 bg-[#1f1f1f] rounded w-2/3" />
+                  </div>
+                  <div className="h-px bg-[#1a1a1a] mb-5" />
+                  <div className="flex gap-3 items-center">
+                    <div className="w-8 h-8 bg-[#1a1a1a] rounded-none" />
+                    <div className="h-2.5 bg-[#1f1f1f] rounded w-24" />
                   </div>
                 </div>
-              </div>
-            </div>
-
-            {/* Review list sidebar */}
-            <div className="lg:col-span-5 space-y-3">
-              {reviews.slice(0, 5).map((r, idx) => (
-                <button
-                  key={r._id ?? r.id ?? idx}
-                  onClick={() => goTo(idx)}
-                  className={`group w-full flex items-center space-x-4 p-4 transition-all duration-200 text-left ${
-                    idx === activeIdx
-                      ? 'bg-[#ba1f3d]/5 border-l-4 border-[#ba1f3d]'
-                      : 'hover:bg-gray-50 border-l-4 border-transparent'
-                  }`}
-                >
-                  <div
-                    data-avatar
-                    className="w-10 h-10 rounded-full flex items-center justify-center text-xs font-black text-white flex-shrink-0"
-                    style={{ backgroundColor: idx === activeIdx ? '#ba1f3d' : '#374151', opacity: 0 }}
-                  >
-                    {(r.customerName ?? r.name ?? 'A').charAt(0).toUpperCase()}
-                  </div>
-                  <div className="flex-grow min-w-0">
-                    <p className={`font-black uppercase tracking-tight text-sm transition-colors duration-200 ${
-                      idx === activeIdx ? 'text-[#ba1f3d]' : 'text-gray-700 group-hover:text-gray-900'
-                    }`}>
-                      {r.customerName ?? r.name ?? 'Customer'}
-                    </p>
-                    <p className="text-[9px] uppercase tracking-[0.25em] font-black text-gray-400 mt-0.5 truncate">
-                      {r.title ?? 'Review'}
-                    </p>
-                  </div>
-                  <div className={`flex-shrink-0 transition-opacity duration-300 ${idx === activeIdx ? 'opacity-100' : 'opacity-30'}`}>
-                    <Stars rating={r.rating ?? 5} />
-                  </div>
-                </button>
               ))}
-
-              {/* Write a review button */}
+            </div>
+          ) : reviews.length === 0 ? (
+            <div className="border border-dashed border-[#1f1f1f] py-24 text-center">
+              <div className="flex justify-center mb-6">
+                <Stars rating={5} size={18} />
+              </div>
+              <p className="text-sm font-black uppercase tracking-[0.4em] text-[#2a2a2a] mb-2">
+                No Reviews Yet
+              </p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-[#333] mb-8">
+                Be the first to share your experience with Stop & Shop.
+              </p>
               <button
-                onClick={() => setShowForm(s => !s)}
-                className="w-full mt-6 px-6 py-4 border-2 border-gray-200 text-[10px] font-black uppercase tracking-[0.3em] text-gray-600 hover:border-[#ba1f3d] hover:text-[#ba1f3d] transition-all flex items-center justify-center space-x-2"
+                onClick={() => setShowForm(true)}
+                className="inline-flex items-center gap-3 px-8 py-4 bg-[#ba1f3d] text-white text-[10px] font-black uppercase tracking-[0.35em] hover:brightness-110 transition-all duration-300"
               >
-                <Star size={13} />
-                <span>{showForm ? 'Cancel' : 'Write a Review'}</span>
+                <MessageCircle size={12} />
+                <span>Write the First Review</span>
               </button>
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+              {reviews.map((r, i) => (
+                <ReviewCard key={r._id ?? i} review={r} index={i} />
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
 
-        {/* Review submission form */}
-        {showForm && (
-          <div className="mt-16 border-t border-gray-100 pt-16 max-w-2xl animate-fade-up">
-            <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-3">
-              Share Your Experience
-            </p>
-            <h3 className="text-2xl font-black uppercase tracking-tighter text-gray-900 mb-10">
-              Write a Review
-            </h3>
-            <ReviewForm onSubmitted={() => { setShowForm(false); fetchReviews(); }} />
-          </div>
-        )}
-      </div>
-    </section>
+      {/* Review Form Modal */}
+      {showForm && (
+        <ReviewForm
+          onClose={() => setShowForm(false)}
+          onSuccess={fetchReviews}
+        />
+      )}
+    </>
   );
 };
 
