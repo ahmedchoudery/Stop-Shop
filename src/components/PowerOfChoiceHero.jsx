@@ -48,21 +48,21 @@ const PowerOfChoiceHero = () => {
           <img
             src="/mobile.jpg"
             alt="SS'26 Collection Mobile"
-            className="block md:hidden w-full h-full object-cover object-center"
+            className="block md:hidden w-full h-full object-cover object-bottom"
             loading="eager"
           />
           {/* Tablet Viewport: Centered layout */}
           <img
             src="/tablet.jpg"
             alt="SS'26 Collection Tablet"
-            className="hidden md:block lg:hidden w-full h-full object-cover object-center"
+            className="hidden md:block lg:hidden w-full h-full object-cover object-bottom"
             loading="eager"
           />
           {/* Desktop Viewport: Full-bleed wide layout */}
           <img
             src="/desktop.jpg"
             alt="SS'26 Collection Desktop"
-            className="hidden lg:block w-full h-full object-cover object-center"
+            className="hidden lg:block w-full h-full object-cover object-bottom"
             loading="eager"
           />
         </div>
