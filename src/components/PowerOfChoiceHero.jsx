@@ -48,7 +48,8 @@ const PowerOfChoiceHero = () => {
           <img
             src="/mobile.jpg"
             alt="SS'26 Collection Mobile"
-            className="block md:hidden w-full h-full object-cover object-bottom"
+            className="block md:hidden w-full h-full object-cover"
+            style={{ objectPosition: '50% calc(100% + 0.5in)' }}
             loading="eager"
           />
           {/* Tablet Viewport: Centered layout */}
