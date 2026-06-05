@@ -46,7 +46,7 @@ const PowerOfChoiceHero = () => {
         <div className="relative w-full h-full bg-[#ba1f3e]">
           {/* Mobile Viewport: Centered layout */}
           <img
-            src="/mobile.jpg"
+            src="/Hero-Mobile.jpeg"
             alt="SS'26 Collection Mobile"
             className="block md:hidden w-full h-full object-cover"
             style={{ objectPosition: '50% calc(100% + 0.5in)' }}
@@ -54,14 +54,14 @@ const PowerOfChoiceHero = () => {
           />
           {/* Tablet Viewport: Centered layout */}
           <img
-            src="/tablet.jpg"
+            src="/Hero-Tablet.jpeg"
             alt="SS'26 Collection Tablet"
             className="hidden md:block lg:hidden w-full h-full object-cover object-bottom"
             loading="eager"
           />
           {/* Desktop Viewport: Full-bleed wide layout */}
           <img
-            src="/desktop.jpg"
+            src="/Hero-Desktop.jpeg"
             alt="SS'26 Collection Desktop"
             className="hidden lg:block w-full h-full object-cover object-bottom"
             loading="eager"
