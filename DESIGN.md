@@ -1,69 +1,71 @@
 # Design System: Stop & Shop
-**Project Name:** ahmedchoudery/Stop-Shop
-
----
 
 ## 1. Visual Theme & Atmosphere
-
-Stop & Shop commands a **Premium Editorial Dark-Luxury** aesthetic — the visual language of a high-end fashion boutique translated to the web. The atmosphere is **Intense, Authoritative, and Aspirational**: bold typographic slabs against surgical white space, punctuated by a single dominant Cardinal Red accent that functions as a status signal rather than decoration.
-
-The mood is deliberately **high-contrast and structurally confident** — nothing is decorative for decoration's sake. Every element earns its place. Typography is oversized and uppercase, carrying the same weight as physical signage. Imagery is desaturated until hover, signaling exclusivity. White space is generous and intentional, creating the breathing room of a luxury store floor rather than a market stall.
-
-Motion philosophy: **Deliberate and Expensive.** Animations feel like fabric falling — never rushed, never cheap. Entrances use expo easing for text, spring physics for interactive elements, and silk-smooth fabric-like transitions between states.
+Stop & Shop commands a **Premium Utilitarian Minimalism & Editorial UI** aesthetic — the visual language of a high-end fashion catalog translated to a digital workspace platform. The atmosphere is clinical yet warm, restrained, and structurally confident, featuring:
+*   **Density (Balanced 4):** Structural macro-whitespace is treated as a premium material. Content width is constrained to a centered grid with generous margins.
+*   **Variance (Asymmetric 8):** Layouts embrace offset grids, asymmetrical columns, and clean alignments that break traditional patterns to signal exclusivity.
+*   **Motion (Restrained 4):** Animation is fluid, organic, and sparse, prioritizing physical transforms (spring physics) and opacity reveals.
+*   **Texture:** A global, hardware-accelerated tactile noise-grain overlay (`opacity: 0.022`) runs behind all layers, simulating high-end physical matte paper.
 
 ---
 
 ## 2. Color Palette & Roles
-
-| Descriptive Name | Hex Code | Functional Role |
-| :--- | :--- | :--- |
-| **Cardinal Red** | `#ba1f3d` | Primary action, emphasis, brand soul. Used for CTAs, badges, price tags, and active states. Never overused — its scarcity is its power. |
-| **Crimson Punch** | `#F63049` | Secondary accent, hover states, sale indicators. Slightly more vibrant than Cardinal for moments that need urgency. |
-| **Obsidian Black** | `#111827` | Primary text, headings, backgrounds of premium sections. The dark foundation. |
-| **Administrative Gray** | `#8B0000` | Admin sidebar background. Deep wine-burgundy for elevated authority. |
-| **Surgical White** | `#FFFFFF` | Page backgrounds, card surfaces. Pure and clinical. |
-| **Whisper Gray** | `#F9FAFB` | Section backgrounds, input fields, skeleton loaders. Almost-white warmth. |
-| **Graphite** | `#374151` | Body text, secondary information. Readable but recessive. |
-| **Ash** | `#9CA3AF` | Labels, placeholders, metadata. Subordinate information. |
-| **Amber Gold** | `#FBBF24` | Admin active states, star ratings, promotional accents. The luxury metal note. |
-| **Success Green** | `#22C55E` | In-stock badges, success confirmations. Rare but meaningful. |
+The design uses a warm monochrome scale punctuated exclusively by desaturated spot pastels. Rich primaries and neon glows are strictly banned.
+*   **Canvas Bone** (`#F7F6F3`) — Primary page background. An off-white warmth that softens the interface.
+*   **Pure Surface** (`#FFFFFF`) — Cards, product tiles, drawer panels, and active containers.
+*   **Charcoal Ink** (`#111111`) — Primary text, headings, buttons, and brand indicators.
+*   **Muted Graphite** (`#787774`) — Body copy, secondary information, and labels.
+*   **Whisper Border** (`#EAEAEA`) — Hairline borders and dividers.
+*   **Pale Crimson** (`#FDEBEC` / Text: `#9F2F2D`) — Washout red accent for delete operations, critical errors, and sale tags.
+*   **Pale Grass** (`#EDF3EC` / Text: `#346538`) — Muted green accent for in-stock badges and success indicators.
+*   **Pale Amber** (`#FBF3DB` / Text: `#956400`) — Washout yellow accent for promotions and warning notices.
 
 ---
 
 ## 3. Typography Rules
-
-*   **Primary Typeface:** `system-ui, sans-serif` — intentionally choosing the device's native sans for zero-latency rendering and native-quality rendering at all weights.
-*   **Weight Philosophy:** The system uses exclusively **Black (900)** and **Normal (400)** — no in-between weights. This binary creates maximum visual contrast between hierarchy levels.
-*   **Letter-spacing Character:**
-    *   *Headlines:* `tracking-tighter` (−0.05em) — condensed slab energy, like stamped metal.
-    *   *Labels / Badges:* `tracking-[0.3em]` to `tracking-[0.5em]` — wide-spaced uppercase for luxury label feel.
-    *   *Body:* `tracking-normal` — comfortable reading rhythm.
-*   **Case Rules:** All UI labels, navigation, buttons, and badges are **UPPERCASE**. Body copy is sentence case. This binary communicates: *controls are commands, content is human*.
-*   **Size Scale:** The hero uses `text-[9rem]` (144px+) at desktop — intentionally oversized to create wall-text energy. This is not a mistake, it is the aesthetic.
+Visual hierarchy is established through weight, case, and spacing rather than generic scale modifications.
+*   **Display Font:** `Playfair Display` (serif) — Used for hero headlines, section headers, and testimonials. Features tight tracking (`letter-spacing: -0.02em` to `-0.04em`) and condensed line-height (`1.05`).
+*   **Body / UI Font:** `'SF Pro Display', 'Geist Sans', var(--font-dm-sans), sans-serif` — Restrained geometric sans-serif for controls, buttons, descriptions, and list values.
+*   **Monospace Font:** `'Geist Mono', 'SF Mono', monospace` — For item tags, sizes, pricing digits, and high-density metadata.
+*   **Letter-Spacing Character:**
+    *   *Controls / Badges:* Wide uppercase tracking (`letter-spacing: 0.35em` to `0.5em`) at tiny sizes (`8px` to `10px`).
+    *   *Body Copy:* Regular reading leading (`line-height: 1.6`) with a maximum width of `65` characters per line.
+*   **Banned Fonts:** `Inter`, `Roboto`, `Open Sans` are banned. Generic serifs (`Times New Roman`, `Georgia`, `Garamond`) are banned.
 
 ---
 
 ## 4. Component Stylings
-
-*   **Buttons:**
-    *   *Primary Buttons:* Sharp-edged rectangles (`rounded-none` on hero CTAs, `rounded-xl` on functional admin buttons). Cardinal Red fill, white text at 10px font size with 0.3em letter-spacing. Hover triggers a smooth `brightness-110` lift + subtle shadow bloom. Active states use `scale-95` press-down haptic feedback.
-    *   *Secondary Buttons:* Border-only style — 2px Obsidian Black border, transparent fill, black text. On hover, the fill inverts to Obsidian, creating a confident "ghost" presence.
-*   **Cards/Containers:**
-    *   *Product Cards:* No border radius on image container (full-bleed images). 3D tilt on mouse move using `rotateX/Y` perspective transform. Floating add-to-cart button appears from center on hover. Image desaturated 20% at rest, full color on hover. Category label in Cardinal Red at 9px tracks-wide.
-    *   *Admin Cards:* Sharp `rounded-sm` (2px radius) or flat `rounded-none`. White background, single-pixel `border-gray-100`. Diffuse `shadow-xl shadow-gray-100/50` shadow depth.
-    *   *Drawers / Modals:* Full-height side drawer (Cart, Wishlist). Backdrop blur (`backdrop-blur-sm`) with 50% black overlay. Slides in from right with spring easing. Header always Obsidian Black with white text for authority.
-*   **Inputs/Forms:**
-    *   *Stroke Style:* Borderless with bottom-border-only (`border-b-2`) in light gray, focusing dynamically to Cardinal Red. Zero background. Text in `font-bold` black. Creates a "form cut into the surface" effect.
-*   **Interactive Components (Phase 16 Polish):**
-    *   *Glassmorphism Navigation:* High-end sticky navigation toggling `.navbar-glass` on scroll (`window.scrollY > 20`), merging a `backdrop-filter: blur(20px) saturate(180%)` backdrop, subtle bottom borders, and translucent background transitions.
-    *   *Flash Sale Countdown Banner:* Timed full-width dismissible top bar showing a promotional coupon code and a ticking midnight countdown. Animates into the viewport from the top. Persistent dismissal via `sessionStorage` avoids recurring disruption.
+Components are ultra-flat and structural. Heavy drop shadows and generic roundings are rejected.
+*   **Buttons:** Sharp-edged rectangles with a tight corner rounding (`rounded-[4px]`). Primary CTAs use solid Charcoal Ink (`#111111`) background with white text, triggering a micro-scale elastic spring (`scale-[0.98]`) on press. No drop shadows.
+*   **Cards:** Pure White container fill with crisp `1px solid #EAEAEA` borders and `4px` corner radii. Shadows are practically invisible (`rgba(0,0,0,0.03)`).
+*   **Inputs:** Borderless with bottom-border-only (`border-b border-[#EAEAEA]`), focusing dynamically to a bold Charcoal Ink stroke. Labels are positioned strictly above inputs.
+*   **Loading States:** Custom skeletal shimmer loaders matching the exact dimensions of cards, sections, or table rows. Circular spinners are banned.
+*   **Badges / Tags:** Rounded pill containers (`rounded-full`) using the desaturated pale pastel backgrounds with high-contrast text.
 
 ---
 
 ## 5. Layout Principles
+*   **Grid System:** Asymmetric CSS grids over basic flexbox rows. The layout uses grid column spans to place elements off-center.
+*   **No Overlapping:** Elements occupy distinct spatial zones. Absolute-positioned elements must never overlay active text or icons.
+*   **Whitespace Rhythm:** Vertical section spacing is structural and generous (`py-24` to `py-32`), treating negative space as a luxury material.
+*   **Mobile Collapse:** All columns collapse to a single-column block layout on devices below `768px`.
+*   **Full-Height Blocks:** Must use dynamic viewport heights (`min-h-[100dvh]`) to prevent layout jumps on mobile browsers.
 
-*   **Whitespace Strategy:** Generous and structural. Section padding is `py-24` to `py-48` — space is treated as a premium material, not waste. The rule: if in doubt, add more space.
-*   **Grid System:** Max-width `max-w-7xl` (1280px) centered. 12-column logic with responsive collapse to 1 and 2 column layouts. Product grids use `grid-cols-4` on desktop with `gap-12 sm:gap-16` — wide gutters signal premium spacing.
-*   **Hierarchy Method:* Size and weight carry all hierarchy — color is used sparingly as a *signal*, not a differentiator. A 9px uppercase label in Cardinal Red outranks a 14px black label in the visual hierarchy.
-*   **Border-Left Pattern:* Active navigation states use `border-l-4 border-[#FBBF24]` — the gold left-border is a signature UI pattern communicating "you are here" with architectural authority.
-*   **Section Rhythm:** Each section announces itself with a tiny 9px uppercase Cardinal Red label (`text-[9px] font-black uppercase tracking-[0.5em] text-[#ba1f3d]`) before the main headline — like a section divider in a luxury magazine.
+---
+
+## 6. Motion & Interaction
+*   **Spring Physics:** Standard easing uses weighted spring configurations (`stiffness: 100, damping: 20`) for elements like slide-in drawers and interactive cards. Linear interpolation is banned.
+*   **Cascading Reveals:** Entrance sequences are staggered using index-multiplied delays (`animation-delay: calc(var(--index) * 80ms)`) to orchestrate list loading smoothly.
+*   **Hardware Acceleration:** Animations must only animate `transform` and `opacity` to avoid layout re-flows.
+*   **Interactions:** Hover states are responsive and tactile: cards trigger a subtle lift and shadow shift, while image scales are capped at `1.04` to maintain precision.
+
+---
+
+## 7. Anti-Patterns (Banned)
+*   **No Emojis:** Replace all emojis with SVG primitives or clean Phosphor Icons.
+*   **No AI Copywriting Clichés:** Do not write "Elevate", "Seamless", "Unleash", "Next-Gen", "Game-changing", or "Delve". Write simple, specific language.
+*   **No Pure Black:** Banned (`#000000`). Headings and buttons must resolve to Charcoal Ink (`#111111`).
+*   **No Neon / Glow Shadows:** Heavy dropshadows and colorful glows are strictly prohibited.
+*   **No 3-Column Equal Grids:** The generic "three cards in a row" marketing feature section is banned. Use horizontal scrollers or asymmetrical bento layouts.
+*   **No Centered Heroes:** Layouts must use left-aligned content or asymmetrical splits to signal human craftsmanship.
+*   **No Broken Links:** Image links must resolve to valid assets, local SVG placeholders, or `picsum.photos` seeds.
