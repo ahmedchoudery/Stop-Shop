@@ -11,18 +11,33 @@ export default {
   ],
   theme: {
     extend: {
-      // ── Design System Colors ───────────────────────────────
+      // ── Design System Colors (OKLCH via CSS vars) ──────────────
       colors: {
+        // Brand accent — Cardinal Red
         cardinal: {
-          DEFAULT: '#ba1f3d',
-          light: '#d4294d',
-          dark: '#8B0000',
-          50: 'rgba(186,31,61,0.05)',
-          100: 'rgba(186,31,61,0.10)',
+          DEFAULT: 'var(--color-cardinal)',
+          hover:   'var(--color-cardinal-hover)',
+          active:  'var(--color-cardinal-active)',
+          glow:    'var(--color-cardinal-glow)',
+          // legacy numeric aliases for Tailwind bg-cardinal-50 etc.
+          50:  'oklch(0.42 0.18 17 / 0.05)',
+          100: 'oklch(0.42 0.18 17 / 0.10)',
+          200: 'oklch(0.42 0.18 17 / 0.20)',
         },
-        crimson: '#F63049',
-        'amber-gold': '#FBBF24',
-        obsidian: '#111827',
+        crimson:      'var(--color-crimson)',
+        'amber-gold': 'var(--color-amber-gold)',
+        // Neutrals
+        obsidian:     'var(--text-primary)',
+        graphite:     'var(--text-secondary)',
+        ash:          'var(--text-muted)',
+        // Semantic
+        success:      'var(--color-success)',
+        warning:      'var(--color-warning)',
+        error:        'var(--color-error)',
+        // Surfaces
+        'bg-surface':  'var(--bg-surface)',
+        'bg-elevated': 'var(--bg-elevated)',
+        // Admin
         'admin-dark': '#0d0508',
       },
 

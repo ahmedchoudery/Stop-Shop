@@ -1,24 +1,50 @@
 /* ═══════════════════════════════════════════════════════════════
-   Stop & Shop — Unified Dark Design System
-   Singular background · Precise accent · Premium editorial
+   Stop & Shop — OKLCH Color System
+   Color-Expert skill applied: perceptually uniform palette
+   Cardinal Red brand · Premium Editorial Dark-Luxury
    ═══════════════════════════════════════════════════════════════ */
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* ── Design Tokens ───────────────────────────────────────────── */
+/* ── OKLCH Design Tokens ─────────────────────────────────────── */
+/* OKLCH(lightness chroma hue)
+   Lightness: 0–1  |  Chroma: 0–0.4  |  Hue: 0–360°              */
 
 :root {
-  --bg-base:      #ffffff;   /* unified page background */
-  --bg-surface:   #f9fafb;   /* card / panel */
-  --bg-elevated:  #f3f4f6;   /* inputs, hover surfaces */
-  --border:       #e5e7eb;   /* hairline dividers */
-  --border-mid:   #d1d5db;   /* medium dividers */
-  --text-primary: #111827;   /* headings */
-  --text-secondary:#4b5563;  /* labels, captions */
-  --text-muted:   #9ca3af;   /* de-emphasised */
-  --accent:       #ba1f3d;   /* logo, CTAs, badges — use sparingly */
+  /* ── Brand Accent — Cardinal Red ──────────────────────────── */
+  --color-cardinal:        oklch(0.42 0.18 17);   /* #ba1f3d — brand soul  */
+  --color-cardinal-hover:  oklch(0.50 0.20 17);   /* #d4294d — hover lift  */
+  --color-cardinal-active: oklch(0.32 0.15 17);   /* #8B0000 — press down  */
+  --color-cardinal-glow:   oklch(0.42 0.18 17 / 0.25); /* shadow ambient  */
+  --color-crimson:         oklch(0.55 0.22 19);   /* #F63049 — urgency     */
+  --color-amber-gold:      oklch(0.82 0.16 84);   /* #FBBF24 — luxury note */
+
+  /* ── Neutral Scale — Warm-Tinted Grays ────────────────────── */
+  --bg-base:               oklch(1.00 0.000 0);   /* #ffffff — pure white  */
+  --bg-surface:            oklch(0.98 0.003 240);  /* #f9fafb — warm tint   */
+  --bg-elevated:           oklch(0.96 0.005 240);  /* #f3f4f6 — inputs      */
+  --bg-overlay:            oklch(0.00 0.000 0 / 0.45); /* modal scrim        */
+
+  /* ── Borders ───────────────────────────────────────────────── */
+  --border:                oklch(0.92 0.005 240);  /* #e5e7eb — hairline    */
+  --border-mid:            oklch(0.86 0.008 240);  /* #d1d5db — medium      */
+  --border-strong:         oklch(0.70 0.010 240);  /* #9ca3af — emphasis    */
+
+  /* ── Typography ────────────────────────────────────────────── */
+  --text-primary:          oklch(0.15 0.010 240);  /* #111827 — headings    */
+  --text-secondary:        oklch(0.42 0.012 240);  /* #4b5563 — body text   */
+  --text-muted:            oklch(0.64 0.010 240);  /* #9ca3af — de-emphasis */
+  --text-inverse:          oklch(1.00 0.000 0);    /* white on dark BG      */
+
+  /* ── Semantic Colors ───────────────────────────────────────── */
+  --color-success:         oklch(0.64 0.18 145);   /* #22C55E — in-stock    */
+  --color-warning:         oklch(0.82 0.16 84);    /* #FBBF24 — promo       */
+  --color-error:           oklch(0.55 0.22 19);    /* #F63049 — errors      */
+
+  /* ── Legacy aliases (keep backward compat) ─────────────────── */
+  --accent: var(--color-cardinal);
 }
 
 /* ── 1. Base Reset & Typography ──────────────────────────────── */
@@ -54,16 +80,17 @@
     -webkit-overflow-scrolling: touch;
   }
 
-  /* Selection */
+  /* Selection — Cardinal Red brand tint */
   ::selection {
-    background-color: rgba(0, 0, 0, 0.1);
+    background-color: oklch(0.42 0.18 17 / 0.12);
     color: var(--text-primary);
   }
 
-  /* Focus — clean white ring */
+  /* Focus — Cardinal Red ring, WCAG 2.1 AA compliant */
   :focus-visible {
-    outline: 1px solid rgba(0, 0, 0, 0.4);
-    outline-offset: 2px;
+    outline: 2px solid var(--color-cardinal);
+    outline-offset: 3px;
+    border-radius: 2px;
   }
 
   :focus:not(:focus-visible) {
@@ -111,54 +138,74 @@
 
 @layer components {
 
-  /* Primary CTA — Cardinal Red */
+  /* Primary CTA — OKLCH Cardinal Red */
   .btn-primary {
     @apply inline-flex items-center justify-center space-x-2
-           bg-[#ba1f3d] text-white
+           text-white
            px-8 py-4
            text-[10px] font-black uppercase tracking-[0.35em]
            transition-all duration-300
-           hover:brightness-110
            active:scale-[0.98]
            disabled:opacity-40 disabled:cursor-not-allowed;
+    background-color: var(--color-cardinal);
+    box-shadow: 0 4px 24px var(--color-cardinal-glow);
+  }
+  .btn-primary:hover {
+    background-color: var(--color-cardinal-hover);
+    box-shadow: 0 6px 32px oklch(0.42 0.18 17 / 0.35);
+  }
+  .btn-primary:active {
+    background-color: var(--color-cardinal-active);
   }
 
   /* Secondary — dark outlined */
   .btn-secondary {
     @apply inline-flex items-center justify-center space-x-2
-           border border-[var(--border-mid)] text-[var(--text-primary)]
            px-8 py-4
            text-[10px] font-black uppercase tracking-[0.35em]
            transition-all duration-300
-           hover:border-[var(--text-primary)] hover:bg-[var(--bg-elevated)]
            active:scale-[0.98]
            disabled:opacity-40 disabled:cursor-not-allowed;
+    border: 1px solid var(--border-mid);
+    color: var(--text-primary);
+  }
+  .btn-secondary:hover {
+    border-color: var(--text-primary);
+    background-color: var(--bg-elevated);
   }
 
   /* Ghost */
   .btn-ghost {
     @apply inline-flex items-center justify-center space-x-2
-           text-[var(--text-secondary)]
            text-[10px] font-black uppercase tracking-[0.3em]
            transition-colors duration-200
-           hover:text-[var(--text-primary)]
            disabled:opacity-40 disabled:cursor-not-allowed;
+    color: var(--text-secondary);
+  }
+  .btn-ghost:hover {
+    color: var(--text-primary);
   }
 
-  /* Premium Input — dark context */
+  /* Premium Input */
   .input-premium {
     @apply w-full bg-transparent
-           border-b border-[var(--border-mid)]
            py-3 px-0
-           text-sm font-bold text-[var(--text-primary)]
-           placeholder:text-[var(--text-muted)] placeholder:font-normal
+           text-sm font-bold
+           placeholder:font-normal
            outline-none
-           transition-all duration-200
-           focus:border-[var(--text-primary)];
+           transition-all duration-200;
+    border-bottom: 1px solid var(--border-mid);
+    color: var(--text-primary);
+  }
+  .input-premium::placeholder {
+    color: var(--text-muted);
+  }
+  .input-premium:focus {
+    border-bottom-color: var(--color-cardinal);
   }
 
   .input-premium-error {
-    @apply border-[#ba1f3d] focus:border-[#ba1f3d];
+    border-bottom-color: var(--color-cardinal) !important;
   }
 
   /* Select */
@@ -192,15 +239,40 @@
   }
 
   .badge-red {
-    @apply badge bg-[#ba1f3d] text-white;
+    @apply badge text-white;
+    background-color: var(--color-cardinal);
+  }
+
+  .badge-crimson {
+    @apply badge text-white;
+    background-color: var(--color-crimson);
+  }
+
+  .badge-gold {
+    @apply badge;
+    background-color: oklch(0.82 0.16 84 / 0.15);
+    color: oklch(0.55 0.14 70); /* deep amber text for contrast */
+    border: 1px solid oklch(0.82 0.16 84 / 0.4);
+  }
+
+  .badge-success {
+    @apply badge;
+    background-color: oklch(0.64 0.18 145 / 0.12);
+    color: oklch(0.45 0.16 145);
+    border: 1px solid oklch(0.64 0.18 145 / 0.3);
   }
 
   .badge-dark {
-    @apply badge bg-[var(--bg-elevated)] border border-[var(--border-mid)] text-[var(--text-secondary)];
+    @apply badge;
+    background-color: var(--bg-elevated);
+    border: 1px solid var(--border-mid);
+    color: var(--text-secondary);
   }
 
   .badge-outline {
-    @apply badge border border-[var(--border-mid)] text-[var(--text-secondary)];
+    @apply badge;
+    border: 1px solid var(--border-mid);
+    color: var(--text-secondary);
   }
 
   .divider {
