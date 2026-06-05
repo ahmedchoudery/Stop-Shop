@@ -3,14 +3,14 @@
 /**
  * @fileoverview ProductCard — Premium Dark Edition
  * Refinements:
- *  - Fixed "New" badge logic (was incorrectly tied to rating >= 5)
- *  - Tighter, more premium info section
- *  - Better "Added to bag" feedback placement
- *  - Kept all existing hover mechanics (3D tilt, scale, quick view)
+ *  - Added GPU-accelerated 3D parallax tilt interaction on image container.
+ *  - Integrated anime.js spring/elastic micro-interactions on hover and click actions.
+ *  - Clean typography and premium luxury animations per design-spells.
  */
 
 import React, { useState, useCallback } from 'react';
 import { Heart, ShoppingBag, Eye } from 'lucide-react';
+import anime from 'animejs';
 import { useNavigate } from '../utils/router-compat.jsx';
 import { useCart } from '../context/CartContext.tsx';
 import { useWishlist } from '../context/WishlistContext.jsx';
@@ -26,11 +26,11 @@ const ProductCard = ({ product, onImageLoad }) => {
   const [activeColor, setActiveColor] = useState(product.colors?.[0] ?? null);
   const [cartAdded,   setCartAdded]   = useState(false);
   const [isHovered,   setIsHovered]   = useState(false);
+  const [tiltStyle,   setTiltStyle]   = useState({});
 
   const wishlisted = isWishlisted(product.id);
   const outOfStock = product.stock === 0;
 
-  // Use product.isNew if available, otherwise fall back to a createdAt check
   const isNew = product.isNew
     ?? (product.createdAt
         ? Date.now() - new Date(product.createdAt).getTime() < 30 * 24 * 60 * 60 * 1000
@@ -40,6 +40,30 @@ const ProductCard = ({ product, onImageLoad }) => {
     product.subCategory && product.subCategory.toLowerCase() !== 'general'
       ? product.subCategory
       : product.bucket;
+
+  // ── 3D Parallax Tilt interactions ────────────────────────────────
+  const handleCardMouseMove = useCallback((e) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left - rect.width / 2;
+    const y = e.clientY - rect.top - rect.height / 2;
+    
+    // Smoothly tilt card based on cursor coordinates
+    const rotateX = -(y / (rect.height / 2)) * 8; // Max 8 deg tilt
+    const rotateY = (x / (rect.width / 2)) * 8;
+
+    setTiltStyle({
+      transform: `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`,
+      transition: 'transform 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+    });
+  }, []);
+
+  const handleCardMouseLeave = useCallback(() => {
+    setIsHovered(false);
+    setTiltStyle({
+      transform: 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)',
+      transition: 'transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
+    });
+  }, []);
 
   // ── Handlers ─────────────────────────────────────────────────────
   const handleAddToCart = useCallback(
@@ -55,12 +79,31 @@ const ProductCard = ({ product, onImageLoad }) => {
       });
       setCartAdded(true);
       setTimeout(() => setCartAdded(false), 1800);
+
+      // Spring click feedback pop
+      anime({
+        targets: e.currentTarget,
+        scale: [1, 1.3, 1],
+        duration: 450,
+        easing: 'easeOutElastic(1, .6)'
+      });
     },
     [addToCart, product, activeColor, outOfStock]
   );
 
   const handleWishlist = useCallback(
-    (e) => { e.stopPropagation(); toggleWishlist(product); },
+    (e) => {
+      e.stopPropagation();
+      toggleWishlist(product);
+
+      // Elastic heart pop feedback
+      anime({
+        targets: e.currentTarget,
+        scale: [1, 1.4, 1],
+        duration: 500,
+        easing: 'easeOutElastic(1, .5)'
+      });
+    },
     [product, toggleWishlist]
   );
 
@@ -73,37 +116,50 @@ const ProductCard = ({ product, onImageLoad }) => {
     <article
       className="group relative cursor-pointer"
       onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseLeave={handleCardMouseLeave}
+      onMouseMove={handleCardMouseMove}
       onClick={handleCardClick}
+      style={{
+        transformStyle: 'preserve-3d',
+      }}
     >
-      {/* ── Image Container ─────────────────────────────────── */}
-      <div className="relative aspect-[3/4] overflow-hidden bg-neutral-50 mb-3.5">
-
+      {/* ── Image Container with 3D Tilt ──────────────────────── */}
+      <div 
+        className="relative aspect-[3/4] overflow-hidden bg-neutral-50 mb-3.5 shadow-sm border border-gray-100/40"
+        style={{
+          ...tiltStyle,
+          transformStyle: 'preserve-3d',
+          willChange: 'transform'
+        }}
+      >
         {/* Main Image */}
-        <MediaRenderer
-          src={product.mediaType === 'embed' ? null : product.image}
-          embedCode={product.mediaType === 'embed' ? product.embedCode : undefined}
-          mediaType={product.mediaType}
-          alt={product.name}
-          onLoad={() => onImageLoad?.()}
-          className={[
-            'w-full h-full object-cover transition-transform duration-700 ease-out',
-            isHovered ? 'scale-[1.06]' : 'scale-100',
-            outOfStock ? 'opacity-35' : '',
-          ].join(' ')}
-        />
+        <div style={{ transform: 'translateZ(10px)', transformStyle: 'preserve-3d' }} className="w-full h-full">
+          <MediaRenderer
+            src={product.mediaType === 'embed' ? null : product.image}
+            embedCode={product.mediaType === 'embed' ? product.embedCode : undefined}
+            mediaType={product.mediaType}
+            alt={product.name}
+            onLoad={() => onImageLoad?.()}
+            className={[
+              'w-full h-full object-cover transition-transform duration-700 ease-out',
+              isHovered ? 'scale-[1.04]' : 'scale-100',
+              outOfStock ? 'opacity-35' : '',
+            ].join(' ')}
+          />
+        </div>
 
         {/* Hover overlay */}
         <div
           className={`absolute inset-0 transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'}`}
+          style={{ transform: 'translateZ(15px)' }}
         >
-          <div className="absolute inset-0 bg-gradient-to-t from-black/55 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
-          {/* Quick View */}
+          {/* Quick View Button */}
           <div className="absolute bottom-4 left-4 right-4">
             <button
               onClick={(e) => { e.stopPropagation(); navigate(`/product/${product.id}`); }}
-              className="w-full flex items-center justify-center gap-2.5 bg-white text-black py-3 text-[9px] font-black uppercase tracking-[0.3em] transition-all duration-300 hover:bg-[#f0f0f0]"
+              className="w-full flex items-center justify-center gap-2.5 bg-white text-black py-3 text-[9px] font-black uppercase tracking-[0.3em] transition-all duration-300 hover:bg-black hover:text-white"
             >
               <Eye size={11} />
               <span>Quick View</span>
@@ -115,14 +171,15 @@ const ProductCard = ({ product, onImageLoad }) => {
         <button
           onClick={handleWishlist}
           className={[
-            'absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center transition-all duration-300',
+            'absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center transition-all duration-300 shadow-sm',
             wishlisted
               ? 'bg-[#ba1f3d] opacity-100'
-              : 'bg-white/80 opacity-100 lg:opacity-0 lg:group-hover:opacity-100',
+              : 'bg-white/95 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 hover:bg-[#ba1f3d] hover:text-white',
           ].join(' ')}
+          style={{ transform: 'translateZ(20px)' }}
           aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
         >
-          <Heart size={12} className={wishlisted ? 'fill-white text-white' : 'text-black'} />
+          <Heart size={12} className={wishlisted ? 'fill-white text-white' : 'text-black hover:text-white transition-colors duration-200'} />
         </button>
 
         {/* Add to cart — top left */}
@@ -130,25 +187,26 @@ const ProductCard = ({ product, onImageLoad }) => {
           <button
             onClick={handleAddToCart}
             className={[
-              'absolute top-3 left-3 z-10 w-8 h-8 flex items-center justify-center transition-all duration-300',
-              cartAdded ? 'bg-[#ba1f3d]' : 'bg-white/80',
-              'opacity-100 lg:opacity-0 lg:group-hover:opacity-100',
+              'absolute top-3 left-3 z-10 w-8 h-8 flex items-center justify-center transition-all duration-300 shadow-sm',
+              cartAdded ? 'bg-[#ba1f3d]' : 'bg-white/95',
+              'opacity-100 lg:opacity-0 lg:group-hover:opacity-100 hover:bg-black hover:text-white',
             ].join(' ')}
+            style={{ transform: 'translateZ(20px)' }}
             aria-label="Add to cart"
           >
-            <ShoppingBag size={12} className={cartAdded ? 'text-white' : 'text-black'} />
+            <ShoppingBag size={12} className={cartAdded ? 'text-white' : 'text-black hover:text-white transition-colors duration-200'} />
           </button>
         )}
 
         {/* Status badges — mutually exclusive */}
         {outOfStock ? (
-          <div className="absolute top-3 left-3 z-10 bg-white/90 px-2 py-1 border border-gray-300">
+          <div className="absolute top-3 left-3 z-10 bg-white/90 px-2 py-1 border border-gray-300" style={{ transform: 'translateZ(25px)' }}>
             <span className="text-[7px] font-black uppercase tracking-[0.35em] text-gray-500">
               Sold Out
             </span>
           </div>
         ) : isNew && (
-          <div className="absolute top-3 left-3 z-10 bg-[#ba1f3d] px-2.5 py-1">
+          <div className="absolute top-3 left-3 z-10 bg-[#ba1f3d] px-2.5 py-1" style={{ transform: 'translateZ(25px)' }}>
             <span className="text-[7px] font-black uppercase tracking-[0.35em] text-white">
               New
             </span>
@@ -158,7 +216,6 @@ const ProductCard = ({ product, onImageLoad }) => {
 
       {/* ── Product Info ────────────────────────────────────── */}
       <div className="px-0.5">
-
         {/* Category */}
         <p className="text-[8px] font-bold text-gray-500 uppercase tracking-[0.4em] mb-1.5">
           {category}
