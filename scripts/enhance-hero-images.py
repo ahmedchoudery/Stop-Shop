@@ -1,123 +1,129 @@
+# -*- coding: utf-8 -*-
 """
-Professional Hero Image Processing
-====================================
-1. Desktop: Remove watermark remnant (bottom-right corner) via OpenCV inpainting
-2. All 3 images: Professional noise reduction — natural, film-like, not over-sharpened
-3. Subtle color grading — richer, not synthetic
-4. ZERO crop. ZERO resize. Same dimensions guaranteed.
+Professional Hero Image Processing - v3
+=========================================
+PHILOSOPHY:
+  - Zero sharpening. Zero over-processing. Zero visible edits.
+  - The goal is for the image to look like it was shot on a
+    high-end camera with perfect lighting -- not like it was edited.
+
+TECHNIQUES:
+  1. Watermark removal via CLONE STAMP (not inpaint which blurs)
+     - Copies matching floor texture from a clean region on same image
+     - Seamless blend with cv2.seamlessClone for invisible join
+  2. Noise/grain removal via Bilateral Filter
+     - Edge-preserving: keeps sharp edges (lapels, eyes, bag seams)
+       while smoothing flat surfaces (red wall, white trousers, floor)
+     - Does NOT sharpen. Does NOT add halos.
+  3. JPEG re-encoding at quality=99 with chroma preservation
+     - Removes compression artifacts (JPEG banding on red wall)
+     - Saves at near-lossless quality
+  4. Zero crop. Zero resize. Zero composition change.
 """
 
 import cv2
 import numpy as np
-from PIL import Image, ImageEnhance
 import os
 
 PUBLIC_DIR = os.path.join(os.path.dirname(__file__), "..", "public")
 
-# ──────────────────────────────────────────────
-# STEP 1: Remove watermark from Hero-Desktop
-# ──────────────────────────────────────────────
-def remove_watermark(img_path):
-    print("  [1/3] Removing watermark from bottom-right corner...")
-    img = cv2.imread(img_path)
+
+def remove_watermark_clone_stamp(img):
+    """
+    Clone stamp: copies a matching patch of clean floor from the left side
+    and blends it seamlessly over the watermark area on the right.
+    No blur. No smear. Invisible result.
+    """
     h, w = img.shape[:2]
-    original_size = (w, h)
 
-    # Detect the watermark region — bottom-right corner
-    # Sample the surrounding floor color to build an accurate mask
-    # The watermark area appears as pinkish/bright smear in bottom-right
-    roi_x1 = w - 220
-    roi_y1 = h - 180
-    roi_x2 = w
-    roi_y2 = h
+    # --- Define the watermark region (bottom-right corner) ---
+    # Pink/bright smear on the concrete floor, far right edge
+    wm_x1 = w - 160
+    wm_y1 = h - 110
+    wm_x2 = w
+    wm_y2 = h
+    wm_w = wm_x2 - wm_x1
+    wm_h = wm_y2 - wm_y1
 
-    # Create inpainting mask — target the abnormal region
-    mask = np.zeros((h, w), dtype=np.uint8)
+    # --- Source patch: clean floor from same vertical position, left side ---
+    # The floor is same texture -- we take a patch from left of the frame
+    src_x1 = 60
+    src_y1 = wm_y1
+    src_x2 = src_x1 + wm_w
+    src_y2 = wm_y2
 
-    # Sample the natural floor color in that region
-    floor_sample = img[h-200:h-180, w-300:w-250]  # clean floor area nearby
-    avg_floor = np.mean(floor_sample, axis=(0, 1))  # BGR average
+    # Extract the clean source patch
+    src_patch = img[src_y1:src_y2, src_x1:src_x2].copy()
 
-    # Build mask: pixels that deviate significantly from natural floor tones
-    roi = img[roi_y1:roi_y2, roi_x1:roi_x2].astype(np.float32)
-    diff = np.abs(roi - avg_floor)
-    total_diff = diff.sum(axis=2)
+    # Destination center point for seamlessClone
+    center_x = wm_x1 + wm_w // 2
+    center_y = wm_y1 + wm_h // 2
+    center = (center_x, center_y)
 
-    # Threshold: anything that differs more than 35 from expected floor color
-    watermark_pixels = (total_diff > 35).astype(np.uint8) * 255
-    # Dilate slightly to catch edges/blur around the watermark
-    kernel = np.ones((7, 7), np.uint8)
-    watermark_pixels = cv2.dilate(watermark_pixels, kernel, iterations=2)
+    # Create a full white mask (blend entire source patch)
+    mask = 255 * np.ones(src_patch.shape, src_patch.dtype)
 
-    mask[roi_y1:roi_y2, roi_x1:roi_x2] = watermark_pixels
+    # Seamless clone: Poisson blending -- photorealistic, invisible seams
+    result = cv2.seamlessClone(src_patch, img, mask, center, cv2.MIXED_CLONE)
 
-    # OpenCV Telea inpainting — fills masked region from surrounding pixels
-    result = cv2.inpaint(img, mask, inpaintRadius=12, flags=cv2.INPAINT_TELEA)
-
-    assert result.shape[1] == w and result.shape[0] == h, "SIZE CHANGED!"
-    print(f"  Watermark removed. Size intact: {w}x{h}px")
+    print("  Watermark removed via clone stamp (seamless blend)")
     return result
 
 
-# ──────────────────────────────────────────────
-# STEP 2: Professional enhancement (all images)
-# Natural, noise-free, not over-sharpened
-# ──────────────────────────────────────────────
-def enhance_natural(cv_img):
-    print("  [2/3] Applying professional noise reduction...")
+def bilateral_denoise(img):
+    """
+    Bilateral filter: removes noise and JPEG compression artifacts
+    while perfectly preserving all edges and natural texture.
+    - sigmaColor=40: only averages pixels with similar color (preserves edges)
+    - sigmaSpace=40: averages over a 9px neighbourhood
+    - Applied twice at low strength for best quality
+    """
+    # Two gentle passes -- gentler than one aggressive pass
+    result = cv2.bilateralFilter(img, d=9, sigmaColor=35, sigmaSpace=35)
+    result = cv2.bilateralFilter(result, d=5, sigmaColor=20, sigmaSpace=20)
+    print("  Bilateral denoising applied (two-pass, edge-preserving)")
+    return result
 
-    # Fast Non-Local Means Denoising — best-in-class noise removal
-    # h=6: gentle, preserves texture. Not aggressive.
-    denoised = cv2.fastNlMeansDenoisingColored(
-        cv_img,
-        None,
-        h=6,           # luminance noise strength (low = natural)
-        hColor=6,      # color noise strength
-        templateWindowSize=7,
-        searchWindowSize=21
-    )
 
-    print("  [3/3] Applying natural color & micro-detail enhancement...")
-    # Convert to PIL for final color grading
-    pil_img = Image.fromarray(cv2.cvtColor(denoised, cv2.COLOR_BGR2RGB))
-
-    # Very subtle enhancements — natural, not synthetic
-    pil_img = ImageEnhance.Color(pil_img).enhance(1.12)       # slight vibrancy
-    pil_img = ImageEnhance.Contrast(pil_img).enhance(1.08)    # gentle contrast
-    pil_img = ImageEnhance.Brightness(pil_img).enhance(1.02)  # barely any lift
-    pil_img = ImageEnhance.Sharpness(pil_img).enhance(1.3)    # subtle — not crunchy
-
-    return pil_img
+def save_high_quality(img, path):
+    """Save as JPEG at quality=99 with no chroma subsampling."""
+    encode_params = [
+        cv2.IMWRITE_JPEG_QUALITY, 99,
+        cv2.IMWRITE_JPEG_SAMPLING_FACTOR, cv2.IMWRITE_JPEG_SAMPLING_FACTOR_444
+    ]
+    cv2.imwrite(path, img, encode_params)
 
 
 # ──────────────────────────────────────────────
-# PROCESS ALL 3 IMAGES
+# MAIN PROCESSING
 # ──────────────────────────────────────────────
-IMAGES = ["Hero-Desktop.jpeg", "Hero-Mobile.jpeg", "Hero-Tablet.jpeg"]
+IMAGES = [
+    ("Hero-Desktop.jpeg", True),   # True = needs watermark removal
+    ("Hero-Mobile.jpeg",  False),
+    ("Hero-Tablet.jpeg",  False),
+]
 
-for filename in IMAGES:
+for filename, needs_wm_removal in IMAGES:
     path = os.path.join(PUBLIC_DIR, filename)
-    print(f"\nProcessing {filename}...")
+    print("\nProcessing {}...".format(filename))
 
-    # Load with OpenCV
-    cv_img = cv2.imread(path)
-    h, w = cv_img.shape[:2]
-    print(f"  Original size: {w}x{h}px")
+    img = cv2.imread(path)
+    h, w = img.shape[:2]
+    print("  Size: {}x{}px".format(w, h))
 
-    # Desktop: remove watermark first
-    if filename == "Hero-Desktop.jpeg":
-        cv_img = remove_watermark(path)
+    # Step 1: Watermark removal (desktop only)
+    if needs_wm_removal:
+        img = remove_watermark_clone_stamp(img)
 
-    # Enhance naturally
-    result_pil = enhance_natural(cv_img)
+    # Step 2: Bilateral noise reduction (all images)
+    img = bilateral_denoise(img)
 
-    # Verify dimensions
-    rw, rh = result_pil.size
-    assert rw == w and rh == h, f"SIZE MISMATCH: {w}x{h} -> {rw}x{rh}"
-    print(f"  Final size:    {rw}x{rh}px  OK (unchanged)")
+    # Step 3: Verify no size change
+    assert img.shape[1] == w and img.shape[0] == h, "SIZE CHANGED!"
+    print("  Size unchanged: {}x{}px OK".format(w, h))
 
-    # Save at high quality
-    result_pil.save(path, "JPEG", quality=97, optimize=True, subsampling=0)
-    print(f"  Saved: {filename}")
+    # Step 4: Save at maximum quality
+    save_high_quality(img, path)
+    print("  Saved at quality=99: {}".format(filename))
 
-print("\nAll done. Professional quality. Zero crop. Zero resize.")
+print("\nAll done. Natural. Clean. Professional.")
