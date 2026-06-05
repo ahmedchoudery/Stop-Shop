@@ -44,7 +44,7 @@ export default {
       // ── Typography ─────────────────────────────────────────
       fontFamily: {
         sans: ['var(--font-dm-sans)', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
-        heading: ['var(--font-barlow)', 'Barlow Condensed', 'sans-serif'],
+        heading: ['var(--font-playfair)', 'serif'],
         mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
       },
 
@@ -58,11 +58,11 @@ export default {
 
       // ── Shadows ────────────────────────────────────────────
       boxShadow: {
-        'cardinal': '0 20px 60px rgba(186,31,61,0.2)',
-        'cardinal-lg': '0 30px 80px rgba(186,31,61,0.3)',
-        'glow': '0 0 30px rgba(186,31,61,0.4)',
-        'diffuse': '0 20px 60px rgba(0,0,0,0.08)',
-        'luxury': '0 40px 100px rgba(0,0,0,0.12)',
+        'cardinal': '0 2px 8px rgba(0,0,0,0.03)',
+        'cardinal-lg': '0 4px 16px rgba(0,0,0,0.04)',
+        'glow': 'none',
+        'diffuse': '0 1px 3px rgba(0,0,0,0.02)',
+        'luxury': '0 4px 20px rgba(0,0,0,0.03)',
       },
 
       // ── Border Radius ──────────────────────────────────────

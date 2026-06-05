@@ -13,35 +13,39 @@
    Lightness: 0–1  |  Chroma: 0–0.4  |  Hue: 0–360°              */
 
 :root {
-  /* ── Brand Accent — Cardinal Red ──────────────────────────── */
-  --color-cardinal:        oklch(0.42 0.18 17);   /* #ba1f3d — brand soul  */
-  --color-cardinal-hover:  oklch(0.50 0.20 17);   /* #d4294d — hover lift  */
-  --color-cardinal-active: oklch(0.32 0.15 17);   /* #8B0000 — press down  */
-  --color-cardinal-glow:   oklch(0.42 0.18 17 / 0.25); /* shadow ambient  */
-  --color-crimson:         oklch(0.55 0.22 19);   /* #F63049 — urgency     */
-  --color-amber-gold:      oklch(0.82 0.16 84);   /* #FBBF24 — luxury note */
+  /* ── Brand Accent — Charcoal Black (formerly Cardinal Red) ── */
+  --color-cardinal:        oklch(0.15 0.000 0);   /* #111111 — primary brand */
+  --color-cardinal-hover:  oklch(0.30 0.000 0);   /* #333333 — hover lift    */
+  --color-cardinal-active: oklch(0.00 0.000 0);   /* #000000 — press down    */
+  --color-cardinal-glow:   rgba(0,0,0,0.02);      /* minimal glow            */
+  --color-crimson:         oklch(0.40 0.160 20);  /* #9f2f2d — deep text red */
+  --color-crimson-bg:      oklch(0.95 0.020 20);  /* #fdebec — pale red bg   */
+  --color-amber-gold:      oklch(0.82 0.160 84);  /* #FBBF24 — gold accent   */
 
-  /* ── Neutral Scale — Warm-Tinted Grays ────────────────────── */
-  --bg-base:               oklch(1.00 0.000 0);   /* #ffffff — pure white  */
-  --bg-surface:            oklch(0.98 0.003 240);  /* #f9fafb — warm tint   */
-  --bg-elevated:           oklch(0.96 0.005 240);  /* #f3f4f6 — inputs      */
-  --bg-overlay:            oklch(0.00 0.000 0 / 0.45); /* modal scrim        */
+  /* ── Neutral Scale — Warm-Tinted bone scale ───────────────── */
+  --bg-base:               oklch(0.97 0.003 80);  /* #F7F6F3 — warm bone     */
+  --bg-surface:            oklch(1.00 0.000 0);   /* #ffffff — pure white    */
+  --bg-elevated:           oklch(0.95 0.003 80);  /* #f2f1ec — inputs/hover  */
+  --bg-overlay:            oklch(0.15 0.000 0 / 0.35); /* modal scrim        */
 
   /* ── Borders ───────────────────────────────────────────────── */
-  --border:                oklch(0.92 0.005 240);  /* #e5e7eb — hairline    */
-  --border-mid:            oklch(0.86 0.008 240);  /* #d1d5db — medium      */
-  --border-strong:         oklch(0.70 0.010 240);  /* #9ca3af — emphasis    */
+  --border:                oklch(0.93 0.000 0);   /* #eaeaea — hairline border */
+  --border-mid:            oklch(0.88 0.000 0);   /* medium border           */
+  --border-strong:         oklch(0.70 0.000 0);   /* strong border           */
 
   /* ── Typography ────────────────────────────────────────────── */
-  --text-primary:          oklch(0.15 0.010 240);  /* #111827 — headings    */
-  --text-secondary:        oklch(0.42 0.012 240);  /* #4b5563 — body text   */
-  --text-muted:            oklch(0.64 0.010 240);  /* #9ca3af — de-emphasis */
-  --text-inverse:          oklch(1.00 0.000 0);    /* white on dark BG      */
+  --text-primary:          oklch(0.15 0.000 0);   /* #111111 — off-black     */
+  --text-secondary:        oklch(0.55 0.000 0);   /* #787774 — muted gray    */
+  --text-muted:            oklch(0.70 0.000 0);   /* #a4a4a2 — de-emphasis   */
+  --text-inverse:          oklch(1.00 0.000 0);   /* white text              */
 
-  /* ── Semantic Colors ───────────────────────────────────────── */
-  --color-success:         oklch(0.64 0.18 145);   /* #22C55E — in-stock    */
-  --color-warning:         oklch(0.82 0.16 84);    /* #FBBF24 — promo       */
-  --color-error:           oklch(0.55 0.22 19);    /* #F63049 — errors      */
+  /* ── Semantic Colors (Washed-out Pastels) ─────────────────── */
+  --color-success:         oklch(0.45 0.120 145); /* #346538 — green text    */
+  --color-success-bg:      oklch(0.96 0.020 145); /* #edf3ec — green bg      */
+  --color-warning:         oklch(0.50 0.120 80);  /* #956400 — warning text  */
+  --color-warning-bg:      oklch(0.96 0.020 80);  /* #fbf3db — warning bg    */
+  --color-error:           oklch(0.40 0.160 20);  /* #9f2f2d — error text    */
+  --color-error-bg:        oklch(0.95 0.020 20);  /* #fdebec — error bg      */
 
   /* ── Legacy aliases (keep backward compat) ─────────────────── */
   --accent: var(--color-cardinal);
@@ -257,22 +261,24 @@
   }
 
   .badge-crimson {
-    @apply badge text-white;
-    background-color: var(--color-crimson);
+    @apply badge;
+    background-color: var(--color-crimson-bg);
+    color: var(--color-crimson);
+    border: 1px solid var(--color-crimson-bg);
   }
 
   .badge-gold {
     @apply badge;
-    background-color: oklch(0.82 0.16 84 / 0.15);
-    color: oklch(0.55 0.14 70); /* deep amber text for contrast */
-    border: 1px solid oklch(0.82 0.16 84 / 0.4);
+    background-color: var(--color-warning-bg);
+    color: var(--color-warning);
+    border: 1px solid var(--color-warning-bg);
   }
 
   .badge-success {
     @apply badge;
-    background-color: oklch(0.64 0.18 145 / 0.12);
-    color: oklch(0.45 0.16 145);
-    border: 1px solid oklch(0.64 0.18 145 / 0.3);
+    background-color: var(--color-success-bg);
+    color: var(--color-success);
+    border: 1px solid var(--color-success-bg);
   }
 
   .badge-dark {

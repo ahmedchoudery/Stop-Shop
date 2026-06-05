@@ -14,39 +14,39 @@ export default function Providers({ children }) {
     <ConfigProvider
       theme={{
         token: {
-          /* Cardinal Red — OKLCH(0.42 0.18 17) ≈ #ba1f3d */
-          colorPrimary:       '#ba1f3d',
-          colorPrimaryHover:  '#d4294d',  /* OKLCH(0.50 0.20 17) */
-          colorPrimaryActive: '#8B0000',  /* OKLCH(0.32 0.15 17) */
-          colorLink:          '#ba1f3d',
-          colorLinkHover:     '#d4294d',
+          /* Charcoal Black Primary Accent */
+          colorPrimary:       '#111111',
+          colorPrimaryHover:  '#333333',
+          colorPrimaryActive: '#000000',
+          colorLink:          '#111111',
+          colorLinkHover:     '#333333',
 
-          /* Semantic */
-          colorSuccess: '#22C55E',   /* OKLCH(0.64 0.18 145) */
-          colorWarning: '#FBBF24',   /* OKLCH(0.82 0.16 84)  */
-          colorError:   '#F63049',   /* OKLCH(0.55 0.22 19)  */
-          colorInfo:    '#ba1f3d',
+          /* Semantic (Desaturated colors matching pastels) */
+          colorSuccess: '#346538',
+          colorWarning: '#956400',
+          colorError:   '#9f2f2d',
+          colorInfo:    '#111111',
 
-          /* Surfaces — warm-tinted OKLCH neutrals */
+          /* Surfaces — clean warm monochrome */
           colorBgBase:       '#ffffff',
-          colorBgContainer:  '#f9fafb',
-          colorBgElevated:   '#f3f4f6',
-          colorBgLayout:     '#ffffff',
+          colorBgContainer:  '#ffffff',
+          colorBgElevated:   '#f2f1ec',
+          colorBgLayout:     '#f7f6f3',
 
           /* Typography */
-          colorTextBase:     '#111827',  /* OKLCH(0.15 0.01 240) */
-          colorTextSecondary:'#4b5563',  /* OKLCH(0.42 0.012 240) */
-          colorTextTertiary: '#9ca3af',  /* OKLCH(0.64 0.010 240) */
+          colorTextBase:     '#111111',
+          colorTextSecondary:'#787774',
+          colorTextTertiary: '#a4a4a2',
 
           /* Borders */
-          colorBorder:       '#e5e7eb',  /* OKLCH(0.92 0.005 240) */
-          colorBorderSecondary: '#d1d5db',
+          colorBorder:       '#eaeaea',
+          colorBorderSecondary: '#eaeaea',
 
-          /* Typography */
-          fontFamily: 'var(--font-dm-sans), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+          /* Typography & Radii */
+          fontFamily: "'SF Pro Display', 'Geist Sans', var(--font-dm-sans), system-ui, -apple-system, sans-serif",
           fontSize: 14,
           borderRadius: 4,
-          borderRadiusLG: 8,
+          borderRadiusLG: 6,
           borderRadiusSM: 2,
 
           /* Motion */
@@ -57,68 +57,68 @@ export default function Providers({ children }) {
         },
         components: {
           Button: {
-            borderRadius:       0,
-            colorPrimary:       '#ba1f3d',
-            colorPrimaryHover:  '#d4294d',
-            colorPrimaryActive: '#8B0000',
+            borderRadius:       4,
+            colorPrimary:       '#111111',
+            colorPrimaryHover:  '#333333',
+            colorPrimaryActive: '#000000',
             controlHeight:      40,
             fontWeight:         900,
           },
           Input: {
-            borderRadius:      2,
-            colorPrimary:      '#ba1f3d',
-            colorPrimaryHover: '#d4294d',
-            activeBorderColor: '#ba1f3d',
-            hoverBorderColor:  '#d4294d',
+            borderRadius:      4,
+            colorPrimary:      '#111111',
+            colorPrimaryHover: '#333333',
+            activeBorderColor: '#111111',
+            hoverBorderColor:  '#333333',
           },
           Select: {
-            borderRadius:      2,
-            colorPrimary:      '#ba1f3d',
-            optionSelectedBg:  'rgba(186,31,61,0.08)',
+            borderRadius:      4,
+            colorPrimary:      '#111111',
+            optionSelectedBg:  'rgba(17,17,17,0.06)',
           },
           Card: {
-            borderRadius:    0,
-            colorBgContainer:'#f9fafb',
+            borderRadius:    4,
+            colorBgContainer:'#ffffff',
           },
           Badge: {
-            colorError: '#ba1f3d',
+            colorError: '#111111',
           },
           Tag: {
-            colorPrimary:      '#ba1f3d',
-            colorPrimaryHover: '#d4294d',
+            colorPrimary:      '#111111',
+            colorPrimaryHover: '#333333',
           },
           Table: {
-            colorPrimary: '#ba1f3d',
-            rowHoverBg:   'rgba(186,31,61,0.04)',
+            colorPrimary: '#111111',
+            rowHoverBg:   'rgba(17,17,17,0.03)',
           },
           Tabs: {
-            colorPrimary:      '#ba1f3d',
-            inkBarColor:       '#ba1f3d',
+            colorPrimary:      '#111111',
+            inkBarColor:       '#111111',
           },
           Switch: {
-            colorPrimary:      '#ba1f3d',
-            colorPrimaryHover: '#d4294d',
+            colorPrimary:      '#111111',
+            colorPrimaryHover: '#333333',
           },
           Checkbox: {
-            colorPrimary:      '#ba1f3d',
-            colorPrimaryHover: '#d4294d',
+            colorPrimary:      '#111111',
+            colorPrimaryHover: '#333333',
           },
           Radio: {
-            colorPrimary:      '#ba1f3d',
+            colorPrimary:      '#111111',
           },
           Pagination: {
-            colorPrimary:      '#ba1f3d',
-            colorPrimaryHover: '#d4294d',
+            colorPrimary:      '#111111',
+            colorPrimaryHover: '#333333',
           },
           Progress: {
-            defaultColor: '#ba1f3d',
+            defaultColor: '#111111',
           },
           Slider: {
-            colorPrimary:      '#ba1f3d',
-            colorPrimaryHover: '#d4294d',
+            colorPrimary:      '#111111',
+            colorPrimaryHover: '#333333',
           },
           Rate: {
-            starColor: '#FBBF24',
+            starColor: '#956400',
           },
         },
       }}

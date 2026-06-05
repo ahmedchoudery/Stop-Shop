@@ -1,15 +1,16 @@
 import React from 'react';
-import { Barlow_Condensed, DM_Sans } from 'next/font/google';
+import { Playfair_Display, DM_Sans } from 'next/font/google';
 import Providers from './providers.jsx';
 import Layout from '../layout/Layout.jsx';
 import UniversalDrawer from '../layout/UniversalDrawer.jsx';
 import ErrorBoundary from '../components/ErrorBoundary.tsx';
 import '../styles/index.css';
 
-const barlow = Barlow_Condensed({
-  weight: ['900'],
+const playfair = Playfair_Display({
+  weight: ['400', '700', '900'],
   subsets: ['latin'],
-  variable: '--font-barlow',
+  style: ['normal', 'italic'],
+  variable: '--font-playfair',
 });
 
 const dmSans = DM_Sans({
@@ -30,7 +31,7 @@ export const viewport = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en" className={`${dmSans.variable} ${barlow.variable}`}>
+    <html lang="en" className={`${dmSans.variable} ${playfair.variable}`}>
       <body className="font-sans antialiased selection:bg-white/10 selection:text-black">
         <ErrorBoundary title="Fatal App Error">
           <Providers>
