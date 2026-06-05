@@ -105,7 +105,7 @@ const Navbar = ({ products = [], onSearchOpen, scrolled, isHome }) => {
                   {activeTab === bucket && (
                     <motion.div
                       layoutId="navUnderline"
-                      className={`absolute bottom-0 left-4 right-4 h-[1.5px] ${isTransparent ? 'bg-white' : 'bg-cardinal'}`}
+                      className="absolute bottom-0 left-4 right-4 h-[1.5px] bg-amber-gold"
                       transition={{ type: 'spring', bounce: 0.15, duration: 0.5 }}
                     />
                   )}
