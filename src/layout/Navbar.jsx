@@ -53,10 +53,10 @@ const Navbar = ({ products = [], onSearchOpen, scrolled, isHome }) => {
     return () => document.removeEventListener('click', handler);
   }, [accountOpen]);
 
-  const iconColor = isTransparent ? 'text-black/50' : 'text-gray-600';
-  const iconHover = isTransparent ? 'hover:text-black hover:bg-white/10' : 'hover:text-black hover:bg-white/5';
+  const iconColor = isTransparent ? 'text-white/90' : 'text-gray-600';
+  const iconHover = isTransparent ? 'hover:text-white hover:bg-white/20' : 'hover:text-black hover:bg-white/5';
   const navBg = isTransparent
-    ? 'bg-transparent border-b border-black/5'
+    ? 'bg-transparent border-b border-white/10'
     : `border-b border-black/5 ${scrolled ? 'navbar-glass' : 'bg-white'}`;
 
   return (
@@ -67,14 +67,14 @@ const Navbar = ({ products = [], onSearchOpen, scrolled, isHome }) => {
       >
         <div className="h-full w-full max-w-[1440px] mx-auto px-6 sm:px-10 lg:px-16 flex items-center justify-between">
 
-          {/* Logo — red stays (brand anchor) */}
+          {/* Logo — white on transparent hero, brand red on scrolled/white background */}
           <Link to="/" onClick={() => setActiveTab('All')} className="flex-shrink-0">
             <span className={`text-xl font-black italic uppercase tracking-tighter transition-colors duration-300 ${
-              isTransparent ? 'text-[#ba1f3d]' : 'text-[#ba1f3d]'
+              isTransparent ? 'text-white' : 'text-[#ba1f3d]'
             }`}>
               Stop
               <span className={`not-italic font-black mx-0.5 transition-colors duration-300 ${
-                isTransparent ? 'text-black/80' : 'text-black'
+                isTransparent ? 'text-white/80' : 'text-black'
               }`}>&</span>
               Shop
             </span>
@@ -93,19 +93,19 @@ const Navbar = ({ products = [], onSearchOpen, scrolled, isHome }) => {
                   onClick={() => handleBucketClick(bucket)}
                   className={`relative flex items-center space-x-1.5 px-4 py-2 text-[10px] font-black uppercase tracking-[0.2em] transition-colors duration-200 ${
                     activeTab === bucket
-                      ? isTransparent ? 'text-black' : 'text-black'
-                      : isTransparent ? 'text-black/40 hover:text-black' : 'text-gray-500 hover:text-black'
+                      ? isTransparent ? 'text-white' : 'text-black'
+                      : isTransparent ? 'text-white/60 hover:text-white' : 'text-gray-500 hover:text-black'
                   }`}
                 >
                   <span>{bucket}</span>
                   {bucket !== 'All' && categoryMap[bucket]?.length > 0 && (
                     <ChevronDown size={9} className={`transition-transform duration-200 ${subMenuOpen === bucket ? 'rotate-180' : ''}`} />
                   )}
-                  {/* Active underline — red stays (navigation signal) */}
+                  {/* Active underline */}
                   {activeTab === bucket && (
                     <motion.div
                       layoutId="navUnderline"
-                      className="absolute bottom-0 left-4 right-4 h-[1.5px] bg-[#ba1f3d]"
+                      className={`absolute bottom-0 left-4 right-4 h-[1.5px] ${isTransparent ? 'bg-white' : 'bg-[#ba1f3d]'}`}
                       transition={{ type: 'spring', bounce: 0.15, duration: 0.5 }}
                     />
                   )}
@@ -190,8 +190,8 @@ const Navbar = ({ products = [], onSearchOpen, scrolled, isHome }) => {
               )}
             </button>
 
-            {/* Cart — badge stays red */}
-            <button onClick={() => openDrawer('cart')} className={`relative w-9 h-9 flex items-center justify-center ml-1 transition-all duration-300 ${isTransparent ? 'bg-white/10 text-black hover:bg-white/20' : 'bg-white/5 text-black hover:bg-white/10 border border-gray-200'}`} aria-label="Cart">
+            {/* Cart */}
+            <button onClick={() => openDrawer('cart')} className={`relative w-9 h-9 flex items-center justify-center ml-1 transition-all duration-300 ${isTransparent ? 'bg-white/10 text-white hover:bg-white/20' : 'bg-white/5 text-black hover:bg-white/10 border border-gray-200'}`} aria-label="Cart">
               <ShoppingBag size={16} strokeWidth={1.8} />
               {cartCount > 0 && (
                 <span className="absolute -top-1.5 -right-1.5 w-[16px] h-[16px] bg-[#ba1f3d] flex items-center justify-center text-[7px] font-black text-white leading-none border-[1.5px] border-white">
