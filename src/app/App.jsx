@@ -193,30 +193,64 @@ const PageContent = () => {
   );
 };
 
+import { ConfigProvider } from 'antd';
+
 function App() {
-
-
   return (
     <ErrorBoundary title="Something went wrong">
-      <LocaleProvider>
-        <CurrencyProvider>
-          <RecentlyViewedProvider>
-            <WishlistProvider>
-              <CartProvider>
-                <CustomerProvider>
-
-
-
-                  <Router>
-                    <PageContent />
-                    <UniversalDrawer />
-                  </Router>
-                </CustomerProvider>
-              </CartProvider>
-            </WishlistProvider>
-          </RecentlyViewedProvider>
-        </CurrencyProvider>
-      </LocaleProvider>
+      <ConfigProvider
+        theme={{
+          token: {
+            colorPrimary: '#ba1f3d',
+            colorLink: '#ba1f3d',
+            colorSuccess: '#22C55E',
+            colorWarning: '#FBBF24',
+            colorError: '#F63049',
+            colorBgBase: '#ffffff',
+            colorTextBase: '#111827',
+            fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+            borderRadius: 4,
+          },
+          components: {
+            Button: {
+              borderRadius: 0,
+              colorPrimary: '#ba1f3d',
+              colorPrimaryHover: '#F63049',
+              colorPrimaryActive: '#8B0000',
+              controlHeight: 40,
+            },
+            Input: {
+              borderRadius: 2,
+              colorPrimary: '#ba1f3d',
+              colorPrimaryHover: '#F63049',
+            },
+            Select: {
+              borderRadius: 2,
+              colorPrimary: '#ba1f3d',
+            },
+            Card: {
+              borderRadius: 0,
+            },
+          },
+        }}
+      >
+        <LocaleProvider>
+          <CurrencyProvider>
+            <RecentlyViewedProvider>
+              <WishlistProvider>
+                <CartProvider>
+                  <CustomerProvider>
+                    <Router>
+                      <PageContent />
+                      <UniversalDrawer />
+                    </Router>
+                  </CustomerProvider>
+                </CartProvider>
+              </WishlistProvider>
+            </RecentlyViewedProvider>
+          </CurrencyProvider>
+        </LocaleProvider>
+      </ConfigProvider>
     </ErrorBoundary>
   );
 }
