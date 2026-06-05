@@ -49,7 +49,7 @@ const PowerOfChoiceHero = () => {
             src="/Hero-Mobile.jpeg"
             alt="SS'26 Collection Mobile"
             className="block md:hidden w-full h-full object-cover"
-            style={{ objectPosition: '50% calc(100% + 0.5in)' }}
+            style={{ objectPosition: '50% calc(100% + 1.2in)' }}
             loading="eager"
           />
           {/* Tablet Viewport: Centered layout */}
