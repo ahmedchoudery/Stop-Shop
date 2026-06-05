@@ -189,7 +189,7 @@ const SizeChartModal = ({ isOpen, onClose, defaultCategory = 'Tops', highlightSi
         <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 flex-shrink-0">
           <div className="flex items-center space-x-3">
             <div className="w-9 h-9 bg-red-50 rounded-xl flex items-center justify-center">
-              <Ruler size={16} className="text-[#ba1f3d]" />
+              <Ruler size={16} className="text-cardinal" />
             </div>
             <div>
               <h2 className="text-base font-black uppercase tracking-tighter text-gray-900">Size Guide</h2>
@@ -233,7 +233,7 @@ const SizeChartModal = ({ isOpen, onClose, defaultCategory = 'Tops', highlightSi
           {/* Pill */}
           <div
             ref={pillRef}
-            className="absolute bottom-0 h-0.5 bg-[#ba1f3d] pointer-events-none"
+            className="absolute bottom-0 h-0.5 bg-cardinal pointer-events-none"
             style={{ willChange: 'left, width' }}
           />
           <div className="flex">
@@ -243,7 +243,7 @@ const SizeChartModal = ({ isOpen, onClose, defaultCategory = 'Tops', highlightSi
                 ref={el => { tabRefs.current[key] = el; }}
                 onClick={() => setActiveTab(key)}
                 className={`py-4 px-4 text-[10px] font-black uppercase tracking-widest transition-colors duration-200 ${
-                  activeTab === key ? 'text-[#ba1f3d]' : 'text-gray-400 hover:text-gray-700'
+                  activeTab === key ? 'text-cardinal' : 'text-gray-400 hover:text-gray-700'
                 }`}
               >
                 {label}
@@ -290,7 +290,7 @@ const SizeChartModal = ({ isOpen, onClose, defaultCategory = 'Tops', highlightSi
                       key={rIdx}
                       className={`group transition-colors duration-150 ${
                         isHighlighted
-                          ? 'bg-[#ba1f3d]/5 border-l-2 border-[#ba1f3d]'
+                          ? 'bg-cardinal/5 border-l-2 border-cardinal'
                           : 'hover:bg-gray-50/70'
                       }`}
                     >
@@ -299,14 +299,14 @@ const SizeChartModal = ({ isOpen, onClose, defaultCategory = 'Tops', highlightSi
                           key={cIdx}
                           className={`px-4 py-3 text-sm transition-colors ${
                             cIdx === 0
-                              ? `font-black sticky left-0 z-10 ${isHighlighted ? 'bg-[#ba1f3d]/5 text-[#ba1f3d]' : 'bg-white group-hover:bg-gray-50/70 text-gray-900'}`
+                              ? `font-black sticky left-0 z-10 ${isHighlighted ? 'bg-cardinal/5 text-cardinal' : 'bg-white group-hover:bg-gray-50/70 text-gray-900'}`
                               : `font-medium text-gray-600 ${isHighlighted ? 'text-gray-700' : ''}`
                           }`}
                         >
                           {cIdx === 0 ? (
                             <span className={`inline-flex items-center justify-center w-8 h-8 rounded-lg text-xs font-black transition-all ${
                               isHighlighted
-                                ? 'bg-[#ba1f3d] text-white shadow-md'
+                                ? 'bg-cardinal text-white shadow-md'
                                 : 'bg-gray-100 group-hover:bg-gray-200 text-gray-700'
                             }`}>
                               {cell}
@@ -344,7 +344,7 @@ const SizeChartModal = ({ isOpen, onClose, defaultCategory = 'Tops', highlightSi
             <div data-howto-content className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-4 overflow-hidden" style={{ maxHeight: '0px' }}>
               {data.howTo.map(({ label, desc }) => (
                 <div key={label} className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                  <p className="text-[9px] font-black uppercase tracking-widest text-[#ba1f3d] mb-1">{label}</p>
+                  <p className="text-[9px] font-black uppercase tracking-widest text-cardinal mb-1">{label}</p>
                   <p className="text-xs text-gray-500 font-medium leading-relaxed">{desc}</p>
                 </div>
               ))}

@@ -39,7 +39,7 @@ const CHART_COLORS = ['#ba1f3d', '#374151', '#FBBF24', '#22C55E', '#3B82F6', '#8
 
 const StatCard = ({ label, value, sub, icon: Icon, trend, color = 'red' }) => {
   const colorMap = {
-    red:    { bg: 'bg-red-50',    text: 'text-[#ba1f3d]',  border: 'border-red-100' },
+    red:    { bg: 'bg-red-50',    text: 'text-cardinal',  border: 'border-red-100' },
     green:  { bg: 'bg-green-50',  text: 'text-green-600',  border: 'border-green-100' },
     yellow: { bg: 'bg-yellow-50', text: 'text-yellow-600', border: 'border-yellow-100' },
     blue:   { bg: 'bg-blue-50',   text: 'text-blue-600',   border: 'border-blue-100' },
@@ -73,7 +73,7 @@ const StatCard = ({ label, value, sub, icon: Icon, trend, color = 'red' }) => {
         {sub && <p className="text-[9px] font-bold text-gray-400 mt-1 uppercase tracking-widest">{sub}</p>}
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#ba1f3d]/20 to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-700 origin-left" />
+      <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cardinal/20 to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-700 origin-left" />
     </div>
   );
 };
@@ -120,7 +120,7 @@ const AdminAnalytics = () => {
       {/* Header */}
       <div className="flex items-center justify-between mb-10">
         <div>
-          <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-2">Business Intelligence</p>
+          <p className="text-[9px] font-black uppercase tracking-[0.5em] text-cardinal mb-2">Business Intelligence</p>
           <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tighter text-gray-900">Analytics</h1>
         </div>
         <button
@@ -255,7 +255,7 @@ const AdminAnalytics = () => {
           {d.bestSellers?.length > 0 && (
             <div className="bg-white border border-gray-100 rounded-sm shadow-sm overflow-hidden mb-8">
               <div className="px-6 py-5 border-b border-gray-50 flex items-center space-x-2">
-                <TrendingUp size={14} className="text-[#ba1f3d]" />
+                <TrendingUp size={14} className="text-cardinal" />
                 <p className="text-[9px] font-black uppercase tracking-[0.4em] text-gray-400">Top Selling</p>
                 <h3 className="text-sm font-black uppercase tracking-tight text-gray-900">Best Sellers</h3>
               </div>
@@ -263,7 +263,7 @@ const AdminAnalytics = () => {
                 {d.bestSellers.map((p, i) => (
                   <div key={p.productId ?? i} className="flex items-center space-x-4 px-6 py-4 hover:bg-gray-50/60 transition-colors">
                     <div className={`w-7 h-7 flex items-center justify-center flex-shrink-0 font-black text-[10px] ${
-                      i === 0 ? 'bg-[#FBBF24] text-black'
+                      i === 0 ? 'bg-amber-gold text-black'
                       : i === 1 ? 'bg-gray-400 text-black'
                       : i === 2 ? 'bg-orange-400 text-black'
                       : 'bg-gray-100 text-gray-500'
@@ -279,7 +279,7 @@ const AdminAnalytics = () => {
                       </p>
                     </div>
                     <div className="text-right flex-shrink-0">
-                      <p className="text-xs font-black text-[#ba1f3d]">
+                      <p className="text-xs font-black text-cardinal">
                         {p.unitsSold ?? 0} sold
                       </p>
                       <p className="text-[9px] font-bold text-gray-400 mt-0.5">

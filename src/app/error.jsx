@@ -19,11 +19,11 @@ export default function Error({ error, reset }) {
       <div className="max-w-md w-full bg-white border border-gray-100 rounded-3xl p-8 shadow-xl shadow-gray-100/50 text-center animate-fade-in">
         {/* Warning Icon Envelope */}
         <div className="w-16 h-16 rounded-2xl bg-red-50 flex items-center justify-center mx-auto mb-6">
-          <AlertOctagon className="w-8 h-8 text-[#ba1f3d]" />
+          <AlertOctagon className="w-8 h-8 text-cardinal" />
         </div>
 
         {/* Text Headers */}
-        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-[#ba1f3d] mb-2">
+        <p className="text-[10px] font-black uppercase tracking-[0.4em] text-cardinal mb-2">
           Operational Error
         </p>
         <h1 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-gray-900 mb-3">
@@ -38,7 +38,7 @@ export default function Error({ error, reset }) {
           {/* Reset button */}
           <button
             onClick={() => reset()}
-            className="w-full sm:w-auto flex items-center justify-center space-x-2 px-6 py-3 bg-[#ba1f3d] hover:bg-[#a01630] text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all duration-200 shadow-lg shadow-red-200/50"
+            className="w-full sm:w-auto flex items-center justify-center space-x-2 px-6 py-3 bg-cardinal hover:bg-[#a01630] text-white text-[10px] font-black uppercase tracking-widest rounded-xl transition-all duration-200 shadow-lg shadow-red-200/50"
           >
             <RefreshCw size={12} className="animate-spin [animation-duration:10s]" />
             <span>Try Re-rendering</span>

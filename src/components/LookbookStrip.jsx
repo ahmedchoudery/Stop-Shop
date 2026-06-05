@@ -80,7 +80,7 @@ export default function LookbookStrip({ onShopNow }) {
           {/* CTA — red stays (primary action) */}
           <button
             onClick={() => { onShopNow?.('All'); scrollToGrid(); }}
-            className="group inline-flex items-center gap-4 bg-[#ba1f3d] text-white px-10 py-4 text-[11px] font-black uppercase tracking-[0.4em] transition-all duration-300 hover:brightness-110 active:scale-95"
+            className="group inline-flex items-center gap-4 bg-cardinal text-white px-10 py-4 text-[11px] font-black uppercase tracking-[0.4em] transition-all duration-300 hover:brightness-110 active:scale-95"
           >
             Shop The Look
             <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform duration-300" />

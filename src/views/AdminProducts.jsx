@@ -85,12 +85,12 @@ const DeleteConfirmModal = ({ product, onConfirm, onCancel, deleting }) => {
       {/* Modal */}
       <div className="relative bg-white rounded-sm shadow-2xl w-full max-w-md animate-scale-in overflow-hidden">
         {/* Red top accent */}
-        <div className="h-1 bg-[#ba1f3d] w-full" />
+        <div className="h-1 bg-cardinal w-full" />
 
         <div className="p-8">
           {/* Icon */}
           <div className="w-14 h-14 bg-red-50 rounded-full flex items-center justify-center mb-6 mx-auto">
-            <AlertTriangle size={24} className="text-[#ba1f3d]" />
+            <AlertTriangle size={24} className="text-cardinal" />
           </div>
 
           {/* Text */}
@@ -106,7 +106,7 @@ const DeleteConfirmModal = ({ product, onConfirm, onCancel, deleting }) => {
             </p>
             <p className="text-xs text-gray-400 mt-3 font-bold">
               This will also remove it from the Inventory collection.<br />
-              This action <span className="text-[#ba1f3d]">cannot be undone</span>.
+              This action <span className="text-cardinal">cannot be undone</span>.
             </p>
           </div>
 
@@ -122,7 +122,7 @@ const DeleteConfirmModal = ({ product, onConfirm, onCancel, deleting }) => {
             <button
               onClick={onConfirm}
               disabled={deleting}
-              className="flex-1 px-5 py-3 bg-[#ba1f3d] text-white text-[10px] font-black uppercase tracking-widest rounded-sm hover:brightness-110 transition-all disabled:opacity-50 flex items-center justify-center space-x-2"
+              className="flex-1 px-5 py-3 bg-cardinal text-white text-[10px] font-black uppercase tracking-widest rounded-sm hover:brightness-110 transition-all disabled:opacity-50 flex items-center justify-center space-x-2"
             >
               {deleting ? (
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -377,7 +377,7 @@ const AdminProducts = () => {
       {/* ── Header ────────────────────────────────────────────── */}
       <div className="flex items-center justify-between mb-10">
         <div>
-          <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-2">
+          <p className="text-[9px] font-black uppercase tracking-[0.5em] text-cardinal mb-2">
             Catalogue
           </p>
           <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tighter text-gray-900">
@@ -400,7 +400,7 @@ const AdminProducts = () => {
           {/* Add Product */}
           <button
             onClick={handleOpenCreate}
-            className="flex items-center space-x-2 px-6 py-3 bg-[#ba1f3d] text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-gray-900 transition-all duration-300 shadow-xl shadow-red-200/40"
+            className="flex items-center space-x-2 px-6 py-3 bg-cardinal text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-gray-900 transition-all duration-300 shadow-xl shadow-red-200/40"
           >
             <Plus size={14} />
             <span>Add Product</span>
@@ -461,7 +461,7 @@ const AdminProducts = () => {
               {!searchTerm && categoryFilter === 'all' && stockFilter === 'all' && (
                 <button
                   onClick={handleOpenCreate}
-                  className="mt-6 flex items-center space-x-2 mx-auto px-6 py-3 bg-[#ba1f3d] text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:brightness-110 transition-all"
+                  className="mt-6 flex items-center space-x-2 mx-auto px-6 py-3 bg-cardinal text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:brightness-110 transition-all"
                 >
                   <Plus size={12} />
                   <span>Add First Product</span>
@@ -549,7 +549,7 @@ const AdminProducts = () => {
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="flex-1 px-5 py-3 bg-[#ba1f3d] text-white text-[10px] font-black uppercase tracking-widest rounded-sm hover:brightness-110 transition-all disabled:opacity-50 flex items-center justify-center space-x-2 shadow-lg shadow-red-200/40"
+                className="flex-1 px-5 py-3 bg-cardinal text-white text-[10px] font-black uppercase tracking-widest rounded-sm hover:brightness-110 transition-all disabled:opacity-50 flex items-center justify-center space-x-2 shadow-lg shadow-red-200/40"
               >
                 {saving ? (
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />

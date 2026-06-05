@@ -54,7 +54,7 @@ const SidebarContent = ({ onClose }) => {
       {/* Brand */}
       <div className="px-6 py-5 border-b border-white/10 flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-black italic uppercase tracking-tighter text-[#ba1f3d]">
+          <h1 className="text-lg font-black italic uppercase tracking-tighter text-cardinal">
             Stop &amp; Shop
           </h1>
           <div className="flex items-center space-x-1.5 mt-0.5">
@@ -86,7 +86,7 @@ const SidebarContent = ({ onClose }) => {
             className={({ isActive }) =>
               `flex items-center space-x-3 px-4 py-3 rounded-xl text-[11px] font-bold uppercase tracking-wider transition-all ${
                 isActive
-                  ? 'bg-[#ba1f3d] text-white shadow-lg shadow-[#ba1f3d]/30'
+                  ? 'bg-cardinal text-white shadow-lg shadow-cardinal/30'
                   : 'text-gray-400 hover:text-black hover:bg-white/8'
               }`
             }

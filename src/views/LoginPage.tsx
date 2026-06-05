@@ -74,7 +74,7 @@ const LoginPage = () => {
   // ── Styles ────────────────────────────────────────────────────
 
   const inputCls = (field: keyof FieldErrors) => `w-full border-b-2 py-3 text-sm font-bold bg-transparent outline-none transition-all placeholder:text-gray-300 ${
-    fieldErrors[field] ? 'border-red-400 text-red-900' : 'border-gray-100 focus:border-[#ba1f3d]'
+    fieldErrors[field] ? 'border-red-400 text-red-900' : 'border-gray-100 focus:border-cardinal'
   }`;
 
   return (
@@ -83,7 +83,7 @@ const LoginPage = () => {
 
         {/* Brand Header */}
         <div className="text-center mb-12">
-          <h1 className="text-5xl font-black italic uppercase tracking-tighter text-[#ba1f3d] mb-3">
+          <h1 className="text-5xl font-black italic uppercase tracking-tighter text-cardinal mb-3">
             Stop & Shop
           </h1>
           <div className="flex items-center justify-center space-x-2 text-gray-400">
@@ -162,7 +162,7 @@ const LoginPage = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-4 bg-[#ba1f3d] text-white font-black uppercase tracking-[0.3em] text-xs rounded-xl shadow-2xl hover:brightness-110 active:scale-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center space-x-3"
+              className="w-full py-4 bg-cardinal text-white font-black uppercase tracking-[0.3em] text-xs rounded-xl shadow-2xl hover:brightness-110 active:scale-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center space-x-3"
             >
               {loading ? (
                 <>

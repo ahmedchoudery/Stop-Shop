@@ -125,7 +125,7 @@ export const ErrorState = ({
       {onRetry && (
         <button
           onClick={onRetry}
-          className="flex items-center space-x-2 px-6 py-3 bg-[#ba1f3d] text-white text-xs font-black uppercase tracking-widest rounded-xl hover:brightness-110 transition-all"
+          className="flex items-center space-x-2 px-6 py-3 bg-cardinal text-white text-xs font-black uppercase tracking-widest rounded-xl hover:brightness-110 transition-all"
         >
           <RefreshCw size={14} />
           <span>Try Again</span>

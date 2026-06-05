@@ -38,12 +38,12 @@ const PowerOfChoiceHero = () => {
 
   return (
     <section
-      className="relative bg-[#ba1f3e] overflow-hidden w-full flex flex-col"
+      className="relative bg-cardinal overflow-hidden w-full flex flex-col"
       style={{ minHeight: '100dvh' }}
     >
       {/* ── Background Image ──────────────────────────────────────── */}
       <div className="absolute inset-0 z-0">
-        <div className="relative w-full h-full bg-[#ba1f3e]">
+        <div className="relative w-full h-full bg-cardinal">
           {/* Mobile Viewport: Centered layout */}
           <img
             src="/Hero-Mobile.jpeg"

@@ -36,7 +36,7 @@ const OrderSuccessPage = () => {
         </div>
 
         {/* ── Headline ──────────────────────────────────── */}
-        <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-3">
+        <p className="text-[9px] font-black uppercase tracking-[0.5em] text-cardinal mb-3">
           Order Confirmed
         </p>
         <h1 className="text-3xl sm:text-4xl font-black uppercase tracking-tighter text-gray-900 mb-3">
@@ -49,7 +49,7 @@ const OrderSuccessPage = () => {
         {/* ── Order ID Card ─────────────────────────────── */}
         {orderID && (
           <div className="bg-white border border-gray-100 rounded-sm shadow-xl p-6 mb-8 inline-block w-full">
-            <div className="h-1 bg-[#ba1f3d] w-full -mt-6 -mx-6 mb-6" style={{ width: 'calc(100% + 48px)', marginLeft: '-24px' }} />
+            <div className="h-1 bg-cardinal w-full -mt-6 -mx-6 mb-6" style={{ width: 'calc(100% + 48px)', marginLeft: '-24px' }} />
             <p className="text-[9px] font-black uppercase tracking-[0.5em] text-gray-400 mb-2">
               Your Order Reference
             </p>
@@ -74,8 +74,8 @@ const OrderSuccessPage = () => {
               { icon: MapPin,   label: 'Delivered to you',        sub: 'Estimated 2-4 business days' },
             ].map(({ icon: Icon, label, sub }) => (
               <div key={label} className="flex items-center space-x-4">
-                <div className="w-9 h-9 bg-[#ba1f3d]/5 rounded-lg flex items-center justify-center flex-shrink-0">
-                  <Icon size={15} className="text-[#ba1f3d]" />
+                <div className="w-9 h-9 bg-cardinal/5 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <Icon size={15} className="text-cardinal" />
                 </div>
                 <div>
                   <p className="text-xs font-black uppercase tracking-tight text-gray-900">{label}</p>
@@ -92,7 +92,7 @@ const OrderSuccessPage = () => {
           {orderID && (
             <Link
               to={`/track?orderID=${orderID}`}
-              className="flex-1 flex items-center justify-center space-x-2 px-6 py-4 bg-[#ba1f3d] text-white text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all shadow-xl shadow-red-100/50"
+              className="flex-1 flex items-center justify-center space-x-2 px-6 py-4 bg-cardinal text-white text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all shadow-xl shadow-red-100/50"
             >
               <Search size={14} />
               <span>Track This Order</span>
@@ -117,14 +117,14 @@ const OrderSuccessPage = () => {
             href="https://wa.me/923068458655"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[#ba1f3d] hover:underline"
+            className="text-cardinal hover:underline"
           >
             WhatsApp us
           </a>
           {' '}or email{' '}
           <a
             href="mailto:concierge@stop-shop.pk"
-            className="text-[#ba1f3d] hover:underline"
+            className="text-cardinal hover:underline"
           >
             concierge@stop-shop.pk
           </a>

@@ -97,7 +97,7 @@ const FlashSaleBanner = () => {
 
   return (
     <div
-      className="flash-banner fixed top-0 left-0 w-full z-[200] bg-[#ba1f3d] text-white"
+      className="flash-banner fixed top-0 left-0 w-full z-[200] bg-cardinal text-white"
       style={{ height: '36px' }}
       role="banner"
       aria-label="Flash sale announcement"

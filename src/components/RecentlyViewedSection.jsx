@@ -137,7 +137,7 @@ const RecentlyViewedSection = () => {
                     <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-4">
                       <button
                         onClick={(e) => { e.stopPropagation(); addToCart(product); }}
-                        className="bg-white text-white text-[9px] font-black uppercase tracking-widest px-4 py-2.5 rounded-xl shadow-xl hover:bg-[#ba1f3d] hover:text-white transition-all duration-300 active:scale-95"
+                        className="bg-white text-white text-[9px] font-black uppercase tracking-widest px-4 py-2.5 rounded-xl shadow-xl hover:bg-cardinal hover:text-white transition-all duration-300 active:scale-95"
                       >
                         + Add to Bag
                       </button>
@@ -149,7 +149,7 @@ const RecentlyViewedSection = () => {
                     onClick={(e) => { e.stopPropagation(); toggleWishlist(product); }}
                     className={`absolute top-2.5 right-2.5 w-8 h-8 rounded-xl flex items-center justify-center shadow-md transition-all duration-300 ${
                       isWishlisted(product.id)
-                        ? 'bg-[#ba1f3d] text-white scale-110'
+                        ? 'bg-cardinal text-white scale-110'
                         : 'bg-white/90 text-gray-400 opacity-0 group-hover:opacity-100'
                     }`}
                   >
@@ -161,17 +161,17 @@ const RecentlyViewedSection = () => {
                 <div className="px-1">
                   <h3
                     onClick={() => openDrawer('product', product)}
-                    className="text-sm font-black uppercase tracking-tight text-gray-900 leading-tight cursor-pointer hover:text-[#ba1f3d] transition-colors duration-200 line-clamp-1"
+                    className="text-sm font-black uppercase tracking-tight text-gray-900 leading-tight cursor-pointer hover:text-cardinal transition-colors duration-200 line-clamp-1"
                   >
                     {product.name}
                   </h3>
                   <div className="flex items-center justify-between mt-1">
-                    <p className="text-sm font-black text-[#ba1f3d]">
+                    <p className="text-sm font-black text-cardinal">
                       {formatPrice(product.price)}
                     </p>
                     <div className="flex items-center space-x-0.5 opacity-50">
                       {[...Array(5)].map((_, i) => (
-                        <Star key={i} size={9} className={i < (product.rating ?? 4) ? 'fill-[#ba1f3d] text-[#ba1f3d]' : 'text-gray-200'} />
+                        <Star key={i} size={9} className={i < (product.rating ?? 4) ? 'fill-cardinal text-cardinal' : 'text-gray-200'} />
                       ))}
                     </div>
                   </div>

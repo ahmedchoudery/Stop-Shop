@@ -39,7 +39,7 @@ const Field = ({ label, error, children }) => (
     <label className="text-[9px] font-black uppercase tracking-[0.4em] text-gray-400 block mb-2">{label}</label>
     {children}
     {error && (
-      <p className="text-[9px] font-bold text-[#ba1f3d] mt-1.5 flex items-center space-x-1">
+      <p className="text-[9px] font-bold text-cardinal mt-1.5 flex items-center space-x-1">
         <AlertTriangle size={9} /><span>{error}</span>
       </p>
     )}
@@ -48,7 +48,7 @@ const Field = ({ label, error, children }) => (
 
 const inputCls = (err) =>
   `w-full border-b-2 py-3 text-sm font-bold bg-transparent outline-none transition-all placeholder:text-gray-200 placeholder:font-normal ${
-    err ? 'border-[#ba1f3d]' : 'border-gray-200 focus:border-[#ba1f3d]'
+    err ? 'border-cardinal' : 'border-gray-200 focus:border-cardinal'
   }`;
 
 // ─────────────────────────────────────────────────────────────────
@@ -98,7 +98,7 @@ const OrderSummary = ({ cartItems, total, coupon, formatPrice }) => (
       )}
       <div className="flex justify-between items-center border-t border-gray-200 pt-3 mt-1">
         <span className="text-sm font-black uppercase tracking-tight text-gray-900">Total</span>
-        <span className="text-xl font-black text-[#ba1f3d] tracking-tighter">
+        <span className="text-xl font-black text-cardinal tracking-tighter">
           {formatPrice(coupon ? coupon.finalTotal : total)}
         </span>
       </div>
@@ -239,7 +239,7 @@ const CheckoutForm = ({ onComplete, stockWarnings = [], isSubmitting = false }) 
             <div className="flex items-center space-x-3 p-4 bg-gray-50 border border-gray-100 rounded-sm">
               <User size={14} className="text-gray-400 flex-shrink-0" />
               <p className="text-[9px] font-bold text-gray-500">
-                <Link to="/account/login" className="text-[#ba1f3d] font-black hover:underline">Sign in</Link>
+                <Link to="/account/login" className="text-cardinal font-black hover:underline">Sign in</Link>
                 {' '}to auto-fill your address and track this order in your account.
               </p>
             </div>
@@ -248,7 +248,7 @@ const CheckoutForm = ({ onComplete, stockWarnings = [], isSubmitting = false }) 
           {/* Contact */}
           <section>
             <div className="flex items-center space-x-2 mb-6">
-              <User size={15} className="text-[#ba1f3d]" />
+              <User size={15} className="text-cardinal" />
               <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-900">Contact Details</h2>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -271,11 +271,11 @@ const CheckoutForm = ({ onComplete, stockWarnings = [], isSubmitting = false }) 
           <section>
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center space-x-2">
-                <MapPin size={15} className="text-[#ba1f3d]" />
+                <MapPin size={15} className="text-cardinal" />
                 <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-900">Delivery Address</h2>
               </div>
               {usingSavedAddress && (
-                <button type="button" onClick={clearSavedAddress} className="flex items-center space-x-1 text-[9px] font-black text-gray-400 hover:text-[#ba1f3d] transition-colors uppercase tracking-widest">
+                <button type="button" onClick={clearSavedAddress} className="flex items-center space-x-1 text-[9px] font-black text-gray-400 hover:text-cardinal transition-colors uppercase tracking-widest">
                   <X size={10} /><span>Clear</span>
                 </button>
               )}
@@ -307,31 +307,31 @@ const CheckoutForm = ({ onComplete, stockWarnings = [], isSubmitting = false }) 
           {/* Payment */}
           <section>
             <div className="flex items-center space-x-2 mb-6">
-              <CreditCard size={15} className="text-[#ba1f3d]" />
+              <CreditCard size={15} className="text-cardinal" />
               <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-900">Payment Method</h2>
             </div>
             <div className="space-y-2">
               {PAYMENT_METHODS.map(({ value, label, sub }) => (
-                <label key={value} className={`flex items-center space-x-4 p-4 border-2 cursor-pointer transition-all duration-200 ${form.paymentMethod === value ? 'border-[#ba1f3d] bg-[#ba1f3d]/3' : 'border-gray-100 hover:border-gray-300'}`}>
+                <label key={value} className={`flex items-center space-x-4 p-4 border-2 cursor-pointer transition-all duration-200 ${form.paymentMethod === value ? 'border-cardinal bg-cardinal/3' : 'border-gray-100 hover:border-gray-300'}`}>
                   <input type="radio" name="paymentMethod" value={value} checked={form.paymentMethod === value} onChange={set('paymentMethod')} className="sr-only" />
-                  <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-all ${form.paymentMethod === value ? 'border-[#ba1f3d]' : 'border-gray-300'}`}>
-                    {form.paymentMethod === value && <div className="w-2 h-2 rounded-full bg-[#ba1f3d]" />}
+                  <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-all ${form.paymentMethod === value ? 'border-cardinal' : 'border-gray-300'}`}>
+                    {form.paymentMethod === value && <div className="w-2 h-2 rounded-full bg-cardinal" />}
                   </div>
                   <div className="flex-grow">
                     <p className="text-xs font-black uppercase tracking-tight text-gray-900">{label}</p>
                     <p className="text-[9px] font-bold text-gray-400 mt-0.5">{sub}</p>
                   </div>
-                  {form.paymentMethod === value && <CheckCircle size={14} className="text-[#ba1f3d] flex-shrink-0" />}
+                  {form.paymentMethod === value && <CheckCircle size={14} className="text-cardinal flex-shrink-0" />}
                 </label>
               ))}
-              {errors.paymentMethod && <p className="text-[9px] font-bold text-[#ba1f3d] mt-1 flex items-center space-x-1"><AlertTriangle size={9} /><span>{errors.paymentMethod}</span></p>}
+              {errors.paymentMethod && <p className="text-[9px] font-bold text-cardinal mt-1 flex items-center space-x-1"><AlertTriangle size={9} /><span>{errors.paymentMethod}</span></p>}
             </div>
           </section>
 
           {/* Coupon */}
           <section>
             <div className="flex items-center space-x-2 mb-4">
-              <Tag size={15} className="text-[#ba1f3d]" />
+              <Tag size={15} className="text-cardinal" />
               <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-900">Coupon Code</h2>
             </div>
             <CouponInput cartTotal={total} appliedCoupon={coupon} onApply={setCoupon} onRemove={() => setCoupon(null)} />
@@ -344,14 +344,14 @@ const CheckoutForm = ({ onComplete, stockWarnings = [], isSubmitting = false }) 
           <OrderSummary cartItems={cartItems} total={total} coupon={coupon} formatPrice={formatPrice} />
 
           <div className="flex items-center space-x-2 text-[9px] font-bold text-gray-400 uppercase tracking-widest">
-            <Lock size={11} className="text-[#ba1f3d]" />
+            <Lock size={11} className="text-cardinal" />
             <span>256-bit SSL encrypted · Safe &amp; Secure</span>
           </div>
 
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-5 bg-[#ba1f3d] text-white text-[10px] font-black uppercase tracking-[0.3em] hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-3 shadow-xl shadow-red-100/60"
+            className="w-full py-5 bg-cardinal text-white text-[10px] font-black uppercase tracking-[0.3em] hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-3 shadow-xl shadow-red-100/60"
           >
             {isSubmitting
               ? <><Loader size={14} className="animate-spin" /><span>Placing Order...</span></>

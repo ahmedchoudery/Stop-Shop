@@ -99,7 +99,7 @@ const WishlistDrawer = ({ isOpen, onClose }) => {
         {/* ── Header ─────────────────────────────────────── */}
         <div className="flex items-center justify-between px-8 py-6 border-b border-gray-100">
           <div className="flex items-center space-x-3">
-            <Heart size={16} className="text-[#ba1f3d] fill-[#ba1f3d]" />
+            <Heart size={16} className="text-cardinal fill-cardinal" />
             <h2 className="text-[11px] font-black uppercase tracking-[0.4em] text-gray-900">
               Saved Items
             </h2>
@@ -133,7 +133,7 @@ const WishlistDrawer = ({ isOpen, onClose }) => {
               </p>
               <button
                 onClick={handleClose}
-                className="flex items-center space-x-2 text-[10px] font-black uppercase tracking-[0.3em] text-[#ba1f3d] border-b border-[#ba1f3d]/40 pb-0.5 hover:border-[#ba1f3d] transition-colors"
+                className="flex items-center space-x-2 text-[10px] font-black uppercase tracking-[0.3em] text-cardinal border-b border-cardinal/40 pb-0.5 hover:border-cardinal transition-colors"
               >
                 <span>Explore Collection</span>
                 <ArrowRight size={11} />
@@ -179,7 +179,7 @@ const WishlistDrawer = ({ isOpen, onClose }) => {
                       {/* Name */}
                       <h3
                         onClick={() => { openDrawer('product', product); handleClose(); }}
-                        className="text-[11px] font-black uppercase tracking-tight text-gray-900 leading-snug cursor-pointer hover:text-[#ba1f3d] transition-colors line-clamp-2 mb-2"
+                        className="text-[11px] font-black uppercase tracking-tight text-gray-900 leading-snug cursor-pointer hover:text-cardinal transition-colors line-clamp-2 mb-2"
                       >
                         {product.name}
                       </h3>
@@ -193,14 +193,14 @@ const WishlistDrawer = ({ isOpen, onClose }) => {
                     <div className="flex items-center space-x-3 mt-3">
                       <button
                         onClick={() => handleMoveToCart(product)}
-                        className="flex items-center space-x-1.5 text-[9px] font-black uppercase tracking-[0.25em] text-white bg-gray-900 px-3 py-2 hover:bg-[#ba1f3d] transition-colors duration-300"
+                        className="flex items-center space-x-1.5 text-[9px] font-black uppercase tracking-[0.25em] text-white bg-gray-900 px-3 py-2 hover:bg-cardinal transition-colors duration-300"
                       >
                         <ShoppingBag size={10} />
                         <span>Add to Bag</span>
                       </button>
                       <button
                         onClick={() => toggleWishlist(product)}
-                        className="p-2 text-gray-300 hover:text-[#ba1f3d] transition-colors"
+                        className="p-2 text-gray-300 hover:text-cardinal transition-colors"
                         title="Remove"
                       >
                         <Trash2 size={13} />
@@ -221,7 +221,7 @@ const WishlistDrawer = ({ isOpen, onClose }) => {
                 wishlist.forEach(p => addToCart(p));
                 handleClose();
               }}
-              className="w-full flex items-center justify-center space-x-2 bg-[#ba1f3d] text-white py-4 text-[10px] font-black uppercase tracking-[0.35em] hover:bg-gray-900 transition-colors duration-300"
+              className="w-full flex items-center justify-center space-x-2 bg-cardinal text-white py-4 text-[10px] font-black uppercase tracking-[0.35em] hover:bg-gray-900 transition-colors duration-300"
             >
               <ShoppingBag size={13} />
               <span>Add All to Bag</span>

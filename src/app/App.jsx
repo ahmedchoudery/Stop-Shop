@@ -53,7 +53,7 @@ const NotFoundPage     = lazy(() => import('../pages/NotFoundPage.jsx'));
 const PageLoader = () => (
   <div className="flex items-center justify-center h-64">
     <div className="flex flex-col items-center space-y-3">
-      <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-[#ba1f3d]" />
+      <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-cardinal" />
       <p className="text-[9px] font-black uppercase tracking-[0.4em] text-gray-300">Loading</p>
     </div>
   </div>

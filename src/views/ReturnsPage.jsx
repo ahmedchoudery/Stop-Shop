@@ -16,7 +16,7 @@ const ReturnsPage = () => (
     {/* ── Hero ──────────────────────────────────────────── */}
     <div className="bg-gray-900 text-black py-20 px-6">
       <div className="max-w-3xl mx-auto text-center">
-        <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-4">
+        <p className="text-[9px] font-black uppercase tracking-[0.5em] text-cardinal mb-4">
           Customer Care
         </p>
         <h1 className="text-4xl sm:text-6xl font-black uppercase tracking-tighter mb-4">
@@ -32,7 +32,7 @@ const ReturnsPage = () => (
 
       {/* ── Policy ────────────────────────────────────────── */}
       <section>
-        <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-4">
+        <p className="text-[9px] font-black uppercase tracking-[0.5em] text-cardinal mb-4">
           Our Policy
         </p>
         <h2 className="text-2xl font-black uppercase tracking-tighter text-gray-900 mb-6">
@@ -71,7 +71,7 @@ const ReturnsPage = () => (
         </div>
 
         <div className="p-6 bg-red-50 border border-red-100 rounded-sm">
-          <p className="text-[9px] font-black uppercase tracking-widest text-[#ba1f3d] mb-4">
+          <p className="text-[9px] font-black uppercase tracking-widest text-cardinal mb-4">
             ✗ We Don't Accept
           </p>
           <ul className="space-y-2">
@@ -83,7 +83,7 @@ const ReturnsPage = () => (
               'Customer-damaged items',
             ].map(item => (
               <li key={item} className="flex items-center space-x-2 text-xs font-bold text-gray-700">
-                <X size={12} className="text-[#ba1f3d] flex-shrink-0" />
+                <X size={12} className="text-cardinal flex-shrink-0" />
                 <span>{item}</span>
               </li>
             ))}
@@ -93,7 +93,7 @@ const ReturnsPage = () => (
 
       {/* ── Process ───────────────────────────────────────── */}
       <section>
-        <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-4">
+        <p className="text-[9px] font-black uppercase tracking-[0.5em] text-cardinal mb-4">
           How It Works
         </p>
         <h2 className="text-2xl font-black uppercase tracking-tighter text-gray-900 mb-8">
@@ -120,7 +120,7 @@ const ReturnsPage = () => (
             },
           ].map(({ step, title, desc }) => (
             <div key={step} className="flex items-start space-x-5">
-              <div className="w-10 h-10 bg-[#ba1f3d] flex items-center justify-center flex-shrink-0">
+              <div className="w-10 h-10 bg-cardinal flex items-center justify-center flex-shrink-0">
                 <span className="text-black text-[10px] font-black">{step}</span>
               </div>
               <div className="pt-1">
@@ -146,7 +146,7 @@ const ReturnsPage = () => (
 
       {/* ── Contact ───────────────────────────────────────── */}
       <section className="bg-gray-900 text-black p-10 rounded-sm">
-        <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-4">
+        <p className="text-[9px] font-black uppercase tracking-[0.5em] text-cardinal mb-4">
           Need Help?
         </p>
         <h2 className="text-xl font-black uppercase tracking-tighter mb-6">
@@ -159,14 +159,14 @@ const ReturnsPage = () => (
             rel="noopener noreferrer"
             className="flex items-center space-x-3 text-sm font-bold text-gray-300 hover:text-black transition-colors"
           >
-            <Phone size={14} className="text-[#ba1f3d]" />
+            <Phone size={14} className="text-cardinal" />
             <span>+92 306-8458655 (WhatsApp preferred)</span>
           </a>
           <a
             href="mailto:concierge@stop-shop.pk"
             className="flex items-center space-x-3 text-sm font-bold text-gray-300 hover:text-black transition-colors"
           >
-            <Mail size={14} className="text-[#ba1f3d]" />
+            <Mail size={14} className="text-cardinal" />
             <span>concierge@stop-shop.pk</span>
           </a>
         </div>

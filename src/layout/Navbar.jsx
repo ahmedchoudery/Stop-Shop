@@ -70,7 +70,7 @@ const Navbar = ({ products = [], onSearchOpen, scrolled, isHome }) => {
           {/* Logo — white on transparent hero, brand red on scrolled/white background */}
           <Link to="/" onClick={() => setActiveTab('All')} className="flex-shrink-0">
             <span className={`text-xl font-black italic uppercase tracking-tighter transition-colors duration-300 ${
-              isTransparent ? 'text-white' : 'text-[#ba1f3d]'
+              isTransparent ? 'text-white' : 'text-cardinal'
             }`}>
               Stop
               <span className={`not-italic font-black mx-0.5 transition-colors duration-300 ${
@@ -105,7 +105,7 @@ const Navbar = ({ products = [], onSearchOpen, scrolled, isHome }) => {
                   {activeTab === bucket && (
                     <motion.div
                       layoutId="navUnderline"
-                      className={`absolute bottom-0 left-4 right-4 h-[1.5px] ${isTransparent ? 'bg-white' : 'bg-[#ba1f3d]'}`}
+                      className={`absolute bottom-0 left-4 right-4 h-[1.5px] ${isTransparent ? 'bg-white' : 'bg-cardinal'}`}
                       transition={{ type: 'spring', bounce: 0.15, duration: 0.5 }}
                     />
                   )}
@@ -184,7 +184,7 @@ const Navbar = ({ products = [], onSearchOpen, scrolled, isHome }) => {
             <button onClick={() => openDrawer('wishlist')} className={`relative w-9 h-9 flex items-center justify-center transition-all duration-200 ${iconColor} ${iconHover}`} aria-label="Wishlist">
               <Heart size={17} strokeWidth={1.8} />
               {wishlistCount > 0 && (
-                <span className="absolute top-1.5 right-1.5 w-[13px] h-[13px] bg-[#ba1f3d] flex items-center justify-center text-[7px] font-black text-white leading-none">
+                <span className="absolute top-1.5 right-1.5 w-[13px] h-[13px] bg-cardinal flex items-center justify-center text-[7px] font-black text-white leading-none">
                   {wishlistCount > 9 ? '9+' : wishlistCount}
                 </span>
               )}
@@ -194,7 +194,7 @@ const Navbar = ({ products = [], onSearchOpen, scrolled, isHome }) => {
             <button onClick={() => openDrawer('cart')} className={`relative w-9 h-9 flex items-center justify-center ml-1 transition-all duration-300 ${isTransparent ? 'bg-white/10 text-white hover:bg-white/20' : 'bg-white/5 text-black hover:bg-white/10 border border-gray-200'}`} aria-label="Cart">
               <ShoppingBag size={16} strokeWidth={1.8} />
               {cartCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 w-[16px] h-[16px] bg-[#ba1f3d] flex items-center justify-center text-[7px] font-black text-white leading-none border-[1.5px] border-white">
+                <span className="absolute -top-1.5 -right-1.5 w-[16px] h-[16px] bg-cardinal flex items-center justify-center text-[7px] font-black text-white leading-none border-[1.5px] border-white">
                   {cartCount > 9 ? '9+' : cartCount}
                 </span>
               )}

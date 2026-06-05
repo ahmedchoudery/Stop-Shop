@@ -138,7 +138,7 @@ const Newsletter = () => {
           ref={badgeRef}
           className="inline-flex items-center gap-3 bg-gray-50 border border-gray-200 px-7 py-3 mb-12 rounded-full"
         >
-          <Sparkles size={13} className="text-[#ba1f3d]" />
+          <Sparkles size={13} className="text-cardinal" />
           <span className="text-[#999] text-[9px] font-black uppercase tracking-[0.55em]">
             The Cardinal Circle
           </span>
@@ -175,7 +175,7 @@ const Newsletter = () => {
         {/* Form / Success */}
         {status === 'success' ? (
           <div className="flex flex-col items-center gap-5">
-            <div className="w-16 h-16 bg-[#ba1f3d] flex items-center justify-center shadow-[0_20px_60px_rgba(186,31,61,0.18)]">
+            <div className="w-16 h-16 bg-cardinal flex items-center justify-center shadow-[0_20px_60px_rgba(186,31,61,0.18)]">
               <CheckCircle size={30} className="text-black" />
             </div>
             <div>
@@ -222,7 +222,7 @@ const Newsletter = () => {
               <button
                 type="submit"
                 disabled={status === 'loading'}
-                className="group/btn relative flex-shrink-0 flex items-center gap-3 px-8 py-4 bg-[#ba1f3d] text-white text-[9px] font-black uppercase tracking-[0.35em] hover:brightness-110 transition-all duration-300 disabled:opacity-60 border-l border-gray-200 overflow-hidden"
+                className="group/btn relative flex-shrink-0 flex items-center gap-3 px-8 py-4 bg-cardinal text-white text-[9px] font-black uppercase tracking-[0.35em] hover:brightness-110 transition-all duration-300 disabled:opacity-60 border-l border-gray-200 overflow-hidden"
               >
                 {status === 'loading' ? (
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />

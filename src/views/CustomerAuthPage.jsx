@@ -24,7 +24,7 @@ const Field = ({ label, error, children }) => (
     </label>
     {children}
     {error && (
-      <p className="text-[9px] font-bold text-[#ba1f3d] mt-1.5 flex items-center space-x-1">
+      <p className="text-[9px] font-bold text-cardinal mt-1.5 flex items-center space-x-1">
         <AlertCircle size={9} />
         <span>{error}</span>
       </p>
@@ -34,7 +34,7 @@ const Field = ({ label, error, children }) => (
 
 const inputCls = (err) =>
   `w-full border-b-2 py-3 text-sm font-bold bg-transparent text-gray-900 outline-none transition-all placeholder:text-gray-300 placeholder:font-normal ${
-    err ? 'border-[#ba1f3d]' : 'border-gray-200 focus:border-[#ba1f3d]'
+    err ? 'border-cardinal' : 'border-gray-200 focus:border-cardinal'
   }`;
 
 // ─────────────────────────────────────────────────────────────────
@@ -120,19 +120,19 @@ const RegisterForm = ({ onSwitch }) => {
 
       {ctxError && (
         <div className="flex items-center space-x-2 p-3 bg-red-50 border border-red-100 rounded-sm">
-          <AlertCircle size={13} className="text-[#ba1f3d] flex-shrink-0" />
-          <p className="text-xs font-bold text-[#ba1f3d]">{ctxError}</p>
+          <AlertCircle size={13} className="text-cardinal flex-shrink-0" />
+          <p className="text-xs font-bold text-cardinal">{ctxError}</p>
         </div>
       )}
 
       <button type="submit" disabled={loading}
-        className="w-full flex items-center justify-center space-x-2 py-4 bg-[#ba1f3d] text-white text-[10px] font-black uppercase tracking-[0.3em] hover:brightness-110 transition-all disabled:opacity-50 shadow-xl shadow-red-100/50">
+        className="w-full flex items-center justify-center space-x-2 py-4 bg-cardinal text-white text-[10px] font-black uppercase tracking-[0.3em] hover:brightness-110 transition-all disabled:opacity-50 shadow-xl shadow-red-100/50">
         {loading ? <Loader size={14} className="animate-spin" /> : <><span>Create Account</span><ChevronRight size={13} /></>}
       </button>
 
       <p className="text-center text-[10px] font-bold text-gray-400">
         Already have an account?{' '}
-        <button type="button" onClick={onSwitch} className="text-[#ba1f3d] font-black hover:underline">
+        <button type="button" onClick={onSwitch} className="text-cardinal font-black hover:underline">
           Sign In
         </button>
       </p>
@@ -206,19 +206,19 @@ const LoginForm = ({ onSwitch }) => {
 
       {ctxError && (
         <div className="flex items-center space-x-2 p-3 bg-red-50 border border-red-100 rounded-sm">
-          <AlertCircle size={13} className="text-[#ba1f3d] flex-shrink-0" />
-          <p className="text-xs font-bold text-[#ba1f3d]">{ctxError}</p>
+          <AlertCircle size={13} className="text-cardinal flex-shrink-0" />
+          <p className="text-xs font-bold text-cardinal">{ctxError}</p>
         </div>
       )}
 
       <button type="submit" disabled={loading}
-        className="w-full flex items-center justify-center space-x-2 py-4 bg-[#ba1f3d] text-white text-[10px] font-black uppercase tracking-[0.3em] hover:brightness-110 transition-all disabled:opacity-50 shadow-xl shadow-red-100/50">
+        className="w-full flex items-center justify-center space-x-2 py-4 bg-cardinal text-white text-[10px] font-black uppercase tracking-[0.3em] hover:brightness-110 transition-all disabled:opacity-50 shadow-xl shadow-red-100/50">
         {loading ? <Loader size={14} className="animate-spin" /> : <><span>Sign In</span><ChevronRight size={13} /></>}
       </button>
 
       <p className="text-center text-[10px] font-bold text-gray-400">
         Don't have an account?{' '}
-        <button type="button" onClick={onSwitch} className="text-[#ba1f3d] font-black hover:underline">
+        <button type="button" onClick={onSwitch} className="text-cardinal font-black hover:underline">
           Create One
         </button>
       </p>
@@ -254,10 +254,10 @@ const CustomerAuthPage = () => {
           {/* Header */}
           <div className="mb-8">
             <div className="flex items-center space-x-2 mb-3">
-              <div className="w-6 h-6 bg-[#ba1f3d] flex items-center justify-center">
+              <div className="w-6 h-6 bg-cardinal flex items-center justify-center">
                 <span className="text-black text-[8px] font-black">S&S</span>
               </div>
-              <span className="text-sm font-black italic uppercase tracking-tighter text-[#ba1f3d]">Stop & Shop</span>
+              <span className="text-sm font-black italic uppercase tracking-tighter text-cardinal">Stop & Shop</span>
             </div>
             <h1 className="text-2xl font-black uppercase tracking-tighter text-gray-900">
               {mode === 'login' ? 'Welcome Back' : 'Create Account'}

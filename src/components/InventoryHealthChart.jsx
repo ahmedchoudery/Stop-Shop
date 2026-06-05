@@ -86,7 +86,7 @@ const InventoryHealthChart = ({ products = [] }) => {
 
         {/* Center text */}
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-          <span ref={percentRef} className="text-3xl font-black text-[#ba1f3d] tracking-tighter">0%</span>
+          <span ref={percentRef} className="text-3xl font-black text-cardinal tracking-tighter">0%</span>
           <span className="text-[8px] font-black uppercase tracking-widest text-gray-400 mt-1">Out of Stock</span>
         </div>
       </div>
@@ -94,7 +94,7 @@ const InventoryHealthChart = ({ products = [] }) => {
       {/* Legend */}
       <div className="mt-4 flex space-x-6">
         <div className="flex items-center space-x-2">
-          <div className="w-3 h-3 bg-[#F63049] rounded-sm" />
+          <div className="w-3 h-3 bg-crimson rounded-sm" />
           <p className="text-[9px] font-black uppercase tracking-widest text-gray-500">Sold Out ({soldOut})</p>
         </div>
         <div className="flex items-center space-x-2">

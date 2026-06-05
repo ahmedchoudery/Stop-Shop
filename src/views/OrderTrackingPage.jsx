@@ -54,10 +54,10 @@ const STATUS_STEPS = [
     label:    'Shipped',
     sub:      'On the way to you',
     icon:     Truck,
-    color:    'text-[#ba1f3d]',
+    color:    'text-cardinal',
     bg:       'bg-red-50',
     border:   'border-red-200',
-    barColor: 'bg-[#ba1f3d]',
+    barColor: 'bg-cardinal',
   },
   {
     key:      'Delivered',
@@ -120,7 +120,7 @@ const StatusTracker = ({ status }) => {
         {/* Progress bar behind steps */}
         <div className="absolute top-6 left-0 right-0 h-[2px] bg-gray-100 z-0">
           <div
-            className="h-full bg-[#ba1f3d] transition-all duration-700 ease-out"
+            className="h-full bg-cardinal transition-all duration-700 ease-out"
             style={{
               width: currentIndex === -1 ? '0%'
                 : `${(currentIndex / (STATUS_STEPS.length - 1)) * 100}%`
@@ -143,7 +143,7 @@ const StatusTracker = ({ status }) => {
                   ? `${step.bg} ${step.border} shadow-lg`
                   : 'bg-white border-gray-200'
                 }
-                ${isCurrent ? 'ring-4 ring-offset-2 ring-[#ba1f3d]/20 scale-110' : ''}
+                ${isCurrent ? 'ring-4 ring-offset-2 ring-cardinal/20 scale-110' : ''}
               `}>
                 <Icon
                   size={18}
@@ -159,7 +159,7 @@ const StatusTracker = ({ status }) => {
                   {step.label}
                 </p>
                 <p className={`text-[9px] font-bold mt-0.5 hidden sm:block ${
-                  isCurrent ? 'text-[#ba1f3d]' : 'text-gray-400'
+                  isCurrent ? 'text-cardinal' : 'text-gray-400'
                 }`}>
                   {isCurrent ? '← Current' : step.sub}
                 </p>
@@ -206,7 +206,7 @@ const OrderSearchForm = ({ onSearch, loading }) => {
           <button
             type="submit"
             disabled={!input.trim() || loading}
-            className="bg-[#ba1f3d] hover:bg-gray-900 text-white px-8 py-5 font-black uppercase tracking-[0.3em] text-[10px] transition-all duration-300 border-l-2 border-gray-900 disabled:opacity-40 flex items-center space-x-2 flex-shrink-0"
+            className="bg-cardinal hover:bg-gray-900 text-white px-8 py-5 font-black uppercase tracking-[0.3em] text-[10px] transition-all duration-300 border-l-2 border-gray-900 disabled:opacity-40 flex items-center space-x-2 flex-shrink-0"
           >
             {loading ? (
               <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -248,13 +248,13 @@ const OrderResult = ({ order, onReset }) => {
       {/* Order Header */}
       <div className="bg-white border border-gray-100 rounded-sm shadow-xl overflow-hidden">
         {/* Top accent */}
-        <div className="h-1 bg-[#ba1f3d]" />
+        <div className="h-1 bg-cardinal" />
 
         <div className="p-6 sm:p-8">
           {/* Order ID + Reset */}
           <div className="flex items-start justify-between mb-6">
             <div>
-              <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-1">
+              <p className="text-[9px] font-black uppercase tracking-[0.5em] text-cardinal mb-1">
                 Order Reference
               </p>
               <p className="text-2xl font-black text-gray-900 tracking-tighter font-mono">
@@ -283,12 +283,12 @@ const OrderResult = ({ order, onReset }) => {
                 ? 'bg-green-50 border border-green-100'
                 : order.status === 'Cancelled'
                   ? 'bg-gray-50 border border-gray-100'
-                  : 'bg-[#ba1f3d]/5 border border-[#ba1f3d]/10'
+                  : 'bg-cardinal/5 border border-cardinal/10'
             }`}>
               <Truck size={14} className={
                 order.status === 'Delivered' ? 'text-green-500' :
                 order.status === 'Cancelled' ? 'text-gray-400' :
-                'text-[#ba1f3d]'
+                'text-cardinal'
               } />
               <p className="text-[10px] font-black uppercase tracking-widest text-gray-700">
                 {deliveryMessage}
@@ -307,7 +307,7 @@ const OrderResult = ({ order, onReset }) => {
         {/* Delivery To */}
         <div className="bg-white border border-gray-100 rounded-sm p-6 shadow-sm">
           <div className="flex items-center space-x-2 mb-4">
-            <MapPin size={14} className="text-[#ba1f3d]" />
+            <MapPin size={14} className="text-cardinal" />
             <p className="text-[9px] font-black uppercase tracking-[0.4em] text-gray-400">
               Delivering To
             </p>
@@ -325,7 +325,7 @@ const OrderResult = ({ order, onReset }) => {
         {/* Payment */}
         <div className="bg-white border border-gray-100 rounded-sm p-6 shadow-sm">
           <div className="flex items-center space-x-2 mb-4">
-            <CreditCard size={14} className="text-[#ba1f3d]" />
+            <CreditCard size={14} className="text-cardinal" />
             <p className="text-[9px] font-black uppercase tracking-[0.4em] text-gray-400">
               Payment
             </p>
@@ -337,7 +337,7 @@ const OrderResult = ({ order, onReset }) => {
             <p className="text-[9px] font-black uppercase tracking-[0.4em] text-gray-400 mb-1">
               Order Total
             </p>
-            <p className="text-xl font-black text-[#ba1f3d] tracking-tighter">
+            <p className="text-xl font-black text-cardinal tracking-tighter">
               PKR {(order.total ?? 0).toLocaleString('en-PK')}
             </p>
           </div>
@@ -347,7 +347,7 @@ const OrderResult = ({ order, onReset }) => {
       {/* Items */}
       <div className="bg-white border border-gray-100 rounded-sm shadow-sm overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-50 flex items-center space-x-2">
-          <ShoppingBag size={14} className="text-[#ba1f3d]" />
+          <ShoppingBag size={14} className="text-cardinal" />
           <p className="text-[9px] font-black uppercase tracking-[0.4em] text-gray-400">
             Items Ordered ({order.items?.length ?? 0})
           </p>
@@ -377,7 +377,7 @@ const OrderResult = ({ order, onReset }) => {
 
                   {/* Category */}
                   {item.category && (
-                    <span className="text-[8px] font-black uppercase tracking-widest text-[#ba1f3d] bg-red-50 px-2 py-0.5 rounded-full">
+                    <span className="text-[8px] font-black uppercase tracking-widest text-cardinal bg-red-50 px-2 py-0.5 rounded-full">
                       {item.category}
                       {item.subCategory && item.subCategory !== 'General'
                         ? ` · ${item.subCategory}`
@@ -440,7 +440,7 @@ const OrderResult = ({ order, onReset }) => {
         </p>
         <a
           href="mailto:concierge@stop-shop.pk"
-          className="text-[9px] font-black uppercase tracking-widest text-[#ba1f3d] border-b border-[#ba1f3d]/30 hover:border-[#ba1f3d] transition-colors pb-0.5 mt-1 inline-block"
+          className="text-[9px] font-black uppercase tracking-widest text-cardinal border-b border-cardinal/30 hover:border-cardinal transition-colors pb-0.5 mt-1 inline-block"
         >
           concierge@stop-shop.pk
         </a>
@@ -528,10 +528,10 @@ const OrderTrackingPage = () => {
             to="/"
             className="flex items-center space-x-3 group"
           >
-            <div className="w-7 h-7 bg-[#ba1f3d] flex items-center justify-center">
+            <div className="w-7 h-7 bg-cardinal flex items-center justify-center">
               <span className="text-black text-[9px] font-black">S&S</span>
             </div>
-            <span className="text-sm font-black uppercase tracking-tighter text-gray-900 group-hover:text-[#ba1f3d] transition-colors">
+            <span className="text-sm font-black uppercase tracking-tighter text-gray-900 group-hover:text-cardinal transition-colors">
               Stop & Shop
             </span>
           </Link>
@@ -552,7 +552,7 @@ const OrderTrackingPage = () => {
         {/* Hero text */}
         {!order && (
           <div className="text-center mb-14">
-            <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-4">
+            <p className="text-[9px] font-black uppercase tracking-[0.5em] text-cardinal mb-4">
               Order Status
             </p>
             <h1 className="text-4xl sm:text-6xl font-black uppercase tracking-tighter text-gray-900 mb-4">
@@ -574,7 +574,7 @@ const OrderTrackingPage = () => {
         {/* Loading state */}
         {loading && (
           <div className="flex flex-col items-center justify-center py-24 space-y-4">
-            <div className="w-10 h-10 border-2 border-gray-100 border-t-[#ba1f3d] rounded-full animate-spin" />
+            <div className="w-10 h-10 border-2 border-gray-100 border-t-cardinal rounded-full animate-spin" />
             <p className="text-[9px] font-black uppercase tracking-[0.4em] text-gray-300">
               Looking up your order...
             </p>
@@ -586,7 +586,7 @@ const OrderTrackingPage = () => {
           <div className="max-w-lg mx-auto animate-fade-up">
             <div className="bg-white border border-red-100 rounded-sm p-8 text-center shadow-sm">
               <div className="w-14 h-14 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-5">
-                <AlertCircle size={22} className="text-[#ba1f3d]" />
+                <AlertCircle size={22} className="text-cardinal" />
               </div>
               <p className="font-black uppercase tracking-tight text-gray-900 mb-2">
                 Order Not Found
@@ -596,7 +596,7 @@ const OrderTrackingPage = () => {
               </p>
               <button
                 onClick={handleReset}
-                className="flex items-center space-x-2 mx-auto px-6 py-3 bg-[#ba1f3d] text-white text-[10px] font-black uppercase tracking-widest rounded-sm hover:brightness-110 transition-all"
+                className="flex items-center space-x-2 mx-auto px-6 py-3 bg-cardinal text-white text-[10px] font-black uppercase tracking-widest rounded-sm hover:brightness-110 transition-all"
               >
                 <RefreshCw size={12} />
                 <span>Try Again</span>

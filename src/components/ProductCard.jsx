@@ -173,8 +173,8 @@ const ProductCard = ({ product, onImageLoad }) => {
           className={[
             'absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center transition-all duration-300 shadow-sm',
             wishlisted
-              ? 'bg-[#ba1f3d] opacity-100'
-              : 'bg-white/95 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 hover:bg-[#ba1f3d] hover:text-white',
+              ? 'bg-cardinal opacity-100'
+              : 'bg-white/95 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 hover:bg-cardinal hover:text-white',
           ].join(' ')}
           style={{ transform: 'translateZ(20px)' }}
           aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
@@ -188,7 +188,7 @@ const ProductCard = ({ product, onImageLoad }) => {
             onClick={handleAddToCart}
             className={[
               'absolute top-3 left-3 z-10 w-8 h-8 flex items-center justify-center transition-all duration-300 shadow-sm',
-              cartAdded ? 'bg-[#ba1f3d]' : 'bg-white/95',
+              cartAdded ? 'bg-cardinal' : 'bg-white/95',
               'opacity-100 lg:opacity-0 lg:group-hover:opacity-100 hover:bg-black hover:text-white',
             ].join(' ')}
             style={{ transform: 'translateZ(20px)' }}
@@ -206,7 +206,7 @@ const ProductCard = ({ product, onImageLoad }) => {
             </span>
           </div>
         ) : isNew && (
-          <div className="absolute top-3 left-3 z-10 bg-[#ba1f3d] px-2.5 py-1" style={{ transform: 'translateZ(25px)' }}>
+          <div className="absolute top-3 left-3 z-10 bg-cardinal px-2.5 py-1" style={{ transform: 'translateZ(25px)' }}>
             <span className="text-[7px] font-black uppercase tracking-[0.35em] text-white">
               New
             </span>
@@ -222,7 +222,7 @@ const ProductCard = ({ product, onImageLoad }) => {
         </p>
 
         {/* Name */}
-        <h3 className="text-[13px] font-bold text-gray-900 uppercase tracking-wider leading-snug mb-2 group-hover:text-[#ba1f3d] transition-colors duration-300 line-clamp-1">
+        <h3 className="text-[13px] font-bold text-gray-900 uppercase tracking-wider leading-snug mb-2 group-hover:text-cardinal transition-colors duration-300 line-clamp-1">
           {product.name}
         </h3>
 
@@ -263,7 +263,7 @@ const ProductCard = ({ product, onImageLoad }) => {
 
         {/* Cart feedback */}
         {cartAdded && (
-          <p className="text-[8px] font-black text-[#ba1f3d] uppercase tracking-[0.35em] mt-2 animate-fade-up">
+          <p className="text-[8px] font-black text-cardinal uppercase tracking-[0.35em] mt-2 animate-fade-up">
             ✓ Added to bag
           </p>
         )}

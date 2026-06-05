@@ -13,7 +13,7 @@ const Stars = ({ rating, size = 13 }) => (
       <Star 
         key={i} 
         size={size} 
-        className={i < rating ? 'fill-[#ba1f3d] text-[#ba1f3d]' : 'text-gray-200'} 
+        className={i < rating ? 'fill-cardinal text-cardinal' : 'text-gray-200'} 
       />
     ))}
   </div>
@@ -30,7 +30,7 @@ const StarPicker = ({ value, onChange }) => (
       >
         <Star 
           size={24} 
-          className={n <= value ? 'fill-[#ba1f3d] text-[#ba1f3d]' : 'text-gray-300 hover:text-gray-400'} 
+          className={n <= value ? 'fill-cardinal text-cardinal' : 'text-gray-300 hover:text-gray-400'} 
         />
       </button>
     ))}
@@ -99,12 +99,12 @@ const ProductReviews = ({ productId, productName }) => {
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-4">Product Feedback</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.5em] text-cardinal mb-4">Product Feedback</p>
             <h2 className="text-4xl font-black uppercase tracking-tighter text-gray-900">Customer Reviews</h2>
           </div>
           <button 
             onClick={() => setShowForm(!showForm)}
-            className="mt-6 md:mt-0 px-8 py-3 bg-gray-900 text-white text-[10px] font-black uppercase tracking-widest hover:bg-[#ba1f3d] transition-all flex items-center space-x-2"
+            className="mt-6 md:mt-0 px-8 py-3 bg-gray-900 text-white text-[10px] font-black uppercase tracking-widest hover:bg-cardinal transition-all flex items-center space-x-2"
           >
             <MessageCircle size={14} />
             <span>{showForm ? 'Cancel' : 'Write a Review'}</span>
@@ -130,7 +130,7 @@ const ProductReviews = ({ productId, productName }) => {
                     type="text" 
                     placeholder="Name *" 
                     required
-                    className="w-full p-4 text-xs font-bold bg-white border border-gray-100 outline-none focus:border-[#ba1f3d]"
+                    className="w-full p-4 text-xs font-bold bg-white border border-gray-100 outline-none focus:border-cardinal"
                     value={form.name}
                     onChange={e => setForm({...form, name: e.target.value})}
                   />
@@ -138,7 +138,7 @@ const ProductReviews = ({ productId, productName }) => {
                     type="email" 
                     placeholder="Email *" 
                     required
-                    className="w-full p-4 text-xs font-bold bg-white border border-gray-100 outline-none focus:border-[#ba1f3d]"
+                    className="w-full p-4 text-xs font-bold bg-white border border-gray-100 outline-none focus:border-cardinal"
                     value={form.email}
                     onChange={e => setForm({...form, email: e.target.value})}
                   />
@@ -146,7 +146,7 @@ const ProductReviews = ({ productId, productName }) => {
                 <input 
                   type="text" 
                   placeholder="Review Title"
-                  className="w-full p-4 text-xs font-bold bg-white border border-gray-100 outline-none focus:border-[#ba1f3d]"
+                  className="w-full p-4 text-xs font-bold bg-white border border-gray-100 outline-none focus:border-cardinal"
                   value={form.title}
                   onChange={e => setForm({...form, title: e.target.value})}
                 />
@@ -154,14 +154,14 @@ const ProductReviews = ({ productId, productName }) => {
                   placeholder="Your review... *" 
                   required
                   rows={4}
-                  className="w-full p-4 text-xs font-bold bg-white border border-gray-100 outline-none focus:border-[#ba1f3d] resize-none"
+                  className="w-full p-4 text-xs font-bold bg-white border border-gray-100 outline-none focus:border-cardinal resize-none"
                   value={form.body}
                   onChange={e => setForm({...form, body: e.target.value})}
                 />
                 {apiError && <p className="text-[10px] text-red-500 font-bold">{apiError}</p>}
                 <button 
                   disabled={submitting}
-                  className="w-full py-4 bg-[#ba1f3d] text-white text-[10px] font-black uppercase tracking-widest hover:bg-gray-900 transition-all disabled:opacity-50"
+                  className="w-full py-4 bg-cardinal text-white text-[10px] font-black uppercase tracking-widest hover:bg-gray-900 transition-all disabled:opacity-50"
                 >
                   {submitting ? 'Submitting...' : 'Submit Review'}
                 </button>

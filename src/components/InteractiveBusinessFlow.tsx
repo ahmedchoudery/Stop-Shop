@@ -98,7 +98,7 @@ const StageNode = memo(({ stageKey, config, isActive, onClick, liveCount }: Stag
         </div>
         <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${
           isActive
-            ? 'bg-[#ba1f3d] text-white'
+            ? 'bg-cardinal text-white'
             : 'bg-gray-100 text-gray-500'
         }`}>
           {liveCount} Items
@@ -112,7 +112,7 @@ const StageNode = memo(({ stageKey, config, isActive, onClick, liveCount }: Stag
 
       {/* Dynamic select indicator bar */}
       <div className={`absolute bottom-0 left-0 right-0 h-[3px] rounded-b-xl transition-all duration-300 ${
-        isActive ? 'bg-[#ba1f3d] scale-x-100' : 'bg-transparent scale-x-0'
+        isActive ? 'bg-cardinal scale-x-100' : 'bg-transparent scale-x-0'
       }`} />
     </button>
   );
@@ -151,7 +151,7 @@ export const InteractiveBusinessFlow = memo(({ ordersByStatus = {} }: Interactiv
   return (
     <div className="bg-white border border-gray-100 rounded-sm p-6 sm:p-8 shadow-sm">
       <div className="flex items-center space-x-2 mb-2">
-        <Sparkles size={14} className="text-[#ba1f3d]" />
+        <Sparkles size={14} className="text-cardinal" />
         <p className="text-[9px] font-black uppercase tracking-[0.4em] text-gray-400">System Flow</p>
       </div>
       <h3 className="text-sm font-black uppercase tracking-tight text-gray-900 mb-8">
@@ -239,7 +239,7 @@ export const InteractiveBusinessFlow = memo(({ ordersByStatus = {} }: Interactiv
             </div>
             <div>
               <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Core Engine</p>
-              <p className="text-xs font-black text-[#ba1f3d]">{activeDetails.system}</p>
+              <p className="text-xs font-black text-cardinal">{activeDetails.system}</p>
             </div>
           </div>
         </div>

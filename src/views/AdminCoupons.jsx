@@ -176,7 +176,7 @@ const AdminCoupons = () => {
 
   const inputCls = (field) =>
     `w-full border-b-2 py-2.5 text-sm font-bold bg-transparent outline-none transition-all placeholder:text-gray-300 ${
-      errors[field] ? 'border-red-400' : 'border-gray-200 focus:border-[#ba1f3d]'
+      errors[field] ? 'border-red-400' : 'border-gray-200 focus:border-cardinal'
     }`;
 
   return (
@@ -184,7 +184,7 @@ const AdminCoupons = () => {
       {/* ── Header ─────────────────────────────────────────── */}
       <div className="flex items-center justify-between mb-10">
         <div>
-          <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-2">Promotions</p>
+          <p className="text-[9px] font-black uppercase tracking-[0.5em] text-cardinal mb-2">Promotions</p>
           <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tighter text-gray-900">Coupons</h1>
         </div>
         <div className="flex items-center space-x-3">
@@ -194,7 +194,7 @@ const AdminCoupons = () => {
           </button>
           <button
             onClick={() => { setShowForm(s => !s); setForm(DEFAULT_FORM); setErrors({}); }}
-            className="flex items-center space-x-2 px-6 py-3 bg-[#ba1f3d] text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-gray-900 transition-all shadow-xl shadow-red-200/40"
+            className="flex items-center space-x-2 px-6 py-3 bg-cardinal text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-gray-900 transition-all shadow-xl shadow-red-200/40"
           >
             {showForm ? <X size={14} /> : <Plus size={14} />}
             <span>{showForm ? 'Cancel' : 'New Coupon'}</span>
@@ -237,7 +237,7 @@ const AdminCoupons = () => {
               <select
                 value={form.type}
                 onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
-                className="w-full border-b-2 border-gray-200 focus:border-[#ba1f3d] py-2.5 text-sm font-bold bg-transparent outline-none transition-all"
+                className="w-full border-b-2 border-gray-200 focus:border-cardinal py-2.5 text-sm font-bold bg-transparent outline-none transition-all"
               >
                 <option value="percentage">Percentage (% off)</option>
                 <option value="fixed">Fixed Amount (PKR off)</option>
@@ -305,7 +305,7 @@ const AdminCoupons = () => {
             <div className="mb-6 p-4 bg-gray-50 border border-gray-100 rounded-xl">
               <p className="text-[9px] font-black uppercase tracking-widest text-gray-400 mb-1">Preview</p>
               <p className="text-sm font-black text-gray-900">
-                Code <span className="font-mono text-[#ba1f3d]">{form.code || '—'}</span> gives{' '}
+                Code <span className="font-mono text-cardinal">{form.code || '—'}</span> gives{' '}
                 {form.type === 'percentage' ? `${form.value}% off` : `PKR ${parseInt(form.value || 0).toLocaleString()} off`}
                 {form.minOrderValue ? ` on orders over PKR ${parseInt(form.minOrderValue).toLocaleString()}` : ''}
                 {form.maxUses ? ` (max ${form.maxUses} uses)` : ' (unlimited uses)'}
@@ -317,7 +317,7 @@ const AdminCoupons = () => {
           <button
             onClick={handleCreate}
             disabled={saving}
-            className="flex items-center space-x-2 px-8 py-3 bg-[#ba1f3d] text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:brightness-110 transition-all disabled:opacity-50"
+            className="flex items-center space-x-2 px-8 py-3 bg-cardinal text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:brightness-110 transition-all disabled:opacity-50"
           >
             {saving
               ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -331,7 +331,7 @@ const AdminCoupons = () => {
       <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-xl">
         {loading ? (
           <div className="p-16 text-center">
-            <div className="w-8 h-8 border-2 border-gray-100 border-t-[#ba1f3d] rounded-full animate-spin mx-auto" />
+            <div className="w-8 h-8 border-2 border-gray-100 border-t-cardinal rounded-full animate-spin mx-auto" />
           </div>
         ) : coupons.length === 0 ? (
           <div className="p-20 text-center">
@@ -358,7 +358,7 @@ const AdminCoupons = () => {
                         <span className="font-mono text-sm font-black text-gray-900">{coupon.code}</span>
                         <button
                           onClick={() => handleCopy(coupon.code)}
-                          className="p-1 text-gray-300 hover:text-[#ba1f3d] transition-colors"
+                          className="p-1 text-gray-300 hover:text-cardinal transition-colors"
                           title="Copy code"
                         >
                           {copied === coupon.code ? <Check size={11} className="text-green-500" /> : <Copy size={11} />}
@@ -368,7 +368,7 @@ const AdminCoupons = () => {
 
                     {/* Discount */}
                     <td className="px-5 py-4">
-                      <span className="text-sm font-black text-[#ba1f3d]">
+                      <span className="text-sm font-black text-cardinal">
                         {coupon.type === 'percentage' ? `${coupon.value}%` : `PKR ${coupon.value.toLocaleString()}`} off
                       </span>
                     </td>
@@ -414,7 +414,7 @@ const AdminCoupons = () => {
                         <button
                           onClick={() => handleDelete(coupon)}
                           title="Delete coupon"
-                          className="p-2 text-gray-300 hover:text-[#ba1f3d] transition-colors"
+                          className="p-2 text-gray-300 hover:text-cardinal transition-colors"
                         >
                           <Trash2 size={14} />
                         </button>

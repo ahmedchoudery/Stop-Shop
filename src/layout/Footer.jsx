@@ -64,7 +64,7 @@ const FooterLink = ({ to, children }) => (
     to={to}
     className="group flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-gray-500 hover:text-black transition-colors duration-250"
   >
-    <span className="w-0 h-px bg-[#ba1f3d] group-hover:w-3 transition-all duration-300 flex-shrink-0" />
+    <span className="w-0 h-px bg-cardinal group-hover:w-3 transition-all duration-300 flex-shrink-0" />
     {children}
   </Link>
 );
@@ -110,7 +110,7 @@ const Footer = () => {
           {/* ── Brand Block ─────────── */}
           <div className="lg:col-span-4">
             <Link to="/" className="inline-block mb-7" aria-label="Stop & Shop home">
-              <span className="text-2xl font-black italic uppercase tracking-tighter text-[#ba1f3d]">
+              <span className="text-2xl font-black italic uppercase tracking-tighter text-cardinal">
                 Stop<span className="text-black not-italic">&</span>Shop
               </span>
             </Link>

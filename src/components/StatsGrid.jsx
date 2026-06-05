@@ -63,19 +63,19 @@ const StatsGrid = ({ totalSales, totalOrders, trend = 0, pendingOrders = 0 }) =>
       </div>
 
       {/* Orders Card */}
-      <div className="group bg-white p-5 sm:p-8 rounded-sm border border-gray-100 shadow-xl shadow-gray-100/50 hover:border-[#ba1f3d]/30 hover:shadow-2xl hover:shadow-red-100/40 transition-all duration-700 relative overflow-hidden cursor-default">
+      <div className="group bg-white p-5 sm:p-8 rounded-sm border border-gray-100 shadow-xl shadow-gray-100/50 hover:border-cardinal/30 hover:shadow-2xl hover:shadow-red-100/40 transition-all duration-700 relative overflow-hidden cursor-default">
 
         {/* Background glow */}
         <div className="absolute inset-0 bg-gradient-to-br from-red-50/0 to-red-50/0 group-hover:from-red-50/40 group-hover:to-transparent transition-all duration-700 pointer-events-none" />
 
         {/* Icon watermark */}
         <div className="absolute top-0 right-0 p-4 opacity-[0.04] group-hover:opacity-[0.08] transition-opacity duration-700 transform translate-x-4 -translate-y-4 group-hover:translate-x-2 group-hover:translate-y-0">
-          <ShoppingBag size={90} className="text-[#ba1f3d]" />
+          <ShoppingBag size={90} className="text-cardinal" />
         </div>
 
         <div className="relative z-10">
           <div className="flex items-center space-x-2 mb-5">
-            <span className="w-2 h-2 bg-[#ba1f3d] rounded-full" />
+            <span className="w-2 h-2 bg-cardinal rounded-full" />
             <h3 className="text-[10px] font-black uppercase tracking-[0.35em] text-gray-400">
               Orders Placed
             </h3>
@@ -112,7 +112,7 @@ const StatsGrid = ({ totalSales, totalOrders, trend = 0, pendingOrders = 0 }) =>
         </div>
 
         {/* Bottom shimmer */}
-        <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#ba1f3d] to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-700 origin-left" />
+        <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cardinal to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-700 origin-left" />
       </div>
     </div>
   );

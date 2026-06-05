@@ -22,11 +22,11 @@ import { useMutation } from '../hooks/useAsync.js';
 const Field = ({ label, error, required, children }) => (
   <div>
     <label className="block text-[9px] font-black uppercase tracking-[0.4em] text-gray-500 mb-2">
-      {label}{required && <span className="text-[#ba1f3d] ml-0.5">*</span>}
+      {label}{required && <span className="text-cardinal ml-0.5">*</span>}
     </label>
     {children}
     {error && (
-      <p className="flex items-center space-x-1 text-[9px] font-bold text-[#ba1f3d] mt-1.5">
+      <p className="flex items-center space-x-1 text-[9px] font-bold text-cardinal mt-1.5">
         <AlertCircle size={9} />
         <span>{error}</span>
       </p>
@@ -37,7 +37,7 @@ const Field = ({ label, error, required, children }) => (
 const inputBase = (hasError) =>
   `w-full bg-transparent border-b-2 py-3 text-sm font-bold text-gray-900 outline-none transition-all duration-200 placeholder:text-gray-300 placeholder:font-normal ${
     hasError
-      ? 'border-[#ba1f3d]'
+      ? 'border-cardinal'
       : 'border-gray-200 focus:border-gray-900'
   }`;
 
@@ -175,7 +175,7 @@ const CheckoutPage = () => {
           <p className="text-sm text-gray-400 mb-8">Add items before checking out.</p>
           <Link
             to="/"
-            className="inline-flex items-center space-x-2 px-8 py-4 bg-[#ba1f3d] text-white text-[10px] font-black uppercase tracking-[0.3em] hover:bg-gray-900 transition-colors duration-300"
+            className="inline-flex items-center space-x-2 px-8 py-4 bg-cardinal text-white text-[10px] font-black uppercase tracking-[0.3em] hover:bg-gray-900 transition-colors duration-300"
           >
             <ArrowLeft size={13} />
             <span>Continue Shopping</span>
@@ -193,11 +193,11 @@ const CheckoutPage = () => {
           <ArrowLeft size={13} />
           <span>Back to Shop</span>
         </Link>
-        <span className="text-lg font-black italic uppercase tracking-tighter text-[#ba1f3d]">
+        <span className="text-lg font-black italic uppercase tracking-tighter text-cardinal">
           Stop<span className="text-gray-900 not-italic">&</span>Shop
         </span>
         <div className="flex items-center space-x-1.5 text-[9px] font-bold text-gray-400 uppercase tracking-wider">
-          <Lock size={10} className="text-[#ba1f3d]" />
+          <Lock size={10} className="text-cardinal" />
           <span>Secure Checkout</span>
         </div>
       </div>
@@ -214,9 +214,9 @@ const CheckoutPage = () => {
 
             {/* Error banner */}
             {checkoutError && !checkoutError.includes('form') && (
-              <div className="mb-6 flex items-start space-x-3 p-4 bg-red-50 border-l-2 border-[#ba1f3d]">
-                <AlertCircle size={14} className="text-[#ba1f3d] flex-shrink-0 mt-0.5" />
-                <p className="text-xs font-bold text-[#ba1f3d]">{checkoutError}</p>
+              <div className="mb-6 flex items-start space-x-3 p-4 bg-red-50 border-l-2 border-cardinal">
+                <AlertCircle size={14} className="text-cardinal flex-shrink-0 mt-0.5" />
+                <p className="text-xs font-bold text-cardinal">{checkoutError}</p>
               </div>
             )}
 
@@ -337,7 +337,7 @@ const CheckoutPage = () => {
                       className="sr-only"
                     />
                     <div className={`w-8 h-8 flex items-center justify-center flex-shrink-0 ${
-                      form.paymentMethod === value ? 'bg-[#ba1f3d]' : 'bg-gray-50 border border-gray-200'
+                      form.paymentMethod === value ? 'bg-cardinal' : 'bg-gray-50 border border-gray-200'
                     }`}>
                       <Icon size={14} className={form.paymentMethod === value ? 'text-black' : 'text-gray-500'} />
                     </div>
@@ -354,7 +354,7 @@ const CheckoutPage = () => {
                       </p>
                     </div>
                     {form.paymentMethod === value && (
-                      <CheckCircle size={14} className="text-[#ba1f3d] flex-shrink-0" />
+                      <CheckCircle size={14} className="text-cardinal flex-shrink-0" />
                     )}
                   </label>
                 ))}
@@ -366,7 +366,7 @@ const CheckoutPage = () => {
               <button
                 onClick={placeOrder}
                 disabled={placing}
-                className="w-full flex items-center justify-center space-x-3 bg-[#ba1f3d] text-white py-5 text-[11px] font-black uppercase tracking-[0.35em] hover:bg-gray-900 transition-colors duration-300 disabled:opacity-50"
+                className="w-full flex items-center justify-center space-x-3 bg-cardinal text-white py-5 text-[11px] font-black uppercase tracking-[0.35em] hover:bg-gray-900 transition-colors duration-300 disabled:opacity-50"
               >
                 {placing ? (
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -418,7 +418,7 @@ const CheckoutPage = () => {
               <button
                 onClick={placeOrder}
                 disabled={placing}
-                className="hidden lg:flex w-full items-center justify-center space-x-3 bg-[#ba1f3d] text-white py-5 mt-4 text-[11px] font-black uppercase tracking-[0.35em] hover:bg-gray-900 transition-colors duration-300 disabled:opacity-50"
+                className="hidden lg:flex w-full items-center justify-center space-x-3 bg-cardinal text-white py-5 mt-4 text-[11px] font-black uppercase tracking-[0.35em] hover:bg-gray-900 transition-colors duration-300 disabled:opacity-50"
               >
                 {placing ? (
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />

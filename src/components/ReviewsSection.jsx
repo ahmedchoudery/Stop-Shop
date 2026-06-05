@@ -18,7 +18,7 @@ const Stars = ({ rating, size = 12 }) => (
       <Star
         key={n}
         size={size}
-        className={n <= rating ? 'fill-[#ba1f3d] text-[#ba1f3d]' : 'text-[#2a2a2a] fill-[#2a2a2a]'}
+        className={n <= rating ? 'fill-cardinal text-cardinal' : 'text-[#2a2a2a] fill-[#2a2a2a]'}
       />
     ))}
   </div>
@@ -37,7 +37,7 @@ const StarPicker = ({ value, onChange }) => (
           size={22}
           className={
             n <= value
-              ? 'fill-[#ba1f3d] text-[#ba1f3d]'
+              ? 'fill-cardinal text-cardinal'
               : 'text-[#333] fill-[#333] hover:text-gray-500 hover:fill-[#555]'
           }
         />
@@ -91,7 +91,7 @@ const ReviewForm = ({ onClose, onSuccess }) => {
         {/* Header */}
         <div className="flex items-start justify-between mb-8">
           <div>
-            <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-2">
+            <p className="text-[9px] font-black uppercase tracking-[0.5em] text-cardinal mb-2">
               Share Your Experience
             </p>
             <h3 className="text-xl font-black uppercase tracking-tighter text-black leading-none">
@@ -108,7 +108,7 @@ const ReviewForm = ({ onClose, onSuccess }) => {
 
         {done ? (
           <div className="text-center py-8">
-            <div className="w-14 h-14 bg-[#ba1f3d] flex items-center justify-center mx-auto mb-5">
+            <div className="w-14 h-14 bg-cardinal flex items-center justify-center mx-auto mb-5">
               <CheckCircle size={26} className="text-black" />
             </div>
             <p className="font-black uppercase tracking-[0.3em] text-black text-sm mb-1.5">
@@ -190,7 +190,7 @@ const ReviewForm = ({ onClose, onSuccess }) => {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full py-4 bg-[#ba1f3d] text-white text-[10px] font-black uppercase tracking-[0.4em] hover:brightness-110 transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-3"
+              className="w-full py-4 bg-cardinal text-white text-[10px] font-black uppercase tracking-[0.4em] hover:brightness-110 transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-3"
             >
               {submitting ? (
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -303,7 +303,7 @@ const ReviewsSection = () => {
           >
             {/* Left: Brand claim */}
             <div className="lg:max-w-xl">
-              <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-5">
+              <p className="text-[9px] font-black uppercase tracking-[0.5em] text-cardinal mb-5">
                 The Cardinal Experience
               </p>
               <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black uppercase tracking-tighter leading-[0.9] text-black mb-1">
@@ -353,7 +353,7 @@ const ReviewsSection = () => {
               onClick={() => setShowForm(true)}
               className="group flex items-center gap-3 px-7 py-3.5 border border-gray-300 text-[9px] font-black uppercase tracking-[0.35em] text-gray-600 hover:border-white hover:text-black transition-all duration-300 self-start sm:self-auto flex-shrink-0"
             >
-              <MessageCircle size={12} className="group-hover:text-[#ba1f3d] transition-colors duration-300" />
+              <MessageCircle size={12} className="group-hover:text-cardinal transition-colors duration-300" />
               <span>Write a Review</span>
             </button>
           </div>
@@ -395,7 +395,7 @@ const ReviewsSection = () => {
               </p>
               <button
                 onClick={() => setShowForm(true)}
-                className="inline-flex items-center gap-3 px-8 py-4 bg-[#ba1f3d] text-white text-[10px] font-black uppercase tracking-[0.35em] hover:brightness-110 transition-all duration-300"
+                className="inline-flex items-center gap-3 px-8 py-4 bg-cardinal text-white text-[10px] font-black uppercase tracking-[0.35em] hover:brightness-110 transition-all duration-300"
               >
                 <MessageCircle size={12} />
                 <span>Write the First Review</span>

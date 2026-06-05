@@ -68,14 +68,14 @@ const CarouselCard = ({ product }) => {
         <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
           <button
             onClick={handleWishlist}
-            className={`w-8 h-8 flex items-center justify-center ${wishlisted ? 'bg-[#ba1f3d]' : 'bg-white/60'} transition-colors duration-200`}
+            className={`w-8 h-8 flex items-center justify-center ${wishlisted ? 'bg-cardinal' : 'bg-white/60'} transition-colors duration-200`}
           >
             <Heart size={12} className={wishlisted ? 'fill-white text-black' : 'text-black'} />
           </button>
           {!outOfStock && (
             <button
               onClick={handleAddToCart}
-              className={`w-8 h-8 flex items-center justify-center ${cartAdded ? 'bg-[#ba1f3d]' : 'bg-white/60'} transition-colors duration-200`}
+              className={`w-8 h-8 flex items-center justify-center ${cartAdded ? 'bg-cardinal' : 'bg-white/60'} transition-colors duration-200`}
             >
               <ShoppingBag size={12} className="text-black" />
             </button>
@@ -100,7 +100,7 @@ const CarouselCard = ({ product }) => {
           {formatPrice(product.price)}
         </span>
         {cartAdded && (
-          <p className="text-[9px] font-black text-[#ba1f3d] uppercase tracking-widest mt-1">✓ Added to bag</p>
+          <p className="text-[9px] font-black text-cardinal uppercase tracking-widest mt-1">✓ Added to bag</p>
         )}
       </div>
     </article>

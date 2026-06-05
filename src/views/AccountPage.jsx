@@ -68,7 +68,7 @@ const OrdersTab = () => {
 
   if (loading) return (
     <div className="flex items-center justify-center py-20">
-      <Loader size={24} className="animate-spin text-[#ba1f3d]" />
+      <Loader size={24} className="animate-spin text-cardinal" />
     </div>
   );
 
@@ -79,7 +79,7 @@ const OrdersTab = () => {
       <p className="text-sm text-gray-400 font-bold mb-8">Your order history will appear here after your first purchase.</p>
       <Link
         to="/"
-        className="inline-flex items-center space-x-2 px-8 py-4 bg-[#ba1f3d] text-white text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all"
+        className="inline-flex items-center space-x-2 px-8 py-4 bg-cardinal text-white text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all"
       >
         <span>Start Shopping</span>
       </Link>
@@ -108,7 +108,7 @@ const OrdersTab = () => {
             >
               <div className="flex items-center space-x-4">
                 <div>
-                  <p className="font-mono text-xs font-bold text-[#ba1f3d]">
+                  <p className="font-mono text-xs font-bold text-cardinal">
                     {order.orderID || order._id?.toString().slice(-8).toUpperCase()}
                   </p>
                   <p className="text-[9px] font-bold text-gray-400 mt-0.5 uppercase tracking-widest">
@@ -209,13 +209,13 @@ const ProfileTab = () => {
     }
   };
 
-  const inputCls = 'w-full border-b-2 border-gray-200 focus:border-[#ba1f3d] py-3 text-sm font-bold bg-transparent outline-none transition-all placeholder:text-gray-300';
+  const inputCls = 'w-full border-b-2 border-gray-200 focus:border-cardinal py-3 text-sm font-bold bg-transparent outline-none transition-all placeholder:text-gray-300';
 
   return (
     <div className="max-w-lg space-y-8">
       {/* Avatar */}
       <div className="flex items-center space-x-4">
-        <div className="w-16 h-16 bg-[#ba1f3d] rounded-full flex items-center justify-center text-white text-xl font-black flex-shrink-0">
+        <div className="w-16 h-16 bg-cardinal rounded-full flex items-center justify-center text-white text-xl font-black flex-shrink-0">
           {(customer?.name ?? 'C').charAt(0).toUpperCase()}
         </div>
         <div>
@@ -262,7 +262,7 @@ const ProfileTab = () => {
         </div>
       </div>
 
-      {error && <p className="text-xs font-bold text-[#ba1f3d]">{error}</p>}
+      {error && <p className="text-xs font-bold text-cardinal">{error}</p>}
 
       <div className="flex space-x-3">
         {editing ? (
@@ -270,7 +270,7 @@ const ProfileTab = () => {
             <button
               onClick={handleSave}
               disabled={saving}
-              className="flex items-center space-x-2 px-6 py-3 bg-[#ba1f3d] text-white text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all disabled:opacity-50"
+              className="flex items-center space-x-2 px-6 py-3 bg-cardinal text-white text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all disabled:opacity-50"
             >
               {saving ? <Loader size={13} className="animate-spin" /> : <Check size={13} />}
               <span>Save Changes</span>
@@ -327,12 +327,12 @@ const AddressTab = () => {
     }
   };
 
-  const inputCls = 'w-full border-b-2 border-gray-200 focus:border-[#ba1f3d] py-3 text-sm font-bold bg-transparent outline-none transition-all placeholder:text-gray-300';
+  const inputCls = 'w-full border-b-2 border-gray-200 focus:border-cardinal py-3 text-sm font-bold bg-transparent outline-none transition-all placeholder:text-gray-300';
 
   return (
     <div className="max-w-lg space-y-6">
       <div>
-        <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-2">Saved Address</p>
+        <p className="text-[9px] font-black uppercase tracking-[0.5em] text-cardinal mb-2">Saved Address</p>
         <p className="text-sm text-gray-500 font-bold">
           Your saved address is auto-filled at checkout.
         </p>
@@ -342,7 +342,7 @@ const AddressTab = () => {
         <div className="p-5 bg-gray-50 border border-gray-100 rounded-sm">
           {hasAddress ? (
             <div className="flex items-start space-x-3">
-              <MapPin size={16} className="text-[#ba1f3d] mt-0.5 flex-shrink-0" />
+              <MapPin size={16} className="text-cardinal mt-0.5 flex-shrink-0" />
               <div className="text-sm font-bold text-gray-700 space-y-0.5">
                 <p>{customer.address}</p>
                 <p>{[customer.city, customer.zip].filter(Boolean).join(', ')}</p>
@@ -380,13 +380,13 @@ const AddressTab = () => {
         </div>
       )}
 
-      {error && <p className="text-xs font-bold text-[#ba1f3d]">{error}</p>}
+      {error && <p className="text-xs font-bold text-cardinal">{error}</p>}
 
       <div className="flex space-x-3">
         {editing ? (
           <>
             <button onClick={handleSave} disabled={saving}
-              className="flex items-center space-x-2 px-6 py-3 bg-[#ba1f3d] text-white text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all disabled:opacity-50">
+              className="flex items-center space-x-2 px-6 py-3 bg-cardinal text-white text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all disabled:opacity-50">
               {saving ? <Loader size={13} className="animate-spin" /> : <Check size={13} />}
               <span>Save Address</span>
             </button>
@@ -440,7 +440,7 @@ const AccountPage = () => {
             <ArrowLeft size={13} />
             <span>Continue Shopping</span>
           </button>
-          <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-2">My Account</p>
+          <p className="text-[9px] font-black uppercase tracking-[0.5em] text-cardinal mb-2">My Account</p>
           <h1 className="text-3xl font-black uppercase tracking-tighter">
             Welcome, {customer?.name?.split(' ')[0]}
           </h1>
@@ -460,7 +460,7 @@ const AccountPage = () => {
                   onClick={() => setActiveTab(id)}
                   className={`w-full flex items-center space-x-3 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-left transition-all rounded-sm ${
                     activeTab === id
-                      ? 'bg-[#ba1f3d] text-white'
+                      ? 'bg-cardinal text-white'
                       : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                   }`}
                 >
@@ -473,7 +473,7 @@ const AccountPage = () => {
 
               <button
                 onClick={() => { logout(); navigate('/'); }}
-                className="w-full flex items-center space-x-3 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-[#ba1f3d] hover:bg-red-50 transition-all text-left rounded-sm"
+                className="w-full flex items-center space-x-3 px-4 py-3 text-[10px] font-black uppercase tracking-widest text-gray-400 hover:text-cardinal hover:bg-red-50 transition-all text-left rounded-sm"
               >
                 <LogOut size={14} />
                 <span>Logout</span>

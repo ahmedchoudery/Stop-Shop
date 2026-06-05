@@ -41,7 +41,7 @@ const DashboardHome = () => {
       {/* Page Header */}
       <div className="flex items-center justify-between mb-6 sm:mb-10">
         <div>
-          <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-1.5">
+          <p className="text-[9px] font-black uppercase tracking-[0.5em] text-cardinal mb-1.5">
             Live Intelligence
           </p>
           <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tighter text-gray-900">

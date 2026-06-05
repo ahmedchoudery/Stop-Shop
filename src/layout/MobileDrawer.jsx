@@ -79,7 +79,7 @@ const MobileDrawer = ({ isOpen, onClose }) => {
             </button>
           ) : (
             <Link to="/" onClick={onClose} className="flex items-center space-x-2.5">
-              <span className="text-lg font-black italic uppercase tracking-tighter text-[#ba1f3d]">
+              <span className="text-lg font-black italic uppercase tracking-tighter text-cardinal">
                 Stop<span className="not-italic text-black/80">&</span>Shop
               </span>
             </Link>

@@ -44,16 +44,16 @@ const CouponInput = ({ cartTotal, onApply, onRemove, appliedCoupon }) => {
   // ── Applied state ──────────────────────────────────────────────
   if (appliedCoupon) {
     return (
-      <div className="flex items-center justify-between py-3 px-4 bg-[#ba1f3d]/5 border border-[#ba1f3d]/20 animate-fade-up">
+      <div className="flex items-center justify-between py-3 px-4 bg-cardinal/5 border border-cardinal/20 animate-fade-up">
         <div className="flex items-center space-x-3">
-          <div className="w-5 h-5 bg-[#ba1f3d] flex items-center justify-center flex-shrink-0">
+          <div className="w-5 h-5 bg-cardinal flex items-center justify-center flex-shrink-0">
             <Check size={10} className="text-black" />
           </div>
           <div>
             <p className="text-[9px] font-black uppercase tracking-[0.3em] text-gray-900">
               {appliedCoupon.code}
             </p>
-            <p className="text-[9px] font-bold text-[#ba1f3d] mt-0.5">
+            <p className="text-[9px] font-bold text-cardinal mt-0.5">
               {appliedCoupon.message}
             </p>
           </div>
@@ -91,7 +91,7 @@ const CouponInput = ({ cartTotal, onApply, onRemove, appliedCoupon }) => {
         <button
           onClick={handleApply}
           disabled={!code.trim() || loading}
-          className="px-5 py-3 bg-gray-900 text-white text-[9px] font-black uppercase tracking-[0.25em] hover:bg-[#ba1f3d] transition-colors duration-300 disabled:opacity-30 disabled:cursor-not-allowed flex items-center space-x-1.5 flex-shrink-0"
+          className="px-5 py-3 bg-gray-900 text-white text-[9px] font-black uppercase tracking-[0.25em] hover:bg-cardinal transition-colors duration-300 disabled:opacity-30 disabled:cursor-not-allowed flex items-center space-x-1.5 flex-shrink-0"
         >
           {loading
             ? <Loader size={11} className="animate-spin" />
@@ -102,7 +102,7 @@ const CouponInput = ({ cartTotal, onApply, onRemove, appliedCoupon }) => {
 
       {/* Error message */}
       {error && (
-        <p className="flex items-center space-x-1.5 text-[9px] font-bold text-[#ba1f3d] mt-2">
+        <p className="flex items-center space-x-1.5 text-[9px] font-bold text-cardinal mt-2">
           <X size={9} className="flex-shrink-0" />
           <span>{error}</span>
         </p>

@@ -50,7 +50,7 @@ const AdminAuditPanel = () => {
       {/* Header */}
       <div className="flex items-center justify-between mb-10">
         <div>
-          <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-2">Security</p>
+          <p className="text-[9px] font-black uppercase tracking-[0.5em] text-cardinal mb-2">Security</p>
           <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tighter text-gray-900">Audit Logs</h1>
         </div>
         <button
@@ -72,7 +72,7 @@ const AdminAuditPanel = () => {
             placeholder="Search actions or admin email..."
             value={searchRaw}
             onChange={e => setSearchRaw(e.target.value)}
-            className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 pl-9 pr-9 text-xs font-bold focus:bg-white focus:border-[#ba1f3d] outline-none transition-all placeholder:text-gray-300"
+            className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 pl-9 pr-9 text-xs font-bold focus:bg-white focus:border-cardinal outline-none transition-all placeholder:text-gray-300"
           />
           {searchRaw && (
             <button onClick={() => setSearchRaw('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">

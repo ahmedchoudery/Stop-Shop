@@ -110,7 +110,7 @@ const ProductTable = memo(({ products = [], onEdit, onDelete }) => {
               {/* Category */}
               <td className="px-5 py-4">
                 <div>
-                  <p className="text-[10px] font-black text-[#ba1f3d] uppercase tracking-widest">
+                  <p className="text-[10px] font-black text-cardinal uppercase tracking-widest">
                     {product.bucket || '—'}
                   </p>
                   <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">
@@ -160,7 +160,7 @@ const ProductTable = memo(({ products = [], onEdit, onDelete }) => {
                   {[...Array(5)].map((_, i) => (
                     <span
                       key={i}
-                      className={`text-[10px] ${i < (product.rating ?? 5) ? 'text-[#FBBF24]' : 'text-gray-200'}`}
+                      className={`text-[10px] ${i < (product.rating ?? 5) ? 'text-amber-gold' : 'text-gray-200'}`}
                     >
                       ★
                     </span>
@@ -189,7 +189,7 @@ const ProductTable = memo(({ products = [], onEdit, onDelete }) => {
                   <button
                     onClick={() => onDelete(product)}
                     title="Delete product — removes from MongoDB"
-                    className="flex items-center space-x-1.5 px-3 py-2 bg-red-50 text-[#ba1f3d] text-[9px] font-black uppercase tracking-widest rounded-lg hover:bg-[#ba1f3d] hover:text-white transition-all duration-200"
+                    className="flex items-center space-x-1.5 px-3 py-2 bg-red-50 text-cardinal text-[9px] font-black uppercase tracking-widest rounded-lg hover:bg-cardinal hover:text-white transition-all duration-200"
                   >
                     <Trash2 size={11} />
                     <span>Delete</span>

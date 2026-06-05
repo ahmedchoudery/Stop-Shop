@@ -94,7 +94,7 @@ const AdminInventory = () => {
     <div>
       {/* Header */}
       <div className="mb-10">
-        <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-2">Stock Control</p>
+        <p className="text-[9px] font-black uppercase tracking-[0.5em] text-cardinal mb-2">Stock Control</p>
         <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tighter text-gray-900">Inventory</h1>
       </div>
 
@@ -112,7 +112,7 @@ const AdminInventory = () => {
             placeholder="Search by name or SKU..."
             value={searchRaw}
             onChange={e => setSearchRaw(e.target.value)}
-            className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 pl-10 pr-10 text-xs font-bold focus:bg-white focus:border-[#ba1f3d] outline-none transition-all placeholder:text-gray-300"
+            className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 pl-10 pr-10 text-xs font-bold focus:bg-white focus:border-cardinal outline-none transition-all placeholder:text-gray-300"
           />
           {searchRaw && (
             <button onClick={() => setSearchRaw('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
@@ -133,7 +133,7 @@ const AdminInventory = () => {
               onClick={() => setStockFilter(opt.value)}
               className={`px-3 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all duration-200 ${
                 stockFilter === opt.value
-                  ? 'bg-[#ba1f3d] text-white shadow-md'
+                  ? 'bg-cardinal text-white shadow-md'
                   : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
               }`}
             >
@@ -192,7 +192,7 @@ const AdminInventory = () => {
                           onChange={e => handleLocalChange(product.id, 'price', e.target.value)}
                           onBlur={e => handleUpdate(product.id, 'price', e.target.value)}
                           onKeyDown={e => e.key === 'Enter' && handleUpdate(product.id, 'price', e.target.value)}
-                          className="w-24 bg-transparent border-b-2 border-transparent focus:border-[#ba1f3d] outline-none py-1 text-sm font-black transition-all"
+                          className="w-24 bg-transparent border-b-2 border-transparent focus:border-cardinal outline-none py-1 text-sm font-black transition-all"
                         />
                       </td>
                       <td className="p-4">
@@ -203,7 +203,7 @@ const AdminInventory = () => {
                             onChange={e => handleLocalChange(product.id, 'quantity', e.target.value)}
                             onBlur={e => handleUpdate(product.id, 'quantity', e.target.value)}
                             onKeyDown={e => e.key === 'Enter' && handleUpdate(product.id, 'quantity', e.target.value)}
-                            className={`w-20 bg-transparent border-b-2 border-transparent focus:border-[#ba1f3d] outline-none py-1 text-sm font-black transition-all ${lowStock ? 'text-orange-600' : outOfStock ? 'text-red-600' : ''}`}
+                            className={`w-20 bg-transparent border-b-2 border-transparent focus:border-cardinal outline-none py-1 text-sm font-black transition-all ${lowStock ? 'text-orange-600' : outOfStock ? 'text-red-600' : ''}`}
                           />
                           {saved && (
                             <span

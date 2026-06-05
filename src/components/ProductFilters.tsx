@@ -36,7 +36,7 @@ const ProductFilters = memo(({
           placeholder="Search by name or SKU..."
           value={searchTerm}
           onChange={(e) => onSearchChange(e.target.value)}
-          className="w-full bg-gray-50 border border-gray-200 rounded-sm py-3 pl-10 pr-4 text-xs font-bold focus:bg-white focus:border-[#ba1f3d] outline-none transition-all placeholder:text-gray-400"
+          className="w-full bg-gray-50 border border-gray-200 rounded-sm py-3 pl-10 pr-4 text-xs font-bold focus:bg-white focus:border-cardinal outline-none transition-all placeholder:text-gray-400"
         />
         {searchTerm && (
           <button
@@ -54,7 +54,7 @@ const ProductFilters = memo(({
           <select
             value={categoryFilter}
             onChange={(e) => onCategoryChange(e.target.value)}
-            className="appearance-none bg-white border border-gray-200 rounded-sm py-3 pl-10 pr-8 text-xs font-bold focus:bg-white focus:border-[#ba1f3d] outline-none transition-all cursor-pointer"
+            className="appearance-none bg-white border border-gray-200 rounded-sm py-3 pl-10 pr-8 text-xs font-bold focus:bg-white focus:border-cardinal outline-none transition-all cursor-pointer"
           >
             <option value="all">All Categories</option>
             {categories.map((cat) => (
@@ -66,7 +66,7 @@ const ProductFilters = memo(({
         <select
           value={stockFilter}
           onChange={(e) => onStockChange(e.target.value)}
-          className="appearance-none bg-white border border-gray-200 rounded-sm py-3 px-4 text-xs font-bold focus:bg-white focus:border-[#ba1f3d] outline-none transition-all cursor-pointer"
+          className="appearance-none bg-white border border-gray-200 rounded-sm py-3 px-4 text-xs font-bold focus:bg-white focus:border-cardinal outline-none transition-all cursor-pointer"
         >
           {stockOptions.map((opt) => (
             <option key={opt.value} value={opt.value}>{opt.label}</option>

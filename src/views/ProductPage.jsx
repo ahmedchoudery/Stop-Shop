@@ -84,7 +84,7 @@ const RelatedProducts = ({ currentId, category, subCategory, allProducts }) => {
       <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16">
         <div className="flex items-baseline justify-between mb-10">
           <div>
-            <p className="text-[8px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-2">You May Also Like</p>
+            <p className="text-[8px] font-black uppercase tracking-[0.5em] text-cardinal mb-2">You May Also Like</p>
             <h2 className="text-2xl font-black uppercase tracking-tighter text-gray-900">From {category}</h2>
           </div>
         </div>
@@ -105,7 +105,7 @@ const RelatedProducts = ({ currentId, category, subCategory, allProducts }) => {
               <p className="text-[8px] font-bold uppercase tracking-[0.35em] text-gray-400 mb-1">
                 {product.subCategory && product.subCategory !== 'General' ? product.subCategory : product.bucket}
               </p>
-              <p className="text-[11px] font-black uppercase tracking-tight text-gray-900 mb-1 group-hover:text-[#ba1f3d] transition-colors line-clamp-1">
+              <p className="text-[11px] font-black uppercase tracking-tight text-gray-900 mb-1 group-hover:text-cardinal transition-colors line-clamp-1">
                 {product.name}
               </p>
               <p className="text-sm font-black text-gray-900">{formatPrice(product.price)}</p>
@@ -252,7 +252,7 @@ const ProductPage = () => {
         <h2 className="text-xl font-black uppercase tracking-tight text-gray-900 mb-2">{error}</h2>
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center space-x-2 mt-6 px-8 py-4 bg-[#ba1f3d] text-white text-[10px] font-black uppercase tracking-[0.3em] hover:bg-gray-900 transition-colors duration-300"
+          className="flex items-center space-x-2 mt-6 px-8 py-4 bg-cardinal text-white text-[10px] font-black uppercase tracking-[0.3em] hover:bg-gray-900 transition-colors duration-300"
         >
           <ArrowLeft size={13} />
           <span>Go Back</span>
@@ -269,9 +269,9 @@ const ProductPage = () => {
       {/* ── Breadcrumb ───────────────────────────────────────── */}
       <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 py-5">
         <nav className="flex items-center space-x-2 text-[9px] font-bold uppercase tracking-[0.3em] text-gray-400">
-          <Link to="/" className="hover:text-[#ba1f3d] transition-colors">Home</Link>
+          <Link to="/" className="hover:text-cardinal transition-colors">Home</Link>
           <ChevronRight size={9} />
-          <button onClick={() => navigate('/')} className="hover:text-[#ba1f3d] transition-colors">
+          <button onClick={() => navigate('/')} className="hover:text-cardinal transition-colors">
             {product.bucket}
           </button>
           {product.subCategory && product.subCategory !== 'General' && (
@@ -312,13 +312,13 @@ const ProductPage = () => {
                 <>
                   <button
                     onClick={() => setGalleryIndex(i => (i - 1 + gallery.length) % gallery.length)}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-[#ba1f3d] hover:text-white"
+                    className="absolute left-4 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-cardinal hover:text-white"
                   >
                     <ChevronLeft size={15} />
                   </button>
                   <button
                     onClick={() => setGalleryIndex(i => (i + 1) % gallery.length)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-[#ba1f3d] hover:text-white"
+                    className="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-cardinal hover:text-white"
                   >
                     <ChevronRight size={15} />
                   </button>
@@ -360,12 +360,12 @@ const ProductPage = () => {
           <div className="lg:py-2">
             {/* Category + Rating */}
             <div className="flex items-center justify-between mb-3">
-              <p className="text-[9px] font-black uppercase tracking-[0.45em] text-[#ba1f3d]">
+              <p className="text-[9px] font-black uppercase tracking-[0.45em] text-cardinal">
                 {category}
               </p>
               <div className="flex items-center space-x-1">
                 {[...Array(5)].map((_, i) => (
-                  <Star key={i} size={11} className={i < (product.rating ?? 5) ? 'fill-[#FBBF24] text-[#FBBF24]' : 'text-gray-200'} />
+                  <Star key={i} size={11} className={i < (product.rating ?? 5) ? 'fill-amber-gold text-amber-gold' : 'text-gray-200'} />
                 ))}
                 <span className="text-[9px] font-bold text-gray-400 ml-1">{product.rating ?? 5}.0</span>
               </div>
@@ -431,7 +431,7 @@ const ProductPage = () => {
             {product.sizes?.length > 0 && (
               <div className="mb-7">
                 <p className={`text-[9px] font-black uppercase tracking-[0.4em] mb-3 transition-colors ${
-                  sizeError ? 'text-[#ba1f3d]' : 'text-gray-500'
+                  sizeError ? 'text-cardinal' : 'text-gray-500'
                 }`}>
                   {sizeError ? '⚠ Select a size to continue' : 'Size'}
                 </p>
@@ -494,7 +494,7 @@ const ProductPage = () => {
                     ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                     : cartAdded
                       ? 'bg-gray-900 text-black'
-                      : 'bg-[#ba1f3d] text-white hover:bg-gray-900'
+                      : 'bg-cardinal text-white hover:bg-gray-900'
                 }`}
               >
                 {cartAdded ? (
@@ -511,11 +511,11 @@ const ProductPage = () => {
                 onClick={() => toggleWishlist(product)}
                 className={`w-14 flex items-center justify-center border-2 transition-all duration-300 ${
                   isWished
-                    ? 'border-[#ba1f3d] bg-red-50 text-[#ba1f3d]'
-                    : 'border-gray-200 text-gray-400 hover:border-[#ba1f3d] hover:text-[#ba1f3d]'
+                    ? 'border-cardinal bg-red-50 text-cardinal'
+                    : 'border-gray-200 text-gray-400 hover:border-cardinal hover:text-cardinal'
                 }`}
               >
-                <Heart size={17} className={isWished ? 'fill-[#ba1f3d]' : ''} />
+                <Heart size={17} className={isWished ? 'fill-cardinal' : ''} />
               </button>
             </div>
 
@@ -552,7 +552,7 @@ const ProductPage = () => {
                 <ul className="space-y-2">
                   {product.specs.filter(Boolean).map((spec, i) => (
                     <li key={i} className="flex items-start space-x-3">
-                      <div className="w-1 h-1 bg-[#ba1f3d] rounded-full mt-2 flex-shrink-0" />
+                      <div className="w-1 h-1 bg-cardinal rounded-full mt-2 flex-shrink-0" />
                       <span className="text-sm text-gray-600 font-medium leading-relaxed">{spec}</span>
                     </li>
                   ))}
@@ -564,7 +564,7 @@ const ProductPage = () => {
             <div className="grid grid-cols-2 gap-3">
               {TRUST.map(({ Icon, label, sub }) => (
                 <div key={label} className="flex items-start space-x-2.5 p-3 bg-[#FAFAF9] border border-gray-100">
-                  <Icon size={13} className="text-[#ba1f3d] flex-shrink-0 mt-0.5" />
+                  <Icon size={13} className="text-cardinal flex-shrink-0 mt-0.5" />
                   <div>
                     <p className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-900">{label}</p>
                     <p className="text-[8px] text-gray-400 mt-0.5">{sub}</p>

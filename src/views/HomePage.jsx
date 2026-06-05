@@ -61,7 +61,7 @@ const CategoryBar = ({ active, activeSub, onChange, products }) => {
               {active === bucket && (
                 <motion.div
                   layoutId="activeCategoryPill"
-                  className="absolute inset-0 bg-[#ba1f3d] rounded-full shadow-[0_8px_20px_rgba(186,31,61,0.25)]"
+                  className="absolute inset-0 bg-cardinal rounded-full shadow-[0_8px_20px_rgba(186,31,61,0.25)]"
                   transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                 />
               )}

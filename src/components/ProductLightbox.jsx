@@ -196,7 +196,7 @@ const ProductLightbox = ({ images = [], startIndex = 0, isOpen, onClose }) => {
 
           <button
             onClick={handleClose}
-            className="p-2.5 bg-white/8 hover:bg-[#ba1f3d] rounded-xl transition-all duration-300 text-white hover:rotate-90 transform"
+            className="p-2.5 bg-white/8 hover:bg-cardinal rounded-xl transition-all duration-300 text-white hover:rotate-90 transform"
             title="Close (Esc)"
           >
             <X size={16} />
@@ -274,7 +274,7 @@ const ProductLightbox = ({ images = [], startIndex = 0, isOpen, onClose }) => {
                 onClick={() => { setCurrent(idx); animateImgSwitch(idx > current ? 1 : -1); }}
                 className={`flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition-all duration-300 ${
                   idx === current
-                    ? 'border-[#ba1f3d] scale-105 shadow-lg shadow-red-900/50'
+                    ? 'border-cardinal scale-105 shadow-lg shadow-red-900/50'
                     : 'border-white/10 hover:border-white/30 opacity-50 hover:opacity-100'
                 }`}
                 style={{ opacity: 0 }}

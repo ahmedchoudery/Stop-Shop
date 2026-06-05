@@ -106,7 +106,7 @@ const MagneticButton = ({
       
       {/* Visual background / border logic can be handled via className or added here */}
       {isHovered && (
-        <span className="absolute inset-0 rounded-full border border-[#ba1f3d]/30 animate-ping-once pointer-events-none" />
+        <span className="absolute inset-0 rounded-full border border-cardinal/30 animate-ping-once pointer-events-none" />
       )}
     </Tag>
   );

@@ -36,7 +36,7 @@ const useToast = () => {
 const StarDisplay = ({ rating }) => (
     <div className="flex space-x-0.5">
         {[1, 2, 3, 4, 5].map(n => (
-            <Star key={n} size={11} className={n <= rating ? 'fill-[#FBBF24] text-[#FBBF24]' : 'text-gray-200'} />
+            <Star key={n} size={11} className={n <= rating ? 'fill-amber-gold text-amber-gold' : 'text-gray-200'} />
         ))}
     </div>
 );
@@ -136,7 +136,7 @@ const AdminReviews = () => {
             {/* Header */}
             <div className="flex items-center justify-between mb-10">
                 <div>
-                    <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-2">Customer Feedback</p>
+                    <p className="text-[9px] font-black uppercase tracking-[0.5em] text-cardinal mb-2">Customer Feedback</p>
                     <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tighter text-gray-900">Reviews</h1>
                 </div>
                 <button
@@ -189,7 +189,7 @@ const AdminReviews = () => {
             <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-xl">
                 {loading ? (
                     <div className="p-16 text-center">
-                        <div className="w-8 h-8 border-2 border-gray-100 border-t-[#ba1f3d] rounded-full animate-spin mx-auto" />
+                        <div className="w-8 h-8 border-2 border-gray-100 border-t-cardinal rounded-full animate-spin mx-auto" />
                     </div>
                 ) : filtered.length === 0 ? (
                     <div className="p-20 text-center">
@@ -213,7 +213,7 @@ const AdminReviews = () => {
                                     <div className="flex items-start gap-4 px-6 py-5">
 
                                         {/* Avatar */}
-                                        <div className="w-10 h-10 rounded-full bg-[#ba1f3d]/10 border border-[#ba1f3d]/20 flex items-center justify-center flex-shrink-0 text-[#ba1f3d] text-xs font-black">
+                                        <div className="w-10 h-10 rounded-full bg-cardinal/10 border border-cardinal/20 flex items-center justify-center flex-shrink-0 text-cardinal text-xs font-black">
                                             {(review.customerName ?? 'A').charAt(0).toUpperCase()}
                                         </div>
 
@@ -236,7 +236,7 @@ const AdminReviews = () => {
                                                     <div className="flex items-center space-x-3 mt-0.5 flex-wrap gap-y-0.5">
                                                         <p className="text-[9px] font-bold text-gray-400 lowercase">{review.customerEmail}</p>
                                                         {review.productId && (
-                                                            <p className="text-[9px] font-black text-[#ba1f3d] uppercase tracking-widest">
+                                                            <p className="text-[9px] font-black text-cardinal uppercase tracking-widest">
                                                                 SKU: {review.productId}
                                                             </p>
                                                         )}
@@ -305,7 +305,7 @@ const AdminReviews = () => {
                                                 onClick={() => handleDelete(review)}
                                                 disabled={isActing}
                                                 title="Delete permanently"
-                                                className="p-2 text-gray-300 hover:text-[#ba1f3d] hover:bg-red-50 rounded-lg transition-all disabled:opacity-40"
+                                                className="p-2 text-gray-300 hover:text-cardinal hover:bg-red-50 rounded-lg transition-all disabled:opacity-40"
                                             >
                                                 {actionLoading === review._id + 'delete'
                                                     ? <div className="w-3 h-3 border border-red-300/30 border-t-red-400 rounded-full animate-spin" />

@@ -52,7 +52,7 @@ const CartItem = ({ item, onRemove, onQtyChange }) => {
           )}
           {/* Name */}
           <h3
-            className="text-[11px] font-black uppercase tracking-tight text-gray-900 leading-snug line-clamp-2 mb-1 cursor-pointer hover:text-[#ba1f3d] transition-colors"
+            className="text-[11px] font-black uppercase tracking-tight text-gray-900 leading-snug line-clamp-2 mb-1 cursor-pointer hover:text-cardinal transition-colors"
             onClick={() => navigate(`/product/${item.id}`)}
           >
             {item.name}
@@ -96,7 +96,7 @@ const CartItem = ({ item, onRemove, onQtyChange }) => {
             {/* Remove */}
             <button
               onClick={() => onRemove(item)}
-              className="w-11 h-11 sm:w-6 sm:h-6 flex items-center justify-center text-gray-300 hover:text-[#ba1f3d] transition-colors ml-1"
+              className="w-11 h-11 sm:w-6 sm:h-6 flex items-center justify-center text-gray-300 hover:text-cardinal transition-colors ml-1"
               aria-label="Remove item"
             >
               <Trash2 size={13} />
@@ -209,7 +209,7 @@ const UniversalDrawer = () => {
                 {isCartMode && cartItems.length > 0 && (
                   <button
                     onClick={clearCart}
-                    className="text-[8px] font-black uppercase tracking-widest text-gray-300 hover:text-[#ba1f3d] transition-colors"
+                    className="text-[8px] font-black uppercase tracking-widest text-gray-300 hover:text-cardinal transition-colors"
                   >
                     Clear
                   </button>
@@ -240,7 +240,7 @@ const UniversalDrawer = () => {
                     </p>
                     <button
                       onClick={handleClose}
-                      className="flex items-center space-x-2 text-[10px] font-black uppercase tracking-[0.3em] text-[#ba1f3d] border-b border-[#ba1f3d]/40 pb-0.5 hover:border-[#ba1f3d] transition-colors"
+                      className="flex items-center space-x-2 text-[10px] font-black uppercase tracking-[0.3em] text-cardinal border-b border-cardinal/40 pb-0.5 hover:border-cardinal transition-colors"
                     >
                       <span>Shop Collection</span>
                       <ArrowRight size={11} />
@@ -282,10 +282,10 @@ const UniversalDrawer = () => {
                       </div>
                       {discount > 0 && (
                         <div className="flex justify-between items-center">
-                          <span className="text-[10px] font-bold text-[#ba1f3d] uppercase tracking-widest">
+                          <span className="text-[10px] font-bold text-cardinal uppercase tracking-widest">
                             Discount ({appliedCoupon.code})
                           </span>
-                          <span className="text-[11px] font-black text-[#ba1f3d]">−{formatPrice(discount)}</span>
+                          <span className="text-[11px] font-black text-cardinal">−{formatPrice(discount)}</span>
                         </div>
                       )}
                       <div className="flex justify-between items-center">
@@ -319,7 +319,7 @@ const UniversalDrawer = () => {
                   <Link
                     to={`/product/${selectedProduct.id}`}
                     onClick={handleClose}
-                    className="block w-full text-center bg-gray-900 text-white py-4 text-[10px] font-black uppercase tracking-[0.35em] hover:bg-[#ba1f3d] transition-colors duration-300 mb-3"
+                    className="block w-full text-center bg-gray-900 text-white py-4 text-[10px] font-black uppercase tracking-[0.35em] hover:bg-cardinal transition-colors duration-300 mb-3"
                   >
                     View Full Details
                   </Link>
@@ -340,7 +340,7 @@ const UniversalDrawer = () => {
                 <Link
                   to="/checkout"
                   onClick={handleClose}
-                  className="block w-full text-center bg-[#ba1f3d] text-white py-4 text-[10px] font-black uppercase tracking-[0.35em] hover:bg-gray-900 transition-colors duration-300 mb-3"
+                  className="block w-full text-center bg-cardinal text-white py-4 text-[10px] font-black uppercase tracking-[0.35em] hover:bg-gray-900 transition-colors duration-300 mb-3"
                 >
                   Proceed to Checkout
                 </Link>

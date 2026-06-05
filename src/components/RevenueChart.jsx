@@ -100,7 +100,7 @@ const RevenueChart = ({ chartData = [] }) => {
               onClick={() => setMode(m)}
               className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all duration-300 ${
                 mode === m
-                  ? 'bg-[#ba1f3d] text-white shadow-md shadow-red-200/60'
+                  ? 'bg-cardinal text-white shadow-md shadow-red-200/60'
                   : 'text-gray-400 hover:text-gray-700'
               }`}
             >
@@ -169,7 +169,7 @@ const RevenueChart = ({ chartData = [] }) => {
       {/* Quick Stats */}
       <div className="grid grid-cols-3 gap-4 mt-6 pt-5 border-t border-gray-50">
         {[
-          { label: 'Peak Day', value: peak.day, sub: `Rs. ${(peak.revenue ?? 0).toLocaleString('en-PK')}`, subColor: 'text-[#ba1f3d]' },
+          { label: 'Peak Day', value: peak.day, sub: `Rs. ${(peak.revenue ?? 0).toLocaleString('en-PK')}`, subColor: 'text-cardinal' },
           { label: 'Avg Daily', value: `Rs. ${Math.round(totalWeek / 7).toLocaleString('en-PK')}`, sub: '↑ Trending', subColor: 'text-green-500' },
           { label: 'Total Orders', value: totalOrders, sub: 'This Week', subColor: 'text-yellow-600' },
         ].map(stat => (

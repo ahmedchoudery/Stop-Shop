@@ -111,14 +111,14 @@ const SearchOverlay = ({ isOpen, onClose, products = [] }) => {
             >
               {/* Giant Input Field — Editorial Style */}
               <div className="relative group">
-                <Search className="absolute left-0 top-1/2 -translate-y-1/2 text-[#ba1f3d]" size={36} strokeWidth={3} />
+                <Search className="absolute left-0 top-1/2 -translate-y-1/2 text-cardinal" size={36} strokeWidth={3} />
                 <input
                   ref={inputRef}
                   type="search"
                   value={query}
                   onChange={e => setQuery(e.target.value)}
                   placeholder="START TYPING..."
-                  className="w-full bg-transparent border-b-4 border-white/10 text-black placeholder:text-black/10 text-4xl lg:text-7xl py-10 pl-16 lg:pl-24 pr-10 outline-none focus:border-[#ba1f3d] transition-all duration-700 font-black tracking-tighter uppercase"
+                  className="w-full bg-transparent border-b-4 border-white/10 text-black placeholder:text-black/10 text-4xl lg:text-7xl py-10 pl-16 lg:pl-24 pr-10 outline-none focus:border-cardinal transition-all duration-700 font-black tracking-tighter uppercase"
                 />
                 <div className="absolute right-0 bottom-4 hidden lg:flex items-center space-x-2 text-black/20">
                   <Command size={14} />
@@ -132,7 +132,7 @@ const SearchOverlay = ({ isOpen, onClose, products = [] }) => {
                 {/* Search Results Column */}
                 <div className="space-y-8">
                   <div className="flex items-center space-x-4 border-b border-white/5 pb-4">
-                    <span className="text-[10px] font-black uppercase tracking-[0.4em] text-[#ba1f3d]">Search Results</span>
+                    <span className="text-[10px] font-black uppercase tracking-[0.4em] text-cardinal">Search Results</span>
                     <span className="h-[1px] flex-1 bg-white/5" />
                   </div>
 
@@ -147,12 +147,12 @@ const SearchOverlay = ({ isOpen, onClose, products = [] }) => {
                         >
                           <div className="w-20 h-24 rounded-xl overflow-hidden bg-white/5 flex-shrink-0 relative">
                             <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" loading="lazy" />
-                            <div className="absolute inset-0 bg-[#ba1f3d]/0 group-hover:bg-[#ba1f3d]/20 transition-colors" />
+                            <div className="absolute inset-0 bg-cardinal/0 group-hover:bg-cardinal/20 transition-colors" />
                           </div>
                           <div className="flex-grow">
                             <p className="text-black/30 text-[9px] font-black uppercase tracking-widest mb-1">{product.bucket}</p>
                             <h3 className="text-black font-black uppercase tracking-tight text-lg leading-none mb-2 underline-draw">{product.name}</h3>
-                            <p className="text-[#ba1f3d] font-black text-sm tracking-widest">{formatPrice(product.price)}</p>
+                            <p className="text-cardinal font-black text-sm tracking-widest">{formatPrice(product.price)}</p>
                           </div>
                           <ArrowRight className="text-black/0 group-hover:text-black/40 -translate-x-4 group-hover:translate-x-0 transition-all duration-500" />
                         </motion.button>
@@ -178,10 +178,10 @@ const SearchOverlay = ({ isOpen, onClose, products = [] }) => {
                         key={term}
                         variants={itemVariants}
                         onClick={() => setQuery(term)}
-                        className="px-6 py-4 bg-white/5 hover:bg-[#ba1f3d] border border-white/10 hover:border-[#ba1f3d] rounded-full text-white text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-500 hover:-translate-y-2 group"
+                        className="px-6 py-4 bg-white/5 hover:bg-cardinal border border-white/10 hover:border-cardinal rounded-full text-white text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-500 hover:-translate-y-2 group"
                       >
                         <span className="flex items-center space-x-3">
-                          <TrendingUp size={14} className="text-[#ba1f3d] group-hover:text-black" />
+                          <TrendingUp size={14} className="text-cardinal group-hover:text-black" />
                           <span>{term}</span>
                         </span>
                       </motion.button>
@@ -191,16 +191,16 @@ const SearchOverlay = ({ isOpen, onClose, products = [] }) => {
                   {/* Suggestion Cards */}
                   <motion.div 
                     variants={itemVariants}
-                    className="mt-12 glass-premium rounded-3xl p-8 border-[#ba1f3d]/20"
+                    className="mt-12 glass-premium rounded-3xl p-8 border-cardinal/20"
                   >
                     <div className="flex items-center space-x-3 mb-4">
-                      <Tag size={16} className="text-[#ba1f3d]" />
+                      <Tag size={16} className="text-cardinal" />
                       <h4 className="text-black font-black uppercase tracking-widest text-xs">Cardinal Collections</h4>
                     </div>
                     <p className="text-black/40 text-[11px] leading-relaxed mb-6 font-medium">
                       Explore our hand-picked selections for the current season. From linen essentials to signature Pakistan-made accessories.
                     </p>
-                    <button className="text-[#ba1f3d] text-[10px] font-black uppercase tracking-[0.3em] hover:tracking-[0.4em] transition-all flex items-center space-x-2">
+                    <button className="text-cardinal text-[10px] font-black uppercase tracking-[0.3em] hover:tracking-[0.4em] transition-all flex items-center space-x-2">
                       <span>Browse All Collections</span>
                       <span>→</span>
                     </button>

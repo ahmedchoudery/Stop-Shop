@@ -48,21 +48,21 @@ const AdminSettings = () => {
     }
   };
 
-  const inputCls = `w-full border-b-2 border-gray-100 focus:border-[#ba1f3d] py-3 text-sm font-bold bg-transparent outline-none transition-all placeholder:text-gray-300`;
+  const inputCls = `w-full border-b-2 border-gray-100 focus:border-cardinal py-3 text-sm font-bold bg-transparent outline-none transition-all placeholder:text-gray-300`;
 
   return (
     <div>
       {/* Header */}
       <div className="flex items-center justify-between mb-10">
         <div>
-          <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-2">Store Identity</p>
+          <p className="text-[9px] font-black uppercase tracking-[0.5em] text-cardinal mb-2">Store Identity</p>
           <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tighter text-gray-900">Settings</h1>
         </div>
         <div className="flex items-center space-x-3">
           <button
             onClick={() => setPreview(p => !p)}
             className={`flex items-center space-x-2 px-4 py-2.5 border-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all duration-200 ${
-              preview ? 'border-[#ba1f3d] text-[#ba1f3d] bg-[#ba1f3d]/5' : 'border-gray-200 text-gray-600 hover:border-gray-900'
+              preview ? 'border-cardinal text-cardinal bg-cardinal/5' : 'border-gray-200 text-gray-600 hover:border-gray-900'
             }`}
           >
             <Eye size={13} />
@@ -71,7 +71,7 @@ const AdminSettings = () => {
           <button
             onClick={handleSave}
             disabled={updating}
-            className="flex items-center space-x-2 px-6 py-2.5 bg-[#ba1f3d] text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:brightness-110 transition-all disabled:opacity-50 shadow-xl shadow-red-200/40 btn-shimmer"
+            className="flex items-center space-x-2 px-6 py-2.5 bg-cardinal text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:brightness-110 transition-all disabled:opacity-50 shadow-xl shadow-red-200/40 btn-shimmer"
           >
             {updating ? (
               <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -99,7 +99,7 @@ const AdminSettings = () => {
           <div className="bg-white border border-gray-100 rounded-2xl p-8 shadow-sm">
             <div className="flex items-center space-x-3 mb-8">
               <div className="w-9 h-9 bg-red-50 rounded-xl flex items-center justify-center">
-                <Image size={16} className="text-[#ba1f3d]" />
+                <Image size={16} className="text-cardinal" />
               </div>
               <div>
                 <h3 className="text-sm font-black uppercase tracking-widest text-gray-900">Store Logo</h3>
@@ -132,9 +132,9 @@ const AdminSettings = () => {
                     />
                   ) : (
                     <div className="flex items-center space-x-2">
-                      <span className="text-2xl font-black italic text-[#ba1f3d]">Stop</span>
+                      <span className="text-2xl font-black italic text-cardinal">Stop</span>
                       <span className="text-gray-900 font-black text-2xl">&</span>
-                      <span className="text-2xl font-black italic text-[#ba1f3d]">Shop</span>
+                      <span className="text-2xl font-black italic text-cardinal">Shop</span>
                     </div>
                   )}
                 </div>
@@ -166,13 +166,13 @@ const AdminSettings = () => {
                   placeholder="Welcome to Stop & Shop — Premium Clothing"
                   maxLength={500}
                   rows={3}
-                  className="w-full border-b-2 border-gray-100 focus:border-[#ba1f3d] py-3 text-sm font-bold bg-transparent outline-none transition-all placeholder:text-gray-300 resize-none mt-2"
+                  className="w-full border-b-2 border-gray-100 focus:border-cardinal py-3 text-sm font-bold bg-transparent outline-none transition-all placeholder:text-gray-300 resize-none mt-2"
                 />
               </div>
 
               {/* Live preview */}
               {preview && form.announcement && (
-                <div className="mt-4 bg-[#FBBF24] py-2.5 px-4 rounded-lg overflow-hidden">
+                <div className="mt-4 bg-amber-gold py-2.5 px-4 rounded-lg overflow-hidden">
                   <p className="text-[10px] font-black uppercase tracking-[0.35em] text-red-950 truncate">
                     ✦ {form.announcement.toUpperCase()}
                   </p>
@@ -184,7 +184,7 @@ const AdminSettings = () => {
           {/* System info card */}
           <div className="lg:col-span-2 bg-gray-900 text-black rounded-2xl p-8">
             <div className="flex items-center space-x-3 mb-6">
-              <Zap size={16} className="text-[#FBBF24]" />
+              <Zap size={16} className="text-amber-gold" />
               <h3 className="text-sm font-black uppercase tracking-widest">System Status</h3>
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">

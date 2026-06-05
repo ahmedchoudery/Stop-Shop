@@ -198,9 +198,9 @@ Slim Fit Jeans,3500,30,Bottoms,Jeans,Slim fit|Stretch denim|5-pocket design,#1a1
               onDrop={handleDrop}
               onDragOver={(e) => e.preventDefault()}
               onClick={() => fileRef.current?.click()}
-              className="border-2 border-dashed border-gray-200 rounded-xl p-10 text-center cursor-pointer hover:border-[#ba1f3d] hover:bg-red-50/30 transition-all group"
+              className="border-2 border-dashed border-gray-200 rounded-xl p-10 text-center cursor-pointer hover:border-cardinal hover:bg-red-50/30 transition-all group"
             >
-              <FileText size={32} className="mx-auto text-gray-300 mb-3 group-hover:text-[#ba1f3d] transition-colors" />
+              <FileText size={32} className="mx-auto text-gray-300 mb-3 group-hover:text-cardinal transition-colors" />
               <p className="font-black uppercase tracking-tight text-gray-900 mb-1">
                 Drop CSV file here
               </p>
@@ -218,8 +218,8 @@ Slim Fit Jeans,3500,30,Bottoms,Jeans,Slim fit|Stretch denim|5-pocket design,#1a1
           {/* Parse error */}
           {parseError && (
             <div className="flex items-start space-x-2 p-4 bg-red-50 border border-red-100 rounded-xl">
-              <AlertCircle size={14} className="text-[#ba1f3d] flex-shrink-0 mt-0.5" />
-              <p className="text-xs font-bold text-[#ba1f3d]">{parseError}</p>
+              <AlertCircle size={14} className="text-cardinal flex-shrink-0 mt-0.5" />
+              <p className="text-xs font-bold text-cardinal">{parseError}</p>
             </div>
           )}
 
@@ -243,7 +243,7 @@ Slim Fit Jeans,3500,30,Bottoms,Jeans,Slim fit|Stretch denim|5-pocket design,#1a1
                       {preview.map((p, i) => (
                         <tr key={i} className="hover:bg-gray-50">
                           <td className="px-3 py-2 text-xs font-bold text-gray-900 truncate max-w-[140px]">{p.name}</td>
-                          <td className="px-3 py-2 text-xs font-black text-[#ba1f3d]">{p.price.toLocaleString()}</td>
+                          <td className="px-3 py-2 text-xs font-black text-cardinal">{p.price.toLocaleString()}</td>
                           <td className="px-3 py-2 text-xs font-bold text-gray-600">{p.quantity}</td>
                           <td className="px-3 py-2 text-xs font-bold text-gray-600">{p.bucket}</td>
                           <td className="px-3 py-2 text-xs font-bold text-gray-600">{p.subCategory}</td>
@@ -274,7 +274,7 @@ Slim Fit Jeans,3500,30,Bottoms,Jeans,Slim fit|Stretch denim|5-pocket design,#1a1
                   ['rating', 'Rating 1-5 (default: 5)'],
                 ].map(([col, desc]) => (
                   <div key={col} className="flex items-start space-x-1.5">
-                    <code className="text-[#ba1f3d] font-black bg-red-50 px-1 rounded text-[9px] flex-shrink-0">{col}</code>
+                    <code className="text-cardinal font-black bg-red-50 px-1 rounded text-[9px] flex-shrink-0">{col}</code>
                     <span className="text-gray-400 text-[9px]">{desc}</span>
                   </div>
                 ))}
@@ -323,7 +323,7 @@ Slim Fit Jeans,3500,30,Bottoms,Jeans,Slim fit|Stretch denim|5-pocket design,#1a1
             <button
               onClick={handleImport}
               disabled={importing}
-              className="flex items-center space-x-2 px-8 py-3 bg-[#ba1f3d] text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:brightness-110 transition-all disabled:opacity-50"
+              className="flex items-center space-x-2 px-8 py-3 bg-cardinal text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:brightness-110 transition-all disabled:opacity-50"
             >
               {importing
                 ? <><Loader size={13} className="animate-spin" /><span>Importing...</span></>

@@ -37,7 +37,7 @@ const NotFoundPage = () => (
       {/* CTA — Cardinal Red, matching primary button spec from DESIGN.md */}
       <Link
         to="/"
-        className="mt-10 inline-flex items-center space-x-2 px-10 py-5 bg-[#ba1f3d] text-white text-[10px] font-black uppercase tracking-[0.3em] hover:bg-gray-900 transition-all duration-300 shadow-xl"
+        className="mt-10 inline-flex items-center space-x-2 px-10 py-5 bg-cardinal text-white text-[10px] font-black uppercase tracking-[0.3em] hover:bg-gray-900 transition-all duration-300 shadow-xl"
       >
         <span>Return Home</span>
       </Link>

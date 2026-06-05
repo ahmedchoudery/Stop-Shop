@@ -35,7 +35,7 @@ const RelatedProducts = ({ currentId, category, subCategory, allProducts = [] })
       <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16">
         <div className="flex items-baseline justify-between mb-10">
           <div>
-            <p className="text-[8px] font-black uppercase tracking-[0.5em] text-[#ba1f3d] mb-2">You May Also Like</p>
+            <p className="text-[8px] font-black uppercase tracking-[0.5em] text-cardinal mb-2">You May Also Like</p>
             <h2 className="text-2xl font-black uppercase tracking-tighter text-gray-900">From {category}</h2>
           </div>
         </div>
@@ -61,7 +61,7 @@ const RelatedProducts = ({ currentId, category, subCategory, allProducts = [] })
                 )}
               </div>
               <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mb-1">{product.bucket}</p>
-              <h3 className="text-[10px] font-black uppercase tracking-tight text-gray-900 group-hover:text-[#ba1f3d] transition-colors truncate">{product.name}</h3>
+              <h3 className="text-[10px] font-black uppercase tracking-tight text-gray-900 group-hover:text-cardinal transition-colors truncate">{product.name}</h3>
               <p className="text-xs font-black text-gray-900 mt-1">{formatPrice(product.price)}</p>
             </Link>
           ))}
@@ -96,9 +96,9 @@ export default function ProductPageClient({ product, allProducts = [] }) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white px-6">
         <div className="text-center">
-          <AlertTriangle size={32} className="text-[#ba1f3d] mx-auto mb-4" />
+          <AlertTriangle size={32} className="text-cardinal mx-auto mb-4" />
           <h2 className="text-lg font-black uppercase tracking-tighter text-gray-900 mb-2">Product Not Found</h2>
-          <Link to="/" className="inline-flex items-center space-x-2 text-[10px] font-black uppercase tracking-widest text-[#ba1f3d] border-b border-[#ba1f3d]/30 pb-0.5 mt-2 hover:border-[#ba1f3d]">
+          <Link to="/" className="inline-flex items-center space-x-2 text-[10px] font-black uppercase tracking-widest text-cardinal border-b border-cardinal/30 pb-0.5 mt-2 hover:border-cardinal">
             <ArrowLeft size={10} />
             <span>Return to Shop</span>
           </Link>
@@ -186,7 +186,7 @@ export default function ProductPageClient({ product, allProducts = [] }) {
 
           {/* Details Form Area - Right Column */}
           <div className="lg:col-span-5 lg:sticky lg:top-28 self-start">
-            <p className="text-[9px] font-black uppercase tracking-[0.4em] text-[#ba1f3d] mb-3">{category}</p>
+            <p className="text-[9px] font-black uppercase tracking-[0.4em] text-cardinal mb-3">{category}</p>
             <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tighter text-gray-900 leading-tight mb-4">{product.name}</h1>
             
             {/* Price */}
@@ -205,7 +205,7 @@ export default function ProductPageClient({ product, allProducts = [] }) {
                         onClick={() => setSelectedColor(col)}
                         className={`w-7 h-7 rounded-full border transition-all duration-300 ${
                           selectedColor === col
-                            ? 'border-[#ba1f3d] ring-2 ring-[#ba1f3d] ring-offset-2'
+                            ? 'border-cardinal ring-2 ring-cardinal ring-offset-2'
                             : 'border-gray-200 hover:border-gray-400'
                         }`}
                         style={{ backgroundColor: hex }}
@@ -223,7 +223,7 @@ export default function ProductPageClient({ product, allProducts = [] }) {
                 <div className="flex justify-between items-baseline mb-3">
                   <span className="text-[8px] font-black uppercase tracking-widest text-gray-400">Select Size</span>
                   {sizeError && (
-                    <span className="text-[8px] font-black uppercase text-[#ba1f3d] tracking-widest animate-pulse">
+                    <span className="text-[8px] font-black uppercase text-cardinal tracking-widest animate-pulse">
                       Please select a size first
                     </span>
                   )}
@@ -287,7 +287,7 @@ export default function ProductPageClient({ product, allProducts = [] }) {
                 <button
                   onClick={handleAddToCart}
                   className={`w-full flex items-center justify-center space-x-3 py-4 text-[10px] font-black uppercase tracking-[0.35em] transition-all duration-300 ${
-                    cartAdded ? 'bg-[#ba1f3d] text-white' : 'bg-gray-900 text-white hover:bg-[#ba1f3d]'
+                    cartAdded ? 'bg-cardinal text-white' : 'bg-gray-900 text-white hover:bg-cardinal'
                   }`}
                 >
                   <ShoppingBag size={13} />
@@ -300,11 +300,11 @@ export default function ProductPageClient({ product, allProducts = [] }) {
                   onClick={() => toggleWishlist(product)}
                   className={`border py-3.5 text-[9px] font-black uppercase tracking-[0.25em] flex items-center justify-center space-x-2 transition-all duration-300 ${
                     isWished
-                      ? 'border-[#ba1f3d] bg-[#ba1f3d]/5 text-[#ba1f3d]'
+                      ? 'border-cardinal bg-cardinal/5 text-cardinal'
                       : 'border-gray-200 text-gray-600 hover:border-gray-900'
                   }`}
                 >
-                  <Heart size={12} className={isWished ? 'fill-[#ba1f3d]' : ''} />
+                  <Heart size={12} className={isWished ? 'fill-cardinal' : ''} />
                   <span>{isWished ? 'Saved' : 'Save Item'}</span>
                 </button>
                 <button
@@ -322,7 +322,7 @@ export default function ProductPageClient({ product, allProducts = [] }) {
               {TRUST.map(({ Icon, label, sub }) => (
                 <div key={label} className="flex items-start space-x-3">
                   <div className="w-8 h-8 border border-gray-100 flex items-center justify-center flex-shrink-0">
-                    <Icon size={12} className="text-[#ba1f3d]" />
+                    <Icon size={12} className="text-cardinal" />
                   </div>
                   <div>
                     <h4 className="text-[10px] font-black uppercase tracking-wide text-gray-800">{label}</h4>
@@ -349,7 +349,7 @@ export default function ProductPageClient({ product, allProducts = [] }) {
               >
                 <span>{tab}</span>
                 {activeTab === tab && (
-                  <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-[#ba1f3d]" />
+                  <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-cardinal" />
                 )}
               </button>
             ))}

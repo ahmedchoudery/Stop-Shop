@@ -62,17 +62,17 @@ const SearchProductCard = ({ product }) => {
         {!outOfStock && (
           <button
             onClick={handleAdd}
-            className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[8px] font-black uppercase tracking-widest px-4 py-2 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 hover:bg-[#ba1f3d] whitespace-nowrap"
+            className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[8px] font-black uppercase tracking-widest px-4 py-2 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 hover:bg-cardinal whitespace-nowrap"
           >
             Add to Bag
           </button>
         )}
       </div>
 
-      <p className="text-[8px] font-black text-[#ba1f3d] uppercase tracking-widest mb-1">
+      <p className="text-[8px] font-black text-cardinal uppercase tracking-widest mb-1">
         {product.subCategory || product.bucket}
       </p>
-      <p className="text-xs font-black uppercase tracking-tight text-gray-900 truncate group-hover:text-[#ba1f3d] transition-colors">
+      <p className="text-xs font-black uppercase tracking-tight text-gray-900 truncate group-hover:text-cardinal transition-colors">
         {product.name}
       </p>
       <p className="text-sm font-black text-gray-900 mt-1">
@@ -193,7 +193,7 @@ const SearchPage = () => {
                 onChange={e => setInput(e.target.value)}
                 placeholder="Search products, categories, colors..."
                 autoFocus
-                className="w-full pl-11 pr-10 py-3.5 border-2 border-gray-200 focus:border-[#ba1f3d] outline-none text-sm font-bold transition-all placeholder:text-gray-300 placeholder:font-normal"
+                className="w-full pl-11 pr-10 py-3.5 border-2 border-gray-200 focus:border-cardinal outline-none text-sm font-bold transition-all placeholder:text-gray-300 placeholder:font-normal"
               />
               {input && (
                 <button
@@ -209,7 +209,7 @@ const SearchPage = () => {
             {/* Search button */}
             <button
               type="submit"
-              className="px-6 py-3.5 bg-[#ba1f3d] text-white text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all flex-shrink-0"
+              className="px-6 py-3.5 bg-cardinal text-white text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all flex-shrink-0"
             >
               Search
             </button>
@@ -219,7 +219,7 @@ const SearchPage = () => {
               type="button"
               onClick={() => setFiltersOpen(f => !f)}
               className={`p-3.5 border-2 transition-all flex-shrink-0 ${
-                filtersOpen ? 'border-[#ba1f3d] text-[#ba1f3d]' : 'border-gray-200 text-gray-400'
+                filtersOpen ? 'border-cardinal text-cardinal' : 'border-gray-200 text-gray-400'
               }`}
             >
               <SlidersHorizontal size={16} />
@@ -233,7 +233,7 @@ const SearchPage = () => {
               <select
                 value={categoryFilter}
                 onChange={e => setCategoryFilter(e.target.value)}
-                className="border border-gray-200 px-3 py-2 text-[10px] font-black uppercase tracking-widest outline-none focus:border-[#ba1f3d] transition-all bg-white"
+                className="border border-gray-200 px-3 py-2 text-[10px] font-black uppercase tracking-widest outline-none focus:border-cardinal transition-all bg-white"
               >
                 {categories.map(c => (
                   <option key={c} value={c}>{c === 'all' ? 'All Categories' : c}</option>
@@ -244,7 +244,7 @@ const SearchPage = () => {
               <select
                 value={stockFilter}
                 onChange={e => setStockFilter(e.target.value)}
-                className="border border-gray-200 px-3 py-2 text-[10px] font-black uppercase tracking-widest outline-none focus:border-[#ba1f3d] transition-all bg-white"
+                className="border border-gray-200 px-3 py-2 text-[10px] font-black uppercase tracking-widest outline-none focus:border-cardinal transition-all bg-white"
               >
                 <option value="all">All Stock</option>
                 <option value="in-stock">In Stock Only</option>
@@ -255,7 +255,7 @@ const SearchPage = () => {
               <select
                 value={sortBy}
                 onChange={e => setSortBy(e.target.value)}
-                className="border border-gray-200 px-3 py-2 text-[10px] font-black uppercase tracking-widest outline-none focus:border-[#ba1f3d] transition-all bg-white"
+                className="border border-gray-200 px-3 py-2 text-[10px] font-black uppercase tracking-widest outline-none focus:border-cardinal transition-all bg-white"
               >
                 <option value="relevance">Sort: Relevance</option>
                 <option value="price-asc">Price: Low to High</option>
@@ -267,7 +267,7 @@ const SearchPage = () => {
               {(categoryFilter !== 'all' || stockFilter !== 'all' || sortBy !== 'relevance') && (
                 <button
                   onClick={() => { setCategoryFilter('all'); setStockFilter('all'); setSortBy('relevance'); }}
-                  className="text-[9px] font-black uppercase tracking-widest text-[#ba1f3d] border-b border-[#ba1f3d]/30 hover:border-[#ba1f3d] pb-0.5 transition-colors"
+                  className="text-[9px] font-black uppercase tracking-widest text-cardinal border-b border-cardinal/30 hover:border-cardinal pb-0.5 transition-colors"
                 >
                   Reset Filters
                 </button>
@@ -297,7 +297,7 @@ const SearchPage = () => {
                 <button
                   key={cat}
                   onClick={() => { setCategoryFilter(cat); setFiltersOpen(true); }}
-                  className="px-6 py-3 border-2 border-gray-200 text-[10px] font-black uppercase tracking-widest text-gray-600 hover:border-[#ba1f3d] hover:text-[#ba1f3d] transition-all"
+                  className="px-6 py-3 border-2 border-gray-200 text-[10px] font-black uppercase tracking-widest text-gray-600 hover:border-cardinal hover:text-cardinal transition-all"
                 >
                   {cat}
                 </button>
@@ -346,7 +346,7 @@ const SearchPage = () => {
                 </p>
                 <Link
                   to="/"
-                  className="inline-flex items-center space-x-2 px-8 py-4 bg-[#ba1f3d] text-white text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all"
+                  className="inline-flex items-center space-x-2 px-8 py-4 bg-cardinal text-white text-[10px] font-black uppercase tracking-widest hover:brightness-110 transition-all"
                 >
                   <span>Browse All Products</span>
                 </Link>
