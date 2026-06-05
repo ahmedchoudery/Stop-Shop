@@ -2,12 +2,10 @@
 
 /**
  * @fileoverview BrandStrip.jsx — Premium USP Trust Bar
- * Mobile: horizontal scroll row.
- * Desktop: single 5-column row with dividers.
- * Layout: icon left + text right (inline) — cleaner than stacked.
+ * Styled as a continuous horizontal marquee bar with a luxury blue theme.
  */
 
-import React, { useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 import { Truck, Shield, RotateCcw, Lock, Star } from 'lucide-react';
 
 const USPs = [
@@ -19,85 +17,53 @@ const USPs = [
 ];
 
 export default function BrandStrip() {
-  const ref = useRef(null);
+  const trackRef = useRef(null);
 
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            const items = el.querySelectorAll('[data-usp]');
-            items.forEach((item, i) => {
-              setTimeout(() => {
-                item.style.opacity = '1';
-                item.style.transform = 'translateY(0)';
-              }, i * 70);
-            });
-            observer.disconnect();
-          }
-        });
-      },
-      { threshold: 0.1 }
-    );
-
-    observer.observe(el);
-    return () => observer.disconnect();
-  }, []);
+  // Repeat USPs list to create a seamless marquee loop
+  const allUSPs = [...USPs, ...USPs, ...USPs, ...USPs];
 
   return (
     <section
-      ref={ref}
-      className="bg-white border-y border-gray-200 overflow-hidden"
+      className="bg-blue-900 text-white border-y border-blue-800 overflow-hidden select-none"
+      onMouseEnter={() => {
+        if (trackRef.current) trackRef.current.style.animationPlayState = 'paused';
+      }}
+      onMouseLeave={() => {
+        if (trackRef.current) trackRef.current.style.animationPlayState = 'running';
+      }}
     >
-      {/* Mobile: horizontal scroll */}
-      <div className="flex lg:hidden items-stretch overflow-x-auto scrollbar-hide px-6 divide-x divide-[#1a1a1a]">
-        {USPs.map(({ icon: Icon, label, sub }) => (
-          <div
-            key={label}
-            data-usp
-            className="flex items-center gap-3 py-8 px-7 flex-shrink-0 transition-all duration-500"
-            style={{ opacity: 0, transform: 'translateY(10px)' }}
-          >
-            <div className="w-9 h-9 border border-gray-200 flex items-center justify-center bg-gray-50 flex-shrink-0">
-              <Icon size={14} className="text-gray-500" strokeWidth={1.5} />
-            </div>
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-900 whitespace-nowrap leading-tight">
-                {label}
-              </p>
-              <p className="text-[8px] font-medium text-gray-500 uppercase tracking-[0.2em] whitespace-nowrap mt-0.5">
-                {sub}
-              </p>
-            </div>
-          </div>
-        ))}
-      </div>
+      <div className="relative w-full flex items-center py-4">
+        {/* Fade gradients on edges for professional lighting blend */}
+        <div className="absolute left-0 top-0 bottom-0 w-16 z-10 pointer-events-none bg-gradient-to-r from-blue-900 via-blue-900/60 to-transparent" />
+        <div className="absolute right-0 top-0 bottom-0 w-16 z-10 pointer-events-none bg-gradient-to-l from-blue-900 via-blue-900/60 to-transparent" />
 
-      {/* Desktop: 5-column row with dividers */}
-      <div className="hidden lg:grid lg:grid-cols-5 divide-x divide-[#1a1a1a]">
-        {USPs.map(({ icon: Icon, label, sub }) => (
-          <div
-            key={label}
-            data-usp
-            className="flex items-center gap-4 px-10 py-9 transition-all duration-500 hover:bg-gray-50 group"
-            style={{ opacity: 0, transform: 'translateY(10px)' }}
-          >
-            <div className="w-9 h-9 border border-gray-200 group-hover:border-gray-300 flex items-center justify-center bg-gray-50 flex-shrink-0 transition-colors duration-300">
-              <Icon size={14} className="text-gray-500 group-hover:text-gray-600 transition-colors duration-300" strokeWidth={1.5} />
+        <div
+          ref={trackRef}
+          className="flex whitespace-nowrap items-center"
+          style={{
+            animation: 'marquee-smooth 20s linear infinite',
+            willChange: 'transform',
+          }}
+        >
+          {allUSPs.map(({ icon: Icon, label, sub }, i) => (
+            <div
+              key={i}
+              className="inline-flex items-center gap-3 px-12 flex-shrink-0 cursor-default"
+            >
+              <div className="w-8 h-8 border border-white/20 flex items-center justify-center bg-white/10 flex-shrink-0">
+                <Icon size={14} className="text-white" strokeWidth={1.5} />
+              </div>
+              <div className="text-left">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white leading-tight">
+                  {label}
+                </p>
+                <p className="text-[8px] font-medium text-white/70 uppercase tracking-[0.2em] mt-0.5">
+                  {sub}
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-900 leading-tight">
-                {label}
-              </p>
-              <p className="text-[8px] font-medium text-gray-500 uppercase tracking-[0.2em] mt-0.5">
-                {sub}
-              </p>
-            </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </section>
   );

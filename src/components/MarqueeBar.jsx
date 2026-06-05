@@ -51,7 +51,7 @@ const MarqueeBar = ({ announcement, scrolled = true, isHome = false }) => {
         ref={trackRef}
         className="flex whitespace-nowrap h-full items-center"
         style={{
-          animation: 'marquee-smooth 38s linear infinite',
+          animation: 'marquee-smooth 20s linear infinite',
           willChange: 'transform',
         }}
       >
