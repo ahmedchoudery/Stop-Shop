@@ -73,38 +73,39 @@ const PowerOfChoiceHero = () => {
       <div className="relative z-30 flex-1 w-full max-w-[1920px] mx-auto flex flex-col pt-[110px] lg:pt-[130px] pb-10 lg:pb-0">
 
         {/* Mobile: season eyebrow */}
-        <div className="w-full px-6 flex justify-center lg:hidden mt-5">
-          <span className="text-[9px] font-black uppercase tracking-[0.45em] text-white/60 text-center">
+        <div className="w-full px-6 flex justify-center lg:hidden mt-2">
+          <span className="text-[9px] font-black uppercase tracking-[0.45em] text-white/75 text-center drop-shadow-md">
             Pakistan's Premium Fashion Hub · SS '26
           </span>
         </div>
 
-        {/* Main content */}
-        <div className="w-full flex-grow flex flex-col justify-start md:justify-center px-6 md:px-12 lg:px-20 pt-8 md:pt-0">
-          <div ref={contentRef} className="max-w-4xl flex flex-col items-start text-left">
+        {/* Main content aligned to empty spaces: top-center on mobile/tablet, middle-left on desktop */}
+        <div className="w-full flex-grow flex flex-col justify-start lg:justify-center items-center lg:items-start px-6 md:px-12 lg:px-24 pt-6 lg:pt-0">
+          <div ref={contentRef} className="max-w-xl xl:max-w-2xl flex flex-col items-center text-center lg:items-start lg:text-left">
 
             {/* Desktop: season eyebrow */}
             <div
               data-anime
-              className="hidden lg:flex items-center gap-4 mb-8"
+              className="hidden lg:flex items-center gap-4 mb-6"
               style={{ opacity: 0 }}
             >
-              <span className="w-7 h-px bg-white/30" />
-              <span className="text-[9px] font-black uppercase tracking-[0.5em] text-white/60">
+              <span className="w-7 h-px bg-white/40" />
+              <span className="text-[9px] font-black uppercase tracking-[0.5em] text-white/80 drop-shadow-md">
                 Pakistan's Premium Fashion Hub · SS '26
               </span>
             </div>
 
-            {/* Headline */}
+            {/* Headline using premium Barlow Condensed font */}
             <h1
               data-anime
               className={[
-                'text-white font-black uppercase',
-                'leading-[1.15] lg:leading-[0.88]',
+                'text-white font-heading font-black uppercase',
+                'leading-[1.05] lg:leading-[0.88]',
                 'tracking-[-0.03em]',
-                'mb-6 lg:mb-8',
-                'text-[2.25rem] md:text-[3rem]',
-                'lg:text-[clamp(2.6rem,7vw,4.5rem)]',
+                'mb-5 lg:mb-8',
+                'text-[2.5rem] md:text-[3.5rem]',
+                'lg:text-[clamp(3rem,8vw,5.5rem)]',
+                'drop-shadow-lg',
               ].join(' ')}
               style={{ opacity: 0 }}
             >
@@ -113,10 +114,10 @@ const PowerOfChoiceHero = () => {
               Reimagined.
             </h1>
 
-            {/* Sub-copy */}
+            {/* Sub-copy using premium DM Sans font */}
             <p
               data-anime
-              className="text-white/85 text-[13px] md:text-sm lg:text-[1.05rem] leading-relaxed max-w-[280px] md:max-w-md lg:max-w-lg mb-8 lg:mb-11 font-medium"
+              className="text-white/95 font-sans text-[13px] md:text-sm lg:text-[1.1rem] leading-relaxed max-w-[290px] md:max-w-md lg:max-w-lg mb-6 lg:mb-10 font-normal drop-shadow-md"
               style={{ opacity: 0 }}
             >
               Timeless designs, crafted with premium fabrics for absolute comfort and style. Discover our signature menswear essentials.
@@ -125,18 +126,18 @@ const PowerOfChoiceHero = () => {
             {/* CTA */}
             <div
               data-anime
-              className="flex flex-wrap gap-8 text-[11px] lg:text-[12px] font-black uppercase tracking-[0.3em] text-white mb-12 lg:mb-14"
+              className="flex flex-wrap justify-center lg:justify-start gap-8 text-[11px] lg:text-[12px] font-black uppercase tracking-[0.3em] text-white mb-10 lg:mb-12"
               style={{ opacity: 0 }}
             >
               <button
                 onClick={scrollToGrid}
-                className="pb-1 border-b border-white hover:border-white/60 transition-colors duration-300"
+                className="pb-1 border-b-2 border-white hover:border-white/60 transition-colors duration-300 drop-shadow-md"
               >
                 Shop the Collection
               </button>
               <button
                 onClick={scrollToGrid}
-                className="pb-1 border-b border-white hover:border-white/60 transition-colors duration-300"
+                className="pb-1 border-b-2 border-white hover:border-white/60 transition-colors duration-300 drop-shadow-md"
               >
                 Explore the Brand
               </button>

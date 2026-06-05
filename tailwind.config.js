@@ -28,7 +28,8 @@ export default {
 
       // ── Typography ─────────────────────────────────────────
       fontFamily: {
-        sans: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+        sans: ['var(--font-dm-sans)', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+        heading: ['var(--font-barlow)', 'Barlow Condensed', 'sans-serif'],
         mono: ['ui-monospace', 'SFMono-Regular', 'Menlo', 'monospace'],
       },
 
