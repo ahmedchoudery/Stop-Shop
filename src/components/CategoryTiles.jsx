@@ -2,7 +2,7 @@
 
 /**
  * @fileoverview CategoryTiles.jsx — Visual Men's Category Navigator
- * Theme: Unified dark, white accent on hover (not red).
+ * Theme: Minimalist editorial lookbook. White section, clean text below images.
  */
 
 import React, { useRef, useEffect } from 'react';
@@ -12,25 +12,21 @@ const TILES = [
   {
     key: 'Tops',
     label: 'Tops',
-    sub: 'Polos · Shirts · Hoodies · Sweatshirts',
     image: '/category-tops.jpg',
   },
   {
     key: 'Bottoms',
     label: 'Bottoms',
-    sub: 'Jeans · Trousers · Shorts',
     image: '/category-bottoms.jpg',
   },
   {
     key: 'Footwear',
     label: 'Footwear',
-    sub: 'Shoes · Slippers · Socks',
     image: '/category-footwear.jpg',
   },
   {
     key: 'Accessories',
     label: 'Accessories',
-    sub: 'Watches · Chains · Bags · Caps',
     image: '/category-accessories.jpg',
   },
 ];
@@ -92,50 +88,54 @@ export default function CategoryTiles({ onSelect, activeBucket }) {
         </div>
 
         {/* Tile Grid */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          {TILES.map(({ key, label, sub, image }) => {
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          {TILES.map(({ key, label, image }, index) => {
             const isActive = activeBucket === key;
             return (
               <button
                 key={key}
                 data-tile
                 onClick={() => { onSelect?.(key); scrollToGrid(); }}
-                className="relative group aspect-[3/4] overflow-hidden text-left focus:outline-none"
+                className="group flex flex-col text-left focus:outline-none w-full"
                 style={{ opacity: 0, transform: 'translateY(24px)', transition: 'opacity 0.6s ease, transform 0.6s ease' }}
               >
-                {/* Background Image */}
-                <img
-                  src={image}
-                  alt={label}
-                  className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.07]"
-                />
+                {/* Image Wrapper */}
+                <div className="relative w-full aspect-[3/4] overflow-hidden bg-gray-50">
+                  <img
+                    src={image}
+                    alt={label}
+                    className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+                  />
+                  
+                  {/* Clean borders overlay: thin outline by default, black on hover/active */}
+                  <div className={`absolute inset-0 pointer-events-none transition-all duration-300 ${
+                    isActive 
+                      ? 'border-2 border-black z-20' 
+                      : 'border border-gray-200 group-hover:border-black/40 z-20'
+                  }`} />
+                </div>
 
-                {/* Dark gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-black/0 transition-opacity duration-300 group-hover:from-black/90" />
-
-                {/* Active border — white */}
-                {isActive && (
-                  <div className="absolute inset-0 border-2 border-white pointer-events-none z-20" />
-                )}
-
-                {/* White top accent bar on hover */}
-                <div className="absolute top-0 left-0 w-0 h-px bg-white group-hover:w-full transition-all duration-500 z-10" />
-
-                {/* Content */}
-                <div className="absolute bottom-0 left-0 right-0 p-5 z-10">
-                  <div className="flex items-end justify-between">
-                    <div>
-                      <p className="text-[8px] font-bold uppercase tracking-[0.4em] text-white/60 mb-1.5">
-                        {sub}
-                      </p>
-                      <h3 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-white leading-none group-hover:text-white transition-colors duration-300">
-                        {label}
-                      </h3>
-                    </div>
-                    <div className="w-8 h-8 border border-white/20 flex items-center justify-center group-hover:border-white group-hover:bg-white transition-all duration-300">
-                      <ArrowUpRight size={14} className="text-white group-hover:text-black transition-colors duration-300" />
-                    </div>
+                {/* Details Row */}
+                <div className="mt-3 flex items-center justify-between w-full px-0.5">
+                  <div className="flex items-center gap-2.5">
+                    <span className="font-mono text-[9px] tracking-wider text-gray-400">
+                      0{index + 1}
+                    </span>
+                    <h3 className={`text-xs font-black uppercase tracking-[0.2em] transition-colors duration-300 ${
+                      isActive ? 'text-black' : 'text-gray-500 group-hover:text-black'
+                    }`}>
+                      {label}
+                    </h3>
                   </div>
+                  <ArrowUpRight
+                    size={14}
+                    strokeWidth={1.5}
+                    className={`transition-all duration-300 transform ${
+                      isActive 
+                        ? 'text-black translate-x-0.5 -translate-y-0.5' 
+                        : 'text-gray-300 group-hover:text-black group-hover:translate-x-0.5 group-hover:-translate-y-0.5'
+                    }`}
+                  />
                 </div>
               </button>
             );
@@ -143,7 +143,7 @@ export default function CategoryTiles({ onSelect, activeBucket }) {
         </div>
 
         {/* Mobile "View All" */}
-        <div className="mt-6 flex justify-center sm:hidden">
+        <div className="mt-8 flex justify-center sm:hidden">
           <button
             onClick={() => { onSelect?.('All'); scrollToGrid(); }}
             className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.35em] text-gray-500 hover:text-black transition-colors duration-300 border-b border-gray-300 hover:border-white pb-0.5"
