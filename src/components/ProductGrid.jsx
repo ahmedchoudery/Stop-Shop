@@ -5,9 +5,10 @@
 
 import React, { useState, useEffect, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { SlidersHorizontal } from 'lucide-react';
+import { SlidersHorizontal, FolderOpen, RotateCcw } from 'lucide-react';
 import ProductCard from './ProductCard';
 import { useProducts } from '../hooks/useProducts.js';
+import { useCart } from '../context/CartContext.tsx';
 
 const SORT_OPTIONS = [
   { label: 'Featured',           value: 'popular' },
@@ -56,6 +57,13 @@ const ProductGrid = ({ products, activeBucket = 'All', activeSubCategory = null 
   useEffect(() => { setVisibleCount(20); }, [activeBucket, activeSubCategory]);
 
   const { sortedProducts } = useProducts(products, activeBucket, activeSubCategory, sortBy);
+  const { setActiveBucket } = useCart();
+
+  const handleResetFilters = () => {
+    if (setActiveBucket) {
+      setActiveBucket('All');
+    }
+  };
 
   return (
     <div id="product-grid" className="bg-white py-16 sm:py-24">
@@ -119,17 +127,26 @@ const ProductGrid = ({ products, activeBucket = 'All', activeSubCategory = null 
           ) : (
             <motion.div
               key="empty"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="flex flex-col items-center justify-center py-28 border border-gray-200"
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+              className="flex flex-col items-center justify-center py-20 px-6 border border-dashed border-gray-200 text-center bg-gray-50/50"
             >
-              <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#333] mb-2">
-                Dropping Soon
+              <FolderOpen size={36} className="text-gray-400 mb-6 stroke-[1.25]" />
+              <h3 className="text-lg font-black uppercase tracking-[0.2em] text-black mb-3">
+                No Pieces Found
+              </h3>
+              <p className="text-gray-500 text-xs font-medium max-w-sm leading-relaxed mb-8">
+                We couldn't find any items in {activeSubCategory ? `"${activeSubCategory}"` : `"${activeBucket}"`}. Check back soon for new additions, or clear the filters to view the full collection.
               </p>
-              <p className="text-[9px] font-bold text-[#2a2a2a] uppercase tracking-widest">
-                {activeSubCategory ? `${activeSubCategory} · ` : ''}{activeBucket !== 'All' ? activeBucket : 'New Arrivals'}
-              </p>
+              <button
+                onClick={handleResetFilters}
+                className="inline-flex items-center gap-2.5 px-8 py-3.5 bg-black text-white text-[9px] font-black uppercase tracking-[0.35em] transition-all duration-300 hover:bg-cardinal hover:shadow-[0_10px_30px_rgba(186,31,61,0.25)] active-scale"
+              >
+                <RotateCcw size={11} />
+                <span>Reset Filters</span>
+              </button>
             </motion.div>
           )}
         </AnimatePresence>

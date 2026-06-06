@@ -178,16 +178,16 @@ export default function FeaturedCarousel({ products = [], headline, subline }) {
             <button
               onClick={() => scroll(-1)}
               disabled={!canScrollLeft}
-              className="w-11 h-11 border border-gray-300 flex items-center justify-center transition-all duration-300 hover:border-white hover:bg-white disabled:opacity-20 disabled:cursor-not-allowed group"
+              className="w-11 h-11 border border-gray-300 flex items-center justify-center transition-all duration-300 hover:border-black hover:bg-black disabled:opacity-20 disabled:cursor-not-allowed group"
             >
-              <ArrowLeft size={16} className="text-black group-hover:text-black transition-colors duration-300" />
+              <ArrowLeft size={16} className="text-black group-hover:text-white transition-colors duration-300" />
             </button>
             <button
               onClick={() => scroll(1)}
               disabled={!canScrollRight}
-              className="w-11 h-11 border border-gray-300 flex items-center justify-center transition-all duration-300 hover:border-white hover:bg-white disabled:opacity-20 disabled:cursor-not-allowed group"
+              className="w-11 h-11 border border-gray-300 flex items-center justify-center transition-all duration-300 hover:border-black hover:bg-black disabled:opacity-20 disabled:cursor-not-allowed group"
             >
-              <ArrowRight size={16} className="text-black group-hover:text-black transition-colors duration-300" />
+              <ArrowRight size={16} className="text-black group-hover:text-white transition-colors duration-300" />
             </button>
           </div>
         </div>
@@ -209,11 +209,11 @@ export default function FeaturedCarousel({ products = [], headline, subline }) {
           ))}
         </div>
 
-        {/* Scroll indicator dots — white */}
+        {/* Scroll indicator dots */}
         <div className="flex items-center gap-1.5 mt-6">
-          <div className={`h-px transition-all duration-300 ${canScrollLeft ? 'w-6 bg-white' : 'w-3 bg-[#2a2a2a]'}`} />
-          <div className={`h-px transition-all duration-300 ${!canScrollLeft && !canScrollRight ? 'w-6 bg-white' : 'w-3 bg-[#2a2a2a]'}`} />
-          <div className={`h-px transition-all duration-300 ${!canScrollRight ? 'w-6 bg-white' : 'w-3 bg-[#2a2a2a]'}`} />
+          <div className={`h-px transition-all duration-300 ${canScrollLeft ? 'w-6 bg-black' : 'w-3 bg-gray-200'}`} />
+          <div className={`h-px transition-all duration-300 ${!canScrollLeft && !canScrollRight ? 'w-6 bg-black' : 'w-3 bg-gray-200'}`} />
+          <div className={`h-px transition-all duration-300 ${!canScrollRight ? 'w-6 bg-black' : 'w-3 bg-gray-200'}`} />
         </div>
       </div>
     </section>
