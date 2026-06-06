@@ -7,6 +7,7 @@ import { v2 as cloudinary } from 'cloudinary';
 
 import { cacheService, CACHE_KEYS } from '../services/cacheService.js';
 import { getClientIp } from '../middleware/security.js';
+import logger from '../utils/logger.js';
 import {
   validateRequest,
   loginSchema,
@@ -63,16 +64,30 @@ const buildIdQuery = (idParam) => {
 };
 
 const logAudit = async (action, details, req) => {
+  const adminEmail = req?.user?.email ?? 'system';
+  const ip = getClientIp(req);
   try {
     await AuditLog.create({
       action,
       details,
-      adminEmail: req?.user?.email ?? 'system',
-      ip:         getClientIp(req),
+      adminEmail,
+      ip,
       timestamp:  new Date(),
     });
+    logger.info(`[Audit Log] ${action} by ${adminEmail}`, {
+      security: true,
+      ip,
+      action,
+      details,
+      email: adminEmail,
+    });
   } catch (err) {
-    console.error('[Audit] Failed to log:', err.message);
+    logger.error(`[Audit] Failed to log audit event: ${err.message}`, {
+      action,
+      details,
+      email: adminEmail,
+      ip,
+    });
   }
 };
 
@@ -84,10 +99,25 @@ router.post('/admin/login', authLimiter, validateRequest(loginSchema), async (re
   try {
     const { email, password } = req.body;
     const admin = await Admin.findOne({ email }).select('+password');
-    if (!admin) throw new AuthenticationError('Invalid credentials');
+    if (!admin) {
+      logger.warn('Admin login failed: Account not found', {
+        security: true,
+        ip: getClientIp(req),
+        userAgent: req.headers['user-agent'],
+        email,
+      });
+      throw new AuthenticationError('Invalid credentials');
+    }
 
     if (admin.lockUntil && admin.lockUntil > new Date()) {
       const minutes = Math.ceil((admin.lockUntil - Date.now()) / 60_000);
+      logger.warn('Admin login failed: Account is locked', {
+        security: true,
+        ip: getClientIp(req),
+        userAgent: req.headers['user-agent'],
+        email,
+        lockRemainingMinutes: minutes,
+      });
       return res.status(423).json({ error: `Account locked. Try again in ${minutes} minutes.` });
     }
 
@@ -96,11 +126,30 @@ router.post('/admin/login', authLimiter, validateRequest(loginSchema), async (re
       const attempts = admin.failedLoginAttempts + 1;
       const lockUntil = attempts >= 5 ? new Date(Date.now() + 15 * 60_000) : null;
       await Admin.findByIdAndUpdate(admin._id, { $inc: { failedLoginAttempts: 1 }, ...(lockUntil && { lockUntil }) });
+      
+      logger.warn(`Admin login failed: Incorrect password (Attempt #${attempts})`, {
+        security: true,
+        ip: getClientIp(req),
+        userAgent: req.headers['user-agent'],
+        email,
+        failedAttempts: attempts,
+        lockoutTriggered: !!lockUntil,
+      });
+
       if (lockUntil) return res.status(423).json({ error: 'Too many failed attempts. Account locked for 15 minutes.' });
       throw new AuthenticationError('Invalid credentials');
     }
 
     await Admin.findByIdAndUpdate(admin._id, { failedLoginAttempts: 0, lockUntil: null, lastLogin: new Date() });
+
+    logger.info('Admin login successful', {
+      security: true,
+      ip: getClientIp(req),
+      userAgent: req.headers['user-agent'],
+      email: admin.email,
+      adminId: admin._id,
+      role: admin.roles?.[0] ?? 'admin',
+    });
 
     const token      = jwt.sign({ id: admin._id, email: admin.email, role: admin.roles?.[0] ?? 'admin' }, JWT_SECRET, { expiresIn: '8h' });
     const csrfToken  = jwt.sign({ type: 'csrf', userId: admin._id.toString() }, JWT_SECRET, { expiresIn: '1h' });
@@ -113,6 +162,12 @@ router.post('/admin/login', authLimiter, validateRequest(loginSchema), async (re
 });
 
 router.post('/admin/logout', authenticateToken, (req, res) => {
+  logger.info('Admin logout successful', {
+    security: true,
+    ip: getClientIp(req),
+    email: req.user?.email,
+    adminId: req.user?.id,
+  });
   res.clearCookie('auth_token').clearCookie('csrf_token').json({ success: true });
 });
 
@@ -142,6 +197,14 @@ router.delete('/admin/users/:id', authenticateToken, requireRole('super-admin'),
     const admin = await Admin.findByIdAndDelete(req.params.id).lean();
     if (!admin) return res.status(404).json({ error: 'Admin not found' });
     await logAudit('ADMIN_DELETE', { email: admin.email }, req);
+    logger.info('Admin user deleted successfully', {
+      security: true,
+      ip: getClientIp(req),
+      triggeredByEmail: req.user?.email,
+      deletedAdminEmail: admin.email,
+      deletedAdminId: admin._id,
+    });
+
     res.json({ message: 'Admin deleted' });
   } catch (err) { next(err); }
 });

@@ -8,6 +8,7 @@ import {
   updateOrderStatusSchema,
   createAdminSchema,
   updateSettingsSchema,
+  createCustomerSchema,
 } from '../schemas/validation.js';
 
 // ─────────────────────────────────────────────────────────────────
@@ -246,5 +247,27 @@ describe('updateSettingsSchema', () => {
   it('accepts valid announcement', () => {
     const data = assertValid(updateSettingsSchema, { announcement: 'Big sale this weekend!' });
     expect(data.announcement).toBe('Big sale this weekend!');
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────
+// CUSTOMER REGISTER SCHEMA
+// ─────────────────────────────────────────────────────────────────
+
+describe('createCustomerSchema', () => {
+  const base = { name: 'Ahmed', email: 'ahmed@shop.pk', password: 'secure123', phone: '03001234567' };
+
+  it('accepts valid customer registration details', () => {
+    const data = assertValid(createCustomerSchema, base);
+    expect(data.name).toBe('Ahmed');
+    expect(data.email).toBe('ahmed@shop.pk');
+  });
+
+  it('rejects name shorter than 2 characters', () => assertInvalid(createCustomerSchema, { ...base, name: 'A' }, 'name'));
+  it('rejects invalid email formats', () => assertInvalid(createCustomerSchema, { ...base, email: 'not-an-email' }, 'email'));
+  it('rejects password shorter than 6 characters', () => assertInvalid(createCustomerSchema, { ...base, password: '12345' }, 'password'));
+  it('accepts empty/missing phone', () => {
+    const data = assertValid(createCustomerSchema, { name: 'Ahmed', email: 'ahmed@shop.pk', password: 'secure123' });
+    expect(data.phone).toBe('');
   });
 });

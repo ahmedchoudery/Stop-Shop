@@ -4,6 +4,8 @@
  *          javascript-pro (functional patterns, ES6+), javascript-mastery (optional chaining)
  */
 
+import logger from '../utils/logger.js';
+
 // ─────────────────────────────────────────────────────────────────
 // INPUT SANITIZATION
 // ─────────────────────────────────────────────────────────────────
@@ -109,8 +111,15 @@ export const getClientIp = (req) => {
  * @returns {import('express').RequestHandler}
  */
 export const auditLog = (action) => (req, _res, next) => {
-  // TODO: Replace console.log with proper logging service
-  // logger.info(`[Security] ${action} | IP: ${getClientIp(req)} | ${new Date().toISOString()}`);
+  logger.info(`[Security Audit] ${action}`, {
+    security: true,
+    ip: getClientIp(req),
+    userAgent: req.headers['user-agent'],
+    url: req.originalUrl,
+    method: req.method,
+    userId: req.user?.id || req.customer?.id,
+    email: req.user?.email || req.customer?.email,
+  });
   next();
 };
 

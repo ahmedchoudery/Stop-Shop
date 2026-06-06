@@ -1,3 +1,6 @@
+import logger from '../utils/logger.js';
+import { getClientIp } from './security.js';
+
 /**
  * Express centralized global error handling middleware.
  * Sanitizes server stack traces in production environment, returning standard Operational Error payloads.
@@ -5,7 +8,7 @@
  *
  * @type {import('express').ErrorRequestHandler}
  */
-export const errorHandler = (err, _req, res, _next) => {
+export const errorHandler = (err, req, res, _next) => {
   let statusCode = err.statusCode ?? 500;
   let status = statusCode < 500 ? 'fail' : 'error';
   let message = err.message;
@@ -36,8 +39,26 @@ export const errorHandler = (err, _req, res, _next) => {
     message = `Duplicate resource value. A record with this ${field} already exists.`;
   }
 
+  const isSecurityError = statusCode === 401 || statusCode === 403;
+  const clientIp = getClientIp(req);
+
   if (statusCode >= 500) {
-    console.error('[ERROR]', err.message, err.stack);
+    logger.error(`Server Error: ${err.message || 'Unknown Error'}`, {
+      error: err.name || 'Error',
+      stack: err.stack,
+      url: req.originalUrl,
+      method: req.method,
+      ip: clientIp,
+    });
+  } else {
+    logger.warn(`Client Error (${statusCode}): ${message}`, {
+      error: err.name || 'Error',
+      statusCode,
+      url: req.originalUrl,
+      method: req.method,
+      ip: clientIp,
+      security: isSecurityError,
+    });
   }
 
   res.status(statusCode).json({ 

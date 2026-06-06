@@ -120,6 +120,19 @@ export const checkoutSchema = z.object({
 /** @typedef {z.infer<typeof checkoutSchema>} CheckoutInput */
 
 // ─────────────────────────────────────────────────────────────────
+// CUSTOMER REGISTER SCHEMA
+// ─────────────────────────────────────────────────────────────────
+
+export const createCustomerSchema = z.object({
+  name:     z.string().trim().min(2, 'Name must be at least 2 characters').max(100, 'Name too long'),
+  email:    emailSchema,
+  password: passwordSchema,
+  phone:    z.string().max(30).optional().default(''),
+});
+
+/** @typedef {z.infer<typeof createCustomerSchema>} CreateCustomerInput */
+
+// ─────────────────────────────────────────────────────────────────
 // ADMIN USER SCHEMAS
 // ─────────────────────────────────────────────────────────────────
 

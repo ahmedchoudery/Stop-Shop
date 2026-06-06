@@ -5,6 +5,10 @@ import jwt from 'jsonwebtoken';
 import Customer from '../models/Customer.js';
 import Order from '../models/Order.js';
 import { authenticateCustomer, CUSTOMER_JWT_SECRET } from '../middleware/auth.js';
+import logger from '../utils/logger.js';
+import { getClientIp } from '../middleware/security.js';
+import { authLimiter } from '../middleware/rateLimiters.js';
+import { validateRequest, createCustomerSchema, loginSchema } from '../schemas/validation.js';
 
 const router = express.Router();
 
@@ -12,26 +16,27 @@ const router = express.Router();
 // CUSTOMER REGISTER
 // ─────────────────────────────────────────────────────────────────
 
-router.post('/register', async (req, res, next) => {
+router.post('/register', authLimiter, validateRequest(createCustomerSchema), async (req, res, next) => {
   try {
     const { name, email, password, phone } = req.body;
  
-    if (!name?.trim() || name.trim().length < 2)
-      return res.status(400).json({ error: 'Name must be at least 2 characters' });
-    if (!email?.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
-      return res.status(400).json({ error: 'Enter a valid email address' });
-    if (!password || password.length < 6)
-      return res.status(400).json({ error: 'Password must be at least 6 characters' });
- 
-    const exists = await Customer.findOne({ email: email.toLowerCase().trim() }).lean();
-    if (exists) return res.status(409).json({ error: 'An account with this email already exists' });
+    const exists = await Customer.findOne({ email }).lean();
+    if (exists) {
+      logger.warn('Customer registration failed: Email already exists', {
+        security: true,
+        ip: getClientIp(req),
+        userAgent: req.headers['user-agent'],
+        email,
+      });
+      return res.status(409).json({ error: 'An account with this email already exists' });
+    }
  
     const hashed  = await bcrypt.hash(password, 12);
     const customer = await Customer.create({
-      name:     name.trim(),
-      email:    email.toLowerCase().trim(),
+      name,
+      email,
       password: hashed,
-      phone:    phone?.trim() ?? '',
+      phone,
     });
  
     const token = jwt.sign(
@@ -40,6 +45,14 @@ router.post('/register', async (req, res, next) => {
       { expiresIn: '30d' }
     );
  
+    logger.info('Customer registration successful', {
+      security: true,
+      ip: getClientIp(req),
+      userAgent: req.headers['user-agent'],
+      email: customer.email,
+      customerId: customer._id,
+    });
+
     const { password: _, ...safe } = customer.toObject();
     res.status(201).json({ token, customer: safe });
   } catch (err) { next(err); }
@@ -49,20 +62,31 @@ router.post('/register', async (req, res, next) => {
 // CUSTOMER LOGIN
 // ─────────────────────────────────────────────────────────────────
 
-router.post('/login', async (req, res, next) => {
+router.post('/login', authLimiter, validateRequest(loginSchema), async (req, res, next) => {
   try {
     const { email, password } = req.body;
  
-    if (!email || !password)
-      return res.status(400).json({ error: 'Email and password are required' });
- 
-    const customer = await Customer.findOne({ email: email.toLowerCase().trim() });
-    if (!customer)
+    const customer = await Customer.findOne({ email });
+    if (!customer) {
+      logger.warn('Customer login failed: Account not found', {
+        security: true,
+        ip: getClientIp(req),
+        userAgent: req.headers['user-agent'],
+        email,
+      });
       return res.status(401).json({ error: 'No account found with this email' });
+    }
  
     const valid = await bcrypt.compare(password, customer.password);
-    if (!valid)
+    if (!valid) {
+      logger.warn('Customer login failed: Incorrect password', {
+        security: true,
+        ip: getClientIp(req),
+        userAgent: req.headers['user-agent'],
+        email,
+      });
       return res.status(401).json({ error: 'Incorrect password' });
+    }
  
     const token = jwt.sign(
       { id: customer._id, email: customer.email, type: 'customer' },
@@ -70,6 +94,14 @@ router.post('/login', async (req, res, next) => {
       { expiresIn: '30d' }
     );
  
+    logger.info('Customer login successful', {
+      security: true,
+      ip: getClientIp(req),
+      userAgent: req.headers['user-agent'],
+      email: customer.email,
+      customerId: customer._id,
+    });
+
     const { password: _, ...safe } = customer.toObject();
     res.json({ token, customer: safe });
   } catch (err) { next(err); }
