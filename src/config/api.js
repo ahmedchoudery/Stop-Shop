@@ -65,6 +65,11 @@ const resolveEnvApiUrl = (raw) => {
     return '';
   }
 
+  // Guard: Ignore Railway URLs to force relative routing on Vercel/Next.js
+  if (url.includes('railway.app')) {
+    return '';
+  }
+
   return url;
 };
 
