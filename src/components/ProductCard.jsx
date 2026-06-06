@@ -125,7 +125,7 @@ const ProductCard = ({ product, onImageLoad }) => {
     >
       {/* ── Image Container with 3D Tilt ──────────────────────── */}
       <div 
-        className="relative aspect-[3/4] overflow-hidden bg-neutral-50 mb-3.5 shadow-sm border border-gray-100/40"
+        className="relative aspect-[3/4] overflow-hidden mb-3.5"
         style={{
           ...tiltStyle,
           transformStyle: 'preserve-3d',
@@ -159,7 +159,7 @@ const ProductCard = ({ product, onImageLoad }) => {
           <div className="absolute bottom-4 left-4 right-4">
             <button
               onClick={(e) => { e.stopPropagation(); navigate(`/product/${product.id}`); }}
-              className="w-full flex items-center justify-center gap-2.5 bg-white text-black py-3 text-[9px] font-black uppercase tracking-[0.3em] transition-all duration-300 hover:bg-black hover:text-white"
+              className="w-full flex items-center justify-center gap-2.5 bg-white text-black py-3 text-[9px] font-black uppercase tracking-[0.3em] transition-all duration-300 hover:bg-black hover:text-white active-scale"
             >
               <Eye size={11} />
               <span>Quick View</span>
@@ -171,7 +171,7 @@ const ProductCard = ({ product, onImageLoad }) => {
         <button
           onClick={handleWishlist}
           className={[
-            'absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center transition-all duration-300 shadow-sm',
+            'absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center transition-all duration-300 shadow-sm active-scale',
             wishlisted
               ? 'bg-cardinal opacity-100'
               : 'bg-white/95 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 hover:bg-cardinal hover:text-white',
@@ -187,7 +187,7 @@ const ProductCard = ({ product, onImageLoad }) => {
           <button
             onClick={handleAddToCart}
             className={[
-              'absolute top-3 left-3 z-10 w-8 h-8 flex items-center justify-center transition-all duration-300 shadow-sm',
+              'absolute top-3 left-3 z-10 w-8 h-8 flex items-center justify-center transition-all duration-300 shadow-sm active-scale',
               cartAdded ? 'bg-cardinal' : 'bg-white/95',
               'opacity-100 lg:opacity-0 lg:group-hover:opacity-100 hover:bg-black hover:text-white',
             ].join(' ')}
@@ -217,18 +217,18 @@ const ProductCard = ({ product, onImageLoad }) => {
       {/* ── Product Info ────────────────────────────────────── */}
       <div className="px-0.5">
         {/* Category */}
-        <p className="text-[8px] font-bold text-gray-500 uppercase tracking-[0.4em] mb-1.5">
+        <p className="text-[8px] font-black text-gray-400 uppercase tracking-[0.45em] mb-1">
           {category}
         </p>
 
         {/* Name */}
-        <h3 className="text-[13px] font-bold text-gray-900 uppercase tracking-wider leading-snug mb-2 group-hover:text-cardinal transition-colors duration-300 line-clamp-1">
+        <h3 className="text-[11px] font-black uppercase tracking-[0.15em] text-gray-900 leading-snug mb-1.5 group-hover:text-cardinal transition-colors duration-300 line-clamp-1">
           {product.name}
         </h3>
 
         {/* Price + Colors */}
         <div className="flex items-center justify-between">
-          <span className="text-sm font-bold text-gray-900 tracking-tight">
+          <span className="text-xs font-bold font-mono text-gray-900">
             {formatPrice(product.price)}
           </span>
 

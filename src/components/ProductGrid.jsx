@@ -32,6 +32,23 @@ const itemVariants = {
   }
 };
 
+const getAsymmetricClass = (index) => {
+  const mod = index % 8;
+  if (mod === 0) {
+    return "col-span-2 sm:col-span-2 lg:col-span-2 row-span-2";
+  }
+  if (mod === 3) {
+    return "col-span-1 lg:mt-12 sm:mt-6";
+  }
+  if (mod === 5) {
+    return "col-span-1 lg:-mt-12 sm:-mt-6";
+  }
+  if (mod === 7) {
+    return "col-span-1 lg:mt-6";
+  }
+  return "col-span-1";
+};
+
 const ProductGrid = ({ products, activeBucket = 'All', activeSubCategory = null }) => {
   const [sortBy, setSortBy] = useState('popular');
   const [visibleCount, setVisibleCount] = useState(20);
@@ -91,10 +108,10 @@ const ProductGrid = ({ products, activeBucket = 'All', activeSubCategory = null 
               initial="hidden"
               animate="visible"
               exit={{ opacity: 0, transition: { duration: 0.2 } }}
-              className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-5 gap-y-10 sm:gap-x-8 sm:gap-y-14"
+              className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 grid-flow-row-dense gap-x-6 gap-y-12 sm:gap-x-10 sm:gap-y-16"
             >
-              {sortedProducts.slice(0, visibleCount).map(product => (
-                <motion.div key={product.id} variants={itemVariants}>
+              {sortedProducts.slice(0, visibleCount).map((product, index) => (
+                <motion.div key={product.id} variants={itemVariants} className={getAsymmetricClass(index)}>
                   <ProductCard product={product} />
                 </motion.div>
               ))}
