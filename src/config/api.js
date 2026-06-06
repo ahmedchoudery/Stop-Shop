@@ -43,11 +43,8 @@ const isLocalhost = detectLocalhost();
 // URL RESOLUTION
 // ─────────────────────────────────────────────────────────────────
 
-const PROD_API = 'https://stop-shop-production.up.railway.app';
-
 /**
  * Normalize and validate the environment API URL.
- * Handles stale deployment URLs gracefully.
  *
  * @param {string} raw - Raw env var value
  * @returns {string} Cleaned URL or empty string
@@ -66,12 +63,6 @@ const resolveEnvApiUrl = (raw) => {
   if (isBrowser && url.includes(window.location.host)) {
     if (isDev) console.warn('[API] VITE_API_URL points to frontend host — ignoring');
     return '';
-  }
-
-  // Fix stale Railway deployment suffix
-  if (url.includes('stop-shop-production-3860')) {
-    if (isDev) console.warn('[API] Stale -3860 Railway URL detected — auto-correcting');
-    url = url.replace('stop-shop-production-3860', 'stop-shop-production');
   }
 
   return url;
