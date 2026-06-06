@@ -2,7 +2,7 @@
 
 /**
  * @fileoverview FeaturedCarousel.jsx — Horizontal Product Carousel
- * Theme: Unified dark, white accents on hover/active states.
+ * Theme: Minimalist editorial lookbook. White section, round actions, 1-line headline.
  */
 
 import React, { useRef, useState, useEffect, useCallback } from 'react';
@@ -45,63 +45,73 @@ const CarouselCard = ({ product }) => {
   return (
     <article
       className="group relative cursor-pointer flex-shrink-0"
-      style={{ width: 'clamp(220px, 28vw, 300px)' }}
+      style={{ width: 'clamp(220px, 28vw, 290px)' }}
       onClick={() => navigate(`/product/${product.id}`)}
     >
-      {/* Image */}
-      <div className="relative aspect-[3/4] overflow-hidden bg-gray-50 mb-4">
+      {/* Image Wrapper */}
+      <div className="relative aspect-[3/4] overflow-hidden bg-gray-50 mb-3.5">
         <MediaRenderer
           src={product.mediaType === 'embed' ? null : product.image}
           embedCode={product.mediaType === 'embed' ? product.embedCode : undefined}
           mediaType={product.mediaType}
           alt={product.name}
-          className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.06]"
+          className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
         />
 
-        {/* Hover overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        {/* Clean border outline */}
+        <div className="absolute inset-0 border border-gray-100 group-hover:border-black/20 transition-colors duration-500 z-10 pointer-events-none" />
 
-        {/* White top bar on hover */}
-        <div className="absolute top-0 left-0 w-0 h-px bg-white group-hover:w-full transition-all duration-500" />
+        {/* Top-Right Wishlist Button - Transparent and Minimalist */}
+        <button
+          onClick={handleWishlist}
+          className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm shadow-sm flex items-center justify-center transition-all duration-300 hover:bg-black hover:text-white group/wishlist z-20"
+        >
+          <Heart 
+            size={12} 
+            className={`transition-all duration-300 ${
+              wishlisted 
+                ? 'fill-black text-black group-hover/wishlist:fill-white group-hover/wishlist:text-white' 
+                : 'text-gray-600 group-hover/wishlist:text-white'
+            }`} 
+          />
+        </button>
 
-        {/* Action buttons */}
-        <div className="absolute top-3 right-3 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        {/* Bottom-Right Add to Bag Button - Elegant Quick Add */}
+        {!outOfStock && (
           <button
-            onClick={handleWishlist}
-            className={`w-8 h-8 flex items-center justify-center ${wishlisted ? 'bg-cardinal' : 'bg-white/60'} transition-colors duration-200`}
+            onClick={handleAddToCart}
+            className={`absolute bottom-3 right-3 w-9 h-9 rounded-full ${
+              cartAdded ? 'bg-black text-white' : 'bg-white/90 text-black hover:bg-black hover:text-white'
+            } backdrop-blur-sm shadow-sm flex items-center justify-center transition-all duration-300 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 z-20`}
           >
-            <Heart size={12} className={wishlisted ? 'fill-white text-black' : 'text-black'} />
+            <ShoppingBag size={13} className="transition-transform duration-200" />
           </button>
-          {!outOfStock && (
-            <button
-              onClick={handleAddToCart}
-              className={`w-8 h-8 flex items-center justify-center ${cartAdded ? 'bg-cardinal' : 'bg-white/60'} transition-colors duration-200`}
-            >
-              <ShoppingBag size={12} className="text-black" />
-            </button>
-          )}
-        </div>
+        )}
 
-        {/* Out of stock */}
+        {/* Out of Stock Label */}
         {outOfStock && (
-          <div className="absolute top-3 left-3 bg-white/80 border border-gray-300 px-2 py-1">
-            <span className="text-[8px] font-black uppercase tracking-[0.3em] text-gray-600">Sold Out</span>
+          <div className="absolute top-3 left-3 bg-white/95 px-2 py-0.5 shadow-sm border border-gray-100 z-20">
+            <span className="text-[8px] font-black uppercase tracking-[0.25em] text-gray-500">Sold Out</span>
           </div>
         )}
       </div>
 
       {/* Info */}
-      <div>
-        <p className="text-[8px] font-bold uppercase tracking-[0.4em] text-gray-500 mb-1">{category}</p>
-        <h3 className="text-sm font-black uppercase tracking-tight text-gray-900 leading-snug group-hover:text-black transition-colors duration-300 line-clamp-1 mb-1.5">
+      <div className="px-0.5">
+        <p className="text-[9px] font-medium uppercase tracking-[0.25em] text-gray-400 mb-1">{category}</p>
+        <h3 className="text-sm font-bold uppercase tracking-tight text-gray-900 leading-snug group-hover:text-black transition-colors duration-300 line-clamp-1 mb-1">
           {product.name}
         </h3>
-        <span className="text-sm font-black text-black tracking-wide">
-          {formatPrice(product.price)}
-        </span>
-        {cartAdded && (
-          <p className="text-[9px] font-black text-cardinal uppercase tracking-widest mt-1">✓ Added to bag</p>
-        )}
+        <div className="flex items-center justify-between">
+          <span className="text-sm font-bold text-black tracking-wide">
+            {formatPrice(product.price)}
+          </span>
+          {cartAdded && (
+            <span className="text-[9px] font-bold text-black uppercase tracking-wider animate-pulse">
+              Added
+            </span>
+          )}
+        </div>
       </div>
     </article>
   );
@@ -116,7 +126,7 @@ export default function FeaturedCarousel({ products = [], headline, subline }) {
   const [canScrollRight, setCanScrollRight] = useState(true);
   const [visible, setVisible] = useState(false);
 
-  const CARD_WIDTH = 316;
+  const CARD_WIDTH = 306;
 
   const updateScrollState = useCallback(() => {
     const el = scrollRef.current;
@@ -163,31 +173,31 @@ export default function FeaturedCarousel({ products = [], headline, subline }) {
       <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16">
 
         {/* Section Header */}
-        <div className="flex items-end justify-between mb-10 sm:mb-14">
+        <div className="flex items-end justify-between mb-10 sm:mb-14 gap-4">
           <div>
             <p className="text-[9px] font-black uppercase tracking-[0.5em] text-gray-500 mb-2">
               {subline}
             </p>
-            <h2 className="text-3xl sm:text-4xl font-black uppercase tracking-tighter text-black leading-none max-w-md">
+            <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-black leading-none sm:whitespace-nowrap">
               {headline}
             </h2>
           </div>
 
-          {/* Navigation Arrows — white hover */}
-          <div className="flex items-center gap-2">
+          {/* Navigation Arrows */}
+          <div className="flex items-center gap-3">
             <button
               onClick={() => scroll(-1)}
               disabled={!canScrollLeft}
-              className="w-11 h-11 border border-gray-300 flex items-center justify-center transition-all duration-300 hover:border-black hover:bg-black disabled:opacity-20 disabled:cursor-not-allowed group"
+              className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center transition-all duration-300 hover:border-black hover:bg-black disabled:opacity-20 disabled:cursor-not-allowed group"
             >
-              <ArrowLeft size={16} className="text-black group-hover:text-white transition-colors duration-300" />
+              <ArrowLeft size={16} className="text-gray-600 group-hover:text-white transition-colors duration-300" />
             </button>
             <button
               onClick={() => scroll(1)}
               disabled={!canScrollRight}
-              className="w-11 h-11 border border-gray-300 flex items-center justify-center transition-all duration-300 hover:border-black hover:bg-black disabled:opacity-20 disabled:cursor-not-allowed group"
+              className="w-10 h-10 rounded-full border border-gray-200 flex items-center justify-center transition-all duration-300 hover:border-black hover:bg-black disabled:opacity-20 disabled:cursor-not-allowed group"
             >
-              <ArrowRight size={16} className="text-black group-hover:text-white transition-colors duration-300" />
+              <ArrowRight size={16} className="text-gray-600 group-hover:text-white transition-colors duration-300" />
             </button>
           </div>
         </div>
