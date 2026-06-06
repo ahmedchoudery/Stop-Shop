@@ -21,6 +21,34 @@ const nextConfig = {
         source: '/api/customer/:path((?!login|register|profile|orders).*)',
         destination: `${dest}/api/customer/:path*`,
       },
+      {
+        source: '/api/stats/:path*',
+        destination: `${dest}/api/stats/:path*`,
+      },
+      {
+        source: '/api/orders/:path*',
+        destination: `${dest}/api/orders/:path*`,
+      },
+      {
+        source: '/api/orders',
+        destination: `${dest}/api/orders`,
+      },
+      {
+        source: '/api/settings',
+        destination: `${dest}/api/settings`,
+      },
+      {
+        source: '/api/checkout',
+        destination: `${dest}/api/checkout`,
+      },
+      {
+        source: '/api/newsletter/:path*',
+        destination: `${dest}/api/newsletter/:path*`,
+      },
+      {
+        source: '/api/newsletter',
+        destination: `${dest}/api/newsletter`,
+      },
     ];
   },
 };
