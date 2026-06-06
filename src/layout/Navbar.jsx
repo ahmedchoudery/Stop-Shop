@@ -142,14 +142,14 @@ const Navbar = ({ products = [], onSearchOpen, scrolled, isHome }) => {
 
           {/* Action Icons */}
           <div className="flex items-center space-x-0.5">
-            <button onClick={onSearchOpen} className={`w-9 h-9 flex items-center justify-center transition-all duration-200 ${iconColor} ${iconHover}`} aria-label="Search">
+            <button onClick={onSearchOpen} className={`w-11 h-11 lg:w-9 lg:h-9 flex items-center justify-center transition-all duration-200 active-scale ${iconColor} ${iconHover}`} aria-label="Search">
               <Search size={17} strokeWidth={1.8} />
             </button>
 
             <div className="relative hidden sm:block">
               <button
                 onClick={(e) => { e.stopPropagation(); if (isLoggedIn) setAccountOpen(o => !o); else navigate('/account/login'); }}
-                className={`w-9 h-9 flex items-center justify-center transition-all duration-200 ${iconColor} ${iconHover}`}
+                className={`w-11 h-11 lg:w-9 lg:h-9 flex items-center justify-center transition-all duration-200 active-scale ${iconColor} ${iconHover}`}
                 aria-label="Account"
               >
                 <User size={17} strokeWidth={1.8} />
@@ -181,26 +181,26 @@ const Navbar = ({ products = [], onSearchOpen, scrolled, isHome }) => {
             </div>
 
             {/* Wishlist — badge stays red */}
-            <button onClick={() => openDrawer('wishlist')} className={`relative w-9 h-9 flex items-center justify-center transition-all duration-200 ${iconColor} ${iconHover}`} aria-label="Wishlist">
+            <button onClick={() => openDrawer('wishlist')} className={`relative w-11 h-11 lg:w-9 lg:h-9 flex items-center justify-center transition-all duration-200 active-scale ${iconColor} ${iconHover}`} aria-label="Wishlist">
               <Heart size={17} strokeWidth={1.8} />
               {wishlistCount > 0 && (
-                <span className="absolute top-1.5 right-1.5 w-[13px] h-[13px] bg-cardinal flex items-center justify-center text-[7px] font-black text-white leading-none">
+                <span className="absolute top-1.5 right-1.5 sm:top-1 sm:right-1 w-[13px] h-[13px] bg-cardinal flex items-center justify-center text-[7px] font-black text-white leading-none">
                   {wishlistCount > 9 ? '9+' : wishlistCount}
                 </span>
               )}
             </button>
 
             {/* Cart */}
-            <button onClick={() => openDrawer('cart')} className={`relative w-9 h-9 flex items-center justify-center ml-1 transition-all duration-300 ${isTransparent ? 'bg-white/10 text-white hover:bg-white/20' : 'bg-white/5 text-black hover:bg-white/10 border border-gray-200'}`} aria-label="Cart">
+            <button onClick={() => openDrawer('cart')} className={`relative w-11 h-11 lg:w-9 lg:h-9 flex items-center justify-center ml-1 transition-all duration-300 active-scale ${isTransparent ? 'bg-white/10 text-white hover:bg-white/20' : 'bg-white/5 text-black hover:bg-white/10 border border-gray-200'}`} aria-label="Cart">
               <ShoppingBag size={16} strokeWidth={1.8} />
               {cartCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 w-[16px] h-[16px] bg-cardinal flex items-center justify-center text-[7px] font-black text-white leading-none border-[1.5px] border-white">
+                <span className="absolute -top-1 -right-1 sm:-top-1.5 sm:-right-1.5 w-[16px] h-[16px] bg-cardinal flex items-center justify-center text-[7px] font-black text-white leading-none border-[1.5px] border-white">
                   {cartCount > 9 ? '9+' : cartCount}
                 </span>
               )}
             </button>
 
-            <button onClick={() => setMobileOpen(true)} className={`lg:hidden w-9 h-9 flex items-center justify-center ml-1 transition-colors duration-200 ${iconColor} ${iconHover}`} aria-label="Menu">
+            <button onClick={() => setMobileOpen(true)} className={`lg:hidden w-11 h-11 flex items-center justify-center ml-1 transition-colors duration-200 active-scale ${iconColor} ${iconHover}`} aria-label="Menu">
               <Menu size={20} strokeWidth={1.8} />
             </button>
           </div>

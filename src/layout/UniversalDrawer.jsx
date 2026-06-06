@@ -209,14 +209,15 @@ const UniversalDrawer = () => {
                 {isCartMode && cartItems.length > 0 && (
                   <button
                     onClick={clearCart}
-                    className="text-[8px] font-black uppercase tracking-widest text-gray-300 hover:text-cardinal transition-colors"
+                    className="text-[8px] font-black uppercase tracking-widest text-gray-400 hover:text-cardinal transition-colors px-2 py-3 active-scale"
                   >
                     Clear
                   </button>
                 )}
                 <button
                   onClick={handleClose}
-                  className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-900 transition-colors"
+                  className="w-11 h-11 sm:w-8 sm:h-8 flex items-center justify-center text-gray-400 hover:text-gray-900 hover:bg-black/5 active-scale rounded-full transition-all"
+                  aria-label="Close drawer"
                 >
                   <X size={18} />
                 </button>
@@ -319,7 +320,7 @@ const UniversalDrawer = () => {
                   <Link
                     to={`/product/${selectedProduct.id}`}
                     onClick={handleClose}
-                    className="block w-full text-center bg-gray-900 text-white py-4 text-[10px] font-black uppercase tracking-[0.35em] hover:bg-cardinal transition-colors duration-300 mb-3"
+                    className="block w-full text-center bg-gray-900 text-white py-4 text-[10px] font-black uppercase tracking-[0.35em] hover:bg-cardinal active-scale transition-all duration-300 mb-3"
                   >
                     View Full Details
                   </Link>
@@ -340,7 +341,7 @@ const UniversalDrawer = () => {
                 <Link
                   to="/checkout"
                   onClick={handleClose}
-                  className="block w-full text-center bg-cardinal text-white py-4 text-[10px] font-black uppercase tracking-[0.35em] hover:bg-gray-900 transition-colors duration-300 mb-3"
+                  className="block w-full text-center bg-cardinal text-white py-4 text-[10px] font-black uppercase tracking-[0.35em] hover:bg-gray-900 active-scale transition-all duration-300 mb-3"
                 >
                   Proceed to Checkout
                 </Link>
@@ -348,7 +349,7 @@ const UniversalDrawer = () => {
                 {/* Continue shopping */}
                 <button
                   onClick={handleClose}
-                  className="w-full text-center text-[9px] font-black uppercase tracking-widest text-gray-400 hover:text-gray-900 transition-colors py-1"
+                  className="w-full text-center text-[9px] font-black uppercase tracking-widest text-gray-400 hover:text-gray-900 transition-colors py-2.5 active-scale"
                 >
                   Continue Shopping
                 </button>

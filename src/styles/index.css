@@ -608,6 +608,37 @@ a {
 
 /* ── 20. Reduced motion ──────────────────────────────────────── */
 
+/* ── 21. iOS HIG / SwiftUI Utilities ─────────────────────────── */
+
+/* Prevent iOS zoom-on-focus by forcing font size to be at least 16px */
+@media (max-width: 767px) {
+  input, select, textarea, .input-premium, .select-premium {
+    font-size: 16px !important;
+  }
+}
+
+/* Safe Area helper classes */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+.pl-safe {
+  padding-left: env(safe-area-inset-left);
+}
+.pr-safe {
+  padding-right: env(safe-area-inset-right);
+}
+
+/* iOS active scaling transition */
+.active-scale {
+  transition: transform 0.12s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+.active-scale:active {
+  transform: scale(0.97);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
