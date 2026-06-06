@@ -16,39 +16,39 @@ import { CurrencyProvider } from '../context/CurrencyContext.jsx';
 import { LocaleProvider } from '../context/LocaleContext.jsx';
 import { CustomerProvider } from '../context/CustomerContext.jsx';
 import ErrorBoundary from '../components/ErrorBoundary.tsx';
-import HomePage from '../pages/HomePage.jsx';
+import HomePage from '../views/HomePage.jsx';
 import ProtectedRoute from '../components/ProtectedRoute.jsx';
 
 // ── Admin pages (lazy) ─────────────────────────────────────────────
-const AdminDashboard = lazy(() => import('../pages/AdminDashboard.jsx'));
-const DashboardHome  = lazy(() => import('../pages/DashboardHome.jsx'));
-const AdminOrders    = lazy(() => import('../pages/AdminOrders.jsx'));
-const AdminInventory = lazy(() => import('../pages/AdminInventory.jsx'));
-const AdminProducts  = lazy(() => import('../pages/AdminProducts.jsx'));
-const AdminUsers     = lazy(() => import('../pages/AdminUsers.jsx'));
-const AdminSettings  = lazy(() => import('../pages/AdminSettings.jsx'));
-const AdminAuditPanel = lazy(() => import('../pages/AdminAuditPanel.jsx'));
-const AdminCoupons   = lazy(() => import('../pages/AdminCoupons.jsx'));
-const AdminAnalytics = lazy(() => import('../pages/AdminAnalytics.jsx'));
-const AdminReviews   = lazy(() => import('../pages/AdminReviews.jsx'));
+const AdminDashboard = lazy(() => import('../views/AdminDashboard.jsx'));
+const DashboardHome  = lazy(() => import('../views/DashboardHome.jsx'));
+const AdminOrders    = lazy(() => import('../views/AdminOrders.jsx'));
+const AdminInventory = lazy(() => import('../views/AdminInventory.jsx'));
+const AdminProducts  = lazy(() => import('../views/AdminProducts.jsx'));
+const AdminUsers     = lazy(() => import('../views/AdminUsers.jsx'));
+const AdminSettings  = lazy(() => import('../views/AdminSettings.jsx'));
+const AdminAuditPanel = lazy(() => import('../views/AdminAuditPanel.jsx'));
+const AdminCoupons   = lazy(() => import('../views/AdminCoupons.jsx'));
+const AdminAnalytics = lazy(() => import('../views/AdminAnalytics.jsx'));
+const AdminReviews   = lazy(() => import('../views/AdminReviews.jsx'));
 
 // ── Public pages (lazy) ────────────────────────────────────────────
-const ProductPage        = lazy(() => import('../pages/ProductPage.jsx'));
-const SearchPage         = lazy(() => import('../pages/SearchPage.jsx'));
-const OrderTrackingPage  = lazy(() => import('../pages/OrderTrackingPage.jsx'));
-const OrderSuccessPage   = lazy(() => import('../pages/OrderSuccessPage.jsx'));
-const ReturnsPage        = lazy(() => import('../pages/ReturnsPage.jsx'));
-const CheckoutPage       = lazy(() => import('../pages/CheckoutPage.jsx'));
+const ProductPage        = lazy(() => import('../views/ProductPage.jsx'));
+const SearchPage         = lazy(() => import('../views/SearchPage.jsx'));
+const OrderTrackingPage  = lazy(() => import('../views/OrderTrackingPage.jsx'));
+const OrderSuccessPage   = lazy(() => import('../views/OrderSuccessPage.jsx'));
+const ReturnsPage        = lazy(() => import('../views/ReturnsPage.jsx'));
+const CheckoutPage       = lazy(() => import('../views/CheckoutPage.jsx'));
 
 // ── Customer account pages (lazy) ─────────────────────────────────
-const CustomerAuthPage = lazy(() => import('../pages/CustomerAuthPage.jsx'));
-const AccountPage      = lazy(() => import('../pages/AccountPage.jsx'));
+const CustomerAuthPage = lazy(() => import('../views/CustomerAuthPage.jsx'));
+const AccountPage      = lazy(() => import('../views/AccountPage.jsx'));
 
 // ── Admin authentication (lazy) ───────────────────────────────────
-const LoginPage        = lazy(() => import('../pages/LoginPage.tsx'));
+const LoginPage        = lazy(() => import('../views/LoginPage.tsx'));
 
 // ── 404 page (lazy) ──────────────────────────────────────────────
-const NotFoundPage     = lazy(() => import('../pages/NotFoundPage.jsx'));
+const NotFoundPage     = lazy(() => import('../views/NotFoundPage.jsx'));
 
 const PageLoader = () => (
   <div className="flex items-center justify-center h-64">
@@ -252,6 +252,14 @@ function App() {
         </LocaleProvider>
       </ConfigProvider>
     </ErrorBoundary>
+  );
+}
+
+export function ClientRouter() {
+  return (
+    <Router>
+      <PageContent />
+    </Router>
   );
 }
 
