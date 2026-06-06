@@ -1,57 +1,57 @@
 /**
  * @fileoverview WhatsAppButton.jsx
- * Floating WhatsApp button — fixed bottom-right on all storefront pages.
- * Tapping opens WhatsApp with a pre-filled message.
- * Hidden on admin pages automatically.
+ * Floating WhatsApp button — visible only when viewing the homepage hero section.
+ * Vanishes when the user scrolls past the hero section.
  *
- * Applies: design-spells (spring entrance, pulse ring, tooltip on hover)
+ * Applies: design-spells (spring entrance, pulse ring, tooltip on hover, active-scale tap response)
  */
 
 import React, { useState, useEffect } from 'react';
 import { useLocation } from '../utils/router-compat.jsx';
 
-// ── Config — change these to your actual WhatsApp number ──────────
-const WHATSAPP_NUMBER = '923068458655'; // Format: country code + number, no + or spaces
+// ── Config — country code + number, no + or spaces ────────────────
+const WHATSAPP_NUMBER = '923068458655';
 const DEFAULT_MESSAGE = "Hi! I'm shopping at Stop & Shop and need some help. 🛍️";
 
 const WhatsAppButton = () => {
-  const location  = useLocation();
-  const [visible, setVisible]   = useState(false);
-  const [tooltip, setTooltip]   = useState(false);
-  const [pulse,   setPulse]     = useState(false);
-  const [isScrollingDown, setIsScrollingDown] = useState(false);
+  const location = useLocation();
+  const [visible, setVisible] = useState(false);
+  const [isInHero, setIsInHero] = useState(true);
+  const [tooltip, setTooltip] = useState(false);
+  const [pulse, setPulse] = useState(false);
 
-  // Hide on admin and login pages
-  const isAdminPage = location.pathname.startsWith('/admin') ||
-                      location.pathname === '/login';
+  const isHomePage = location.pathname === '/';
 
-  // Delayed entrance — appear 2s after page load
+  // Delayed entrance — appear shortly after homepage loads
   useEffect(() => {
-    if (isAdminPage) return;
-    const t1 = setTimeout(() => setVisible(true), 2000);
-    const t2 = setTimeout(() => setPulse(true),   4000); // Start pulse ring after 4s
+    if (!isHomePage) return;
+    const t1 = setTimeout(() => setVisible(true), 500);
+    const t2 = setTimeout(() => setPulse(true), 3000);
     return () => { clearTimeout(t1); clearTimeout(t2); };
-  }, [isAdminPage]);
+  }, [isHomePage]);
 
-  // Auto-hide on scroll down
+  // Track scroll position compared to hero section height
   useEffect(() => {
-    let lastScrollY = window.scrollY;
-    
+    if (!isHomePage) return;
+
     const handleScroll = () => {
-      const currentScrollY = window.scrollY;
-      if (currentScrollY > lastScrollY && currentScrollY > 100) {
-        setIsScrollingDown(true);
+      const hero = document.getElementById('hero-section');
+      const heroHeight = hero ? hero.offsetHeight : window.innerHeight;
+
+      // The button stays visible only within the hero section height
+      if (window.scrollY < heroHeight - 80) {
+        setIsInHero(true);
       } else {
-        setIsScrollingDown(false);
+        setIsInHero(false);
       }
-      lastScrollY = currentScrollY;
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll(); // Initial check
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [isHomePage]);
 
-  if (isAdminPage) return null;
+  if (!isHomePage) return null;
 
   const handleClick = () => {
     const encoded = encodeURIComponent(DEFAULT_MESSAGE);
@@ -64,8 +64,8 @@ const WhatsAppButton = () => {
       <div
         className={`
           fixed bottom-6 md:bottom-8 right-4 md:right-8 z-[999]
-          transition-all duration-500 ease-in-out
-          ${visible && !isScrollingDown
+          transition-all duration-500 ease-in-out active-scale
+          ${visible && isInHero
             ? 'opacity-100 translate-y-0'
             : 'opacity-0 translate-y-12 pointer-events-none'
           }
@@ -76,7 +76,7 @@ const WhatsAppButton = () => {
         <div
           className={`
             absolute bottom-full right-0 mb-3 whitespace-nowrap
-            bg-gray-900 text-black text-[10px] font-black uppercase tracking-widest
+            bg-gray-900 text-white text-[10px] font-black uppercase tracking-widest
             px-4 py-2.5 rounded-xl shadow-xl
             transition-all duration-300
             ${tooltip

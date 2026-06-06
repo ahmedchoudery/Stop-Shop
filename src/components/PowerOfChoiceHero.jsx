@@ -38,6 +38,7 @@ const PowerOfChoiceHero = () => {
 
   return (
     <section
+      id="hero-section"
       className="relative bg-cardinal overflow-hidden w-full flex flex-col"
       style={{ minHeight: '100dvh' }}
     >
