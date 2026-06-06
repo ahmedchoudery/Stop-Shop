@@ -1,8 +1,8 @@
 export const CATEGORY_MAP = {
-  Tops: ['Polo', 'Shirt', 'Tshirt', 'Sweatshirt', 'Hoodie', 'Jacket'],
+  Tops: ['Polos', 'Shirts', 'Hoodies', 'Sweatshirts'],
   Bottoms: ['Jeans', 'Trousers', 'Shorts'],
   Footwear: ['Shoes', 'Slippers', 'Socks'],
-  Accessories: ['Glasses', 'Watches', 'Rings', 'Bracelet', 'Chains', 'Caps', 'Belts', 'Bags'],
+  Accessories: ['Watches', 'Chains', 'Bags', 'Caps'],
 };
 
 export const CATEGORIES = Object.keys(CATEGORY_MAP);

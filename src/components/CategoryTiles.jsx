@@ -125,15 +125,15 @@ export default function CategoryTiles({ onSelect, activeBucket }) {
                 <div className="absolute bottom-0 left-0 right-0 p-5 z-10">
                   <div className="flex items-end justify-between">
                     <div>
-                      <p className="text-[8px] font-bold uppercase tracking-[0.4em] text-black/40 mb-1.5">
+                      <p className="text-[8px] font-bold uppercase tracking-[0.4em] text-white/60 mb-1.5">
                         {sub}
                       </p>
-                      <h3 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-black leading-none group-hover:text-black transition-colors duration-300">
+                      <h3 className="text-xl sm:text-2xl font-black uppercase tracking-tight text-white leading-none group-hover:text-white transition-colors duration-300">
                         {label}
                       </h3>
                     </div>
                     <div className="w-8 h-8 border border-white/20 flex items-center justify-center group-hover:border-white group-hover:bg-white transition-all duration-300">
-                      <ArrowUpRight size={14} className="text-black group-hover:text-black transition-colors duration-300" />
+                      <ArrowUpRight size={14} className="text-white group-hover:text-black transition-colors duration-300" />
                     </div>
                   </div>
                 </div>

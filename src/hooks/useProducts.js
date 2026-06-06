@@ -30,7 +30,22 @@ export const useProducts = (
     // 1. Filter by bucket + sub-category
     const filtered = products.filter((item) => {
       const bucketMatch = activeBucket === 'All' || item.bucket === activeBucket;
-      const subMatch = !activeSubCategory || item.subCategory === activeSubCategory;
+      let subMatch = !activeSubCategory;
+      if (activeSubCategory && item.subCategory) {
+        const itemSub = item.subCategory.toLowerCase().trim();
+        const activeSub = activeSubCategory.toLowerCase().trim();
+        
+        subMatch = 
+          itemSub === activeSub ||
+          itemSub + 's' === activeSub ||
+          itemSub === activeSub + 's' ||
+          (activeSub === 'trousers' && itemSub === 'pants') ||
+          (activeSub === 'shirts' && itemSub === 'shirt') ||
+          (activeSub === 'polos' && itemSub === 'polo') ||
+          (activeSub === 'hoodies' && itemSub === 'hoodie') ||
+          (activeSub === 'sweatshirts' && itemSub === 'sweatshirt') ||
+          (activeSub === 'bags' && (itemSub === 'backpack' || itemSub === 'bag'));
+      }
       return bucketMatch && subMatch;
     });
 
