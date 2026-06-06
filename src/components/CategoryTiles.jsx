@@ -2,7 +2,7 @@
 
 /**
  * @fileoverview CategoryTiles.jsx — Visual Men's Category Navigator
- * Theme: Minimalist editorial lookbook. White section, clean text below images.
+ * Theme: Minimalist editorial lookbook. White section, clean label below images.
  */
 
 import React, { useRef, useEffect } from 'react';
@@ -89,7 +89,7 @@ export default function CategoryTiles({ onSelect, activeBucket }) {
 
         {/* Tile Grid */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-          {TILES.map(({ key, label, image }, index) => {
+          {TILES.map(({ key, label, image }) => {
             const isActive = activeBucket === key;
             return (
               <button
@@ -115,27 +115,13 @@ export default function CategoryTiles({ onSelect, activeBucket }) {
                   }`} />
                 </div>
 
-                {/* Details Row */}
-                <div className="mt-3 flex items-center justify-between w-full px-0.5">
-                  <div className="flex items-center gap-2.5">
-                    <span className="font-mono text-[9px] tracking-wider text-gray-400">
-                      0{index + 1}
-                    </span>
-                    <h3 className={`text-xs font-black uppercase tracking-[0.2em] transition-colors duration-300 ${
-                      isActive ? 'text-black' : 'text-gray-500 group-hover:text-black'
-                    }`}>
-                      {label}
-                    </h3>
-                  </div>
-                  <ArrowUpRight
-                    size={14}
-                    strokeWidth={1.5}
-                    className={`transition-all duration-300 transform ${
-                      isActive 
-                        ? 'text-black translate-x-0.5 -translate-y-0.5' 
-                        : 'text-gray-300 group-hover:text-black group-hover:translate-x-0.5 group-hover:-translate-y-0.5'
-                    }`}
-                  />
+                {/* Details Row - Pure Minimalism */}
+                <div className="mt-3 w-full px-0.5 text-left">
+                  <h3 className={`text-xs font-bold uppercase tracking-[0.2em] transition-colors duration-300 ${
+                    isActive ? 'text-black' : 'text-gray-400 group-hover:text-black'
+                  }`}>
+                    {label}
+                  </h3>
                 </div>
               </button>
             );
