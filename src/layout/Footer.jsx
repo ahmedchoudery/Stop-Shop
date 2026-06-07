@@ -93,12 +93,12 @@ const Footer = () => {
   useEffect(observeBorder, [observeBorder]);
 
   return (
-    <footer className="bg-white" aria-label="Site footer">
+    <footer className="bg-[var(--bg-base)]" aria-label="Site footer">
 
       {/* ── Animated separator ───────────────────────────────────── */}
       <div
         ref={borderRef}
-        className="h-px bg-gray-200 origin-left"
+        className="h-px bg-[var(--border)] origin-left"
         style={{ transform: 'scaleX(0)', transition: 'transform 1.4s cubic-bezier(0.16, 1, 0.3, 1)' }}
         aria-hidden="true"
       />
@@ -110,8 +110,8 @@ const Footer = () => {
           {/* ── Brand Block ─────────── */}
           <div className="lg:col-span-4">
             <Link to="/" className="inline-block mb-7" aria-label="Stop & Shop home">
-              <span className="text-2xl font-black italic uppercase tracking-tighter text-cardinal">
-                Stop<span className="text-black not-italic">&</span>Shop
+              <span className="text-2xl font-black italic uppercase tracking-tighter text-black">
+                Stop<span className="text-[#a4a4a2] not-italic">&</span>Shop
               </span>
             </Link>
 
@@ -129,7 +129,7 @@ const Footer = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={label}
-                  className="group w-9 h-9 border border-gray-200 flex items-center justify-center text-gray-500 hover:border-gray-400 hover:text-black transition-all duration-300"
+                  className="group w-9 h-9 border border-[var(--border-mid)] flex items-center justify-center text-gray-500 hover:border-black hover:text-black rounded-[4px] transition-all duration-300"
                 >
                   {SvgIcon ? (
                     <SvgIcon size={14} />
@@ -143,7 +143,7 @@ const Footer = () => {
 
           {/* ── Shop ────────────────── */}
           <div className="lg:col-span-2">
-            <h4 className="text-[8px] font-black uppercase tracking-[0.55em] text-[#333] mb-7">
+            <h4 className="text-[8px] font-black uppercase tracking-[0.55em] text-[#787774] mb-7">
               Shop
             </h4>
             <ul className="space-y-4">
@@ -157,7 +157,7 @@ const Footer = () => {
 
           {/* ── Help ────────────────── */}
           <div className="lg:col-span-2">
-            <h4 className="text-[8px] font-black uppercase tracking-[0.55em] text-[#333] mb-7">
+            <h4 className="text-[8px] font-black uppercase tracking-[0.55em] text-[#787774] mb-7">
               Help
             </h4>
             <ul className="space-y-4">
@@ -171,14 +171,14 @@ const Footer = () => {
 
           {/* ── Contact ─────────────── */}
           <div className="lg:col-span-4">
-            <h4 className="text-[8px] font-black uppercase tracking-[0.55em] text-[#333] mb-7">
+            <h4 className="text-[8px] font-black uppercase tracking-[0.55em] text-[#787774] mb-7">
               Visit Us
             </h4>
 
             <div className="space-y-5">
               {CONTACT_INFO.map(({ Icon, text, sub }) => (
                 <div key={text} className="flex items-start gap-3">
-                  <div className="w-7 h-7 border border-gray-200 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <div className="w-7 h-7 border border-[var(--border-mid)] flex items-center justify-center flex-shrink-0 mt-0.5 rounded-[4px]">
                     <Icon size={11} className="text-gray-500" />
                   </div>
                   <div>
@@ -196,7 +196,7 @@ const Footer = () => {
               href="https://wa.me/923068458655"
               target="_blank"
               rel="noopener noreferrer"
-              className="group mt-9 inline-flex items-center gap-2.5 text-[9px] font-black uppercase tracking-[0.3em] text-[#25D366] border border-[#25D366]/15 px-5 py-3 hover:bg-[#25D366] hover:text-black hover:border-[#25D366] transition-all duration-300"
+              className="group mt-9 inline-flex items-center gap-2.5 text-[9px] font-black uppercase tracking-[0.3em] text-[#25D366] border border-[#25D366]/25 px-5 py-3 rounded-[4px] hover:bg-[#25D366] hover:text-black hover:border-[#25D366] transition-all duration-300 active:scale-[0.98]"
             >
               <span>Chat on WhatsApp</span>
               <ArrowUpRight size={10} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-200" />
@@ -206,7 +206,7 @@ const Footer = () => {
       </div>
 
       {/* ── Colophon ─────────────────────────────────────────────── */}
-      <div className="border-t border-gray-200">
+      <div className="border-t border-[var(--border)]">
         <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 py-7 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
 
           <p className="text-[8px] font-bold uppercase tracking-[0.25em] text-[#2a2a2a] max-w-sm leading-relaxed">
@@ -219,7 +219,7 @@ const Footer = () => {
               {PAYMENT_METHODS.map((m) => (
                 <span
                   key={m}
-                  className="text-[7px] font-black uppercase tracking-widest text-[#2a2a2a] border border-gray-200 px-2.5 py-1"
+                  className="text-[7px] font-black uppercase tracking-widest text-gray-700 border border-[var(--border-mid)] rounded-[4px] px-2.5 py-1"
                 >
                   {m}
                 </span>

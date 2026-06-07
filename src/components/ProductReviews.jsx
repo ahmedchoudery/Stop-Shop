@@ -95,16 +95,16 @@ const ProductReviews = ({ productId, productName }) => {
   }
 
   return (
-    <section className="bg-white py-20 border-t border-gray-100">
+    <section className="bg-[var(--bg-surface)] py-20 border-t border-[var(--border)]">
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-12">
           <div>
-            <p className="text-[10px] font-black uppercase tracking-[0.5em] text-cardinal mb-4">Product Feedback</p>
+            <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#a4a4a2] mb-4">Product Feedback</p>
             <h2 className="text-4xl font-black uppercase tracking-tighter text-gray-900">Customer Reviews</h2>
           </div>
           <button 
             onClick={() => setShowForm(!showForm)}
-            className="mt-6 md:mt-0 px-8 py-3 bg-gray-900 text-white text-[10px] font-black uppercase tracking-widest hover:bg-cardinal transition-all flex items-center space-x-2"
+            className="mt-6 md:mt-0 btn-primary rounded-[4px] !py-3 flex items-center space-x-2"
           >
             <MessageCircle size={14} />
             <span>{showForm ? 'Cancel' : 'Write a Review'}</span>
@@ -112,25 +112,25 @@ const ProductReviews = ({ productId, productName }) => {
         </div>
 
         {showForm && (
-          <div className="mb-16 p-8 border border-gray-100 bg-gray-50/50 rounded-sm animate-fade-up max-w-2xl">
+          <div className="mb-16 p-8 border border-[var(--border)] bg-[var(--bg-base)] rounded-[4px] animate-fade-up max-w-2xl">
             {done ? (
               <div className="text-center py-6">
-                <CheckCircle size={32} className="text-green-500 mx-auto mb-4" />
+                <CheckCircle size={32} className="text-[#346538] mx-auto mb-4" />
                 <p className="font-black uppercase tracking-tight text-gray-900">Thank You!</p>
                 <p className="text-xs text-gray-400 font-bold mt-1">Your review is pending moderation.</p>
               </div>
             ) : (
-              <form onSubmit={handleSubmit} className="space-y-4">
+              <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="mb-4">
                   <p className="text-[9px] font-black uppercase tracking-[0.4em] text-gray-400 mb-2">Rating</p>
                   <StarPicker value={form.rating} onChange={r => setForm({...form, rating: r})} />
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <input 
                     type="text" 
                     placeholder="Name *" 
                     required
-                    className="w-full p-4 text-xs font-bold bg-white border border-gray-100 outline-none focus:border-cardinal"
+                    className="input-premium"
                     value={form.name}
                     onChange={e => setForm({...form, name: e.target.value})}
                   />
@@ -138,7 +138,7 @@ const ProductReviews = ({ productId, productName }) => {
                     type="email" 
                     placeholder="Email *" 
                     required
-                    className="w-full p-4 text-xs font-bold bg-white border border-gray-100 outline-none focus:border-cardinal"
+                    className="input-premium"
                     value={form.email}
                     onChange={e => setForm({...form, email: e.target.value})}
                   />
@@ -146,7 +146,7 @@ const ProductReviews = ({ productId, productName }) => {
                 <input 
                   type="text" 
                   placeholder="Review Title"
-                  className="w-full p-4 text-xs font-bold bg-white border border-gray-100 outline-none focus:border-cardinal"
+                  className="input-premium"
                   value={form.title}
                   onChange={e => setForm({...form, title: e.target.value})}
                 />
@@ -154,14 +154,14 @@ const ProductReviews = ({ productId, productName }) => {
                   placeholder="Your review... *" 
                   required
                   rows={4}
-                  className="w-full p-4 text-xs font-bold bg-white border border-gray-100 outline-none focus:border-cardinal resize-none"
+                  className="input-premium resize-none"
                   value={form.body}
                   onChange={e => setForm({...form, body: e.target.value})}
                 />
                 {apiError && <p className="text-[10px] text-red-500 font-bold">{apiError}</p>}
                 <button 
                   disabled={submitting}
-                  className="w-full py-4 bg-cardinal text-white text-[10px] font-black uppercase tracking-widest hover:bg-gray-900 transition-all disabled:opacity-50"
+                  className="w-full btn-primary rounded-[4px]"
                 >
                   {submitting ? 'Submitting...' : 'Submit Review'}
                 </button>
@@ -172,25 +172,25 @@ const ProductReviews = ({ productId, productName }) => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {reviews.length === 0 ? (
-            <div className="col-span-full py-10 border border-dashed border-gray-200 text-center">
-              <p className="text-xs font-bold text-gray-400">No reviews yet for this product. Be the first!</p>
+            <div className="col-span-full py-10 border border-dashed border-[var(--border-mid)] text-center rounded-[4px]">
+              <p className="text-xs font-bold text-gray-450">No reviews yet for this product. Be the first!</p>
             </div>
           ) : (
             reviews.map((r, i) => (
-              <div key={r._id || i} className="p-8 border border-gray-50 bg-white hover:border-gray-100 transition-all group">
+              <div key={r._id || i} className="p-8 border border-[var(--border)] bg-[var(--bg-surface)] hover:border-[var(--border-mid)] transition-all duration-300 rounded-[4px] group">
                 <div className="flex justify-between items-start mb-4">
                   <Stars rating={r.rating} />
-                  <span className="text-[9px] font-black uppercase tracking-widest text-gray-300">Verified</span>
+                  <span className="text-[9px] font-black uppercase tracking-widest text-[#a4a4a2]">Verified</span>
                 </div>
                 <h4 className="font-black uppercase tracking-tight text-gray-900 mb-2">{r.title}</h4>
                 <p className="text-xs text-gray-500 leading-relaxed font-medium mb-6 italic">"{r.body}"</p>
                 <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-black text-gray-400">
+                  <div className="w-8 h-8 rounded-[4px] bg-gray-100 border border-gray-200 flex items-center justify-center text-[10px] font-black text-gray-450">
                     {r.name.charAt(0).toUpperCase()}
                   </div>
                   <div>
                     <p className="text-[10px] font-black uppercase text-gray-700">{r.name}</p>
-                    <p className="text-[8px] font-bold text-gray-300">{new Date(r.createdAt || Date.now()).toLocaleDateString()}</p>
+                    <p className="text-[8px] font-bold text-gray-400">{new Date(r.createdAt || Date.now()).toLocaleDateString()}</p>
                   </div>
                 </div>
               </div>

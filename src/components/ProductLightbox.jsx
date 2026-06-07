@@ -185,18 +185,18 @@ const ProductLightbox = ({ images = [], startIndex = 0, isOpen, onClose }) => {
                 onClick={item.onClick}
                 disabled={item.disabled}
                 title={item.title}
-                className="p-2.5 bg-white/8 hover:bg-white/20 disabled:opacity-30 rounded-xl transition-all text-black"
+                className="p-2.5 bg-black/5 hover:bg-black/10 disabled:opacity-30 rounded-[4px] transition-all text-black border border-black/10"
               >
                 <item.Icon size={16} />
               </button>
             )
           )}
 
-          <div className="w-px h-5 bg-white/20 mx-1" />
+          <div className="w-px h-5 bg-black/10 mx-1" />
 
           <button
             onClick={handleClose}
-            className="p-2.5 bg-white/8 hover:bg-cardinal rounded-xl transition-all duration-300 text-white hover:rotate-90 transform"
+            className="p-2.5 bg-black/5 hover:bg-black/20 rounded-[4px] transition-all duration-300 text-black hover:rotate-90 transform border border-black/10"
             title="Close (Esc)"
           >
             <X size={16} />
@@ -272,10 +272,10 @@ const ProductLightbox = ({ images = [], startIndex = 0, isOpen, onClose }) => {
                 key={idx}
                 data-thumb
                 onClick={() => { setCurrent(idx); animateImgSwitch(idx > current ? 1 : -1); }}
-                className={`flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition-all duration-300 ${
+                className={`flex-shrink-0 w-16 h-16 rounded-[4px] overflow-hidden border-2 transition-all duration-300 ${
                   idx === current
-                    ? 'border-cardinal scale-105 shadow-lg shadow-red-900/50'
-                    : 'border-white/10 hover:border-white/30 opacity-50 hover:opacity-100'
+                    ? 'border-black scale-105 shadow-sm'
+                    : 'border-black/5 hover:border-black/20 opacity-50 hover:opacity-100'
                 }`}
                 style={{ opacity: 0 }}
               >

@@ -77,7 +77,7 @@ const WhatsAppButton = () => {
           className={`
             absolute bottom-full right-0 mb-3 whitespace-nowrap
             bg-gray-900 text-white text-[10px] font-black uppercase tracking-widest
-            px-4 py-2.5 rounded-xl shadow-xl
+            px-4 py-2.5 rounded-[4px] shadow-md
             transition-all duration-300
             ${tooltip
               ? 'opacity-100 translate-y-0'

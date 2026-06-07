@@ -86,12 +86,12 @@ const ReviewForm = ({ onClose, onSuccess }) => {
       />
 
       {/* Drawer */}
-      <div className="relative w-full max-w-lg bg-gray-50 border border-gray-200 p-8 rounded-[4px] shadow-[0_8px_30px_rgba(0,0,0,0.03)] animate-fade-up">
+      <div className="relative w-full max-w-lg bg-[var(--bg-base)] border border-[var(--border)] p-8 rounded-[4px] shadow-[0_8px_30px_rgba(0,0,0,0.03)] animate-fade-up">
 
         {/* Header */}
         <div className="flex items-start justify-between mb-8">
           <div>
-            <p className="text-[9px] font-black uppercase tracking-[0.5em] text-cardinal mb-2">
+            <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#a4a4a2] mb-2">
               Share Your Experience
             </p>
             <h3 className="text-xl font-black uppercase tracking-tighter text-black leading-none">
@@ -100,7 +100,7 @@ const ReviewForm = ({ onClose, onSuccess }) => {
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 border border-gray-300 flex items-center justify-center text-gray-500 hover:border-white hover:text-black rounded-[4px] transition-all duration-200"
+            className="w-8 h-8 border border-gray-300 flex items-center justify-center text-gray-500 hover:border-black hover:text-black rounded-[4px] transition-all duration-200"
           >
             <X size={13} />
           </button>
@@ -108,8 +108,8 @@ const ReviewForm = ({ onClose, onSuccess }) => {
 
         {done ? (
           <div className="text-center py-8">
-            <div className="w-14 h-14 bg-cardinal flex items-center justify-center mx-auto mb-5">
-              <CheckCircle size={26} className="text-black" />
+            <div className="w-14 h-14 bg-cardinal flex items-center justify-center mx-auto mb-5 rounded-[4px]">
+              <CheckCircle size={26} className="text-white" />
             </div>
             <p className="font-black uppercase tracking-[0.3em] text-black text-sm mb-1.5">
               Review Submitted
@@ -142,7 +142,7 @@ const ReviewForm = ({ onClose, onSuccess }) => {
                     value={form[field]}
                     onChange={set(field)}
                     placeholder=" "
-                    className="peer w-full bg-transparent border-b border-gray-300 focus:border-white py-3 text-black text-xs font-bold outline-none transition-colors duration-300 placeholder:text-transparent"
+                    className="peer w-full bg-transparent border-b border-[var(--border-mid)] focus:border-black py-3 text-black text-xs font-bold outline-none transition-colors duration-300 placeholder:text-transparent"
                   />
                   <label className="absolute left-0 top-3 text-[9px] font-black uppercase tracking-[0.35em] text-gray-500 peer-focus:text-black peer-[:not(:placeholder-shown)]:text-black transition-colors duration-300 pointer-events-none">
                     {label}
@@ -158,7 +158,7 @@ const ReviewForm = ({ onClose, onSuccess }) => {
                 value={form.title}
                 onChange={set('title')}
                 placeholder=" "
-                className="peer w-full bg-transparent border-b border-gray-300 focus:border-white py-3 text-black text-xs font-bold outline-none transition-colors duration-300 placeholder:text-transparent"
+                className="peer w-full bg-transparent border-b border-[var(--border-mid)] focus:border-black py-3 text-black text-xs font-bold outline-none transition-colors duration-300 placeholder:text-transparent"
               />
               <label className="absolute left-0 top-3 text-[9px] font-black uppercase tracking-[0.35em] text-gray-500 peer-focus:text-black peer-[:not(:placeholder-shown)]:text-black transition-colors duration-300 pointer-events-none">
                 Review Title
@@ -173,7 +173,7 @@ const ReviewForm = ({ onClose, onSuccess }) => {
                 value={form.body}
                 onChange={set('body')}
                 placeholder=" "
-                className="peer w-full bg-transparent border-b border-gray-300 focus:border-white py-3 text-black text-xs font-bold outline-none transition-colors duration-300 resize-none placeholder:text-transparent"
+                className="peer w-full bg-transparent border-b border-[var(--border-mid)] focus:border-black py-3 text-black text-xs font-bold outline-none transition-colors duration-300 resize-none placeholder:text-transparent"
               />
               <label className="absolute left-0 top-3 text-[9px] font-black uppercase tracking-[0.35em] text-gray-500 peer-focus:text-black peer-[:not(:placeholder-shown)]:text-black transition-colors duration-300 pointer-events-none">
                 Your Review *
@@ -181,7 +181,7 @@ const ReviewForm = ({ onClose, onSuccess }) => {
             </div>
 
             {apiError && (
-              <div className="flex items-center gap-2 text-red-400">
+              <div className="flex items-center gap-2 text-red-500">
                 <AlertCircle size={12} />
                 <p className="text-[10px] font-bold">{apiError}</p>
               </div>
@@ -190,7 +190,7 @@ const ReviewForm = ({ onClose, onSuccess }) => {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full py-4 bg-cardinal text-white text-[10px] font-black uppercase tracking-[0.4em] rounded-[4px] border border-gray-250/20 hover:brightness-110 transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-3"
+              className="w-full btn-primary rounded-[4px] flex items-center justify-center gap-3"
             >
               {submitting ? (
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -218,13 +218,13 @@ const ReviewCard = ({ review, index }) => {
 
   return (
     <article
-      className="bg-gray-50 border border-gray-200 p-7 hover:border-gray-300 transition-all duration-500 group"
+      className="bg-[var(--bg-surface)] border border-[var(--border)] p-7 hover:border-[var(--border-mid)] transition-all duration-500 rounded-[4px] group"
       style={{ animationDelay: `${index * 80}ms` }}
     >
       {/* Stars + date */}
       <div className="flex items-center justify-between mb-5">
         <Stars rating={review.rating} size={12} />
-        <span className="text-[9px] font-black uppercase tracking-[0.35em] text-[#333]">{date}</span>
+        <span className="text-[9px] font-black uppercase tracking-[0.35em] text-[#a4a4a2]">{date}</span>
       </div>
 
       {/* Title */}
@@ -240,13 +240,13 @@ const ReviewCard = ({ review, index }) => {
       </p>
 
       {/* Author */}
-      <div className="flex items-center gap-3 border-t border-gray-200 pt-5">
-        <div className="w-8 h-8 bg-gray-100 border border-gray-300 flex items-center justify-center flex-shrink-0">
+      <div className="flex items-center gap-3 border-t border-[var(--border)] pt-5">
+        <div className="w-8 h-8 bg-[var(--bg-base)] border border-[var(--border)] flex items-center justify-center flex-shrink-0 rounded-[4px]">
           <span className="text-[10px] font-black text-gray-500">{initial}</span>
         </div>
         <div>
           <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-600">{review.name}</p>
-          <p className="text-[8px] font-bold uppercase tracking-widest text-[#333] mt-0.5">Verified Purchase</p>
+          <p className="text-[8px] font-bold uppercase tracking-widest text-[#a4a4a2] mt-0.5">Verified Purchase</p>
         </div>
       </div>
     </article>
@@ -351,7 +351,7 @@ const ReviewsSection = () => {
 
             <button
               onClick={() => setShowForm(true)}
-              className="group flex items-center gap-3 px-7 py-3.5 border border-gray-300 text-[9px] font-black uppercase tracking-[0.35em] text-gray-600 hover:border-white hover:text-black transition-all duration-300 self-start sm:self-auto flex-shrink-0"
+              className="group inline-flex items-center justify-center space-x-2 border border-[var(--border-mid)] rounded-[4px] px-7 py-3.5 text-[9px] font-black uppercase tracking-[0.35em] text-gray-755 hover:border-black hover:bg-gray-50 transition-all duration-300 self-start sm:self-auto flex-shrink-0 active:scale-[0.98]"
             >
               <MessageCircle size={12} className="group-hover:text-cardinal transition-colors duration-300" />
               <span>Write a Review</span>
@@ -362,7 +362,7 @@ const ReviewsSection = () => {
           {loading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
               {[...Array(3)].map((_, i) => (
-                <div key={i} className="bg-gray-50 border border-gray-200 p-7 animate-pulse">
+                <div key={i} className="bg-gray-50 border border-gray-250 p-7 animate-pulse rounded-[4px]">
                   <div className="flex gap-1 mb-5">
                     {[...Array(5)].map((_, j) => (
                       <div key={j} className="w-3 h-3 bg-gray-200 rounded-sm" />
@@ -383,19 +383,19 @@ const ReviewsSection = () => {
               ))}
             </div>
           ) : reviews.length === 0 ? (
-            <div className="border border-dashed border-gray-200 py-24 text-center">
+            <div className="border border-dashed border-[var(--border-mid)] py-24 text-center rounded-[4px]">
               <div className="flex justify-center mb-6">
                 <Stars rating={5} size={18} />
               </div>
               <p className="text-sm font-black uppercase tracking-[0.4em] text-[#2a2a2a] mb-2">
                 No Reviews Yet
               </p>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-[#333] mb-8">
+              <p className="text-[10px] font-bold uppercase tracking-widest text-[#a4a4a2] mb-8">
                 Be the first to share your experience with Stop & Shop.
               </p>
               <button
                 onClick={() => setShowForm(true)}
-                className="inline-flex items-center gap-3 px-8 py-4 bg-cardinal text-white text-[10px] font-black uppercase tracking-[0.35em] hover:brightness-110 transition-all duration-300"
+                className="btn-primary rounded-[4px] flex items-center gap-3"
               >
                 <MessageCircle size={12} />
                 <span>Write the First Review</span>

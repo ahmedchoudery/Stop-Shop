@@ -98,10 +98,10 @@ const ProductGrid = ({ products, activeBucket = 'All', activeSubCategory = null 
             <select
               value={sortBy}
               onChange={e => setSortBy(e.target.value)}
-              className="bg-transparent border-b border-gray-300 focus:border-[#f0f0f0] text-[9px] font-black uppercase tracking-[0.2em] text-gray-600 outline-none cursor-pointer py-1 pr-5 transition-colors duration-200 appearance-none"
+              className="bg-transparent border-b border-[var(--border-mid)] focus:border-black text-[9px] font-black uppercase tracking-[0.2em] text-gray-600 outline-none cursor-pointer py-1 pr-5 transition-colors duration-200 appearance-none"
             >
               {SORT_OPTIONS.map(opt => (
-                <option key={opt.value} value={opt.value} className="bg-gray-50 text-gray-900">{opt.label}</option>
+                <option key={opt.value} value={opt.value} className="bg-white text-gray-900">{opt.label}</option>
               ))}
             </select>
           </div>
@@ -131,7 +131,7 @@ const ProductGrid = ({ products, activeBucket = 'All', activeSubCategory = null 
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-              className="flex flex-col items-center justify-center py-20 px-6 border border-dashed border-gray-200 text-center bg-gray-50/50"
+              className="flex flex-col items-center justify-center py-20 px-6 border border-dashed border-[var(--border-mid)] text-center bg-[var(--bg-base)] rounded-[4px]"
             >
               <FolderOpen size={36} className="text-gray-400 mb-6 stroke-[1.25]" />
               <h3 className="text-lg font-black uppercase tracking-[0.2em] text-black mb-3">
@@ -142,7 +142,7 @@ const ProductGrid = ({ products, activeBucket = 'All', activeSubCategory = null 
               </p>
               <button
                 onClick={handleResetFilters}
-                className="inline-flex items-center gap-2.5 px-8 py-3.5 bg-black text-white text-[9px] font-black uppercase tracking-[0.35em] transition-all duration-300 hover:bg-cardinal hover:shadow-[0_10px_30px_rgba(186,31,61,0.25)] active-scale"
+                className="btn-primary rounded-[4px] !py-3.5 flex items-center gap-2.5"
               >
                 <RotateCcw size={11} />
                 <span>Reset Filters</span>
@@ -156,10 +156,10 @@ const ProductGrid = ({ products, activeBucket = 'All', activeSubCategory = null 
           <div className="flex justify-center mt-16">
             <button
               onClick={() => setVisibleCount(c => c + 20)}
-              className="group flex items-center space-x-4 px-10 py-4 border border-gray-300 text-[10px] font-black uppercase tracking-[0.35em] text-gray-600 hover:border-white hover:text-black transition-all duration-300"
+              className="group inline-flex items-center justify-center space-x-4 border border-[var(--border-mid)] rounded-[4px] px-10 py-4 text-[10px] font-black uppercase tracking-[0.35em] text-gray-700 hover:border-black hover:bg-gray-50 transition-all duration-300 active:scale-[0.98]"
             >
               <span>Load More</span>
-              <span className="text-[8px] text-gray-500 font-bold">
+              <span className="text-[8px] text-gray-400 font-bold">
                 ({sortedProducts.length - visibleCount} remaining)
               </span>
             </button>

@@ -193,7 +193,7 @@ const WishlistDrawer = ({ isOpen, onClose }) => {
                     <div className="flex items-center space-x-3 mt-3">
                       <button
                         onClick={() => handleMoveToCart(product)}
-                        className="flex items-center space-x-1.5 text-[9px] font-black uppercase tracking-[0.25em] text-white bg-gray-900 px-3 py-2 hover:bg-cardinal transition-colors duration-300"
+                        className="flex items-center space-x-1.5 text-[9px] font-black uppercase tracking-[0.25em] text-white bg-black px-3.5 py-2.5 rounded-[4px] hover:bg-cardinal transition-colors duration-300"
                       >
                         <ShoppingBag size={10} />
                         <span>Add to Bag</span>
@@ -221,7 +221,7 @@ const WishlistDrawer = ({ isOpen, onClose }) => {
                 wishlist.forEach(p => addToCart(p));
                 handleClose();
               }}
-              className="w-full flex items-center justify-center space-x-2 bg-cardinal text-white py-4 text-[10px] font-black uppercase tracking-[0.35em] hover:bg-gray-900 transition-colors duration-300"
+              className="btn-primary w-full flex items-center justify-center space-x-2 rounded-[4px]"
             >
               <ShoppingBag size={13} />
               <span>Add All to Bag</span>

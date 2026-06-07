@@ -171,9 +171,9 @@ const ProductCard = ({ product, onImageLoad }) => {
         <button
           onClick={handleWishlist}
           className={[
-            'absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center transition-all duration-300 shadow-sm active-scale',
+            'absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center rounded-[4px] border border-gray-200/40 transition-all duration-300 shadow-sm active-scale',
             wishlisted
-              ? 'bg-cardinal opacity-100'
+              ? 'bg-cardinal opacity-100 text-white'
               : 'bg-white/95 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 hover:bg-cardinal hover:text-white',
           ].join(' ')}
           style={{ transform: 'translateZ(20px)' }}
@@ -187,8 +187,8 @@ const ProductCard = ({ product, onImageLoad }) => {
           <button
             onClick={handleAddToCart}
             className={[
-              'absolute top-3 left-3 z-10 w-8 h-8 flex items-center justify-center transition-all duration-300 shadow-sm active-scale',
-              cartAdded ? 'bg-cardinal' : 'bg-white/95',
+              'absolute top-3 left-3 z-10 w-8 h-8 flex items-center justify-center rounded-[4px] border border-gray-200/40 transition-all duration-300 shadow-sm active-scale',
+              cartAdded ? 'bg-cardinal text-white' : 'bg-white/95 text-black',
               'opacity-100 lg:opacity-0 lg:group-hover:opacity-100 hover:bg-black hover:text-white',
             ].join(' ')}
             style={{ transform: 'translateZ(20px)' }}

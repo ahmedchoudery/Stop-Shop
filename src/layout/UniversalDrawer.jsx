@@ -320,7 +320,7 @@ const UniversalDrawer = () => {
                   <Link
                     to={`/product/${selectedProduct.id}`}
                     onClick={handleClose}
-                    className="block w-full text-center bg-gray-900 text-white py-4 text-[10px] font-black uppercase tracking-[0.35em] hover:bg-cardinal active-scale transition-all duration-300 mb-3"
+                    className="btn-secondary w-full text-center block mb-3 rounded-[4px]"
                   >
                     View Full Details
                   </Link>
@@ -341,7 +341,7 @@ const UniversalDrawer = () => {
                 <Link
                   to="/checkout"
                   onClick={handleClose}
-                  className="block w-full text-center bg-cardinal text-white py-4 text-[10px] font-black uppercase tracking-[0.35em] hover:bg-gray-900 active-scale transition-all duration-300 mb-3"
+                  className="btn-primary w-full text-center block mb-3 rounded-[4px]"
                 >
                   Proceed to Checkout
                 </Link>

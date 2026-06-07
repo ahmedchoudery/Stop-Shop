@@ -64,7 +64,7 @@ const CarouselCard = ({ product }) => {
         {/* Top-Right Wishlist Button - Transparent and Minimalist */}
         <button
           onClick={handleWishlist}
-          className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/80 backdrop-blur-sm shadow-sm flex items-center justify-center transition-all duration-300 hover:bg-black hover:text-white group/wishlist z-20"
+          className="absolute top-3 right-3 w-8 h-8 rounded-[4px] bg-white/80 border border-gray-200/40 backdrop-blur-sm shadow-sm flex items-center justify-center transition-all duration-300 hover:bg-black hover:text-white group/wishlist z-20"
         >
           <Heart 
             size={12} 
@@ -80,9 +80,9 @@ const CarouselCard = ({ product }) => {
         {!outOfStock && (
           <button
             onClick={handleAddToCart}
-            className={`absolute bottom-3 right-3 w-9 h-9 rounded-full ${
+            className={`absolute bottom-3 right-3 w-9 h-9 rounded-[4px] ${
               cartAdded ? 'bg-black text-white' : 'bg-white/90 text-black hover:bg-black hover:text-white'
-            } backdrop-blur-sm shadow-sm flex items-center justify-center transition-all duration-300 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 z-20`}
+            } border border-gray-200/40 backdrop-blur-sm shadow-sm flex items-center justify-center transition-all duration-300 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 z-20`}
           >
             <ShoppingBag size={13} className="transition-transform duration-200" />
           </button>

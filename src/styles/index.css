@@ -115,10 +115,10 @@
   }
 
   h1, h2, h3, h4, h5, h6, .font-heading {
-    font-family: var(--font-barlow), system-ui, sans-serif;
-    font-weight: 900;
-    line-height: 1.1;
-    letter-spacing: -0.03em;
+    font-family: var(--font-playfair), Georgia, serif;
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
   }
 }
 
@@ -366,6 +366,12 @@
   100% { opacity: 0; }
 }
 
+@keyframes kenburns {
+  0% { transform: scale(1) translate(0, 0); }
+  50% { transform: scale(1.05) translate(-0.5%, -0.5%); }
+  100% { transform: scale(1) translate(0, 0); }
+}
+
 /* ── 5. Animation Utilities ──────────────────────────────────── */
 
 @layer utilities {
@@ -409,6 +415,10 @@
 
   .animate-ping-once {
     animation: pingOnce 0.6s cubic-bezier(0, 0, 0.2, 1) forwards;
+  }
+
+  .animate-kenburns {
+    animation: kenburns 40s ease-in-out infinite;
   }
 
   .stagger-1 { animation-delay: 50ms; }

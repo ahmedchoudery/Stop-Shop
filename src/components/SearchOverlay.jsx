@@ -95,7 +95,7 @@ const SearchOverlay = ({ isOpen, onClose, products = [] }) => {
           <div className="absolute top-8 right-8 lg:top-12 lg:right-16 z-50">
             <button
               onClick={onClose}
-              className="w-12 h-12 rounded-full glass-premium hover:bg-black/5 flex items-center justify-center transition-all active-scale"
+              className="w-12 h-12 rounded-[4px] glass-premium hover:bg-black/5 flex items-center justify-center transition-all active-scale"
               aria-label="Close search"
             >
               <X size={22} className="text-black hover:rotate-90 transition-transform duration-500" />
@@ -143,9 +143,9 @@ const SearchOverlay = ({ isOpen, onClose, products = [] }) => {
                           key={product.id}
                           variants={itemVariants}
                           onClick={() => { openDrawer('product', product); onClose(); }}
-                          className="w-full flex items-center space-x-5 p-3.5 bg-white border border-gray-200/60 rounded-2xl hover:border-black/20 hover:shadow-sm active-scale transition-all group text-left"
+                          className="w-full flex items-center space-x-5 p-3.5 bg-white border border-gray-200/60 rounded-[4px] hover:border-black/20 hover:shadow-sm active-scale transition-all group text-left"
                         >
-                          <div className="w-16 h-20 rounded-xl overflow-hidden bg-gray-100 flex-shrink-0 relative">
+                          <div className="w-16 h-20 rounded-[4px] overflow-hidden bg-gray-100 flex-shrink-0 relative">
                             {product.image && (
                               <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
                             )}
@@ -180,7 +180,7 @@ const SearchOverlay = ({ isOpen, onClose, products = [] }) => {
                         key={term}
                         variants={itemVariants}
                         onClick={() => setQuery(term)}
-                        className="px-5 py-3 bg-white hover:bg-black border border-gray-200/80 hover:border-black rounded-full text-gray-800 hover:text-white text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-300 active-scale group shadow-sm flex items-center"
+                        className="px-5 py-3 bg-white hover:bg-black border border-gray-200/80 hover:border-black rounded-[4px] text-gray-800 hover:text-white text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-300 active-scale group shadow-sm flex items-center"
                       >
                         <span className="flex items-center space-x-2.5">
                           <TrendingUp size={13} className="text-cardinal group-hover:text-white transition-colors" />
@@ -193,7 +193,7 @@ const SearchOverlay = ({ isOpen, onClose, products = [] }) => {
                   {/* Suggestion Cards */}
                   <motion.div 
                     variants={itemVariants}
-                    className="mt-12 bg-white border border-gray-200 rounded-3xl p-6 shadow-sm"
+                    className="mt-12 bg-white border border-gray-200 rounded-[4px] p-6 shadow-sm"
                   >
                     <div className="flex items-center space-x-3 mb-3">
                       <Tag size={15} className="text-cardinal" />
