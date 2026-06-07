@@ -1,14 +1,18 @@
 'use client';
 
 /**
- * @fileoverview LookbookStrip.jsx — Full-Bleed Draggable Lookbook Slider
- * Theme: Editorial layout, high-fashion styling notes, and momentum-physics drag interaction.
+ * @fileoverview LookbookStrip.jsx — Editorial Draggable Lookbook with Navigation
+ * v2: Added prev/next arrow controls, active dots, hover image zoom, and
+ *     a richer editorial header with a divider line.
  */
 
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, MoveLeft } from 'lucide-react';
+import { ArrowRight, ArrowLeft } from 'lucide-react';
 import { playPremiumChime } from '../utils/audio.js';
+
+const CARD_W_PX = 360; // approximate card width for step navigation
+const GAP_PX    = 48;
 
 const LOOKS = [
   {
@@ -42,40 +46,35 @@ const LOOKS = [
 ];
 
 export default function LookbookStrip({ onShopNow }) {
-  const containerRef = useRef(null);
-  const innerRef = useRef(null);
+  const containerRef  = useRef(null);
+  const innerRef      = useRef(null);
   const [dragConstraints, setDragConstraints] = useState({ left: 0, right: 0 });
-  const [visible, setVisible] = useState(false);
+  const [dragX, setDragX]     = useState(0);
+  const [activeIdx, setActiveIdx] = useState(0);
 
   useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { setVisible(true); observer.disconnect(); } },
-      { threshold: 0.1 }
-    );
-    if (containerRef.current) observer.observe(containerRef.current);
-
-    // Calculate drag boundaries
     const updateConstraints = () => {
       if (containerRef.current && innerRef.current) {
         const containerWidth = containerRef.current.offsetWidth;
-        const innerWidth = innerRef.current.scrollWidth;
-        // Keep a little padding/margin at the end
+        const innerWidth     = innerRef.current.scrollWidth;
         setDragConstraints({ left: Math.min(0, containerWidth - innerWidth - 64), right: 0 });
       }
     };
-
     updateConstraints();
     window.addEventListener('resize', updateConstraints);
-    
-    // Slight delay to allow DOM nodes to mount and compute sizes correctly
-    const timer = setTimeout(updateConstraints, 500);
-
-    return () => {
-      observer.disconnect();
-      window.removeEventListener('resize', updateConstraints);
-      clearTimeout(timer);
-    };
+    const t = setTimeout(updateConstraints, 500);
+    return () => { window.removeEventListener('resize', updateConstraints); clearTimeout(t); };
   }, []);
+
+  const stepTo = useCallback((idx) => {
+    const clampedIdx = Math.max(0, Math.min(LOOKS.length - 1, idx));
+    setActiveIdx(clampedIdx);
+    const newX = Math.max(dragConstraints.left, -(clampedIdx * (CARD_W_PX + GAP_PX)));
+    setDragX(newX);
+  }, [dragConstraints.left]);
+
+  const handlePrev = () => { playPremiumChime(); stepTo(activeIdx - 1); };
+  const handleNext = () => { playPremiumChime(); stepTo(activeIdx + 1); };
 
   const scrollToGrid = () => {
     const el = document.getElementById('product-grid');
@@ -94,12 +93,12 @@ export default function LookbookStrip({ onShopNow }) {
   return (
     <section
       ref={containerRef}
-      className="bg-[var(--bg-base)] py-20 sm:py-28 border-t border-b border-[var(--border)] overflow-hidden"
+      className="bg-[var(--bg-base)] py-20 sm:py-28 border-t border-[var(--border)] overflow-hidden"
     >
       <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16">
-        
+
         {/* Editorial Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 lg:mb-16">
+        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 lg:mb-16 gap-6">
           <div className="max-w-xl">
             <p className="text-[8px] font-black uppercase tracking-[0.5em] text-[#a4a4a2] mb-4">
               Seasonal Looks · SS '26
@@ -108,9 +107,45 @@ export default function LookbookStrip({ onShopNow }) {
               Defined by Attitude.
             </h2>
           </div>
-          <div className="mt-4 md:mt-0 flex items-center space-x-3 text-[10px] font-black uppercase tracking-widest text-gray-400">
-            <span>Drag horizontally to explore</span>
-            <ArrowRight size={14} className="animate-pulse" />
+
+          {/* Navigation controls */}
+          <div className="flex items-center gap-4">
+            {/* Dots */}
+            <div className="flex items-center gap-2 mr-2">
+              {LOOKS.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => stepTo(i)}
+                  className="group"
+                  aria-label={`Go to look ${i + 1}`}
+                >
+                  <span
+                    className={`block rounded-full transition-all duration-300 ${
+                      i === activeIdx
+                        ? 'w-5 h-1.5 bg-black'
+                        : 'w-1.5 h-1.5 bg-gray-300 group-hover:bg-gray-500'
+                    }`}
+                  />
+                </button>
+              ))}
+            </div>
+            {/* Arrows */}
+            <button
+              onClick={handlePrev}
+              disabled={activeIdx === 0}
+              className="w-10 h-10 border border-[var(--border-mid)] flex items-center justify-center text-gray-500 hover:border-black hover:text-black transition-all duration-200 disabled:opacity-25 disabled:cursor-not-allowed active:scale-95"
+              aria-label="Previous look"
+            >
+              <ArrowLeft size={15} strokeWidth={1.8} />
+            </button>
+            <button
+              onClick={handleNext}
+              disabled={activeIdx >= LOOKS.length - 1}
+              className="w-10 h-10 border border-[var(--border-mid)] flex items-center justify-center text-gray-500 hover:border-black hover:text-black transition-all duration-200 disabled:opacity-25 disabled:cursor-not-allowed active:scale-95"
+              aria-label="Next look"
+            >
+              <ArrowRight size={15} strokeWidth={1.8} />
+            </button>
           </div>
         </div>
 
@@ -122,35 +157,48 @@ export default function LookbookStrip({ onShopNow }) {
             dragConstraints={dragConstraints}
             dragElastic={0.1}
             dragTransition={{ power: 0.2, timeConstant: 300 }}
-            className="flex space-x-6 sm:space-x-8 lg:space-x-12 w-max"
+            animate={{ x: dragX }}
+            onDragEnd={(_, info) => {
+              const newX = Math.max(dragConstraints.left, Math.min(0, dragX + info.offset.x));
+              setDragX(newX);
+              const estIdx = Math.round(-newX / (CARD_W_PX + GAP_PX));
+              setActiveIdx(Math.max(0, Math.min(LOOKS.length - 1, estIdx)));
+            }}
+            className="flex gap-10 sm:gap-12 w-max"
           >
             {LOOKS.map((look) => (
               <div
                 key={look.id}
-                className="w-[280px] sm:w-[340px] md:w-[380px] flex-shrink-0 group"
+                className="w-[280px] sm:w-[340px] md:w-[360px] flex-shrink-0 group"
               >
-                {/* Image Mask Reveal */}
-                <div className="relative aspect-[3/4] overflow-hidden rounded-[4px] bg-gray-100 border border-[var(--border)]">
+                {/* Image */}
+                <div className="relative aspect-[3/4] overflow-hidden bg-gray-100 border border-[var(--border)]">
                   <motion.img
                     src={look.image}
                     alt={look.title}
-                    className="w-full h-full object-cover select-none pointer-events-none group-hover:scale-105 transition-transform duration-1000 ease-[cubic-bezier(0.16,1,0.3,1)]"
+                    className="w-full h-full object-cover select-none pointer-events-none group-hover:scale-[1.04] transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)]"
                     initial={{ clipPath: 'inset(0 100% 0 0)' }}
                     whileInView={{ clipPath: 'inset(0 0% 0 0)' }}
                     viewport={{ once: true, margin: '-5%' }}
                     transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: look.id * 0.1 }}
                   />
-                  <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors duration-500 pointer-events-none" />
-                  
+                  {/* Dark overlay that fades on hover */}
+                  <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-500 pointer-events-none" />
+
                   {/* Floating Tag */}
-                  <span className="absolute top-4 left-4 font-mono text-[9px] font-bold uppercase tracking-widest bg-white border border-gray-200 px-3 py-1.5 rounded-[4px]">
+                  <span className="absolute top-4 left-4 font-mono text-[9px] font-bold uppercase tracking-widest bg-white border border-gray-100 px-3 py-1.5">
                     {look.tag}
                   </span>
+
+                  {/* Bottom text overlay on hover */}
+                  <div className="absolute bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-black/60 to-transparent translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 pointer-events-none">
+                    <p className="text-white text-[10px] font-black uppercase tracking-[0.2em]">Shop This Look</p>
+                  </div>
                 </div>
 
                 {/* Metadata */}
                 <div className="mt-6">
-                  <h4 className="text-xs font-black uppercase tracking-widest text-gray-900 mb-2">
+                  <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-900 mb-2">
                     {look.title}
                   </h4>
                   <p className="text-[11px] text-gray-500 leading-relaxed font-medium">
@@ -161,16 +209,17 @@ export default function LookbookStrip({ onShopNow }) {
             ))}
 
             {/* Final CTA Slide */}
-            <div className="w-[260px] sm:w-[300px] flex-shrink-0 flex flex-col justify-center items-center p-8 border-2 border-dashed border-[var(--border-mid)] rounded-[4px] bg-white/50 text-center">
-              <h4 className="text-sm font-black uppercase tracking-[0.2em] text-gray-950 mb-3">
-                Curated SS '26
+            <div className="w-[260px] sm:w-[300px] flex-shrink-0 flex flex-col justify-center items-center p-8 border border-dashed border-[var(--border-mid)] bg-white/60 text-center">
+              <p className="text-[8px] font-black uppercase tracking-[0.5em] text-[#a4a4a2] mb-4">SS '26</p>
+              <h4 className="text-sm font-black uppercase tracking-[0.15em] text-gray-950 mb-3">
+                Curated Collection
               </h4>
-              <p className="text-[11px] text-gray-500 font-bold uppercase tracking-wider mb-8">
+              <p className="text-[11px] text-gray-500 font-bold uppercase tracking-wider mb-8 leading-relaxed">
                 Explore the complete menswear collection online.
               </p>
               <button
                 onClick={handleCtaClick}
-                className="btn-primary rounded-[4px] flex items-center gap-3 w-full justify-center !py-4"
+                className="btn-primary flex items-center gap-3 w-full justify-center !py-4"
               >
                 <span>Shop The Looks</span>
                 <ArrowRight size={13} />

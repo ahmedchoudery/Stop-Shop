@@ -218,9 +218,16 @@ const ReviewCard = ({ review, index }) => {
 
   return (
     <article
-      className="bg-[var(--bg-surface)] border border-[var(--border)] p-7 hover:border-[var(--border-mid)] transition-all duration-500 rounded-[4px] group"
-      style={{ animationDelay: `${index * 80}ms` }}
+      className="bg-white border border-gray-100 p-7 hover:border-gray-300 hover:shadow-[0_4px_24px_rgba(0,0,0,0.06)] transition-all duration-500 rounded-none group relative overflow-hidden"
+      style={{
+        animationDelay: `${index * 80}ms`,
+        opacity: 0,
+        animation: `fadeSlideUp 0.6s ease forwards ${index * 100 + 200}ms`,
+      }}
     >
+      {/* Hover accent */}
+      <div className="absolute top-0 left-0 w-0.5 h-full bg-cardinal scale-y-0 group-hover:scale-y-100 origin-top transition-transform duration-500" />
+
       {/* Stars + date */}
       <div className="flex items-center justify-between mb-5">
         <Stars rating={review.rating} size={12} />
@@ -229,23 +236,23 @@ const ReviewCard = ({ review, index }) => {
 
       {/* Title */}
       {review.title && (
-        <h4 className="font-black uppercase tracking-tight text-black text-sm leading-tight mb-3 group-hover:text-black transition-colors">
+        <h4 className="font-black uppercase tracking-tight text-black text-sm leading-tight mb-3">
           {review.title}
         </h4>
       )}
 
       {/* Body */}
-      <p className="text-[11px] text-gray-500 leading-relaxed font-medium mb-6 line-clamp-4">
-        "{review.body}"
+      <p className="text-[12px] text-gray-500 leading-relaxed font-medium mb-6 line-clamp-4 italic">
+        &ldquo;{review.body}&rdquo;
       </p>
 
       {/* Author */}
-      <div className="flex items-center gap-3 border-t border-[var(--border)] pt-5">
-        <div className="w-8 h-8 bg-[var(--bg-base)] border border-[var(--border)] flex items-center justify-center flex-shrink-0 rounded-[4px]">
-          <span className="text-[10px] font-black text-gray-500">{initial}</span>
+      <div className="flex items-center gap-3 border-t border-gray-100 pt-5">
+        <div className="w-8 h-8 bg-gray-50 border border-gray-100 flex items-center justify-center flex-shrink-0">
+          <span className="text-[11px] font-black text-gray-600">{initial}</span>
         </div>
         <div>
-          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-600">{review.name}</p>
+          <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-700">{review.name}</p>
           <p className="text-[8px] font-bold uppercase tracking-widest text-[#a4a4a2] mt-0.5">Verified Purchase</p>
         </div>
       </div>
@@ -321,10 +328,15 @@ const ReviewsSection = () => {
       ? (activeReviews.reduce((sum, r) => sum + (r.rating ?? 5), 0) / activeReviews.length).toFixed(1)
       : '5.0';
 
+  // Featured review (highest rating, longest body)
+  const featuredReview = activeReviews.length > 0
+    ? [...activeReviews].sort((a, b) => (b.rating - a.rating) || (b.body?.length - a.body?.length))[0]
+    : null;
+
   return (
     <>
       {/* ── Editorial Brand Statement ──────────────────────────────────── */}
-      <section className="bg-white border-t border-gray-200">
+      <section className="bg-white border-t border-gray-100">
         <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 py-20 sm:py-28">
           <div
             ref={setHeaderRef}
@@ -351,14 +363,54 @@ const ReviewsSection = () => {
                   {loading ? '—' : avgRating}
                 </span>
                 <Stars rating={Math.round(parseFloat(avgRating))} size={14} />
+                <p className="text-[8px] font-bold uppercase tracking-widest text-[#a4a4a2] mt-2">
+                  {activeReviews.length} verified {activeReviews.length === 1 ? 'review' : 'reviews'}
+                </p>
               </div>
-              <div className="pb-3">
+              <div className="pb-4">
                 <p className="text-[8px] font-black uppercase tracking-[0.4em] text-[#333] leading-relaxed">
                   Pakistan's<br />Premium<br />Choice
                 </p>
               </div>
             </div>
           </div>
+
+          {/* Featured Pull Quote */}
+          {featuredReview && (
+            <div className="mt-16 border-t border-gray-100 pt-14">
+              <div className="flex flex-col lg:flex-row gap-10 lg:gap-16 items-start">
+                {/* Big quotation mark */}
+                <div className="flex-shrink-0 hidden lg:block">
+                  <span
+                    className="text-[10rem] font-black text-gray-100 leading-none select-none"
+                    aria-hidden="true"
+                    style={{ lineHeight: '0.7' }}
+                  >
+                    &ldquo;
+                  </span>
+                </div>
+                <div className="flex-1">
+                  <p className="text-2xl sm:text-3xl lg:text-4xl font-black italic text-black leading-[1.15] tracking-tight mb-8">
+                    &ldquo;{featuredReview.body}&rdquo;
+                  </p>
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 bg-cardinal flex items-center justify-center flex-shrink-0">
+                      <span className="text-white text-sm font-black">
+                        {featuredReview.name?.charAt(0)?.toUpperCase()}
+                      </span>
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-black uppercase tracking-[0.25em] text-black">{featuredReview.name}</p>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Stars rating={featuredReview.rating} size={10} />
+                        <span className="text-[8px] font-bold uppercase tracking-widest text-[#a4a4a2]">Verified Purchase</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </section>
 

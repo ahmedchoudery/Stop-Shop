@@ -95,6 +95,38 @@ const Footer = () => {
   return (
     <footer className="bg-[var(--bg-base)]" aria-label="Site footer">
 
+      {/* ── Brand Manifesto Banner ────────────────────────────────── */}
+      <div
+        className="relative overflow-hidden border-t border-[var(--border)]"
+        style={{ background: '#080808' }}
+      >
+        {/* Grain overlay */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E")`,
+            backgroundRepeat: 'repeat',
+            backgroundSize: '160px',
+            opacity: 0.045,
+          }}
+          aria-hidden="true"
+        />
+        <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 py-16 sm:py-20">
+          <p className="text-[8px] font-black uppercase tracking-[0.55em] text-white/30 mb-6">
+            Our Philosophy
+          </p>
+          <h3
+            className="font-black uppercase tracking-tighter text-white leading-[0.9]"
+            style={{ fontSize: 'clamp(2rem, 5vw, 4rem)' }}
+          >
+            Every piece is a decision.
+            <br />
+            <span className="text-white/25">Every purchase is a statement.</span>
+          </h3>
+          <div className="mt-6 w-16 h-0.5 bg-cardinal" aria-hidden="true" />
+        </div>
+      </div>
+
       {/* ── Animated separator ───────────────────────────────────── */}
       <div
         ref={borderRef}
