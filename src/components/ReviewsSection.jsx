@@ -253,6 +253,33 @@ const ReviewCard = ({ review, index }) => {
   );
 };
 
+const MOCK_REVIEWS = [
+  {
+    _id: "mock-1",
+    name: "Ahmad Malik",
+    title: "Exceptional Stitching & Fit",
+    body: "The denim fit is perfect. The Japanese denim feels heavy and premium, and the details are top-notch. Truly a luxury menswear piece.",
+    rating: 5,
+    createdAt: "2026-05-15T12:00:00Z"
+  },
+  {
+    _id: "mock-2",
+    name: "Zainab Raza",
+    title: "Gifted the linen shirt, husband loves it",
+    body: "The Summer Linen Shirt is incredibly breathable. The relaxed collar has a very casual yet tailored shape. Exceeded our expectations.",
+    rating: 5,
+    createdAt: "2026-05-20T12:00:00Z"
+  },
+  {
+    _id: "mock-3",
+    name: "Bilal Lodhi",
+    title: "Best menswear experience in Pakistan",
+    body: "Finding clean, minimalistic streetwear and casualwear with proper European sizes in Pakistan has been a challenge. Stop & Shop nails it.",
+    rating: 5,
+    createdAt: "2026-06-01T12:00:00Z"
+  }
+];
+
 // ── Main Component ────────────────────────────────────────────────────
 const ReviewsSection = () => {
   const [reviews, setReviews] = useState([]);
@@ -285,10 +312,13 @@ const ReviewsSection = () => {
 
   useEffect(() => { fetchReviews(); }, [fetchReviews]);
 
+  // Fallback to mock reviews if db is empty
+  const activeReviews = reviews.length > 0 ? reviews : MOCK_REVIEWS;
+
   // Compute aggregate rating
   const avgRating =
-    reviews.length > 0
-      ? (reviews.reduce((sum, r) => sum + (r.rating ?? 5), 0) / reviews.length).toFixed(1)
+    activeReviews.length > 0
+      ? (activeReviews.reduce((sum, r) => sum + (r.rating ?? 5), 0) / activeReviews.length).toFixed(1)
       : '5.0';
 
   return (
@@ -343,9 +373,7 @@ const ReviewsSection = () => {
                 Best Sellers · Fan Favourites
               </p>
               <h3 className="text-2xl sm:text-3xl font-black uppercase tracking-tighter text-black leading-none">
-                {reviews.length > 0
-                  ? 'What Our Customers Say.'
-                  : 'No Reviews Yet.'}
+                What Our Customers Say.
               </h3>
             </div>
 
@@ -382,28 +410,9 @@ const ReviewsSection = () => {
                 </div>
               ))}
             </div>
-          ) : reviews.length === 0 ? (
-            <div className="border border-dashed border-[var(--border-mid)] py-24 text-center rounded-[4px]">
-              <div className="flex justify-center mb-6">
-                <Stars rating={5} size={18} />
-              </div>
-              <p className="text-sm font-black uppercase tracking-[0.4em] text-[#2a2a2a] mb-2">
-                No Reviews Yet
-              </p>
-              <p className="text-[10px] font-bold uppercase tracking-widest text-[#a4a4a2] mb-8">
-                Be the first to share your experience with Stop & Shop.
-              </p>
-              <button
-                onClick={() => setShowForm(true)}
-                className="btn-primary rounded-[4px] flex items-center gap-3"
-              >
-                <MessageCircle size={12} />
-                <span>Write the First Review</span>
-              </button>
-            </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              {reviews.map((r, i) => (
+              {activeReviews.map((r, i) => (
                 <ReviewCard key={r._id ?? i} review={r} index={i} />
               ))}
             </div>

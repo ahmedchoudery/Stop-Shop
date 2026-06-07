@@ -451,7 +451,7 @@ const ProductPage = () => {
                           unavail
                             ? 'border-gray-100 text-gray-300 cursor-not-allowed line-through'
                             : selectedSize === size
-                              ? 'border-gray-900 bg-gray-900 text-black'
+                              ? 'border-black bg-black text-white'
                               : 'border-gray-200 text-gray-900 hover:border-gray-500'
                         }`}
                       >
@@ -495,7 +495,7 @@ const ProductPage = () => {
                     outOfStock
                       ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                       : cartAdded
-                        ? 'bg-gray-900 text-black'
+                        ? 'bg-black text-white'
                         : ''
                   }`}
                 >
