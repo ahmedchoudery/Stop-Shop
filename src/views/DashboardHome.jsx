@@ -20,13 +20,13 @@ import { RefreshCw } from 'lucide-react';
 const StatsSkeleton = () => (
   <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
     {[0, 1].map(i => (
-      <div key={i} className="h-48 bg-gray-100 rounded-sm animate-pulse" />
+      <div key={i} className="h-48 bg-gray-100 rounded-[4px] animate-pulse" />
     ))}
   </div>
 );
 
 const ChartSkeleton = () => (
-  <div className="h-80 bg-gray-100 rounded-sm animate-pulse" />
+  <div className="h-80 bg-gray-100 rounded-[4px] animate-pulse" />
 );
 
 // ─────────────────────────────────────────────────────────────────
@@ -41,7 +41,7 @@ const DashboardHome = () => {
       {/* Page Header */}
       <div className="flex items-center justify-between mb-6 sm:mb-10">
         <div>
-          <p className="text-[9px] font-black uppercase tracking-[0.5em] text-cardinal mb-1.5">
+          <p className="text-[9px] font-black uppercase tracking-[0.5em] text-black mb-1.5">
             Live Intelligence
           </p>
           <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tighter text-gray-900">
@@ -52,7 +52,7 @@ const DashboardHome = () => {
         <button
           onClick={handleRefresh}
           disabled={isLoading}
-          className="flex items-center space-x-2 px-3 sm:px-4 py-2 border border-gray-200 rounded-xl text-xs font-black uppercase tracking-widest text-gray-500 hover:border-gray-900 hover:text-gray-900 transition-all disabled:opacity-40"
+          className="flex items-center space-x-2 px-3 sm:px-4 py-2 border border-gray-200 rounded-[4px] text-xs font-black uppercase tracking-widest text-gray-500 hover:border-gray-900 hover:text-gray-900 transition-all disabled:opacity-40"
         >
           <RefreshCw size={14} className={isLoading ? 'animate-spin' : ''} />
           <span className="hidden sm:inline">Refresh</span>
@@ -61,7 +61,7 @@ const DashboardHome = () => {
 
       {/* Error Banner */}
       {hasError && (
-        <div className="mb-8 p-4 bg-red-50 border border-red-100 rounded-xl flex items-center justify-between">
+        <div className="mb-8 p-4 bg-red-50 border border-red-100 rounded-[4px] flex items-center justify-between">
           <p className="text-xs font-bold text-red-700">{hasError}</p>
           <button
             onClick={handleRefresh}
@@ -119,7 +119,7 @@ const DashboardHome = () => {
 
       {/* Low Stock Alert */}
       {!isLoading && (inventory?.lowStock ?? 0) > 0 && (
-        <div className="mt-8 p-6 bg-yellow-50 border border-yellow-200 rounded-xl">
+        <div className="mt-8 p-6 bg-yellow-50 border border-yellow-200 rounded-[4px]">
           <p className="text-xs font-black uppercase tracking-widest text-yellow-800">
             ⚠️ {inventory.lowStock} product{inventory.lowStock !== 1 ? 's' : ''} running low on stock
           </p>
@@ -128,7 +128,7 @@ const DashboardHome = () => {
 
       {/* Out of Stock Alert */}
       {!isLoading && (inventory?.outOfStock ?? 0) > 0 && (
-        <div className="mt-4 p-6 bg-red-50 border border-red-200 rounded-xl">
+        <div className="mt-4 p-6 bg-red-50 border border-red-200 rounded-[4px]">
           <p className="text-xs font-black uppercase tracking-widest text-red-700">
             🚫 {inventory.outOfStock} product{inventory.outOfStock !== 1 ? 's' : ''} completely out of stock
           </p>

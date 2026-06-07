@@ -75,7 +75,7 @@ const AdminDashboard = () => {
               <button
                 id="admin-menu-toggle"
                 onClick={() => setMobileOpen(true)}
-                className="lg:hidden p-2 rounded-xl bg-gray-900 text-white hover:bg-cardinal transition-colors active:scale-95"
+                className="lg:hidden p-2 rounded-[4px] bg-gray-900 text-white hover:bg-black transition-colors active:scale-95"
                 aria-label="Open navigation"
               >
                 <Menu size={18} />
@@ -83,7 +83,7 @@ const AdminDashboard = () => {
 
               {/* Logo mark — visible only on mobile (sidebar hidden) */}
               <div className="lg:hidden flex items-center gap-2">
-                <Shield size={13} className="text-cardinal" />
+                <Shield size={13} className="text-black" />
                 <span className="text-xs font-black italic uppercase tracking-tight text-gray-900">
                   Stop &amp; Shop
                 </span>

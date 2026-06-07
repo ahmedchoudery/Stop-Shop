@@ -18,6 +18,7 @@ import { useCurrency } from '../context/CurrencyContext.jsx';
 import { apiUrl } from '../config/api.js';
 import MediaRenderer from '../components/MediaRenderer.jsx';
 import ProductReviews from '../components/ProductReviews.jsx';
+import MagneticElement from '../components/MagneticElement.jsx';
 
 // ── SEO helpers (preserved exactly) ─────────────────────────────
 
@@ -484,39 +485,44 @@ const ProductPage = () => {
             </div>
 
             {/* CTA buttons */}
-            <div className="flex space-x-3 mb-6">
+            <div className="flex space-x-3 mb-6 items-center">
               {/* Add to Bag */}
-              <button
-                onClick={handleAddToCart}
-                disabled={outOfStock}
-                className={`flex-1 flex items-center justify-center space-x-2.5 py-4 text-[10px] font-black uppercase tracking-[0.3em] transition-all duration-300 ${
-                  outOfStock
-                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                    : cartAdded
-                      ? 'bg-gray-900 text-black'
-                      : 'bg-cardinal text-white hover:bg-gray-900'
-                }`}
-              >
-                {cartAdded ? (
-                  <><Check size={14} /><span>Added to Bag</span></>
-                ) : outOfStock ? (
-                  <><AlertTriangle size={14} /><span>Sold Out</span></>
-                ) : (
-                  <><ShoppingBag size={14} /><span>Add to Bag</span></>
-                )}
-              </button>
+              <MagneticElement className="flex-1">
+                <button
+                  onClick={handleAddToCart}
+                  disabled={outOfStock}
+                  className={`btn-primary w-full rounded-[4px] ${
+                    outOfStock
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      : cartAdded
+                        ? 'bg-gray-900 text-black'
+                        : ''
+                  }`}
+                >
+                  {cartAdded ? (
+                    <><Check size={14} /><span>Added to Bag</span></>
+                  ) : outOfStock ? (
+                    <><AlertTriangle size={14} /><span>Sold Out</span></>
+                  ) : (
+                    <><ShoppingBag size={14} /><span>Add to Bag</span></>
+                  )}
+                </button>
+              </MagneticElement>
 
               {/* Wishlist */}
-              <button
-                onClick={() => toggleWishlist(product)}
-                className={`w-14 flex items-center justify-center border-2 transition-all duration-300 ${
-                  isWished
-                    ? 'border-cardinal bg-red-50 text-cardinal'
-                    : 'border-gray-200 text-gray-400 hover:border-cardinal hover:text-cardinal'
-                }`}
-              >
-                <Heart size={17} className={isWished ? 'fill-cardinal' : ''} />
-              </button>
+              <MagneticElement>
+                <button
+                  onClick={() => toggleWishlist(product)}
+                  className={`btn-secondary w-14 h-[52px] rounded-[4px] flex items-center justify-center transition-all duration-300 ${
+                    isWished
+                      ? 'border-cardinal bg-red-50 text-cardinal'
+                      : 'border-gray-200 text-gray-400 hover:border-cardinal hover:text-cardinal'
+                  }`}
+                  aria-label="Wishlist"
+                >
+                  <Heart size={17} className={isWished ? 'fill-cardinal' : ''} />
+                </button>
+              </MagneticElement>
             </div>
 
             {/* Share buttons */}

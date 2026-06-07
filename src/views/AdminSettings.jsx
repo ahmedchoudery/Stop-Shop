@@ -48,21 +48,21 @@ const AdminSettings = () => {
     }
   };
 
-  const inputCls = `w-full border-b-2 border-gray-100 focus:border-cardinal py-3 text-sm font-bold bg-transparent outline-none transition-all placeholder:text-gray-300`;
+  const inputCls = `w-full border-b border-gray-200 focus:border-black py-3 text-sm font-bold bg-transparent outline-none transition-all placeholder:text-gray-300`;
 
   return (
     <div>
       {/* Header */}
       <div className="flex items-center justify-between mb-10">
         <div>
-          <p className="text-[9px] font-black uppercase tracking-[0.5em] text-cardinal mb-2">Store Identity</p>
+          <p className="text-[9px] font-black uppercase tracking-[0.5em] text-black mb-2">Store Identity</p>
           <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tighter text-gray-900">Settings</h1>
         </div>
         <div className="flex items-center space-x-3">
           <button
             onClick={() => setPreview(p => !p)}
-            className={`flex items-center space-x-2 px-4 py-2.5 border-2 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all duration-200 ${
-              preview ? 'border-cardinal text-cardinal bg-cardinal/5' : 'border-gray-200 text-gray-600 hover:border-gray-900'
+            className={`flex items-center space-x-2 px-4 py-2.5 border text-[10px] font-black uppercase tracking-widest rounded-[4px] transition-all duration-200 ${
+              preview ? 'border-black text-black bg-black/5' : 'border-gray-200 text-gray-600 hover:border-gray-900'
             }`}
           >
             <Eye size={13} />
@@ -71,7 +71,7 @@ const AdminSettings = () => {
           <button
             onClick={handleSave}
             disabled={updating}
-            className="flex items-center space-x-2 px-6 py-2.5 bg-cardinal text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:brightness-110 transition-all disabled:opacity-50 shadow-xl shadow-red-200/40 btn-shimmer"
+            className="flex items-center space-x-2 px-6 py-2.5 bg-black text-white text-[10px] font-black uppercase tracking-widest rounded-[4px] hover:bg-black/90 transition-all disabled:opacity-50 btn-shimmer"
           >
             {updating ? (
               <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -84,7 +84,7 @@ const AdminSettings = () => {
 
       {/* Toast */}
       {toast && (
-        <div className={`mb-6 p-4 rounded-xl flex items-center space-x-3 animate-fade-up ${
+        <div className={`mb-6 p-4 rounded-[4px] flex items-center space-x-3 animate-fade-up ${
           toast.type === 'error' ? 'bg-red-50 border border-red-200 text-red-700' : 'bg-green-50 border border-green-200 text-green-700'
         }`}>
           {toast.type === 'error' ? <AlertCircle size={14} /> : <CheckCircle size={14} />}
@@ -96,10 +96,10 @@ const AdminSettings = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
 
           {/* Logo setting */}
-          <div className="bg-white border border-gray-100 rounded-2xl p-8 shadow-sm">
+          <div className="bg-white border border-gray-150 rounded-[4px] p-8">
             <div className="flex items-center space-x-3 mb-8">
-              <div className="w-9 h-9 bg-red-50 rounded-xl flex items-center justify-center">
-                <Image size={16} className="text-cardinal" />
+              <div className="w-9 h-9 bg-gray-50 rounded-[4px] flex items-center justify-center">
+                <Image size={16} className="text-black" />
               </div>
               <div>
                 <h3 className="text-sm font-black uppercase tracking-widest text-gray-900">Store Logo</h3>
@@ -121,7 +121,7 @@ const AdminSettings = () => {
 
               {/* Live preview */}
               {(preview || form.logo) && (
-                <div className="mt-4 p-4 bg-gray-50 rounded-xl border border-gray-100">
+                <div className="mt-4 p-4 bg-gray-50 rounded-[4px] border border-gray-100">
                   <p className="text-[9px] font-black uppercase tracking-widest text-gray-400 mb-3">Preview</p>
                   {form.logo ? (
                     <img
@@ -132,9 +132,9 @@ const AdminSettings = () => {
                     />
                   ) : (
                     <div className="flex items-center space-x-2">
-                      <span className="text-2xl font-black italic text-cardinal">Stop</span>
+                      <span className="text-2xl font-black italic text-black">Stop</span>
                       <span className="text-gray-900 font-black text-2xl">&</span>
-                      <span className="text-2xl font-black italic text-cardinal">Shop</span>
+                      <span className="text-2xl font-black italic text-black">Shop</span>
                     </div>
                   )}
                 </div>
@@ -143,9 +143,9 @@ const AdminSettings = () => {
           </div>
 
           {/* Announcement setting */}
-          <div className="bg-white border border-gray-100 rounded-2xl p-8 shadow-sm">
+          <div className="bg-white border border-gray-150 rounded-[4px] p-8">
             <div className="flex items-center space-x-3 mb-8">
-              <div className="w-9 h-9 bg-yellow-50 rounded-xl flex items-center justify-center">
+              <div className="w-9 h-9 bg-yellow-50 rounded-[4px] flex items-center justify-center">
                 <Megaphone size={16} className="text-yellow-600" />
               </div>
               <div>
@@ -166,13 +166,13 @@ const AdminSettings = () => {
                   placeholder="Welcome to Stop & Shop — Premium Clothing"
                   maxLength={500}
                   rows={3}
-                  className="w-full border-b-2 border-gray-100 focus:border-cardinal py-3 text-sm font-bold bg-transparent outline-none transition-all placeholder:text-gray-300 resize-none mt-2"
+                  className="w-full border-b border-gray-200 focus:border-black py-3 text-sm font-bold bg-transparent outline-none transition-all placeholder:text-gray-300 resize-none mt-2"
                 />
               </div>
 
               {/* Live preview */}
               {preview && form.announcement && (
-                <div className="mt-4 bg-amber-gold py-2.5 px-4 rounded-lg overflow-hidden">
+                <div className="mt-4 bg-amber-gold py-2.5 px-4 rounded-[4px] overflow-hidden">
                   <p className="text-[10px] font-black uppercase tracking-[0.35em] text-red-950 truncate">
                     ✦ {form.announcement.toUpperCase()}
                   </p>
@@ -182,7 +182,7 @@ const AdminSettings = () => {
           </div>
 
           {/* System info card */}
-          <div className="lg:col-span-2 bg-gray-900 text-black rounded-2xl p-8">
+          <div className="lg:col-span-2 bg-[#111111] text-white border border-gray-150 rounded-[4px] p-8">
             <div className="flex items-center space-x-3 mb-6">
               <Zap size={16} className="text-amber-gold" />
               <h3 className="text-sm font-black uppercase tracking-widest">System Status</h3>
@@ -196,7 +196,7 @@ const AdminSettings = () => {
               ].map(item => (
                 <div key={item.label}>
                   <p className="text-[9px] font-black uppercase tracking-widest text-gray-500 mb-1">{item.label}</p>
-                  <p className="text-sm font-black text-black uppercase tracking-tight">{item.value}</p>
+                  <p className="text-sm font-black text-white uppercase tracking-tight">{item.value}</p>
                 </div>
               ))}
             </div>

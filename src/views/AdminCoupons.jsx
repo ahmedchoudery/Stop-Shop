@@ -184,17 +184,17 @@ const AdminCoupons = () => {
       {/* ── Header ─────────────────────────────────────────── */}
       <div className="flex items-center justify-between mb-10">
         <div>
-          <p className="text-[9px] font-black uppercase tracking-[0.5em] text-cardinal mb-2">Promotions</p>
+          <p className="text-[9px] font-black uppercase tracking-[0.5em] text-black mb-2">Promotions</p>
           <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tighter text-gray-900">Coupons</h1>
         </div>
         <div className="flex items-center space-x-3">
           <button onClick={fetchCoupons} disabled={loading}
-            className="p-2.5 border border-gray-200 rounded-xl text-gray-400 hover:text-gray-900 hover:border-gray-900 transition-all disabled:opacity-40">
+            className="p-2.5 border border-gray-200 rounded-[4px] text-gray-400 hover:text-gray-900 hover:border-gray-900 transition-all disabled:opacity-40">
             <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
           </button>
           <button
             onClick={() => { setShowForm(s => !s); setForm(DEFAULT_FORM); setErrors({}); }}
-            className="flex items-center space-x-2 px-6 py-3 bg-cardinal text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-gray-900 transition-all shadow-xl shadow-red-200/40"
+            className="flex items-center space-x-2 px-6 py-3 bg-black text-white text-[10px] font-black uppercase tracking-widest rounded-[4px] hover:bg-black/90 transition-all"
           >
             {showForm ? <X size={14} /> : <Plus size={14} />}
             <span>{showForm ? 'Cancel' : 'New Coupon'}</span>
@@ -204,7 +204,7 @@ const AdminCoupons = () => {
 
       {/* ── Toast ─────────────────────────────────────────── */}
       {toast && (
-        <div key={toast.id} className={`mb-6 p-4 rounded-xl flex items-center space-x-3 animate-slide-up border ${
+        <div key={toast.id} className={`mb-6 p-4 rounded-[4px] flex items-center space-x-3 animate-slide-up border ${
           toast.type === 'error' ? 'bg-red-50 border-red-200 text-red-700' : 'bg-green-50 border-green-200 text-green-700'
         }`}>
           {toast.type === 'error' ? <AlertCircle size={14} /> : <CheckCircle size={14} />}
@@ -214,7 +214,7 @@ const AdminCoupons = () => {
 
       {/* ── Create Form ───────────────────────────────────── */}
       {showForm && (
-        <div className="bg-white border border-gray-100 rounded-2xl p-8 shadow-xl mb-8 animate-slide-up">
+        <div className="bg-white border border-gray-100 rounded-[4px] p-8 mb-8 animate-slide-up">
           <h3 className="text-sm font-black uppercase tracking-widest text-gray-900 mb-8">New Coupon</h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-6">
@@ -302,10 +302,10 @@ const AdminCoupons = () => {
 
           {/* Preview */}
           {form.code && form.value && (
-            <div className="mb-6 p-4 bg-gray-50 border border-gray-100 rounded-xl">
+            <div className="mb-6 p-4 bg-gray-50 border border-gray-150 rounded-[4px]">
               <p className="text-[9px] font-black uppercase tracking-widest text-gray-400 mb-1">Preview</p>
               <p className="text-sm font-black text-gray-900">
-                Code <span className="font-mono text-cardinal">{form.code || '—'}</span> gives{' '}
+                Code <span className="font-mono text-black">{form.code || '—'}</span> gives{' '}
                 {form.type === 'percentage' ? `${form.value}% off` : `PKR ${parseInt(form.value || 0).toLocaleString()} off`}
                 {form.minOrderValue ? ` on orders over PKR ${parseInt(form.minOrderValue).toLocaleString()}` : ''}
                 {form.maxUses ? ` (max ${form.maxUses} uses)` : ' (unlimited uses)'}
@@ -317,7 +317,7 @@ const AdminCoupons = () => {
           <button
             onClick={handleCreate}
             disabled={saving}
-            className="flex items-center space-x-2 px-8 py-3 bg-cardinal text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:brightness-110 transition-all disabled:opacity-50"
+            className="flex items-center space-x-2 px-8 py-3 bg-black text-white text-[10px] font-black uppercase tracking-widest rounded-[4px] hover:bg-black/90 transition-all disabled:opacity-50"
           >
             {saving
               ? <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -328,10 +328,10 @@ const AdminCoupons = () => {
       )}
 
       {/* ── Coupons Table ─────────────────────────────────── */}
-      <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-xl">
+      <div className="bg-white border border-gray-200 rounded-[4px] overflow-hidden">
         {loading ? (
           <div className="p-16 text-center">
-            <div className="w-8 h-8 border-2 border-gray-100 border-t-cardinal rounded-full animate-spin mx-auto" />
+            <div className="w-8 h-8 border-2 border-gray-100 border-t-black rounded-full animate-spin mx-auto" />
           </div>
         ) : coupons.length === 0 ? (
           <div className="p-20 text-center">
@@ -343,13 +343,13 @@ const AdminCoupons = () => {
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead>
-                <tr className="bg-gray-50 border-b border-gray-100">
+                <tr className="bg-gray-50 border-b border-gray-150">
                   {['Code', 'Discount', 'Min Order', 'Uses', 'Expiry', 'Status', 'Actions'].map(col => (
                     <th key={col} className="px-5 py-4 text-[9px] font-black uppercase tracking-[0.3em] text-gray-400">{col}</th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-gray-100">
                 {coupons.map(coupon => (
                   <tr key={coupon._id} className="group hover:bg-gray-50/60 transition-colors">
                     {/* Code */}
@@ -358,7 +358,7 @@ const AdminCoupons = () => {
                         <span className="font-mono text-sm font-black text-gray-900">{coupon.code}</span>
                         <button
                           onClick={() => handleCopy(coupon.code)}
-                          className="p-1 text-gray-300 hover:text-cardinal transition-colors"
+                          className="p-1 text-gray-300 hover:text-black transition-colors"
                           title="Copy code"
                         >
                           {copied === coupon.code ? <Check size={11} className="text-green-500" /> : <Copy size={11} />}
@@ -368,7 +368,7 @@ const AdminCoupons = () => {
 
                     {/* Discount */}
                     <td className="px-5 py-4">
-                      <span className="text-sm font-black text-cardinal">
+                      <span className="text-sm font-black text-black">
                         {coupon.type === 'percentage' ? `${coupon.value}%` : `PKR ${coupon.value.toLocaleString()}`} off
                       </span>
                     </td>
@@ -414,7 +414,7 @@ const AdminCoupons = () => {
                         <button
                           onClick={() => handleDelete(coupon)}
                           title="Delete coupon"
-                          className="p-2 text-gray-300 hover:text-cardinal transition-colors"
+                          className="p-2 text-gray-300 hover:text-red-600 transition-colors"
                         >
                           <Trash2 size={14} />
                         </button>
@@ -427,7 +427,7 @@ const AdminCoupons = () => {
           </div>
         )}
 
-        <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
+        <div className="px-6 py-4 border-t border-gray-150 flex items-center justify-between">
           <p className="text-[9px] font-black uppercase tracking-[0.3em] text-gray-400 italic">
             {coupons.length} coupon{coupons.length !== 1 ? 's' : ''} total
           </p>

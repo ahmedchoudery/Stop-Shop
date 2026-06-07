@@ -147,13 +147,13 @@ const ProductForm = memo(({
 
   return (
     <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-white/60 backdrop-blur-sm">
-      <div className="bg-white w-full sm:max-w-2xl max-h-[95vh] sm:max-h-[90vh] rounded-t-3xl sm:rounded-2xl overflow-hidden flex flex-col shadow-2xl">
-        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 flex-shrink-0 bg-gray-900 text-black">
+      <div className="bg-white w-full sm:max-w-2xl max-h-[95vh] sm:max-h-[90vh] rounded-t-[4px] sm:rounded-[4px] overflow-hidden flex flex-col border border-gray-150">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-150 flex-shrink-0 bg-black text-white">
           <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-red-600 rounded-xl flex items-center justify-center"><Package size={16} /></div>
+            <div className="w-8 h-8 bg-white/10 rounded-[4px] flex items-center justify-center"><Package size={16} /></div>
             <h3 className="font-black uppercase tracking-tight">{editingProduct ? 'Edit Product' : 'Add New Product'}</h3>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-xl transition-all hover:rotate-90 transform"><X size={20} /></button>
+          <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-[4px] transition-all hover:rotate-90 transform"><X size={20} /></button>
         </div>
 
         <div className="overflow-y-auto flex-grow p-6 space-y-7">
@@ -198,10 +198,10 @@ const ProductForm = memo(({
           <RatingSection form={form} setForm={setForm} />
         </div>
 
-        <div className="flex items-center space-x-3 px-6 py-5 border-t border-gray-100 flex-shrink-0">
-          <button onClick={onClose} className="flex-1 py-4 border-2 border-gray-200 rounded-xl font-black uppercase text-xs tracking-widest hover:border-gray-400 transition-colors">Cancel</button>
+        <div className="flex items-center space-x-3 px-6 py-5 border-t border-gray-150 flex-shrink-0">
+          <button onClick={onClose} className="flex-1 py-3 border border-gray-200 rounded-[4px] font-black uppercase text-xs tracking-widest hover:border-black transition-colors bg-white text-black">Cancel</button>
           <button onClick={onSave} disabled={saving}
-            className="flex-[2] py-4 bg-red-600 hover:bg-red-700 text-black rounded-xl font-black uppercase text-xs tracking-widest transition-all shadow-xl disabled:opacity-50 flex items-center justify-center space-x-2">
+            className="flex-[2] py-3 bg-black hover:bg-black/90 text-white rounded-[4px] font-black uppercase text-xs tracking-widest transition-all disabled:opacity-50 flex items-center justify-center space-x-2">
             {saving
               ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               : <><Save size={16} /><span>{editingProduct ? 'Save Changes' : 'Add Product'}</span></>
@@ -220,10 +220,10 @@ const MediaSection = memo(({ form, onImageUpload, uploading }) => (
     <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-3">Product Media (Image or Video) *</label>
     
     <div className="flex items-start space-x-4">
-      <div className="w-28 h-28 bg-gray-50 border-2 border-dashed border-gray-200 rounded-2xl overflow-hidden flex-shrink-0 relative">
+      <div className="w-28 h-28 bg-gray-50 border border-dashed border-gray-200 rounded-[4px] overflow-hidden flex-shrink-0 relative">
         {uploading && (
           <div className="absolute inset-0 bg-white/70 flex items-center justify-center z-10">
-            <div className="w-6 h-6 border-2 border-red-600 border-t-transparent rounded-full animate-spin" />
+            <div className="w-6 h-6 border-2 border-black border-t-transparent rounded-full animate-spin" />
           </div>
         )}
         {form.image ? (
@@ -239,7 +239,7 @@ const MediaSection = memo(({ form, onImageUpload, uploading }) => (
         )}
       </div>
       <div className="flex-grow">
-        <label className={`flex flex-col items-center justify-center w-full py-4 px-6 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-red-400 hover:bg-red-50 transition-all text-center ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
+        <label className={`flex flex-col items-center justify-center w-full py-4 px-6 border border-dashed border-gray-200 rounded-[4px] cursor-pointer hover:border-black hover:bg-black/5 transition-all text-center ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
           <Upload size={20} className="text-gray-400 mb-2" />
           <span className="text-[11px] font-black uppercase tracking-widest text-gray-500 mb-2">
             {uploading ? 'Uploading to Cloudinary...' : 'Click to Upload Media'}
@@ -261,7 +261,7 @@ MediaSection.displayName = 'MediaSection';
 const GallerySection = memo(({ form, onGalleryUpload, onRemoveGallery, uploading }) => (
   <div>
     <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Gallery Images (optional)</label>
-    <label className={`flex items-center justify-center w-full py-4 border-2 border-dashed border-gray-200 rounded-xl cursor-pointer hover:border-red-400 hover:bg-red-50 transition-all mb-3 ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
+    <label className={`flex items-center justify-center w-full py-4 border border-dashed border-gray-200 rounded-[4px] cursor-pointer hover:border-black hover:bg-black/5 transition-all mb-3 ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
       <span className="text-[11px] font-black uppercase tracking-widest text-gray-500">
         {uploading ? 'Uploading...' : 'Click to Upload Gallery Image'}
       </span>
@@ -270,7 +270,7 @@ const GallerySection = memo(({ form, onGalleryUpload, onRemoveGallery, uploading
     {form.gallery?.length > 0 && (
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         {form.gallery.map((item, idx) => (
-          <div key={`${item}-${idx}`} className="relative rounded-xl overflow-hidden border border-gray-200">
+          <div key={`${item}-${idx}`} className="relative rounded-[4px] overflow-hidden border border-gray-200">
             <img src={item} alt={`Gallery ${idx + 1}`} className="w-full h-24 object-cover" />
             <button onClick={() => onRemoveGallery(item)} className="absolute top-1 right-1 bg-white/90 text-red-600 p-1 rounded-full text-xs">×</button>
           </div>
@@ -288,7 +288,7 @@ const BasicInfoSection = memo(({ form, setForm }) => (
       <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Product Name *</label>
       <input type="text" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
         placeholder="e.g. Classic Red Polo"
-        className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:border-red-600 outline-none transition-colors" />
+        className="w-full border border-gray-200 rounded-[4px] px-4 py-3 text-sm font-bold focus:border-black outline-none transition-colors" />
     </div>
     <div>
       <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Price (PKR) *</label>
@@ -296,7 +296,7 @@ const BasicInfoSection = memo(({ form, setForm }) => (
         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-xs">Rs.</span>
         <input type="number" step="0.01" value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))}
           placeholder="0.00"
-          className="w-full border-2 border-gray-200 rounded-xl pl-10 pr-4 py-3 text-sm font-bold focus:border-red-600 outline-none transition-colors" />
+          className="w-full border border-gray-200 rounded-[4px] pl-10 pr-4 py-3 text-sm font-bold focus:border-black outline-none transition-colors" />
       </div>
     </div>
   </div>
@@ -310,19 +310,19 @@ const StockCategorySection = memo(({ form, setForm }) => (
       <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Stock Qty</label>
       <input type="number" value={form.quantity} onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))}
         placeholder="0"
-        className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:border-red-600 outline-none transition-colors" />
+        className="w-full border border-gray-200 rounded-[4px] px-4 py-3 text-sm font-bold focus:border-black outline-none transition-colors" />
     </div>
     <div>
       <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Category</label>
       <select value={form.bucket} onChange={e => setForm(f => ({ ...f, bucket: e.target.value, subCategory: getDefaultSubCategory(e.target.value) }))}
-        className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:border-red-600 outline-none bg-white">
+        className="w-full border border-gray-200 rounded-[4px] px-4 py-3 text-sm font-bold focus:border-black outline-none bg-white">
         {CATEGORIES.map(b => <option key={b} value={b}>{b}</option>)}
       </select>
     </div>
     <div>
       <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Sub-Category</label>
       <select value={form.subCategory} onChange={e => setForm(f => ({ ...f, subCategory: e.target.value }))}
-        className="w-full border-2 border-gray-200 rounded-xl px-4 py-3 text-sm font-bold focus:border-red-600 outline-none bg-white">
+        className="w-full border border-gray-200 rounded-[4px] px-4 py-3 text-sm font-bold focus:border-black outline-none bg-white">
         {(CATEGORY_MAP[form.bucket] || []).map(s => <option key={s} value={s}>{s}</option>)}
       </select>
     </div>
@@ -339,7 +339,7 @@ const SpecsSection = memo(({ form, setForm }) => (
         <input key={i} type="text" value={spec}
           onChange={e => { const s = [...form.specs]; s[i] = e.target.value; setForm(f => ({ ...f, specs: s })); }}
           placeholder={`Spec ${i + 1} — e.g. 100% Cotton`}
-          className="w-full border-2 border-gray-200 rounded-xl px-4 py-2.5 text-sm font-bold focus:border-red-600 outline-none transition-colors" />
+          className="w-full border border-gray-200 rounded-[4px] px-4 py-2.5 text-sm font-bold focus:border-black outline-none transition-colors" />
       ))}
     </div>
   </div>
@@ -352,16 +352,16 @@ const ColorsSection = memo(({ form, colorInput, setColorInput, onAddColor, onRem
     <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Color Variants</label>
     <div className="flex items-center space-x-3 mb-3">
       <input type="color" value={colorInput} onChange={e => setColorInput(e.target.value)}
-        className="w-12 h-10 rounded-lg border-2 border-gray-200 cursor-pointer" />
+        className="w-12 h-10 rounded-[4px] border border-gray-200 cursor-pointer" />
       <input type="text" value={colorInput} onChange={e => setColorInput(e.target.value)}
         placeholder="#FF0000"
-        className="flex-grow border-2 border-gray-200 rounded-xl px-4 py-2.5 text-sm font-mono font-bold focus:border-red-600 outline-none" />
-      <button onClick={onAddColor} className="px-4 py-2.5 bg-gray-900 text-black rounded-xl text-[11px] font-black uppercase tracking-widest hover:bg-red-600 transition-colors">Add</button>
+        className="flex-grow border border-gray-200 rounded-[4px] px-4 py-2.5 text-sm font-mono font-bold focus:border-black outline-none" />
+      <button onClick={onAddColor} className="px-4 py-2.5 bg-black text-white rounded-[4px] text-[11px] font-black uppercase tracking-widest hover:bg-black/90 transition-colors">Add</button>
     </div>
     {form.colors.length > 0 && (
       <div className="space-y-3">
         {form.colors.map(c => (
-          <div key={c} className="grid grid-cols-[auto_1fr_auto] items-center gap-3 bg-gray-50 border border-gray-200 rounded-xl p-2">
+          <div key={c} className="grid grid-cols-[auto_1fr_auto] items-center gap-3 bg-gray-50 border border-gray-200 rounded-[4px] p-2">
             <div className="flex items-center space-x-2">
               <div className="w-6 h-6 rounded-full border border-gray-300"
                 style={c.includes('|') ? { background: `linear-gradient(to right, ${c.split('|')[0]} 50%, ${c.split('|')[1]} 50%)` } : { backgroundColor: c }} />
@@ -372,7 +372,7 @@ const ColorsSection = memo(({ form, colorInput, setColorInput, onAddColor, onRem
               {form.variantImages?.[c] && (
                 <img src={form.variantImages[c]} alt="Variant" className="w-8 h-8 rounded object-cover border border-gray-200" />
               )}
-              <label className={`flex-grow flex items-center justify-center py-2 px-3 border border-dashed border-gray-300 rounded-lg cursor-pointer hover:bg-white transition-colors ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
+              <label className={`flex-grow flex items-center justify-center py-2 px-3 border border-dashed border-gray-300 rounded-[4px] cursor-pointer hover:bg-white transition-colors ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
                 <Upload size={12} className="text-gray-400 mr-2" />
                 <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
                   {uploading ? 'Uploading...' : 'Upload Image'}
@@ -397,17 +397,17 @@ const SizesSection = memo(({ form, sizeInput, setSizeInput, onAddSize, onRemoveS
     <div className="flex items-center space-x-3 mb-3">
       <input type="text" value={sizeInput} onChange={e => setSizeInput(e.target.value)}
         placeholder="e.g. M, L, XL"
-        className="flex-grow border-2 border-gray-200 rounded-xl px-4 py-2.5 text-sm font-black uppercase tracking-widest focus:border-red-600 outline-none" />
-      <button onClick={onAddSize} className="px-4 py-2.5 bg-gray-900 text-black rounded-xl text-[11px] font-black uppercase tracking-widest hover:bg-red-600 transition-colors">Add</button>
+        className="flex-grow border border-gray-200 rounded-[4px] px-4 py-2.5 text-sm font-black uppercase tracking-widest focus:border-black outline-none" />
+      <button onClick={onAddSize} className="px-4 py-2.5 bg-black text-white rounded-[4px] text-[11px] font-black uppercase tracking-widest hover:bg-black/90 transition-colors">Add</button>
     </div>
     {form.sizes.length > 0 && (
       <div className="flex flex-wrap gap-2">
         {form.sizes.map(size => (
-          <div key={size} className="flex items-center space-x-2 bg-gray-50 border border-gray-200 rounded-xl px-3 py-1.5">
+          <div key={size} className="flex items-center space-x-2 bg-gray-50 border border-gray-200 rounded-[4px] px-3 py-1.5">
             <span className="text-[11px] font-black uppercase tracking-widest text-gray-700">{size}</span>
             <input type="number" min="0" value={form.sizeStock?.[size] ?? 0}
               onChange={e => onSetSizeStock(size, e.target.value)}
-              className="w-16 border border-gray-200 rounded-lg px-2 py-1 text-[11px] font-black text-center" />
+              className="w-16 border border-gray-200 rounded-[4px] px-2 py-1 text-[11px] font-black text-center" />
             <button onClick={() => onRemoveSize(size)} className="text-gray-400 hover:text-red-500"><X size={12} /></button>
           </div>
         ))}
@@ -424,7 +424,7 @@ const RatingSection = memo(({ form, setForm }) => (
     <div className="flex space-x-2">
       {[1, 2, 3, 4, 5].map(n => (
         <button key={n} onClick={() => setForm(f => ({ ...f, rating: n }))}
-          className={`w-10 h-10 rounded-xl border-2 font-black text-sm transition-all ${form.rating >= n ? 'border-yellow-400 bg-yellow-50 text-yellow-600' : 'border-gray-200 text-gray-300'}`}>★</button>
+          className={`w-10 h-10 rounded-[4px] border font-black text-sm transition-all ${form.rating >= n ? 'border-yellow-400 bg-yellow-50 text-yellow-600' : 'border-gray-200 text-gray-300'}`}>★</button>
       ))}
     </div>
   </div>

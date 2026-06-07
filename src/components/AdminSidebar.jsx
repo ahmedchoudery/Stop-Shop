@@ -54,7 +54,7 @@ const SidebarContent = ({ onClose }) => {
       {/* Brand */}
       <div className="px-6 py-5 border-b border-white/10 flex items-center justify-between">
         <div>
-          <h1 className="text-lg font-black italic uppercase tracking-tighter text-cardinal">
+          <h1 className="text-lg font-black italic uppercase tracking-tighter text-white">
             Stop &amp; Shop
           </h1>
           <div className="flex items-center space-x-1.5 mt-0.5">
@@ -68,7 +68,7 @@ const SidebarContent = ({ onClose }) => {
         {onClose && (
           <button
             onClick={onClose}
-            className="lg:hidden p-2 rounded-lg text-gray-400 hover:text-black hover:bg-white/10 transition-all"
+            className="lg:hidden p-2 rounded-[4px] text-gray-400 hover:text-black hover:bg-white/10 transition-all"
             aria-label="Close menu"
           >
             <X size={18} />
@@ -84,9 +84,9 @@ const SidebarContent = ({ onClose }) => {
             to={to}
             onClick={handleNavClick}
             className={({ isActive }) =>
-              `flex items-center space-x-3 px-4 py-3 rounded-xl text-[11px] font-bold uppercase tracking-wider transition-all ${
+              `flex items-center space-x-3 px-4 py-3 rounded-[4px] text-[11px] font-bold uppercase tracking-wider transition-all ${
                 isActive
-                  ? 'bg-cardinal text-white shadow-lg shadow-cardinal/30'
+                  ? 'bg-white text-black'
                   : 'text-gray-400 hover:text-black hover:bg-white/8'
               }`
             }
@@ -101,7 +101,7 @@ const SidebarContent = ({ onClose }) => {
       <div className="px-3 py-4 border-t border-white/10">
         <button
           onClick={handleLogout}
-          className="flex items-center space-x-3 px-4 py-3 rounded-xl text-[11px] font-bold uppercase tracking-wider text-gray-400 hover:text-red-400 hover:bg-red-500/10 transition-all w-full"
+          className="flex items-center space-x-3 px-4 py-3 rounded-[4px] text-[11px] font-bold uppercase tracking-wider text-gray-400 hover:text-white hover:bg-white/10 transition-all w-full"
         >
           <LogOut size={16} />
           <span>Logout</span>

@@ -88,7 +88,7 @@ const AdminOrders = () => {
       {/* Header */}
       <div className="flex items-center justify-between mb-6 sm:mb-10">
         <div>
-          <p className="text-[9px] font-black uppercase tracking-[0.5em] text-cardinal mb-1.5">
+          <p className="text-[9px] font-black uppercase tracking-[0.5em] text-black mb-1.5">
             Fulfillment Hub
           </p>
           <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tighter text-gray-900">
@@ -99,7 +99,7 @@ const AdminOrders = () => {
         <button
           onClick={handleExportCSV}
           disabled={filteredOrders.length === 0}
-          className="flex items-center space-x-2 px-3 sm:px-4 py-2 border border-gray-200 rounded-xl text-xs font-black uppercase tracking-widest text-gray-500 hover:border-gray-900 hover:text-gray-900 transition-all disabled:opacity-40"
+          className="flex items-center space-x-2 px-3 sm:px-4 py-2 border border-gray-200 rounded-[4px] text-xs font-black uppercase tracking-widest text-gray-500 hover:border-gray-900 hover:text-gray-900 transition-all disabled:opacity-40"
         >
           <Download size={14} />
           <span className="hidden sm:inline">Export CSV</span>
@@ -112,15 +112,15 @@ const AdminOrders = () => {
           <button
             key={status}
             onClick={() => setStatusFilter(status)}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all ${
+            className={`flex items-center space-x-2 px-4 py-2 rounded-[4px] text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all ${
               statusFilter === status
-                ? 'bg-cardinal text-white shadow-lg'
+                ? 'bg-black text-white'
                 : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
             }`}
           >
             <span>{status}</span>
             <span className={`text-[9px] px-1.5 py-0.5 rounded-full ${
-              statusFilter === status ? 'bg-white/20 text-black' : 'bg-white text-gray-500'
+              statusFilter === status ? 'bg-white/10 text-white' : 'bg-white text-gray-500'
             }`}>
               {statusCounts[status] ?? 0}
             </span>
@@ -136,12 +136,12 @@ const AdminOrders = () => {
           placeholder="Search by order ID, customer name or email..."
           value={searchRaw}
           onChange={e => setSearchRaw(e.target.value)}
-          className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 pl-10 pr-4 text-xs font-bold focus:bg-white focus:border-cardinal outline-none transition-all placeholder:text-gray-300"
+          className="w-full bg-gray-50 border border-gray-200 rounded-[4px] py-3 pl-10 pr-4 text-xs font-bold focus:bg-white focus:border-black outline-none transition-all placeholder:text-gray-300"
         />
       </div>
 
       {/* Orders Table */}
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-xl">
+      <div className="bg-white border border-gray-200 rounded-[4px] overflow-hidden">
         <AsyncContent
           loading={loading}
           error={error}
@@ -164,7 +164,7 @@ const AdminOrders = () => {
           />
         </AsyncContent>
 
-        <div className="px-6 py-4 border-t border-gray-100">
+        <div className="px-6 py-4 border-t border-gray-150">
           <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 italic">
             {filteredOrders.length} of {orders.length} orders
             {updating && ' · Updating...'}

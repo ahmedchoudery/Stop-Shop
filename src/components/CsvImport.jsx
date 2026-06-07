@@ -158,7 +158,7 @@ Slim Fit Jeans,3500,30,Bottoms,Jeans,Slim fit|Stretch denim|5-pocket design,#1a1
     return (
       <button
         onClick={() => setIsOpen(true)}
-        className="flex items-center space-x-2 px-4 py-2.5 border border-gray-200 rounded-xl text-[10px] font-black uppercase tracking-widest text-gray-500 hover:border-gray-900 hover:text-gray-900 transition-all"
+        className="flex items-center space-x-2 px-4 py-2.5 border border-gray-200 rounded-[4px] text-[10px] font-black uppercase tracking-widest text-gray-500 hover:border-black hover:text-black transition-all bg-white"
       >
         <Upload size={13} />
         <span>Bulk Import CSV</span>
@@ -167,23 +167,23 @@ Slim Fit Jeans,3500,30,Bottoms,Jeans,Slim fit|Stretch denim|5-pocket design,#1a1
   }
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-white/50 backdrop-blur-sm">
-      <div className="bg-white w-full max-w-2xl max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-white/60 backdrop-blur-sm">
+      <div className="bg-white w-full max-w-2xl max-h-[90vh] rounded-[4px] border border-gray-150 flex flex-col overflow-hidden">
 
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 flex-shrink-0">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-150 flex-shrink-0">
           <div>
             <h3 className="font-black uppercase tracking-tight text-gray-900">Bulk Import Products</h3>
             <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">via CSV file</p>
           </div>
           <div className="flex items-center space-x-2">
             <button onClick={downloadTemplate}
-              className="flex items-center space-x-1.5 px-3 py-2 border border-gray-200 rounded-lg text-[9px] font-black uppercase tracking-widest text-gray-500 hover:border-gray-900 hover:text-gray-900 transition-all">
+              className="flex items-center space-x-1.5 px-3 py-2 border border-gray-200 rounded-[4px] text-[9px] font-black uppercase tracking-widest text-gray-500 hover:border-black hover:text-black transition-all bg-white">
               <Download size={11} />
               <span>Download Template</span>
             </button>
             <button onClick={() => { setIsOpen(false); setPreview([]); setParseError(''); setResult(null); }}
-              className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all">
+              className="p-2 text-gray-400 hover:text-gray-900 hover:bg-gray-100 rounded-[4px] transition-all">
               <X size={16} />
             </button>
           </div>
@@ -198,9 +198,9 @@ Slim Fit Jeans,3500,30,Bottoms,Jeans,Slim fit|Stretch denim|5-pocket design,#1a1
               onDrop={handleDrop}
               onDragOver={(e) => e.preventDefault()}
               onClick={() => fileRef.current?.click()}
-              className="border-2 border-dashed border-gray-200 rounded-xl p-10 text-center cursor-pointer hover:border-cardinal hover:bg-red-50/30 transition-all group"
+              className="border border-dashed border-gray-250 rounded-[4px] p-10 text-center cursor-pointer hover:border-black hover:bg-black/5 transition-all group bg-white"
             >
-              <FileText size={32} className="mx-auto text-gray-300 mb-3 group-hover:text-cardinal transition-colors" />
+              <FileText size={32} className="mx-auto text-gray-300 mb-3 group-hover:text-black transition-colors" />
               <p className="font-black uppercase tracking-tight text-gray-900 mb-1">
                 Drop CSV file here
               </p>
@@ -217,9 +217,9 @@ Slim Fit Jeans,3500,30,Bottoms,Jeans,Slim fit|Stretch denim|5-pocket design,#1a1
 
           {/* Parse error */}
           {parseError && (
-            <div className="flex items-start space-x-2 p-4 bg-red-50 border border-red-100 rounded-xl">
-              <AlertCircle size={14} className="text-cardinal flex-shrink-0 mt-0.5" />
-              <p className="text-xs font-bold text-cardinal">{parseError}</p>
+            <div className="flex items-start space-x-2 p-4 bg-red-50 border border-red-100 rounded-[4px]">
+              <AlertCircle size={14} className="text-red-600 flex-shrink-0 mt-0.5" />
+              <p className="text-xs font-bold text-red-600">{parseError}</p>
             </div>
           )}
 
@@ -229,21 +229,21 @@ Slim Fit Jeans,3500,30,Bottoms,Jeans,Slim fit|Stretch denim|5-pocket design,#1a1
               <p className="text-[9px] font-black uppercase tracking-[0.4em] text-gray-400 mb-3">
                 Preview — {preview.length} product{preview.length !== 1 ? 's' : ''} ready to import
               </p>
-              <div className="border border-gray-100 rounded-xl overflow-hidden">
-                <div className="overflow-x-auto max-h-60">
+              <div className="border border-gray-150 rounded-[4px] overflow-hidden">
+                <div className="overflow-x-auto max-h-60 bg-white">
                   <table className="w-full text-left">
                     <thead>
-                      <tr className="bg-gray-50 border-b border-gray-100">
+                      <tr className="bg-gray-50 border-b border-gray-150">
                         {['Name', 'Price (PKR)', 'Qty', 'Category', 'Sub-Category'].map(h => (
                           <th key={h} className="px-3 py-2.5 text-[8px] font-black uppercase tracking-widest text-gray-400 whitespace-nowrap">{h}</th>
                         ))}
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-50">
+                    <tbody className="divide-y divide-gray-100">
                       {preview.map((p, i) => (
-                        <tr key={i} className="hover:bg-gray-50">
+                        <tr key={i} className="hover:bg-gray-50/80">
                           <td className="px-3 py-2 text-xs font-bold text-gray-900 truncate max-w-[140px]">{p.name}</td>
-                          <td className="px-3 py-2 text-xs font-black text-cardinal">{p.price.toLocaleString()}</td>
+                          <td className="px-3 py-2 text-xs font-black text-black">{p.price.toLocaleString()}</td>
                           <td className="px-3 py-2 text-xs font-bold text-gray-600">{p.quantity}</td>
                           <td className="px-3 py-2 text-xs font-bold text-gray-600">{p.bucket}</td>
                           <td className="px-3 py-2 text-xs font-bold text-gray-600">{p.subCategory}</td>
@@ -258,7 +258,7 @@ Slim Fit Jeans,3500,30,Bottoms,Jeans,Slim fit|Stretch denim|5-pocket design,#1a1
 
           {/* CSV format guide */}
           {!preview.length && !parseError && (
-            <div className="bg-gray-50 border border-gray-100 rounded-xl p-5 text-xs font-bold text-gray-600 space-y-2">
+            <div className="bg-gray-50 border border-gray-150 rounded-[4px] p-5 text-xs font-bold text-gray-600 space-y-2">
               <p className="text-[9px] font-black uppercase tracking-widest text-gray-400 mb-3">CSV Column Format</p>
               <div className="grid grid-cols-2 gap-2 text-[10px]">
                 {[
@@ -274,7 +274,7 @@ Slim Fit Jeans,3500,30,Bottoms,Jeans,Slim fit|Stretch denim|5-pocket design,#1a1
                   ['rating', 'Rating 1-5 (default: 5)'],
                 ].map(([col, desc]) => (
                   <div key={col} className="flex items-start space-x-1.5">
-                    <code className="text-cardinal font-black bg-red-50 px-1 rounded text-[9px] flex-shrink-0">{col}</code>
+                    <code className="text-black font-black bg-gray-100 px-1 rounded-[2px] text-[9px] flex-shrink-0">{col}</code>
                     <span className="text-gray-400 text-[9px]">{desc}</span>
                   </div>
                 ))}
@@ -285,7 +285,7 @@ Slim Fit Jeans,3500,30,Bottoms,Jeans,Slim fit|Stretch denim|5-pocket design,#1a1
           {/* Import result */}
           {result && (
             <div className="space-y-4">
-              <div className={`flex items-center space-x-3 p-4 rounded-xl ${result.imported > 0 ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
+              <div className={`flex items-center space-x-3 p-4 rounded-[4px] ${result.imported > 0 ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}`}>
                 {result.imported > 0
                   ? <CheckCircle size={18} className="text-green-600 flex-shrink-0" />
                   : <AlertCircle size={18} className="text-red-500 flex-shrink-0" />
@@ -316,14 +316,14 @@ Slim Fit Jeans,3500,30,Bottoms,Jeans,Slim fit|Stretch denim|5-pocket design,#1a1
 
         {/* Footer */}
         {preview.length > 0 && !result && (
-          <div className="flex-shrink-0 border-t border-gray-100 px-6 py-4 flex items-center justify-between">
+          <div className="flex-shrink-0 border-t border-gray-150 px-6 py-4 flex items-center justify-between">
             <p className="text-[10px] font-bold text-gray-400">
               {preview.length} product{preview.length !== 1 ? 's' : ''} will be added to your catalog
             </p>
             <button
               onClick={handleImport}
               disabled={importing}
-              className="flex items-center space-x-2 px-8 py-3 bg-cardinal text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:brightness-110 transition-all disabled:opacity-50"
+              className="flex items-center space-x-2 px-8 py-3 bg-black text-white text-[10px] font-black uppercase tracking-widest rounded-[4px] hover:bg-black/90 transition-all disabled:opacity-50"
             >
               {importing
                 ? <><Loader size={13} className="animate-spin" /><span>Importing...</span></>

@@ -191,7 +191,7 @@ const Navbar = ({ products = [], onSearchOpen, scrolled, isHome }) => {
               <button onClick={() => { playPremiumChime(); openDrawer('wishlist'); }} className={`relative w-11 h-11 lg:w-9 lg:h-9 flex items-center justify-center transition-all duration-200 active-scale ${iconColor} ${iconHover}`} aria-label="Wishlist">
                 <Heart size={17} strokeWidth={1.8} />
                 {wishlistCount > 0 && (
-                  <span className="absolute top-1.5 right-1.5 sm:top-1 sm:right-1 w-[13px] h-[13px] bg-cardinal flex items-center justify-center text-[7px] font-bold font-mono text-white leading-none">
+                  <span className="absolute top-1.5 right-1.5 sm:top-1 sm:right-1 w-[13px] h-[13px] bg-cardinal rounded-full flex items-center justify-center text-[7px] font-bold font-mono text-white leading-none">
                     {wishlistCount > 9 ? '9+' : wishlistCount}
                   </span>
                 )}
@@ -203,7 +203,7 @@ const Navbar = ({ products = [], onSearchOpen, scrolled, isHome }) => {
               <button onClick={() => { playPremiumChime(); openDrawer('cart'); }} className={`relative w-11 h-11 lg:w-9 lg:h-9 flex items-center justify-center ml-1 transition-all duration-300 active-scale ${isTransparent ? 'bg-white/10 text-white hover:bg-white/20' : 'bg-white/5 text-black hover:bg-white/10 border border-gray-200'}`} aria-label="Cart">
                 <ShoppingBag size={16} strokeWidth={1.8} />
                 {cartCount > 0 && (
-                  <span className="absolute -top-1 -right-1 sm:-top-1.5 sm:-right-1.5 w-[16px] h-[16px] bg-cardinal flex items-center justify-center text-[7px] font-bold font-mono text-white leading-none border-[1.5px] border-white">
+                  <span className="absolute -top-1 -right-1 sm:-top-1.5 sm:-right-1.5 w-[16px] h-[16px] bg-cardinal rounded-full flex items-center justify-center text-[7px] font-bold font-mono text-white leading-none border-[1.5px] border-white">
                     {cartCount > 9 ? '9+' : cartCount}
                   </span>
                 )}

@@ -197,7 +197,7 @@ const SearchOverlay = ({ isOpen, onClose, products = [] }) => {
                   >
                     <div className="flex items-center space-x-3 mb-3">
                       <Tag size={15} className="text-cardinal" />
-                      <h4 className="text-gray-900 font-black uppercase tracking-widest text-[10px]">Cardinal Collections</h4>
+                      <h4 className="text-gray-900 font-black uppercase tracking-widest text-[10px]">Signature Collections</h4>
                     </div>
                     <p className="text-gray-500 text-[11px] leading-relaxed mb-5 font-bold uppercase tracking-wider">
                       Explore our hand-picked selections for the current season. From linen essentials to signature Pakistan-made accessories.

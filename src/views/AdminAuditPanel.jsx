@@ -50,13 +50,13 @@ const AdminAuditPanel = () => {
       {/* Header */}
       <div className="flex items-center justify-between mb-10">
         <div>
-          <p className="text-[9px] font-black uppercase tracking-[0.5em] text-cardinal mb-2">Security</p>
+          <p className="text-[9px] font-black uppercase tracking-[0.5em] text-black mb-2">Security</p>
           <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tighter text-gray-900">Audit Logs</h1>
         </div>
         <button
           onClick={() => refetch()}
           disabled={loading}
-          className="flex items-center space-x-2 px-4 py-2.5 border border-gray-200 rounded-xl text-[10px] font-black uppercase tracking-widest text-gray-500 hover:border-gray-900 hover:text-gray-900 transition-all disabled:opacity-40"
+          className="flex items-center space-x-2 px-4 py-2.5 border border-gray-200 rounded-[4px] text-[10px] font-black uppercase tracking-widest text-gray-500 hover:border-gray-900 hover:text-gray-900 transition-all disabled:opacity-40"
         >
           <RefreshCw size={13} className={loading ? 'animate-spin' : ''} />
           <span>Refresh</span>
@@ -72,7 +72,7 @@ const AdminAuditPanel = () => {
             placeholder="Search actions or admin email..."
             value={searchRaw}
             onChange={e => setSearchRaw(e.target.value)}
-            className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 pl-9 pr-9 text-xs font-bold focus:bg-white focus:border-cardinal outline-none transition-all placeholder:text-gray-300"
+            className="w-full bg-gray-50 border border-gray-200 rounded-[4px] py-3 pl-9 pr-9 text-xs font-bold focus:bg-white focus:border-black outline-none transition-all placeholder:text-gray-300"
           />
           {searchRaw && (
             <button onClick={() => setSearchRaw('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
@@ -85,11 +85,11 @@ const AdminAuditPanel = () => {
             <button
               key={s}
               onClick={() => setSeverityFilter(s)}
-              className={`px-3 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all duration-200 ${
+              className={`px-3 py-2 rounded-[4px] text-[9px] font-black uppercase tracking-widest transition-all duration-200 ${
                 severityFilter === s
-                  ? s === 'all' ? 'bg-gray-900 text-black' :
-                    s === 'critical' ? 'bg-red-600 text-black' :
-                    s === 'warning' ? 'bg-yellow-500 text-black' : 'bg-blue-600 text-black'
+                  ? s === 'all' ? 'bg-black text-white' :
+                    s === 'critical' ? 'bg-red-600 text-white' :
+                    s === 'warning' ? 'bg-amber-500 text-black' : 'bg-blue-600 text-white'
                   : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
               }`}
             >
@@ -100,7 +100,7 @@ const AdminAuditPanel = () => {
       </div>
 
       {/* Logs */}
-      <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-xl">
+      <div className="bg-white border border-gray-200 rounded-[4px] overflow-hidden">
         <AsyncContent
           loading={loading}
           error={error}
@@ -124,7 +124,7 @@ const AdminAuditPanel = () => {
                   key={log._id ?? i}
                   className={`flex items-start space-x-4 px-6 py-4 hover:bg-gray-50/60 transition-colors duration-150`}
                 >
-                  <div className={`w-8 h-8 ${config.bg} border ${config.border} rounded-lg flex items-center justify-center flex-shrink-0 mt-0.5`}>
+                  <div className={`w-8 h-8 ${config.bg} border ${config.border} rounded-[4px] flex items-center justify-center flex-shrink-0 mt-0.5`}>
                     <SeverityIcon size={13} className={config.color} />
                   </div>
                   <div className="flex-grow min-w-0">
@@ -141,7 +141,7 @@ const AdminAuditPanel = () => {
                         <span className="text-[10px] font-bold text-gray-500">{log.adminEmail}</span>
                       )}
                       {log.resourceType && log.resourceType !== 'system' && (
-                        <span className="text-[9px] font-black uppercase tracking-widest bg-gray-100 text-gray-500 px-2 py-0.5 rounded-md">
+                        <span className="text-[9px] font-black uppercase tracking-widest bg-gray-100 text-gray-500 px-2 py-0.5 rounded-[4px]">
                           {log.resourceType}
                         </span>
                       )}

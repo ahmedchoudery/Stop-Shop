@@ -112,7 +112,7 @@ const AdminInventory = () => {
             placeholder="Search by name or SKU..."
             value={searchRaw}
             onChange={e => setSearchRaw(e.target.value)}
-            className="w-full bg-gray-50 border border-gray-200 rounded-xl py-3 pl-10 pr-10 text-xs font-bold focus:bg-white focus:border-cardinal outline-none transition-all placeholder:text-gray-300"
+            className="w-full bg-gray-50 border border-gray-200 rounded-[4px] py-3 pl-10 pr-10 text-xs font-bold focus:bg-white focus:border-black outline-none transition-all placeholder:text-gray-300"
           />
           {searchRaw && (
             <button onClick={() => setSearchRaw('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
@@ -131,9 +131,9 @@ const AdminInventory = () => {
             <button
               key={opt.value}
               onClick={() => setStockFilter(opt.value)}
-              className={`px-3 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all duration-200 ${
+              className={`px-3 py-2 rounded-[4px] text-[9px] font-black uppercase tracking-widest transition-all duration-200 ${
                 stockFilter === opt.value
-                  ? 'bg-cardinal text-white shadow-md'
+                  ? 'bg-black text-white'
                   : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
               }`}
             >
@@ -144,7 +144,7 @@ const AdminInventory = () => {
       </div>
 
       {/* Table */}
-      <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-xl">
+      <div className="bg-white border border-gray-200 rounded-[4px] overflow-hidden">
         <AsyncContent loading={loading} error={error} data={filtered} onRetry={fetchProducts}
           empty={
             <div className="p-16 text-center">
@@ -158,13 +158,13 @@ const AdminInventory = () => {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-gray-50 border-b border-gray-100">
+                <tr className="bg-gray-50 border-b border-gray-150">
                   {['SKU', 'Product', 'Price (PKR)', 'Stock', 'Status'].map(h => (
                     <th key={h} className="p-4 text-[9px] font-black uppercase tracking-widest text-gray-400">{h}</th>
                   ))}
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-50">
+              <tbody className="divide-y divide-gray-100">
                 {filtered.map(product => {
                   const outOfStock = product.quantity === 0;
                   const lowStock = product.quantity > 0 && product.quantity < 5;
@@ -179,7 +179,7 @@ const AdminInventory = () => {
                       <td className="p-4">
                         <div className="flex items-center space-x-3">
                           {product.image && (
-                            <img src={product.image} alt={product.name} className="w-8 h-8 object-cover rounded-lg" loading="lazy" />
+                            <img src={product.image} alt={product.name} className="w-8 h-8 object-cover rounded-[4px]" loading="lazy" />
                           )}
                           <span className="text-sm font-black uppercase tracking-tight text-gray-900">{product.name}</span>
                           {outOfStock && <AlertTriangle size={12} className="text-red-500 flex-shrink-0" />}
@@ -192,7 +192,7 @@ const AdminInventory = () => {
                           onChange={e => handleLocalChange(product.id, 'price', e.target.value)}
                           onBlur={e => handleUpdate(product.id, 'price', e.target.value)}
                           onKeyDown={e => e.key === 'Enter' && handleUpdate(product.id, 'price', e.target.value)}
-                          className="w-24 bg-transparent border-b-2 border-transparent focus:border-cardinal outline-none py-1 text-sm font-black transition-all"
+                          className="w-24 bg-transparent border-b-2 border-transparent focus:border-black outline-none py-1 text-sm font-black transition-all"
                         />
                       </td>
                       <td className="p-4">
@@ -203,7 +203,7 @@ const AdminInventory = () => {
                             onChange={e => handleLocalChange(product.id, 'quantity', e.target.value)}
                             onBlur={e => handleUpdate(product.id, 'quantity', e.target.value)}
                             onKeyDown={e => e.key === 'Enter' && handleUpdate(product.id, 'quantity', e.target.value)}
-                            className={`w-20 bg-transparent border-b-2 border-transparent focus:border-cardinal outline-none py-1 text-sm font-black transition-all ${lowStock ? 'text-orange-600' : outOfStock ? 'text-red-600' : ''}`}
+                            className="w-20 bg-transparent border-b-2 border-transparent focus:border-black outline-none py-1 text-sm font-black transition-all"
                           />
                           {saved && (
                             <span
@@ -217,12 +217,12 @@ const AdminInventory = () => {
                         </div>
                       </td>
                       <td className="p-4">
-                        <span className={`px-3 py-1.5 rounded-full text-[8px] font-black uppercase tracking-widest ${
+                        <span className={`px-3 py-1.5 rounded-[4px] text-[8px] font-black uppercase tracking-widest ${
                           outOfStock
-                            ? 'bg-red-600 text-black'
+                            ? 'bg-black text-white'
                             : lowStock
-                              ? 'bg-orange-100 text-orange-700'
-                              : 'bg-green-100 text-green-700'
+                              ? 'bg-orange-50 border border-orange-150 text-orange-700'
+                              : 'bg-green-50 border border-green-150 text-green-700'
                         }`}>
                           {outOfStock ? 'Sold Out' : lowStock ? 'Low Stock' : 'In Stock'}
                         </span>
@@ -235,7 +235,7 @@ const AdminInventory = () => {
           </div>
         </AsyncContent>
 
-        <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
+        <div className="px-6 py-4 border-t border-gray-150 flex items-center justify-between">
           <p className="text-[9px] font-black uppercase tracking-[0.3em] text-gray-400 italic">
             {filtered.length} of {products.length} products
           </p>

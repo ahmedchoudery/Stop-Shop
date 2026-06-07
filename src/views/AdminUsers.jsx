@@ -59,8 +59,8 @@ const AdminUsers = () => {
   }, [deleteUser]);
 
   const inputCls = (field) =>
-    `w-full border-b-2 py-3 text-sm font-bold bg-transparent outline-none transition-all placeholder:text-gray-300 ${
-      formErrors[field] ? 'border-red-400' : 'border-gray-100 focus:border-cardinal'
+    `w-full border-b py-3 text-sm font-bold bg-transparent outline-none transition-all placeholder:text-gray-300 ${
+      formErrors[field] ? 'border-red-400' : 'border-gray-200 focus:border-black'
     }`;
 
   return (
@@ -68,12 +68,12 @@ const AdminUsers = () => {
       {/* Header */}
       <div className="flex items-center justify-between mb-10">
         <div>
-          <p className="text-[9px] font-black uppercase tracking-[0.5em] text-cardinal mb-2">Access Control</p>
+          <p className="text-[9px] font-black uppercase tracking-[0.5em] text-black mb-2">Access Control</p>
           <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tighter text-gray-900">Team</h1>
         </div>
         <button
           onClick={() => setShowForm(s => !s)}
-          className="flex items-center space-x-2 px-6 py-3 bg-cardinal text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-gray-900 transition-all duration-300 shadow-xl shadow-red-200/40 btn-shimmer"
+          className="flex items-center space-x-2 px-6 py-3 bg-black text-white text-[10px] font-black uppercase tracking-widest rounded-[4px] hover:bg-black/90 transition-all duration-300 btn-shimmer"
         >
           {showForm ? <X size={14} /> : <Plus size={14} />}
           <span>{showForm ? 'Cancel' : 'Add Admin'}</span>
@@ -82,7 +82,7 @@ const AdminUsers = () => {
 
       {/* Toast */}
       {toast && (
-        <div className={`mb-6 p-4 rounded-xl flex items-center space-x-3 animate-fade-up ${
+        <div className={`mb-6 p-4 rounded-[4px] flex items-center space-x-3 animate-fade-up ${
           toast.type === 'error' ? 'bg-red-50 border border-red-200 text-red-700' : 'bg-green-50 border border-green-200 text-green-700'
         }`}>
           <AlertCircle size={14} />
@@ -92,7 +92,7 @@ const AdminUsers = () => {
 
       {/* Create form */}
       {showForm && (
-        <div className="mb-8 bg-white border border-gray-100 rounded-2xl p-8 shadow-xl animate-slide-up">
+        <div className="mb-8 bg-white border border-gray-100 rounded-[4px] p-8 animate-slide-up">
           <h3 className="text-sm font-black uppercase tracking-widest text-gray-900 mb-8">New Admin Account</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-6">
             <div>
@@ -129,7 +129,7 @@ const AdminUsers = () => {
               <select
                 value={form.roles[0]}
                 onChange={e => setForm(p => ({ ...p, roles: [e.target.value] }))}
-                className="w-full border-b-2 border-gray-100 focus:border-cardinal py-3 text-sm font-bold bg-transparent outline-none transition-all"
+                className="w-full border-b border-gray-200 focus:border-black py-3 text-sm font-bold bg-transparent outline-none transition-all"
               >
                 {ROLES.map(r => <option key={r} value={r}>{r}</option>)}
               </select>
@@ -138,7 +138,7 @@ const AdminUsers = () => {
           <button
             onClick={handleCreate}
             disabled={creating}
-            className="flex items-center space-x-2 px-8 py-3 bg-cardinal text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:brightness-110 transition-all disabled:opacity-50"
+            className="flex items-center space-x-2 px-8 py-3 bg-black text-white text-[10px] font-black uppercase tracking-widest rounded-[4px] hover:bg-black/90 transition-all disabled:opacity-50"
           >
             {creating ? (
               <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -152,7 +152,7 @@ const AdminUsers = () => {
       {/* Users list */}
       <AsyncContent loading={loading} error={error} data={users} onRetry={refetch}
         empty={
-          <div className="p-16 text-center border-2 border-dashed border-gray-100 rounded-xl">
+          <div className="p-16 text-center border-2 border-dashed border-gray-100 rounded-[4px]">
             <p className="text-xs font-black uppercase tracking-[0.4em] text-gray-300">No team members yet</p>
           </div>
         }
@@ -161,27 +161,27 @@ const AdminUsers = () => {
           {(users ?? []).map(user => (
             <div
               key={user._id}
-              className="group bg-white border border-gray-100 rounded-2xl p-6 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-400 relative overflow-hidden"
+              className="group bg-white border border-gray-100 rounded-[4px] p-6 hover:border-gray-200 transition-all duration-400 relative overflow-hidden"
             >
               {/* Shimmer on hover */}
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-gray-50/50 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-out pointer-events-none" />
 
               <div className="flex items-start justify-between mb-5 relative z-10">
-                <div className="w-12 h-12 bg-cardinal rounded-xl flex items-center justify-center text-white font-black text-sm flex-shrink-0">
+                <div className="w-12 h-12 bg-black rounded-[4px] flex items-center justify-center text-white font-black text-sm flex-shrink-0">
                   {user.name?.charAt(0)?.toUpperCase() ?? 'A'}
                 </div>
                 {!user.isPrimary && (
                   <button
                     onClick={() => handleDelete(user)}
                     disabled={deleting}
-                    className="opacity-0 group-hover:opacity-100 p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all duration-200"
+                    className="opacity-0 group-hover:opacity-100 p-2 text-gray-300 hover:text-red-500 hover:bg-red-50 rounded-[4px] transition-all duration-200"
                     title="Remove access"
                   >
                     <UserX size={15} />
                   </button>
                 )}
                 {user.isPrimary && (
-                  <span className="text-[8px] font-black uppercase tracking-widest text-amber-gold bg-yellow-50 border border-yellow-200 px-2 py-1 rounded-lg">
+                  <span className="text-[8px] font-black uppercase tracking-widest text-amber-gold bg-yellow-50 border border-yellow-200 px-2 py-1 rounded-[4px]">
                     Owner
                   </span>
                 )}
@@ -193,8 +193,8 @@ const AdminUsers = () => {
 
                 <div className="flex items-center space-x-2 flex-wrap gap-1">
                   {user.roles?.map(role => (
-                    <span key={role} className={`flex items-center space-x-1 px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest ${
-                      role === 'super-admin' ? 'bg-red-50 text-cardinal' :
+                    <span key={role} className={`flex items-center space-x-1 px-2 py-1 rounded-[4px] text-[8px] font-black uppercase tracking-widest ${
+                      role === 'super-admin' ? 'bg-black text-white' :
                       role === 'auditor' ? 'bg-blue-50 text-blue-600' : 'bg-gray-100 text-gray-600'
                     }`}>
                       <Shield size={9} />

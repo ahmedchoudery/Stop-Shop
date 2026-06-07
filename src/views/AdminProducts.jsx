@@ -83,14 +83,14 @@ const DeleteConfirmModal = ({ product, onConfirm, onCancel, deleting }) => {
       />
 
       {/* Modal */}
-      <div className="relative bg-white rounded-sm shadow-2xl w-full max-w-md animate-scale-in overflow-hidden">
-        {/* Red top accent */}
-        <div className="h-1 bg-cardinal w-full" />
+      <div className="relative bg-white rounded-[4px] w-full max-w-md animate-scale-in overflow-hidden border border-gray-150">
+        {/* Black top accent */}
+        <div className="h-1 bg-black w-full" />
 
         <div className="p-8">
           {/* Icon */}
-          <div className="w-14 h-14 bg-red-50 rounded-full flex items-center justify-center mb-6 mx-auto">
-            <AlertTriangle size={24} className="text-cardinal" />
+          <div className="w-14 h-14 bg-red-50 rounded-[4px] border border-red-100 flex items-center justify-center mb-6 mx-auto">
+            <AlertTriangle size={24} className="text-red-600" />
           </div>
 
           {/* Text */}
@@ -106,7 +106,7 @@ const DeleteConfirmModal = ({ product, onConfirm, onCancel, deleting }) => {
             </p>
             <p className="text-xs text-gray-400 mt-3 font-bold">
               This will also remove it from the Inventory collection.<br />
-              This action <span className="text-cardinal">cannot be undone</span>.
+              This action <span className="text-red-600">cannot be undone</span>.
             </p>
           </div>
 
@@ -115,14 +115,14 @@ const DeleteConfirmModal = ({ product, onConfirm, onCancel, deleting }) => {
             <button
               onClick={onCancel}
               disabled={deleting}
-              className="flex-1 px-5 py-3 border-2 border-gray-200 text-gray-700 text-[10px] font-black uppercase tracking-widest rounded-sm hover:border-gray-400 transition-all disabled:opacity-40"
+              className="flex-1 px-5 py-3 border border-gray-200 text-gray-700 text-[10px] font-black uppercase tracking-widest rounded-[4px] hover:border-black transition-all disabled:opacity-40"
             >
               Cancel
             </button>
             <button
               onClick={onConfirm}
               disabled={deleting}
-              className="flex-1 px-5 py-3 bg-cardinal text-white text-[10px] font-black uppercase tracking-widest rounded-sm hover:brightness-110 transition-all disabled:opacity-50 flex items-center justify-center space-x-2"
+              className="flex-1 px-5 py-3 bg-black text-white text-[10px] font-black uppercase tracking-widest rounded-[4px] hover:bg-black/90 transition-all disabled:opacity-50 flex items-center justify-center space-x-2"
             >
               {deleting ? (
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -391,7 +391,7 @@ const AdminProducts = () => {
             onClick={() => refetch()}
             disabled={loading}
             title="Refresh from MongoDB"
-            className="p-2.5 border border-gray-200 rounded-xl text-gray-400 hover:text-gray-900 hover:border-gray-900 transition-all disabled:opacity-40"
+            className="p-2.5 border border-gray-200 rounded-[4px] text-gray-400 hover:text-gray-900 hover:border-gray-900 transition-all disabled:opacity-40"
           >
             <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
           </button>
@@ -400,7 +400,7 @@ const AdminProducts = () => {
           {/* Add Product */}
           <button
             onClick={handleOpenCreate}
-            className="flex items-center space-x-2 px-6 py-3 bg-cardinal text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-gray-900 transition-all duration-300 shadow-xl shadow-red-200/40"
+            className="flex items-center space-x-2 px-6 py-3 bg-black text-white text-[10px] font-black uppercase tracking-widest rounded-[4px] hover:bg-black/90 transition-all duration-300"
           >
             <Plus size={14} />
             <span>Add Product</span>
@@ -412,7 +412,7 @@ const AdminProducts = () => {
       {toast && (
         <div
           key={toast.id}
-          className={`mb-6 p-4 rounded-xl flex items-center space-x-3 animate-slide-up border ${
+          className={`mb-6 p-4 rounded-[4px] flex items-center space-x-3 animate-slide-up border ${
             toast.type === 'error'
               ? 'bg-red-50 border-red-200 text-red-700'
               : 'bg-green-50 border-green-200 text-green-700'
@@ -444,7 +444,7 @@ const AdminProducts = () => {
       />
 
       {/* ── Products Table ─────────────────────────────────────── */}
-      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-xl">
+      <div className="bg-white border border-gray-200 rounded-[4px] overflow-hidden">
         <AsyncContent
           loading={loading}
           error={error}
@@ -461,7 +461,7 @@ const AdminProducts = () => {
               {!searchTerm && categoryFilter === 'all' && stockFilter === 'all' && (
                 <button
                   onClick={handleOpenCreate}
-                  className="mt-6 flex items-center space-x-2 mx-auto px-6 py-3 bg-cardinal text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:brightness-110 transition-all"
+                  className="mt-6 flex items-center space-x-2 mx-auto px-6 py-3 bg-black text-white text-[10px] font-black uppercase tracking-widest rounded-[4px] hover:bg-black/90 transition-all"
                 >
                   <Plus size={12} />
                   <span>Add First Product</span>
@@ -501,9 +501,9 @@ const AdminProducts = () => {
           <div className="relative h-full w-full max-w-2xl bg-white shadow-2xl overflow-y-auto animate-slide-in flex flex-col">
 
             {/* Panel header */}
-            <div className="sticky top-0 z-10 bg-gray-900 text-black px-6 py-5 flex items-center justify-between flex-shrink-0">
+            <div className="sticky top-0 z-10 bg-black text-white px-6 py-5 flex items-center justify-between flex-shrink-0">
               <div>
-                <p className="text-[9px] font-black uppercase tracking-[0.4em] text-black/40 mb-1">
+                <p className="text-[9px] font-black uppercase tracking-[0.4em] text-white/40 mb-1">
                   {editingProduct ? 'Editing Product' : 'New Product'}
                 </p>
                 <h2 className="text-base font-black uppercase tracking-tight">
@@ -512,7 +512,7 @@ const AdminProducts = () => {
               </div>
               <button
                 onClick={handleCloseForm}
-                className="p-2 hover:bg-white/10 rounded-xl transition-all duration-200"
+                className="p-2 hover:bg-white/10 rounded-[4px] transition-all duration-200"
               >
                 <X size={20} />
               </button>
@@ -539,17 +539,17 @@ const AdminProducts = () => {
             </div>
 
             {/* Sticky save bar */}
-            <div className="sticky bottom-0 bg-white border-t border-gray-100 px-6 py-4 flex items-center space-x-3 flex-shrink-0">
+            <div className="sticky bottom-0 bg-white border-t border-gray-150 px-6 py-4 flex items-center space-x-3 flex-shrink-0">
               <button
                 onClick={handleCloseForm}
-                className="flex-1 px-5 py-3 border-2 border-gray-200 text-gray-700 text-[10px] font-black uppercase tracking-widest rounded-sm hover:border-gray-400 transition-all"
+                className="flex-1 px-5 py-3 border border-gray-200 text-gray-700 text-[10px] font-black uppercase tracking-widest rounded-[4px] hover:border-black transition-all bg-white"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="flex-1 px-5 py-3 bg-cardinal text-white text-[10px] font-black uppercase tracking-widest rounded-sm hover:brightness-110 transition-all disabled:opacity-50 flex items-center justify-center space-x-2 shadow-lg shadow-red-200/40"
+                className="flex-1 px-5 py-3 bg-black text-white text-[10px] font-black uppercase tracking-widest rounded-[4px] hover:bg-black/90 transition-all disabled:opacity-50 flex items-center justify-center space-x-2"
               >
                 {saving ? (
                   <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />

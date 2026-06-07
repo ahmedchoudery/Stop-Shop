@@ -13,7 +13,7 @@ const StatsGrid = ({ totalSales, totalOrders, trend = 0, pendingOrders = 0 }) =>
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 mb-6 sm:mb-12">
 
       {/* Revenue Card */}
-      <div className="group bg-white p-5 sm:p-8 rounded-sm border border-gray-100 shadow-xl shadow-gray-100/50 hover:border-green-400/50 hover:shadow-2xl hover:shadow-green-100/60 transition-all duration-700 relative overflow-hidden cursor-default">
+      <div className="group bg-white p-5 sm:p-8 rounded-[4px] border border-gray-100 shadow-xl shadow-gray-100/50 hover:border-green-400/50 hover:shadow-2xl hover:shadow-green-100/60 transition-all duration-700 relative overflow-hidden cursor-default">
 
         {/* Background glow — reveals on hover */}
         <div className="absolute inset-0 bg-gradient-to-br from-green-50/0 via-green-50/0 to-green-100/0 group-hover:from-green-50/80 group-hover:to-green-50/20 transition-all duration-700 pointer-events-none" />
@@ -63,19 +63,19 @@ const StatsGrid = ({ totalSales, totalOrders, trend = 0, pendingOrders = 0 }) =>
       </div>
 
       {/* Orders Card */}
-      <div className="group bg-white p-5 sm:p-8 rounded-sm border border-gray-100 shadow-xl shadow-gray-100/50 hover:border-cardinal/30 hover:shadow-2xl hover:shadow-red-100/40 transition-all duration-700 relative overflow-hidden cursor-default">
+      <div className="group bg-white p-5 sm:p-8 rounded-[4px] border border-gray-100 shadow-xl shadow-gray-100/50 hover:border-black/30 hover:shadow-2xl hover:shadow-gray-200/40 transition-all duration-700 relative overflow-hidden cursor-default">
 
         {/* Background glow */}
-        <div className="absolute inset-0 bg-gradient-to-br from-red-50/0 to-red-50/0 group-hover:from-red-50/40 group-hover:to-transparent transition-all duration-700 pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-br from-gray-50/0 to-gray-50/0 group-hover:from-gray-50/40 group-hover:to-transparent transition-all duration-700 pointer-events-none" />
 
         {/* Icon watermark */}
         <div className="absolute top-0 right-0 p-4 opacity-[0.04] group-hover:opacity-[0.08] transition-opacity duration-700 transform translate-x-4 -translate-y-4 group-hover:translate-x-2 group-hover:translate-y-0">
-          <ShoppingBag size={90} className="text-cardinal" />
+          <ShoppingBag size={90} className="text-black" />
         </div>
 
         <div className="relative z-10">
           <div className="flex items-center space-x-2 mb-5">
-            <span className="w-2 h-2 bg-cardinal rounded-full" />
+            <span className="w-2 h-2 bg-black rounded-full" />
             <h3 className="text-[10px] font-black uppercase tracking-[0.35em] text-gray-400">
               Orders Placed
             </h3>
@@ -112,7 +112,7 @@ const StatsGrid = ({ totalSales, totalOrders, trend = 0, pendingOrders = 0 }) =>
         </div>
 
         {/* Bottom shimmer */}
-        <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cardinal to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-700 origin-left" />
+        <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-black to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-700 origin-left" />
       </div>
     </div>
   );

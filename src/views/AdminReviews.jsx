@@ -142,7 +142,7 @@ const AdminReviews = () => {
                 <button
                     onClick={fetchReviews}
                     disabled={loading}
-                    className="p-2.5 border border-gray-200 rounded-xl text-gray-400 hover:text-gray-900 hover:border-gray-900 transition-all disabled:opacity-40"
+                    className="p-2.5 border border-gray-200 rounded-[4px] text-gray-400 hover:text-gray-900 hover:border-gray-900 transition-all disabled:opacity-40"
                 >
                     <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
                 </button>
@@ -150,7 +150,7 @@ const AdminReviews = () => {
 
             {/* Toast */}
             {toast && (
-                <div key={toast.id} className={`mb-6 p-4 rounded-xl flex items-center space-x-3 animate-slide-up border ${toast.type === 'error' ? 'bg-red-50 border-red-200 text-red-700' : 'bg-green-50 border-green-200 text-green-700'
+                <div key={toast.id} className={`mb-6 p-4 rounded-[4px] flex items-center space-x-3 animate-slide-up border ${toast.type === 'error' ? 'bg-red-50 border-red-200 text-red-700' : 'bg-green-50 border-green-200 text-green-700'
                     }`}>
                     {toast.type === 'error' ? <AlertCircle size={14} /> : <CheckCircle size={14} />}
                     <p className="text-xs font-bold">{toast.message}</p>
@@ -168,7 +168,7 @@ const AdminReviews = () => {
                     <button
                         key={key}
                         onClick={() => setStatusFilter(key)}
-                        className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all ${statusFilter === key
+                        className={`flex items-center space-x-2 px-4 py-2 rounded-[4px] text-[10px] font-black uppercase tracking-widest whitespace-nowrap transition-all ${statusFilter === key
                                 ? key === 'pending' ? 'bg-amber-500 text-black'
                                     : key === 'approved' ? 'bg-green-600 text-black'
                                         : key === 'rejected' ? 'bg-red-600 text-black'
@@ -186,10 +186,10 @@ const AdminReviews = () => {
             </div>
 
             {/* Reviews list */}
-            <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-xl">
+            <div className="bg-white border border-gray-200 rounded-[4px] overflow-hidden">
                 {loading ? (
                     <div className="p-16 text-center">
-                        <div className="w-8 h-8 border-2 border-gray-100 border-t-cardinal rounded-full animate-spin mx-auto" />
+                        <div className="w-8 h-8 border-2 border-gray-100 border-t-black rounded-full animate-spin mx-auto" />
                     </div>
                 ) : filtered.length === 0 ? (
                     <div className="p-20 text-center">
@@ -213,7 +213,7 @@ const AdminReviews = () => {
                                     <div className="flex items-start gap-4 px-6 py-5">
 
                                         {/* Avatar */}
-                                        <div className="w-10 h-10 rounded-full bg-cardinal/10 border border-cardinal/20 flex items-center justify-center flex-shrink-0 text-cardinal text-xs font-black">
+                                        <div className="w-10 h-10 rounded-[4px] bg-black flex items-center justify-center flex-shrink-0 text-white text-xs font-black">
                                             {(review.customerName ?? 'A').charAt(0).toUpperCase()}
                                         </div>
 
@@ -236,7 +236,7 @@ const AdminReviews = () => {
                                                     <div className="flex items-center space-x-3 mt-0.5 flex-wrap gap-y-0.5">
                                                         <p className="text-[9px] font-bold text-gray-400 lowercase">{review.customerEmail}</p>
                                                         {review.productId && (
-                                                            <p className="text-[9px] font-black text-cardinal uppercase tracking-widest">
+                                                            <p className="text-[9px] font-black text-black uppercase tracking-widest">
                                                                 SKU: {review.productId}
                                                             </p>
                                                         )}
@@ -274,7 +274,7 @@ const AdminReviews = () => {
                                                     onClick={() => handleStatus(review, 'approved')}
                                                     disabled={isActing}
                                                     title="Approve review — makes it live on product page"
-                                                    className="flex items-center space-x-1.5 px-3 py-2 bg-green-50 text-green-700 text-[9px] font-black uppercase tracking-widest rounded-lg hover:bg-green-100 transition-all disabled:opacity-40"
+                                                    className="flex items-center space-x-1.5 px-3 py-2 bg-green-50 text-green-700 text-[9px] font-black uppercase tracking-widest rounded-[4px] hover:bg-green-100 transition-all disabled:opacity-40"
                                                 >
                                                     {actionLoading === review._id + 'approved'
                                                         ? <div className="w-3 h-3 border border-green-500/30 border-t-green-600 rounded-full animate-spin" />
@@ -290,7 +290,7 @@ const AdminReviews = () => {
                                                     onClick={() => handleStatus(review, 'rejected')}
                                                     disabled={isActing}
                                                     title="Reject review — hides it from product page"
-                                                    className="flex items-center space-x-1.5 px-3 py-2 bg-red-50 text-red-600 text-[9px] font-black uppercase tracking-widest rounded-lg hover:bg-red-100 transition-all disabled:opacity-40"
+                                                    className="flex items-center space-x-1.5 px-3 py-2 bg-red-50 text-red-600 text-[9px] font-black uppercase tracking-widest rounded-[4px] hover:bg-red-100 transition-all disabled:opacity-40"
                                                 >
                                                     {actionLoading === review._id + 'rejected'
                                                         ? <div className="w-3 h-3 border border-red-400/30 border-t-red-500 rounded-full animate-spin" />
@@ -305,7 +305,7 @@ const AdminReviews = () => {
                                                 onClick={() => handleDelete(review)}
                                                 disabled={isActing}
                                                 title="Delete permanently"
-                                                className="p-2 text-gray-300 hover:text-cardinal hover:bg-red-50 rounded-lg transition-all disabled:opacity-40"
+                                                className="p-2 text-gray-300 hover:text-red-600 hover:bg-red-50 rounded-[4px] transition-all disabled:opacity-40"
                                             >
                                                 {actionLoading === review._id + 'delete'
                                                     ? <div className="w-3 h-3 border border-red-300/30 border-t-red-400 rounded-full animate-spin" />
@@ -320,7 +320,7 @@ const AdminReviews = () => {
                     </div>
                 )}
 
-                <div className="px-6 py-4 border-t border-gray-100 flex items-center justify-between">
+                <div className="px-6 py-4 border-t border-gray-150 flex items-center justify-between">
                     <p className="text-[9px] font-black uppercase tracking-[0.3em] text-gray-400 italic">
                         {filtered.length} review{filtered.length !== 1 ? 's' : ''}
                         {counts.pending > 0 && (

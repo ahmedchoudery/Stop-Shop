@@ -69,11 +69,11 @@ const OrderTable = ({ externalOrders, loading: externalLoading, onStatusUpdated,
   return (
     <div className="w-full">
 
-      <div className="bg-white border border-gray-200 shadow-2xl overflow-hidden rounded-sm">
+      <div className="bg-white border border-gray-150 overflow-hidden rounded-[4px]">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-gray-50 border-b border-gray-200">
+              <tr className="bg-gray-50 border-b border-gray-150">
                 <th className="p-4 text-[10px] font-black uppercase tracking-widest text-gray-400">Order ID</th>
                 <th className="p-4 text-[10px] font-black uppercase tracking-widest text-gray-400">Customer</th>
                 <th className="p-4 text-[10px] font-black uppercase tracking-widest text-gray-400">Items</th>
@@ -85,8 +85,8 @@ const OrderTable = ({ externalOrders, loading: externalLoading, onStatusUpdated,
             </thead>
             <tbody className="divide-y divide-gray-100">
               {orders.map((order) => (
-                <tr key={order._id} className="hover:bg-gray-50 transition-colors group">
-                  <td className="p-4 font-mono text-xs font-bold text-red-600">
+                <tr key={order._id} className="hover:bg-gray-50/80 transition-colors group">
+                  <td className="p-4 font-mono text-xs font-bold text-black">
                     {order.orderId || order.orderID || order._id}
                   </td>
                   <td className="p-4">
@@ -112,7 +112,7 @@ const OrderTable = ({ externalOrders, loading: externalLoading, onStatusUpdated,
                       <select 
                         value={order.status}
                         onChange={(e) => handleStatusChange(order._id, e.target.value)}
-                        className="bg-gray-100 border-none text-[10px] font-black uppercase tracking-widest rounded px-2 py-1 outline-none cursor-pointer hover:bg-gray-200 transition-colors"
+                        className="bg-white border border-gray-200 text-[10px] font-black uppercase tracking-widest rounded-[4px] px-2.5 py-1.5 outline-none cursor-pointer hover:border-black transition-colors"
                       >
                         <option value="Pending">Pending</option>
                         <option value="Processing">Processing</option>
@@ -126,22 +126,22 @@ const OrderTable = ({ externalOrders, loading: externalLoading, onStatusUpdated,
                     {new Date(order.createdAt).toLocaleDateString()}
                   </td>
                   <td className="p-4 text-center">
-                    <div className="flex items-center justify-center space-x-2">
+                    <div className="flex items-center justify-center space-x-1">
                       {onViewDetail && (
                         <button 
                           onClick={() => onViewDetail(order)}
-                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-all group-hover:scale-110"
+                          className="p-2 text-gray-400 hover:text-black hover:bg-black/5 rounded-[4px] transition-all"
                           title="View Details"
                         >
-                          <FileText size={18} />
+                          <FileText size={16} />
                         </button>
                       )}
                       <button 
                         onClick={() => generateInvoice(order)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-full transition-all group-hover:scale-110"
+                        className="p-2 text-gray-500 hover:text-black hover:bg-black/5 rounded-[4px] transition-all"
                         title="Download Invoice (PDF)"
                       >
-                        <Download size={18} />
+                        <Download size={16} />
                       </button>
                     </div>
                   </td>
