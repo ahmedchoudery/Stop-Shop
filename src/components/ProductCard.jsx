@@ -16,6 +16,8 @@ import { useCart } from '../context/CartContext.tsx';
 import { useWishlist } from '../context/WishlistContext.jsx';
 import { useCurrency } from '../context/CurrencyContext.jsx';
 import MediaRenderer from './MediaRenderer.jsx';
+import { playPremiumChime } from '../utils/audio.js';
+import MagneticElement from './MagneticElement.jsx';
 
 const ProductCard = ({ product, onImageLoad }) => {
   const navigate      = useNavigate();
@@ -70,6 +72,7 @@ const ProductCard = ({ product, onImageLoad }) => {
     (e) => {
       e.stopPropagation();
       if (outOfStock) return;
+      playPremiumChime();
       addToCart({
         ...product,
         image: product.image,
@@ -94,6 +97,7 @@ const ProductCard = ({ product, onImageLoad }) => {
   const handleWishlist = useCallback(
     (e) => {
       e.stopPropagation();
+      playPremiumChime();
       toggleWishlist(product);
 
       // Elastic heart pop feedback
@@ -168,34 +172,38 @@ const ProductCard = ({ product, onImageLoad }) => {
         </div>
 
         {/* Wishlist — top right */}
-        <button
-          onClick={handleWishlist}
-          className={[
-            'absolute top-3 right-3 z-10 w-8 h-8 flex items-center justify-center rounded-[4px] border border-gray-200/40 transition-all duration-300 shadow-sm active-scale',
-            wishlisted
-              ? 'bg-cardinal opacity-100 text-white'
-              : 'bg-white/95 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 hover:bg-cardinal hover:text-white',
-          ].join(' ')}
-          style={{ transform: 'translateZ(20px)' }}
-          aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
-        >
-          <Heart size={12} className={wishlisted ? 'fill-white text-white' : 'text-black hover:text-white transition-colors duration-200'} />
-        </button>
+        <MagneticElement className="absolute top-3 right-3 z-10">
+          <button
+            onClick={handleWishlist}
+            className={[
+              'w-8 h-8 flex items-center justify-center rounded-[4px] border border-gray-200/40 transition-all duration-300 shadow-sm active-scale',
+              wishlisted
+                ? 'bg-cardinal opacity-100 text-white'
+                : 'bg-white/95 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 hover:bg-cardinal hover:text-white',
+            ].join(' ')}
+            style={{ transform: 'translateZ(20px)' }}
+            aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+          >
+            <Heart size={12} className={wishlisted ? 'fill-white text-white' : 'text-black hover:text-white transition-colors duration-200'} />
+          </button>
+        </MagneticElement>
 
         {/* Add to cart — top left */}
         {!outOfStock && (
-          <button
-            onClick={handleAddToCart}
-            className={[
-              'absolute top-3 left-3 z-10 w-8 h-8 flex items-center justify-center rounded-[4px] border border-gray-200/40 transition-all duration-300 shadow-sm active-scale',
-              cartAdded ? 'bg-cardinal text-white' : 'bg-white/95 text-black',
-              'opacity-100 lg:opacity-0 lg:group-hover:opacity-100 hover:bg-black hover:text-white',
-            ].join(' ')}
-            style={{ transform: 'translateZ(20px)' }}
-            aria-label="Add to cart"
-          >
-            <ShoppingBag size={12} className={cartAdded ? 'text-white' : 'text-black hover:text-white transition-colors duration-200'} />
-          </button>
+          <MagneticElement className="absolute top-3 left-3 z-10">
+            <button
+              onClick={handleAddToCart}
+              className={[
+                'w-8 h-8 flex items-center justify-center rounded-[4px] border border-gray-200/40 transition-all duration-300 shadow-sm active-scale',
+                cartAdded ? 'bg-cardinal text-white' : 'bg-white/95 text-black',
+                'opacity-100 lg:opacity-0 lg:group-hover:opacity-100 hover:bg-black hover:text-white',
+              ].join(' ')}
+              style={{ transform: 'translateZ(20px)' }}
+              aria-label="Add to cart"
+            >
+              <ShoppingBag size={12} className={cartAdded ? 'text-white' : 'text-black hover:text-white transition-colors duration-200'} />
+            </button>
+          </MagneticElement>
         )}
 
         {/* Status badges — mutually exclusive */}

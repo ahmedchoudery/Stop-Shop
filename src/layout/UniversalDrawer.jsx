@@ -14,6 +14,8 @@ import { useCurrency } from '../context/CurrencyContext.jsx';
 import { useScrollLock } from '../hooks/useUtils.js';
 import CouponInput from '../components/CouponInput.jsx';
 import WishlistDrawer from '../components/WishlistDrawer.jsx';
+import { playPremiumChime } from '../utils/audio.js';
+import MagneticElement from '../components/MagneticElement.jsx';
 
 // ── Cart Item ────────────────────────────────────────────────────
 const CartItem = ({ item, onRemove, onQtyChange }) => {
@@ -75,7 +77,7 @@ const CartItem = ({ item, onRemove, onQtyChange }) => {
             {/* Qty */}
             <div className="flex items-center border border-gray-200">
               <button
-                onClick={() => onQtyChange(item, -1)}
+                onClick={() => { playPremiumChime(); onQtyChange(item, -1); }}
                 className="w-11 h-11 sm:w-6 sm:h-6 flex items-center justify-center text-gray-400 hover:text-gray-900 hover:bg-gray-50 transition-colors"
                 aria-label="Decrease quantity"
               >
@@ -85,7 +87,7 @@ const CartItem = ({ item, onRemove, onQtyChange }) => {
                 {item.quantity ?? 1}
               </span>
               <button
-                onClick={() => onQtyChange(item, 1)}
+                onClick={() => { playPremiumChime(); onQtyChange(item, 1); }}
                 className="w-11 h-11 sm:w-6 sm:h-6 flex items-center justify-center text-gray-400 hover:text-gray-900 hover:bg-gray-50 transition-colors"
                 aria-label="Increase quantity"
               >
@@ -95,7 +97,7 @@ const CartItem = ({ item, onRemove, onQtyChange }) => {
 
             {/* Remove */}
             <button
-              onClick={() => onRemove(item)}
+              onClick={() => { playPremiumChime(); onRemove(item); }}
               className="w-11 h-11 sm:w-6 sm:h-6 flex items-center justify-center text-gray-300 hover:text-cardinal transition-colors ml-1"
               aria-label="Remove item"
             >
@@ -214,13 +216,15 @@ const UniversalDrawer = () => {
                     Clear
                   </button>
                 )}
-                <button
-                  onClick={handleClose}
-                  className="w-11 h-11 sm:w-8 sm:h-8 flex items-center justify-center text-gray-400 hover:text-gray-900 hover:bg-black/5 active-scale rounded-full transition-all"
-                  aria-label="Close drawer"
-                >
-                  <X size={18} />
-                </button>
+                <MagneticElement>
+                  <button
+                    onClick={() => { playPremiumChime(); handleClose(); }}
+                    className="w-11 h-11 sm:w-8 sm:h-8 flex items-center justify-center text-gray-400 hover:text-gray-900 hover:bg-black/5 active-scale rounded-[4px] border border-transparent hover:border-black/5 transition-all"
+                    aria-label="Close drawer"
+                  >
+                    <X size={18} />
+                  </button>
+                </MagneticElement>
               </div>
             </div>
 
@@ -337,18 +341,19 @@ const UniversalDrawer = () => {
                   <span className="text-xl font-black text-gray-900">{formatPrice(finalTotal)}</span>
                 </div>
 
-                {/* Checkout button */}
-                <Link
-                  to="/checkout"
-                  onClick={handleClose}
-                  className="btn-primary w-full text-center block mb-3 rounded-[4px]"
-                >
-                  Proceed to Checkout
-                </Link>
+                <MagneticElement className="w-full">
+                  <Link
+                    to="/checkout"
+                    onClick={() => { playPremiumChime(); handleClose(); }}
+                    className="btn-primary w-full text-center block mb-3 rounded-[4px]"
+                  >
+                    Proceed to Checkout
+                  </Link>
+                </MagneticElement>
 
                 {/* Continue shopping */}
                 <button
-                  onClick={handleClose}
+                  onClick={() => { playPremiumChime(); handleClose(); }}
                   className="w-full text-center text-[9px] font-black uppercase tracking-widest text-gray-400 hover:text-gray-900 transition-colors py-2.5 active-scale"
                 >
                   Continue Shopping

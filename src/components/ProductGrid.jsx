@@ -9,6 +9,7 @@ import { SlidersHorizontal, FolderOpen, RotateCcw } from 'lucide-react';
 import ProductCard from './ProductCard';
 import { useProducts } from '../hooks/useProducts.js';
 import { useCart } from '../context/CartContext.tsx';
+import SplitText from './SplitText.jsx';
 
 const SORT_OPTIONS = [
   { label: 'Featured',           value: 'popular' },
@@ -83,7 +84,9 @@ const ProductGrid = ({ products, activeBucket = 'All', activeSubCategory = null 
               </p>
             )}
             <h2 className="text-3xl sm:text-4xl font-black uppercase tracking-tighter text-black leading-none">
-              {activeSubCategory ?? (activeBucket !== 'All' ? activeBucket : 'Collection')}
+              <SplitText>
+                {activeSubCategory ?? (activeBucket !== 'All' ? activeBucket : 'Collection')}
+              </SplitText>
             </h2>
             {sortedProducts.length > 0 && (
               <p className="text-[10px] text-gray-500 font-bold mt-2 uppercase tracking-widest">

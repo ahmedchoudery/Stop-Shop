@@ -18,6 +18,8 @@ import { useWishlist } from '../context/WishlistContext.jsx';
 import { useCustomer } from '../context/CustomerContext.jsx';
 import MobileDrawer from './MobileDrawer.jsx';
 import { CATEGORIES, CATEGORY_MAP } from '../utils/categories.js';
+import { playPremiumChime } from '../utils/audio.js';
+import MagneticElement from '../components/MagneticElement.jsx';
 
 const BUCKETS = ['All', ...CATEGORIES];
 
@@ -142,18 +144,22 @@ const Navbar = ({ products = [], onSearchOpen, scrolled, isHome }) => {
 
           {/* Action Icons */}
           <div className="flex items-center space-x-0.5">
-            <button onClick={onSearchOpen} className={`w-11 h-11 lg:w-9 lg:h-9 flex items-center justify-center transition-all duration-200 active-scale ${iconColor} ${iconHover}`} aria-label="Search">
-              <Search size={17} strokeWidth={1.8} />
-            </button>
+            <MagneticElement>
+              <button onClick={() => { playPremiumChime(); onSearchOpen(); }} className={`w-11 h-11 lg:w-9 lg:h-9 flex items-center justify-center transition-all duration-200 active-scale ${iconColor} ${iconHover}`} aria-label="Search">
+                <Search size={17} strokeWidth={1.8} />
+              </button>
+            </MagneticElement>
 
             <div className="relative hidden sm:block">
-              <button
-                onClick={(e) => { e.stopPropagation(); if (isLoggedIn) setAccountOpen(o => !o); else navigate('/account/login'); }}
-                className={`w-11 h-11 lg:w-9 lg:h-9 flex items-center justify-center transition-all duration-200 active-scale ${iconColor} ${iconHover}`}
-                aria-label="Account"
-              >
-                <User size={17} strokeWidth={1.8} />
-              </button>
+              <MagneticElement>
+                <button
+                  onClick={(e) => { e.stopPropagation(); playPremiumChime(); if (isLoggedIn) setAccountOpen(o => !o); else navigate('/account/login'); }}
+                  className={`w-11 h-11 lg:w-9 lg:h-9 flex items-center justify-center transition-all duration-200 active-scale ${iconColor} ${iconHover}`}
+                  aria-label="Account"
+                >
+                  <User size={17} strokeWidth={1.8} />
+                </button>
+              </MagneticElement>
               <AnimatePresence>
                 {isLoggedIn && accountOpen && (
                   <motion.div
@@ -168,10 +174,10 @@ const Navbar = ({ products = [], onSearchOpen, scrolled, isHome }) => {
                       <p className="text-[9px] text-gray-500 mt-0.5 truncate">{customer?.email}</p>
                     </div>
                     <div className="py-2">
-                      <Link to="/account" onClick={() => setAccountOpen(false)} className="flex items-center space-x-2.5 px-5 py-2.5 text-[9px] font-black uppercase tracking-widest text-gray-600 hover:text-black hover:bg-white/5 transition-all">
+                      <Link to="/account" onClick={() => { playPremiumChime(); setAccountOpen(false); }} className="flex items-center space-x-2.5 px-5 py-2.5 text-[9px] font-black uppercase tracking-widest text-gray-600 hover:text-black hover:bg-white/5 transition-all">
                         <User size={11} strokeWidth={2} /><span>My Account</span>
                       </Link>
-                      <button onClick={() => { logout(); setAccountOpen(false); }} className="w-full flex items-center space-x-2.5 px-5 py-2.5 text-[9px] font-black uppercase tracking-widest text-gray-500 hover:text-black hover:bg-white/5 transition-all">
+                      <button onClick={() => { playPremiumChime(); logout(); setAccountOpen(false); }} className="w-full flex items-center space-x-2.5 px-5 py-2.5 text-[9px] font-black uppercase tracking-widest text-gray-500 hover:text-black hover:bg-white/5 transition-all">
                         <LogOut size={11} strokeWidth={2} /><span>Sign Out</span>
                       </button>
                     </div>
@@ -181,24 +187,28 @@ const Navbar = ({ products = [], onSearchOpen, scrolled, isHome }) => {
             </div>
 
             {/* Wishlist — badge stays red */}
-            <button onClick={() => openDrawer('wishlist')} className={`relative w-11 h-11 lg:w-9 lg:h-9 flex items-center justify-center transition-all duration-200 active-scale ${iconColor} ${iconHover}`} aria-label="Wishlist">
-              <Heart size={17} strokeWidth={1.8} />
-              {wishlistCount > 0 && (
-                <span className="absolute top-1.5 right-1.5 sm:top-1 sm:right-1 w-[13px] h-[13px] bg-cardinal flex items-center justify-center text-[7px] font-bold font-mono text-white leading-none">
-                  {wishlistCount > 9 ? '9+' : wishlistCount}
-                </span>
-              )}
-            </button>
+            <MagneticElement>
+              <button onClick={() => { playPremiumChime(); openDrawer('wishlist'); }} className={`relative w-11 h-11 lg:w-9 lg:h-9 flex items-center justify-center transition-all duration-200 active-scale ${iconColor} ${iconHover}`} aria-label="Wishlist">
+                <Heart size={17} strokeWidth={1.8} />
+                {wishlistCount > 0 && (
+                  <span className="absolute top-1.5 right-1.5 sm:top-1 sm:right-1 w-[13px] h-[13px] bg-cardinal flex items-center justify-center text-[7px] font-bold font-mono text-white leading-none">
+                    {wishlistCount > 9 ? '9+' : wishlistCount}
+                  </span>
+                )}
+              </button>
+            </MagneticElement>
 
             {/* Cart */}
-            <button onClick={() => openDrawer('cart')} className={`relative w-11 h-11 lg:w-9 lg:h-9 flex items-center justify-center ml-1 transition-all duration-300 active-scale ${isTransparent ? 'bg-white/10 text-white hover:bg-white/20' : 'bg-white/5 text-black hover:bg-white/10 border border-gray-200'}`} aria-label="Cart">
-              <ShoppingBag size={16} strokeWidth={1.8} />
-              {cartCount > 0 && (
-                <span className="absolute -top-1 -right-1 sm:-top-1.5 sm:-right-1.5 w-[16px] h-[16px] bg-cardinal flex items-center justify-center text-[7px] font-bold font-mono text-white leading-none border-[1.5px] border-white">
-                  {cartCount > 9 ? '9+' : cartCount}
-                </span>
-              )}
-            </button>
+            <MagneticElement>
+              <button onClick={() => { playPremiumChime(); openDrawer('cart'); }} className={`relative w-11 h-11 lg:w-9 lg:h-9 flex items-center justify-center ml-1 transition-all duration-300 active-scale ${isTransparent ? 'bg-white/10 text-white hover:bg-white/20' : 'bg-white/5 text-black hover:bg-white/10 border border-gray-200'}`} aria-label="Cart">
+                <ShoppingBag size={16} strokeWidth={1.8} />
+                {cartCount > 0 && (
+                  <span className="absolute -top-1 -right-1 sm:-top-1.5 sm:-right-1.5 w-[16px] h-[16px] bg-cardinal flex items-center justify-center text-[7px] font-bold font-mono text-white leading-none border-[1.5px] border-white">
+                    {cartCount > 9 ? '9+' : cartCount}
+                  </span>
+                )}
+              </button>
+            </MagneticElement>
 
             <button onClick={() => setMobileOpen(true)} className={`lg:hidden w-11 h-11 flex items-center justify-center ml-1 transition-colors duration-200 active-scale ${iconColor} ${iconHover}`} aria-label="Menu">
               <Menu size={20} strokeWidth={1.8} />
