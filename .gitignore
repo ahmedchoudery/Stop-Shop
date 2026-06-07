@@ -42,3 +42,9 @@ test_output.txt
 # Next.js Build Output
 .next/
 
+# TypeScript incremental build cache
+tsconfig.tsbuildinfo
+
+# Runtime logs (generated, not source)
+logs/
+*.log

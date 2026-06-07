@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import dbConnect from '../../../../lib/db';
 import Admin from '../../../../models/Admin';
-import { JWT_SECRET } from '../../../../middleware/auth';
+import { JWT_SECRET } from '../../../../lib/adminAuth';
 import { loginSchema } from '../../../../schemas/validation';
 
 export async function POST(req) {

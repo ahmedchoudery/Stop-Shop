@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import dbConnect from '../../../../lib/db';
 import Customer from '../../../../models/Customer';
 import Order from '../../../../models/Order';
-import { CUSTOMER_JWT_SECRET } from '../../../../middleware/auth';
+import { CUSTOMER_JWT_SECRET } from '../../../../lib/adminAuth';
 
 function getCustomerFromToken(req) {
   const authHeader = req.headers.get('authorization');

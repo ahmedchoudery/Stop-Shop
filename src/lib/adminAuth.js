@@ -1,5 +1,7 @@
 import jwt from 'jsonwebtoken';
-import { JWT_SECRET } from '../middleware/auth.js';
+
+export const JWT_SECRET = process.env.JWT_SECRET || process.env.ADMIN_JWT_SECRET || 'stopshop-admin-secret-2024';
+export const CUSTOMER_JWT_SECRET = process.env.CUSTOMER_JWT_SECRET || process.env.JWT_SECRET || 'stopshop-customer-secret-2024';
 
 export function getAdminFromToken(req) {
   const cookieHeader = req.headers.get('cookie') || '';
