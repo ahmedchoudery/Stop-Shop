@@ -93,14 +93,14 @@ const LoginPage = () => {
         </div>
 
         {/* Login Card */}
-        <div className="bg-white shadow-2xl p-10 rounded-2xl">
+        <div className="bg-white border border-[#EAEAEA] shadow-[0_8px_30px_rgba(0,0,0,0.03)] p-10 rounded-[4px]">
           <h2 className="text-2xl font-black uppercase tracking-tighter text-gray-900 mb-8">
             Sign In
           </h2>
 
           {/* Global error — always surfaced */}
           {loginError && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-xl flex items-start space-x-3">
+            <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-[4px] flex items-start space-x-3">
               <AlertCircle size={16} className="text-red-600 mt-0.5 flex-shrink-0" />
               <p className="text-xs font-bold text-red-700">{loginError}</p>
             </div>
@@ -162,7 +162,7 @@ const LoginPage = () => {
             <button
               type="submit"
               disabled={loading}
-              className="w-full py-4 bg-cardinal text-white font-black uppercase tracking-[0.3em] text-xs rounded-xl shadow-2xl hover:brightness-110 active:scale-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center space-x-3"
+              className="w-full py-4 bg-cardinal text-white font-black uppercase tracking-[0.3em] text-xs rounded-[4px] border border-gray-250/20 hover:brightness-110 active:scale-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center space-x-3"
             >
               {loading ? (
                 <>

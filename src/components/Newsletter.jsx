@@ -149,7 +149,7 @@ const Newsletter = () => {
           ref={headlineRef}
           className="text-4xl sm:text-6xl lg:text-7xl font-black text-black uppercase tracking-tighter leading-[0.85] mb-8"
         >
-          {['Elevate', 'Your', 'Wardrobe.'].map((word) => (
+          {['Refine', 'Your', 'Wardrobe.'].map((word) => (
             <span key={word} data-word className="inline-block mr-[0.12em]">
               {word}
             </span>
@@ -175,7 +175,7 @@ const Newsletter = () => {
         {/* Form / Success */}
         {status === 'success' ? (
           <div className="flex flex-col items-center gap-5">
-            <div className="w-16 h-16 bg-cardinal flex items-center justify-center shadow-[0_20px_60px_rgba(186,31,61,0.18)]">
+            <div className="w-16 h-16 bg-cardinal flex items-center justify-center border border-[#EAEAEA]">
               <CheckCircle size={30} className="text-black" />
             </div>
             <div>

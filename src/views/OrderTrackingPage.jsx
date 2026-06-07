@@ -98,8 +98,8 @@ const StatusTracker = ({ status }) => {
     const cfg = CANCELLED_CONFIG;
     const Icon = cfg.icon;
     return (
-      <div className={`flex items-center space-x-4 p-6 rounded-sm border ${cfg.border} ${cfg.bg}`}>
-        <div className={`w-12 h-12 rounded-full ${cfg.bg} border ${cfg.border} flex items-center justify-center flex-shrink-0`}>
+      <div className={`flex items-center space-x-4 p-6 rounded-[4px] border ${cfg.border} ${cfg.bg}`}>
+        <div className={`w-12 h-12 rounded-[4px] ${cfg.bg} border ${cfg.border} flex items-center justify-center flex-shrink-0`}>
           <Icon size={20} className={cfg.color} />
         </div>
         <div>
@@ -137,7 +137,7 @@ const StatusTracker = ({ status }) => {
             <div key={step.key} className="flex flex-col items-center z-10 flex-1">
               {/* Circle */}
               <div className={`
-                w-12 h-12 rounded-full border-2 flex items-center justify-center
+                w-12 h-12 rounded-[4px] border-2 flex items-center justify-center
                 transition-all duration-500
                 ${isComplete
                   ? `${step.bg} ${step.border} shadow-lg`
@@ -246,7 +246,7 @@ const OrderResult = ({ order, onReset }) => {
     <div className="max-w-2xl mx-auto space-y-6 animate-fade-up">
 
       {/* Order Header */}
-      <div className="bg-white border border-gray-100 rounded-sm shadow-xl overflow-hidden">
+      <div className="bg-white border border-gray-200 rounded-[4px] shadow-[0_8px_30px_rgba(0,0,0,0.03)] overflow-hidden">
         {/* Top accent */}
         <div className="h-1 bg-cardinal" />
 
@@ -269,7 +269,7 @@ const OrderResult = ({ order, onReset }) => {
 
             <button
               onClick={onReset}
-              className="flex items-center space-x-1.5 px-3 py-2 border border-gray-200 rounded-xl text-[9px] font-black uppercase tracking-widest text-gray-400 hover:border-gray-900 hover:text-gray-900 transition-all"
+              className="flex items-center space-x-1.5 px-3 py-2 border border-gray-200 rounded-[4px] text-[9px] font-black uppercase tracking-widest text-gray-400 hover:border-gray-900 hover:text-gray-900 transition-all"
             >
               <RefreshCw size={11} />
               <span>New Search</span>
@@ -278,7 +278,7 @@ const OrderResult = ({ order, onReset }) => {
 
           {/* Delivery estimate */}
           {deliveryMessage && (
-            <div className={`flex items-center space-x-3 p-3 rounded-sm mb-8 ${
+            <div className={`flex items-center space-x-3 p-3 rounded-[4px] mb-8 ${
               order.status === 'Delivered'
                 ? 'bg-green-50 border border-green-100'
                 : order.status === 'Cancelled'
@@ -305,7 +305,7 @@ const OrderResult = ({ order, onReset }) => {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
         {/* Delivery To */}
-        <div className="bg-white border border-gray-100 rounded-sm p-6 shadow-sm">
+        <div className="bg-white border border-gray-200 rounded-[4px] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.03)]">
           <div className="flex items-center space-x-2 mb-4">
             <MapPin size={14} className="text-cardinal" />
             <p className="text-[9px] font-black uppercase tracking-[0.4em] text-gray-400">
@@ -323,7 +323,7 @@ const OrderResult = ({ order, onReset }) => {
         </div>
 
         {/* Payment */}
-        <div className="bg-white border border-gray-100 rounded-sm p-6 shadow-sm">
+        <div className="bg-white border border-gray-200 rounded-[4px] p-6 shadow-[0_8px_30px_rgba(0,0,0,0.03)]">
           <div className="flex items-center space-x-2 mb-4">
             <CreditCard size={14} className="text-cardinal" />
             <p className="text-[9px] font-black uppercase tracking-[0.4em] text-gray-400">
@@ -345,7 +345,7 @@ const OrderResult = ({ order, onReset }) => {
       </div>
 
       {/* Items */}
-      <div className="bg-white border border-gray-100 rounded-sm shadow-sm overflow-hidden">
+      <div className="bg-white border border-gray-200 rounded-[4px] shadow-[0_8px_30px_rgba(0,0,0,0.03)] overflow-hidden">
         <div className="px-6 py-4 border-b border-gray-50 flex items-center space-x-2">
           <ShoppingBag size={14} className="text-cardinal" />
           <p className="text-[9px] font-black uppercase tracking-[0.4em] text-gray-400">
@@ -358,7 +358,7 @@ const OrderResult = ({ order, onReset }) => {
             <div key={`${item.id}-${i}`} className="flex items-center space-x-4 px-6 py-5">
 
               {/* Item number */}
-              <div className="w-6 h-6 rounded-full bg-gray-100 flex items-center justify-center flex-shrink-0">
+              <div className="w-6 h-6 rounded-[4px] bg-gray-100 flex items-center justify-center flex-shrink-0">
                 <span className="text-[8px] font-black text-gray-400">{i + 1}</span>
               </div>
 
@@ -377,7 +377,7 @@ const OrderResult = ({ order, onReset }) => {
 
                   {/* Category */}
                   {item.category && (
-                    <span className="text-[8px] font-black uppercase tracking-widest text-cardinal bg-red-50 px-2 py-0.5 rounded-full">
+                    <span className="text-[8px] font-black uppercase tracking-widest text-cardinal bg-red-50 px-2 py-0.5 rounded-[4px]">
                       {item.category}
                       {item.subCategory && item.subCategory !== 'General'
                         ? ` · ${item.subCategory}`
@@ -387,16 +387,16 @@ const OrderResult = ({ order, onReset }) => {
 
                   {/* Size */}
                   {item.selectedSize && (
-                    <span className="text-[8px] font-black uppercase tracking-widest bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
+                    <span className="text-[8px] font-black uppercase tracking-widest bg-gray-100 text-gray-600 px-2 py-0.5 rounded-[4px]">
                       Size: {item.selectedSize}
                     </span>
                   )}
 
                   {/* Color */}
                   {item.selectedColor && (
-                    <span className="flex items-center space-x-1 text-[8px] font-black uppercase tracking-widest bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
+                    <span className="flex items-center space-x-1 text-[8px] font-black uppercase tracking-widest bg-gray-100 text-gray-600 px-2 py-0.5 rounded-[4px]">
                       <span
-                        className="w-2 h-2 rounded-full border border-white shadow-sm"
+                        className="w-2 h-2 rounded-[4px] border border-white shadow-sm"
                         style={{
                           backgroundColor: item.selectedColor.includes('|')
                             ? item.selectedColor.split('|')[0]
@@ -522,7 +522,7 @@ const OrderTrackingPage = () => {
     <div className="min-h-screen bg-gray-50">
 
       {/* ── Header ─────────────────────────────────────────── */}
-      <div className="bg-white border-b border-gray-100 shadow-sm">
+      <div className="bg-white border-b border-gray-100 shadow-[0_8px_30px_rgba(0,0,0,0.03)]">
         <div className="max-w-4xl mx-auto px-6 py-5 flex items-center justify-between">
           <Link
             to="/"
@@ -574,7 +574,7 @@ const OrderTrackingPage = () => {
         {/* Loading state */}
         {loading && (
           <div className="flex flex-col items-center justify-center py-24 space-y-4">
-            <div className="w-10 h-10 border-2 border-gray-100 border-t-cardinal rounded-full animate-spin" />
+            <div className="w-10 h-10 border-2 border-gray-100 border-t-cardinal rounded-[4px] animate-spin" />
             <p className="text-[9px] font-black uppercase tracking-[0.4em] text-gray-300">
               Looking up your order...
             </p>
@@ -584,8 +584,8 @@ const OrderTrackingPage = () => {
         {/* Error state */}
         {error && !loading && (
           <div className="max-w-lg mx-auto animate-fade-up">
-            <div className="bg-white border border-red-100 rounded-sm p-8 text-center shadow-sm">
-              <div className="w-14 h-14 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-5">
+            <div className="bg-white border border-red-100 rounded-[4px] p-8 text-center shadow-[0_8px_30px_rgba(0,0,0,0.03)]">
+              <div className="w-14 h-14 bg-red-50 rounded-[4px] flex items-center justify-center mx-auto mb-5">
                 <AlertCircle size={22} className="text-cardinal" />
               </div>
               <p className="font-black uppercase tracking-tight text-gray-900 mb-2">
@@ -596,7 +596,7 @@ const OrderTrackingPage = () => {
               </p>
               <button
                 onClick={handleReset}
-                className="flex items-center space-x-2 mx-auto px-6 py-3 bg-cardinal text-white text-[10px] font-black uppercase tracking-widest rounded-sm hover:brightness-110 transition-all"
+                className="flex items-center space-x-2 mx-auto px-6 py-3 bg-cardinal text-white text-[10px] font-black uppercase tracking-widest rounded-[4px] hover:brightness-110 transition-all"
               >
                 <RefreshCw size={12} />
                 <span>Try Again</span>

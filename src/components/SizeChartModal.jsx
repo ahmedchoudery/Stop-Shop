@@ -183,12 +183,12 @@ const SizeChartModal = ({ isOpen, onClose, defaultCategory = 'Tops', highlightSi
       <div className="absolute inset-0 bg-white/70 backdrop-blur-sm animate-fade-in" onClick={onClose} />
 
       {/* Modal */}
-      <div className="relative bg-white w-full sm:max-w-2xl max-h-[92vh] sm:max-h-[85vh] rounded-t-3xl sm:rounded-2xl overflow-hidden flex flex-col shadow-2xl animate-slide-up">
+      <div className="relative bg-white w-full sm:max-w-2xl max-h-[92vh] sm:max-h-[85vh] rounded-t-[4px] sm:rounded-[4px] overflow-hidden flex flex-col border border-gray-200/50 shadow-[0_8px_30px_rgba(0,0,0,0.03)] animate-slide-up">
 
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100 flex-shrink-0">
           <div className="flex items-center space-x-3">
-            <div className="w-9 h-9 bg-red-50 rounded-xl flex items-center justify-center">
+            <div className="w-9 h-9 bg-red-50 rounded-[4px] flex items-center justify-center">
               <Ruler size={16} className="text-cardinal" />
             </div>
             <div>
@@ -199,9 +199,9 @@ const SizeChartModal = ({ isOpen, onClose, defaultCategory = 'Tops', highlightSi
 
           <div className="flex items-center space-x-3">
             {/* Unit toggle — design spell */}
-            <div className="relative flex items-center bg-gray-100 rounded-xl p-1">
+            <div className="relative flex items-center bg-gray-100 rounded-[4px] p-1">
               <div
-                className="absolute h-6 bg-white rounded-lg shadow-sm transition-none"
+                className="absolute h-6 bg-white rounded-[4px] shadow-sm transition-none"
                 style={{
                   width: '36px',
                   left: unit === 'cm' ? '4px' : 'calc(50% + 0px)',
@@ -222,7 +222,7 @@ const SizeChartModal = ({ isOpen, onClose, defaultCategory = 'Tops', highlightSi
               ))}
             </div>
 
-            <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-xl transition-all hover:rotate-90 transform text-gray-400">
+            <button onClick={onClose} className="p-2 hover:bg-gray-100 rounded-[4px] transition-all hover:rotate-90 transform text-gray-400">
               <X size={18} />
             </button>
           </div>
@@ -256,7 +256,7 @@ const SizeChartModal = ({ isOpen, onClose, defaultCategory = 'Tops', highlightSi
         <div className="overflow-y-auto flex-grow p-5">
 
           {/* Pro tip */}
-          <div className="bg-yellow-50 border border-yellow-100 rounded-xl p-4 mb-5 flex items-start space-x-3">
+          <div className="bg-yellow-50 border border-yellow-100 rounded-[4px] p-4 mb-5 flex items-start space-x-3">
             <span className="text-base flex-shrink-0">💡</span>
             <p className="text-xs font-bold text-yellow-800 leading-relaxed">
               <span className="font-black">Pro tip: </span>
@@ -265,7 +265,7 @@ const SizeChartModal = ({ isOpen, onClose, defaultCategory = 'Tops', highlightSi
           </div>
 
           {/* Table */}
-          <div ref={tableRef} className="overflow-x-auto rounded-xl border border-gray-100 mb-5">
+          <div ref={tableRef} className="overflow-x-auto rounded-[4px] border border-gray-100 mb-5">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-gray-900 text-black">
@@ -304,7 +304,7 @@ const SizeChartModal = ({ isOpen, onClose, defaultCategory = 'Tops', highlightSi
                           }`}
                         >
                           {cIdx === 0 ? (
-                            <span className={`inline-flex items-center justify-center w-8 h-8 rounded-lg text-xs font-black transition-all ${
+                            <span className={`inline-flex items-center justify-center w-8 h-8 rounded-[4px] text-xs font-black transition-all ${
                               isHighlighted
                                 ? 'bg-cardinal text-white shadow-md'
                                 : 'bg-gray-100 group-hover:bg-gray-200 text-gray-700'
@@ -343,7 +343,7 @@ const SizeChartModal = ({ isOpen, onClose, defaultCategory = 'Tops', highlightSi
 
             <div data-howto-content className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-4 overflow-hidden" style={{ maxHeight: '0px' }}>
               {data.howTo.map(({ label, desc }) => (
-                <div key={label} className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                <div key={label} className="bg-gray-50 rounded-[4px] p-4 border border-gray-100">
                   <p className="text-[9px] font-black uppercase tracking-widest text-cardinal mb-1">{label}</p>
                   <p className="text-xs text-gray-500 font-medium leading-relaxed">{desc}</p>
                 </div>
@@ -358,7 +358,7 @@ const SizeChartModal = ({ isOpen, onClose, defaultCategory = 'Tops', highlightSi
               href="https://wa.me/923068458656"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center space-x-2 text-[10px] font-black uppercase tracking-widest bg-green-600 text-black px-4 py-2.5 rounded-xl hover:bg-green-500 transition-all duration-200 btn-shimmer"
+              className="flex items-center space-x-2 text-[10px] font-black uppercase tracking-widest bg-green-600 text-black px-4 py-2.5 rounded-[4px] hover:bg-green-500 transition-all duration-200 btn-shimmer"
             >
               <MessageCircle size={12} />
               <span>Ask on WhatsApp</span>

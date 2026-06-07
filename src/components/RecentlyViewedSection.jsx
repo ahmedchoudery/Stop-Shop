@@ -60,7 +60,7 @@ const RecentlyViewedSection = () => {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center space-x-3">
-            <div className="w-9 h-9 bg-gray-100 rounded-xl flex items-center justify-center">
+            <div className="w-9 h-9 bg-gray-100 rounded-[4px] flex items-center justify-center">
               <Clock size={16} className="text-gray-500" />
             </div>
             <div>
@@ -88,7 +88,7 @@ const RecentlyViewedSection = () => {
             </button>
             <button
               onClick={clearViewed}
-              className="flex items-center space-x-1.5 px-3 py-2 text-[9px] font-black uppercase tracking-widest text-gray-400 hover:text-red-500 border border-transparent hover:border-red-100 hover:bg-red-50 rounded-xl transition-all duration-200"
+              className="flex items-center space-x-1.5 px-3 py-2 text-[9px] font-black uppercase tracking-widest text-gray-400 hover:text-red-500 border border-transparent hover:border-red-100 hover:bg-red-50 rounded-[4px] transition-all duration-200"
             >
               <X size={11} />
               <span>Clear</span>
@@ -112,7 +112,7 @@ const RecentlyViewedSection = () => {
                 {/* Image */}
                 <div
                   onClick={() => openDrawer('product', product)}
-                  className="relative w-full aspect-[3/4] bg-gray-50 rounded-2xl overflow-hidden cursor-pointer mb-3"
+                  className="relative w-full aspect-[3/4] bg-gray-50 rounded-[4px] overflow-hidden cursor-pointer mb-3"
                 >
                   <img
                     src={product.image}
@@ -126,7 +126,7 @@ const RecentlyViewedSection = () => {
                   {/* Sold out */}
                   {product.stock === 0 && (
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="bg-white text-black text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-lg">
+                      <span className="bg-white text-black text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-[4px]">
                         Sold Out
                       </span>
                     </div>
@@ -137,7 +137,7 @@ const RecentlyViewedSection = () => {
                     <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-4">
                       <button
                         onClick={(e) => { e.stopPropagation(); addToCart(product); }}
-                        className="bg-white text-white text-[9px] font-black uppercase tracking-widest px-4 py-2.5 rounded-xl shadow-xl hover:bg-cardinal hover:text-white transition-all duration-300 active:scale-95"
+                        className="bg-white text-black text-[9px] font-black uppercase tracking-widest px-4 py-2.5 rounded-[4px] border border-gray-200 hover:bg-cardinal hover:text-white transition-all duration-300 active:scale-95"
                       >
                         + Add to Bag
                       </button>
@@ -147,7 +147,7 @@ const RecentlyViewedSection = () => {
                   {/* Wishlist */}
                   <button
                     onClick={(e) => { e.stopPropagation(); toggleWishlist(product); }}
-                    className={`absolute top-2.5 right-2.5 w-8 h-8 rounded-xl flex items-center justify-center shadow-md transition-all duration-300 ${
+                    className={`absolute top-2.5 right-2.5 w-8 h-8 rounded-[4px] flex items-center justify-center border border-gray-200/30 transition-all duration-300 ${
                       isWishlisted(product.id)
                         ? 'bg-cardinal text-white scale-110'
                         : 'bg-white/90 text-gray-400 opacity-0 group-hover:opacity-100'

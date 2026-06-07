@@ -86,7 +86,7 @@ const ReviewForm = ({ onClose, onSuccess }) => {
       />
 
       {/* Drawer */}
-      <div className="relative w-full max-w-lg bg-gray-50 border border-gray-200 p-8 shadow-2xl animate-fade-up">
+      <div className="relative w-full max-w-lg bg-gray-50 border border-gray-200 p-8 rounded-[4px] shadow-[0_8px_30px_rgba(0,0,0,0.03)] animate-fade-up">
 
         {/* Header */}
         <div className="flex items-start justify-between mb-8">
@@ -100,7 +100,7 @@ const ReviewForm = ({ onClose, onSuccess }) => {
           </div>
           <button
             onClick={onClose}
-            className="w-8 h-8 border border-gray-300 flex items-center justify-center text-gray-500 hover:border-white hover:text-black transition-all duration-200"
+            className="w-8 h-8 border border-gray-300 flex items-center justify-center text-gray-500 hover:border-white hover:text-black rounded-[4px] transition-all duration-200"
           >
             <X size={13} />
           </button>
@@ -190,7 +190,7 @@ const ReviewForm = ({ onClose, onSuccess }) => {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full py-4 bg-cardinal text-white text-[10px] font-black uppercase tracking-[0.4em] hover:brightness-110 transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-3"
+              className="w-full py-4 bg-cardinal text-white text-[10px] font-black uppercase tracking-[0.4em] rounded-[4px] border border-gray-250/20 hover:brightness-110 transition-all duration-300 disabled:opacity-50 flex items-center justify-center gap-3"
             >
               {submitting ? (
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
