@@ -32,7 +32,10 @@ const MarqueeBar = ({ announcement, scrolled = true, isHome = false }) => {
       className={`w-full overflow-hidden select-none pointer-events-auto transition-colors duration-500 ${
         useTransparent ? 'bg-transparent' : 'bg-black border-b border-white/10'
       }`}
-      style={{ height: '34px' }}
+      style={{
+        paddingTop: 'env(safe-area-inset-top, 0px)',
+        height: 'calc(34px + env(safe-area-inset-top, 0px))',
+      }}
       onMouseEnter={() => {
         if (trackRef.current) trackRef.current.style.animationPlayState = 'paused';
       }}

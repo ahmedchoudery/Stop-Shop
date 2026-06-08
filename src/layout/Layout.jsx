@@ -60,7 +60,7 @@ const Layout = ({ children, products = [] }) => {
   //   Navbar     = 64px scrolled / 72px default (fixed, top-[34px])
   //   Total      = 34 + 72 = 106px on non-home pages
   //   Home page gets pt-0 because the hero is full-bleed under the bars
-  const mainPadding = isAdmin ? 'pt-0' : (isHome ? 'pt-0' : 'pt-[106px]');
+  const mainPadding = isAdmin ? 'pt-0' : (isHome ? 'pt-0' : 'pt-[106px] pt-safe');
 
   if (isAdmin) {
     return (
