@@ -50,8 +50,12 @@ const FlashSaleBanner = () => {
 
   // ── Check if dismissed this session ─────────────────────────
   useEffect(() => {
-    if (sessionStorage.getItem(SESSION_KEY) === '1') {
-      setDismissed(true);
+    try {
+      if (sessionStorage.getItem(SESSION_KEY) === '1') {
+        setDismissed(true);
+      }
+    } catch {
+      // ignore: restricted environments
     }
   }, []);
 
@@ -88,7 +92,11 @@ const FlashSaleBanner = () => {
   }, [dismissed]);
 
   const handleDismiss = useCallback(() => {
-    sessionStorage.setItem(SESSION_KEY, '1');
+    try {
+      sessionStorage.setItem(SESSION_KEY, '1');
+    } catch {
+      // ignore: restricted environments
+    }
     setDismissed(true);
   }, []);
 

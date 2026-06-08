@@ -121,16 +121,24 @@ export const LocaleProvider = ({ children }) => {
   const [locale, setLocale] = useState('en-US');
 
   useEffect(() => {
-    const saved = localStorage.getItem(LOCALE_STORAGE_KEY);
-    if (saved && translations[saved]) {
-      setLocale(saved);
+    try {
+      const saved = localStorage.getItem(LOCALE_STORAGE_KEY);
+      if (saved && translations[saved]) {
+        setLocale(saved);
+      }
+    } catch {
+      // ignore: restricted environments
     }
   }, []);
 
   const changeLocale = (code) => {
     if (translations[code]) {
       setLocale(code);
-      localStorage.setItem(LOCALE_STORAGE_KEY, code);
+      try {
+        localStorage.setItem(LOCALE_STORAGE_KEY, code);
+      } catch {
+        // ignore: restricted environments
+      }
       // Optional: Set document direction for RTL support (Urdu)
       document.dir = code === 'ur-PK' ? 'rtl' : 'ltr';
     }

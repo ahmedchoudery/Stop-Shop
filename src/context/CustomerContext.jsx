@@ -54,7 +54,12 @@ export const CustomerProvider = ({ children }) => {
 
   // ── Restore session on mount ──────────────────────────────────
   useEffect(() => {
-    const token = localStorage.getItem(STORAGE_KEY);
+    let token = null;
+    try {
+      token = localStorage.getItem(STORAGE_KEY);
+    } catch {
+      // ignore: restricted environments
+    }
     if (!token) return;
 
     fetch(apiUrl('/api/customer/profile'), {
@@ -65,10 +70,20 @@ export const CustomerProvider = ({ children }) => {
         if (customer) {
           dispatch({ type: ACTIONS.SET_CUSTOMER, customer, token });
         } else {
-          localStorage.removeItem(STORAGE_KEY);
+          try {
+            localStorage.removeItem(STORAGE_KEY);
+          } catch {
+            // ignore
+          }
         }
       })
-      .catch(() => localStorage.removeItem(STORAGE_KEY));
+      .catch(() => {
+        try {
+          localStorage.removeItem(STORAGE_KEY);
+        } catch {
+          // ignore
+        }
+      });
   }, []);
 
   // ── Register ──────────────────────────────────────────────────
@@ -83,7 +98,11 @@ export const CustomerProvider = ({ children }) => {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Registration failed');
 
-      localStorage.setItem(STORAGE_KEY, data.token);
+      try {
+        localStorage.setItem(STORAGE_KEY, data.token);
+      } catch {
+        // ignore
+      }
       dispatch({ type: ACTIONS.SET_CUSTOMER, customer: data.customer, token: data.token });
       return data;
     } catch (err) {
@@ -104,7 +123,11 @@ export const CustomerProvider = ({ children }) => {
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? 'Login failed');
 
-      localStorage.setItem(STORAGE_KEY, data.token);
+      try {
+        localStorage.setItem(STORAGE_KEY, data.token);
+      } catch {
+        // ignore
+      }
       dispatch({ type: ACTIONS.SET_CUSTOMER, customer: data.customer, token: data.token });
       return data;
     } catch (err) {
@@ -115,13 +138,22 @@ export const CustomerProvider = ({ children }) => {
 
   // ── Logout ────────────────────────────────────────────────────
   const logout = useCallback(() => {
-    localStorage.removeItem(STORAGE_KEY);
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch {
+      // ignore
+    }
     dispatch({ type: ACTIONS.LOGOUT });
   }, []);
 
   // ── Update profile ────────────────────────────────────────────
   const updateProfile = useCallback(async (updates) => {
-    const token = localStorage.getItem(STORAGE_KEY);
+    let token = null;
+    try {
+      token = localStorage.getItem(STORAGE_KEY);
+    } catch {
+      // ignore
+    }
     if (!token) return;
     try {
       const res = await fetch(apiUrl('/api/customer/profile'), {
@@ -141,7 +173,12 @@ export const CustomerProvider = ({ children }) => {
 
   // ── Fetch customer orders ─────────────────────────────────────
   const fetchOrders = useCallback(async () => {
-    const token = localStorage.getItem(STORAGE_KEY);
+    let token = null;
+    try {
+      token = localStorage.getItem(STORAGE_KEY);
+    } catch {
+      // ignore
+    }
     if (!token) return [];
     const res = await fetch(apiUrl('/api/customer/orders'), {
       headers: { Authorization: `Bearer ${token}` },

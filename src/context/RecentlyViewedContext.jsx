@@ -27,7 +27,11 @@ const STORAGE_KEY = 'stopshop_recently_viewed';
     }, [recentlyViewedRaw, products]);
 
     useEffect(() => {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(recentlyViewedRaw));
+        try {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(recentlyViewedRaw));
+        } catch {
+            // ignore: restricted environments
+        }
     }, [recentlyViewedRaw]);
 
     const addViewed = (product) => {
