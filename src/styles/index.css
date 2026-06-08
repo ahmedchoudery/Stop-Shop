@@ -69,9 +69,6 @@
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     scroll-behavior: smooth;
-    width: 100%;
-    max-width: 100%;
-    overflow-x: hidden;
   }
 
   body {
@@ -79,10 +76,6 @@
     background-color: var(--bg-base);
     color: var(--text-primary);
     line-height: 1.5;
-    width: 100%;
-    max-width: 100%;
-    overflow-x: hidden;
-    position: relative;
   }
 
   body::after {
