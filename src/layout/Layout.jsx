@@ -84,9 +84,8 @@ const Layout = ({ children, products = [] }) => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-white w-full max-w-full overflow-x-hidden relative">
-
-      {/* ── Fixed Header Wrapper (Unified fixed container to prevent gaps/drifting on mobile) ─── */}
+    <>
+      {/* ── Fixed Header Wrapper (Unified fixed container outside overflow constraints to prevent gaps/drifting on mobile) ─── */}
       <div className="fixed top-0 left-0 w-full z-[110] pointer-events-none">
         {/* ── Flash sale banner (topmost, 36px, dismissible) ─── */}
         <FlashSaleBanner />
@@ -107,35 +106,37 @@ const Layout = ({ children, products = [] }) => {
         />
       </div>
 
-      {/* ── Page content ─────────────────────────────── */}
-      <main className={`flex-grow relative ${mainPadding}`}>
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={location.pathname}
-            variants={pageVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            className="w-full"
-          >
-            {children}
-          </motion.div>
-        </AnimatePresence>
-      </main>
+      <div className="min-h-screen flex flex-col bg-white w-full max-w-full overflow-x-hidden relative">
+        {/* ── Page content ─────────────────────────────── */}
+        <main className={`flex-grow relative ${mainPadding}`}>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={location.pathname}
+              variants={pageVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              className="w-full"
+            >
+              {children}
+            </motion.div>
+          </AnimatePresence>
+        </main>
 
-      {/* ── Footer ───────────────────────────────────── */}
-      <Footer />
+        {/* ── Footer ───────────────────────────────────── */}
+        <Footer />
 
-      {/* ── Search overlay ────────────────────────────── */}
-      <SearchOverlay
-        isOpen={searchOpen}
-        onClose={() => setSearchOpen(false)}
-        products={products}
-      />
+        {/* ── Search overlay ────────────────────────────── */}
+        <SearchOverlay
+          isOpen={searchOpen}
+          onClose={() => setSearchOpen(false)}
+          products={products}
+        />
 
-      {/* ── WhatsApp floating button ──────────────────── */}
-      <WhatsAppButton />
-    </div>
+        {/* ── WhatsApp floating button ──────────────────── */}
+        <WhatsAppButton />
+      </div>
+    </>
   );
 };
 
