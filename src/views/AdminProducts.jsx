@@ -48,6 +48,8 @@ const DEFAULT_FORM = {
   lifestyleImage: '',
   variantImages:  {},
   gallery:        [],
+  featuredSection: 'drop',
+  displayOrder:    0,
 };
 
 // ─────────────────────────────────────────────────────────────────
@@ -250,6 +252,8 @@ const AdminProducts = () => {
                         ? Object.fromEntries(product.variantImages)
                         : (product.variantImages ?? {}),
       gallery:        product.gallery        ?? [],
+      featuredSection: product.featuredSection ?? 'drop',
+      displayOrder:    product.displayOrder    ?? 0,
     });
     setColorInput('');
     setSizeInput('');
@@ -535,6 +539,7 @@ const AdminProducts = () => {
                 setGalleryUrl={setGalleryUrl}
                 embedCopied={embedCopied}
                 setEmbedCopied={setEmbedCopied}
+                allProducts={products}
               />
             </div>
 

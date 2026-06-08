@@ -19,6 +19,7 @@ const ProductForm = memo(({
   sizeInput, setSizeInput,
   galleryUrl, setGalleryUrl,
   embedCopied, setEmbedCopied,
+  allProducts = [],
 }) => {
   const [uploading, setUploading] = useState(false);
 
@@ -173,6 +174,13 @@ const ProductForm = memo(({
           <BasicInfoSection form={form} setForm={setForm} />
 
           <StockCategorySection form={form} setForm={setForm} />
+
+          <PlacementSection
+            form={form}
+            setForm={setForm}
+            allProducts={allProducts}
+            editingProduct={editingProduct}
+          />
 
           <SpecsSection form={form} setForm={setForm} />
 
@@ -432,6 +440,103 @@ const RatingSection = memo(({ form, setForm }) => (
 
 RatingSection.displayName = 'RatingSection';
 
+const PlacementSection = memo(({ form, setForm, allProducts, editingProduct }) => {
+  const sections = [
+    { id: 'drop', name: "The Drop You've Been Waiting For", desc: "Hero/Featured section" },
+    { id: 'attitude', name: "Defined by Attitude", desc: "Lookbook Editorial strip" },
+    { id: 'pieces', name: "Pieces That Speak for Themselves", desc: "Curated Highlights grid" },
+  ];
+
+  const selectedSection = form.featuredSection || 'drop';
+  
+  // Calculate products in the currently selected section
+  const sectionProducts = (allProducts || []).filter(
+    p => p.featuredSection === selectedSection && p.id !== (editingProduct?.id || editingProduct?._id)
+  );
+
+  const displayOrderVal = parseInt(form.displayOrder) || 0;
+
+  // Check if this displayOrder is taken
+  const conflictProduct = sectionProducts.find(p => (parseInt(p.displayOrder) || 0) === displayOrderVal);
+
+  return (
+    <div className="border border-gray-150 rounded-[4px] p-6 bg-gray-50/50 space-y-4">
+      <div className="flex items-center justify-between">
+        <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500">
+          Storefront Placement *
+        </label>
+        <span className="text-[9px] font-black uppercase tracking-widest text-gray-400">
+          Mandatory Selection
+        </span>
+      </div>
+
+      {/* Grid of 3 Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {sections.map(s => {
+          const isSelected = form.featuredSection === s.id;
+          const count = (allProducts || []).filter(p => p.featuredSection === s.id).length;
+          return (
+            <button
+              key={s.id}
+              type="button"
+              onClick={() => setForm(f => ({ ...f, featuredSection: s.id }))}
+              className={`p-4 rounded-[4px] border text-left flex flex-col justify-between transition-all min-h-[110px] ${
+                isSelected
+                  ? 'border-black bg-black text-white shadow-sm'
+                  : 'border-gray-250 bg-white hover:border-gray-400 text-black'
+              }`}
+            >
+              <div>
+                <p className="text-[11px] font-black uppercase tracking-tight leading-tight mb-1">{s.name}</p>
+                <p className={`text-[9px] ${isSelected ? 'text-gray-300' : 'text-gray-450'} font-bold`}>{s.desc}</p>
+              </div>
+              <span className={`text-[9px] font-black uppercase tracking-wider mt-3 ${isSelected ? 'text-white/60' : 'text-gray-500'}`}>
+                {count} {count === 1 ? 'Product' : 'Products'}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Display Order Selection */}
+      {form.featuredSection && (
+        <div className="bg-white border border-gray-200 rounded-[4px] p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex-grow">
+            <span className="block text-[9px] font-black uppercase tracking-widest text-gray-400 mb-1">
+              Position inside Section
+            </span>
+            <p className="text-xs text-gray-600 font-bold">
+              You have <span className="font-black text-black">{sectionProducts.length}</span> other products in this section.
+            </p>
+          </div>
+          <div className="flex-shrink-0 flex items-center space-x-3">
+            <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">Position #</label>
+            <input
+              type="number"
+              min="0"
+              value={form.displayOrder ?? 0}
+              onChange={e => setForm(f => ({ ...f, displayOrder: Math.max(0, parseInt(e.target.value) || 0) }))}
+              className="w-20 border border-gray-255 rounded-[4px] px-3 py-2 text-sm font-black text-center focus:border-black outline-none"
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Conflict Warning */}
+      {conflictProduct && (
+        <div className="bg-yellow-50 border border-yellow-250 text-yellow-800 rounded-[4px] p-3 text-xs flex items-center space-x-2">
+          <span className="text-sm">⚠️</span>
+          <p className="font-bold">
+            Product <span className="font-black">"{conflictProduct.name}"</span> is already assigned to position <span className="font-black">#{displayOrderVal}</span> in this section.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+});
+
+PlacementSection.displayName = 'PlacementSection';
+
 export const EMPTY_FORM = {
   id: '', name: '', price: '', quantity: '',
   image: '', lifestyleImage: '', mediaType: 'upload', embedCode: '',
@@ -443,6 +548,8 @@ export const EMPTY_FORM = {
   variantImages: {},
   sizes: [],
   sizeStock: {},
+  featuredSection: 'drop',
+  displayOrder: 0,
 };
 
 export { ProductForm };

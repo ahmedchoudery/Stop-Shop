@@ -4,7 +4,8 @@ import React, { useEffect, useMemo, useCallback } from 'react';
 import PowerOfChoiceHero from '../components/PowerOfChoiceHero.jsx';
 import BrandStrip from '../components/BrandStrip.jsx';
 import CategoryTiles from '../components/CategoryTiles.jsx';
-import FeaturedCarousel from '../components/FeaturedCarousel.jsx';
+import FeaturedDrop from '../components/FeaturedDrop.jsx';
+import PiecesThatSpeak from '../components/PiecesThatSpeak.jsx';
 import LookbookStrip from '../components/LookbookStrip.jsx';
 import ProductGrid from '../components/ProductGrid.jsx';
 import ReviewsSection from '../components/ReviewsSection.jsx';
@@ -63,26 +64,14 @@ export default function HomePageClient({ products = [] }) {
         activeBucket={activeBucket}
       />
 
-      {/* 4 ─ Featured Drop Carousel: "The Drop You've Been Waiting For" */}
-      {featuredProducts.length > 0 && (
-        <FeaturedCarousel
-          products={featuredProducts}
-          headline="The Drop You've Been Waiting For."
-          subline="New Arrivals · Limited Stock"
-        />
-      )}
+      {/* 4 ─ Featured Drop: "The Drop You've Been Waiting For" */}
+      <FeaturedDrop fallbackProducts={featuredProducts} />
 
       {/* 5 ─ Lookbook Full-Bleed Strip */}
       <LookbookStrip onShopNow={handleCategorySelect} />
 
-      {/* 6 ─ Best Sellers Carousel */}
-      {bestSellers.length > 0 && (
-        <FeaturedCarousel
-          products={bestSellers}
-          headline="Pieces That Speak for Themselves."
-          subline="Best Sellers · Fan Favourites"
-        />
-      )}
+      {/* 6 ─ Pieces That Speak: "Pieces That Speak for Themselves" */}
+      <PiecesThatSpeak fallbackProducts={bestSellers} />
 
       {/* 7 ─ Full Product Catalog Grid */}
       <ProductGrid

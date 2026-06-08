@@ -2,14 +2,14 @@
 
 /**
  * @fileoverview LookbookStrip.jsx — Editorial Draggable Lookbook with Navigation
- * v2: Added prev/next arrow controls, active dots, hover image zoom, and
- *     a richer editorial header with a divider line.
+ * v3: Updated to pull real products from API with attitude section, supporting fallback to default looks.
  */
 
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, ArrowLeft } from 'lucide-react';
 import { playPremiumChime } from '../utils/audio.js';
+import { useNavigate } from '../utils/router-compat.jsx';
 
 const CARD_W_PX = 360; // approximate card width for step navigation
 const GAP_PX    = 48;
@@ -46,11 +46,40 @@ const LOOKS = [
 ];
 
 export default function LookbookStrip({ onShopNow }) {
+  const navigate = useNavigate();
   const containerRef  = useRef(null);
   const innerRef      = useRef(null);
   const [dragConstraints, setDragConstraints] = useState({ left: 0, right: 0 });
   const [dragX, setDragX]     = useState(0);
   const [activeIdx, setActiveIdx] = useState(0);
+
+  const [dbLooks, setDbLooks] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/public/featured?section=attitude')
+      .then(res => {
+        if (!res.ok) throw new Error('Failed to fetch');
+        return res.json();
+      })
+      .then(data => {
+        setDbLooks(data || []);
+      })
+      .catch(err => console.error('[Lookbook] fetch failed:', err))
+      .finally(() => setLoading(false));
+  }, []);
+
+  const items = dbLooks.length > 0
+    ? dbLooks.map((look, i) => ({
+        id: look.id || look._id,
+        image: look.lifestyleImage || look.image,
+        tag: `Look ${String(i + 1).padStart(2, '0')}`,
+        title: look.name,
+        desc: look.specs?.[0] || `Premium ${look.subCategory || 'apparel'} designed for modern living.`,
+        price: look.price,
+        product: look,
+      }))
+    : LOOKS;
 
   useEffect(() => {
     const updateConstraints = () => {
@@ -64,14 +93,14 @@ export default function LookbookStrip({ onShopNow }) {
     window.addEventListener('resize', updateConstraints);
     const t = setTimeout(updateConstraints, 500);
     return () => { window.removeEventListener('resize', updateConstraints); clearTimeout(t); };
-  }, []);
+  }, [items.length]);
 
   const stepTo = useCallback((idx) => {
-    const clampedIdx = Math.max(0, Math.min(LOOKS.length - 1, idx));
+    const clampedIdx = Math.max(0, Math.min(items.length - 1, idx));
     setActiveIdx(clampedIdx);
     const newX = Math.max(dragConstraints.left, -(clampedIdx * (CARD_W_PX + GAP_PX)));
     setDragX(newX);
-  }, [dragConstraints.left]);
+  }, [dragConstraints.left, items.length]);
 
   const handlePrev = () => { playPremiumChime(); stepTo(activeIdx - 1); };
   const handleNext = () => { playPremiumChime(); stepTo(activeIdx + 1); };
@@ -112,7 +141,7 @@ export default function LookbookStrip({ onShopNow }) {
           <div className="flex items-center gap-4">
             {/* Dots */}
             <div className="flex items-center gap-2 mr-2">
-              {LOOKS.map((_, i) => (
+              {items.map((_, i) => (
                 <button
                   key={i}
                   onClick={() => stepTo(i)}
@@ -140,7 +169,7 @@ export default function LookbookStrip({ onShopNow }) {
             </button>
             <button
               onClick={handleNext}
-              disabled={activeIdx >= LOOKS.length - 1}
+              disabled={activeIdx >= items.length - 1}
               className="w-10 h-10 border border-[var(--border-mid)] flex items-center justify-center text-gray-500 hover:border-black hover:text-black transition-all duration-200 disabled:opacity-25 disabled:cursor-not-allowed active:scale-95"
               aria-label="Next look"
             >
@@ -162,14 +191,20 @@ export default function LookbookStrip({ onShopNow }) {
               const newX = Math.max(dragConstraints.left, Math.min(0, dragX + info.offset.x));
               setDragX(newX);
               const estIdx = Math.round(-newX / (CARD_W_PX + GAP_PX));
-              setActiveIdx(Math.max(0, Math.min(LOOKS.length - 1, estIdx)));
+              setActiveIdx(Math.max(0, Math.min(items.length - 1, estIdx)));
             }}
             className="flex gap-10 sm:gap-12 w-max"
           >
-            {LOOKS.map((look) => (
+            {items.map((look) => (
               <div
                 key={look.id}
-                className="w-[280px] sm:w-[340px] md:w-[360px] flex-shrink-0 group"
+                className="w-[280px] sm:w-[340px] md:w-[360px] flex-shrink-0 group cursor-pointer text-left"
+                onClick={() => {
+                  if (look.product) {
+                    playPremiumChime();
+                    navigate(`/product/${look.id}`);
+                  }
+                }}
               >
                 {/* Image */}
                 <div className="relative aspect-[3/4] overflow-hidden bg-gray-100 border border-[var(--border)]">
@@ -180,7 +215,7 @@ export default function LookbookStrip({ onShopNow }) {
                     initial={{ clipPath: 'inset(0 100% 0 0)' }}
                     whileInView={{ clipPath: 'inset(0 0% 0 0)' }}
                     viewport={{ once: true, margin: '-5%' }}
-                    transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: look.id * 0.1 }}
+                    transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
                   />
                   {/* Dark overlay that fades on hover */}
                   <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-500 pointer-events-none" />

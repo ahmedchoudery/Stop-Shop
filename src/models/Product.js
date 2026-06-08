@@ -44,10 +44,13 @@ const productSchema = new mongoose.Schema({
   lifestyleImage: { type: String, default: '' },
   variantImages: { type: Map, of: String, default: {} },  // { 'Red': 'url', 'Blue': 'url' }
   gallery:       [{ type: String }],
+  featuredSection: { type: String, enum: ['drop', 'attitude', 'pieces'], required: true },
+  displayOrder:    { type: Number, default: 0, min: 0 },
 }, { timestamps: true, versionKey: false, autoIndex: true });
 
 productSchema.index({ bucket: 1, createdAt: -1 });
 productSchema.index({ createdAt: -1 });
+productSchema.index({ featuredSection: 1, displayOrder: 1 });
 
 // Keep quantity + stock always in sync
 productSchema.pre('save', function syncStock() {
