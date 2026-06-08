@@ -64,6 +64,7 @@
   }
 
   html {
+    height: 100%;
     font-size: 16px;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -72,6 +73,7 @@
   }
 
   body {
+    height: 100%;
     font-family: var(--font-dm-sans), system-ui, -apple-system, sans-serif;
     background-color: var(--bg-base);
     color: var(--text-primary);
