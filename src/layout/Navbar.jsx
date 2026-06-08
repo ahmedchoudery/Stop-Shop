@@ -64,8 +64,8 @@ const Navbar = ({ products = [], onSearchOpen, scrolled, isHome }) => {
   return (
     <>
       <header
-        className={`fixed left-0 w-full z-[100] transition-all duration-400 ${navBg}`}
-        style={{ top: '34px', height: scrolled ? '64px' : '72px' }}
+        className={`w-full pointer-events-auto transition-all duration-400 ${navBg}`}
+        style={{ height: scrolled ? '64px' : '72px' }}
       >
         <div className="h-full w-full max-w-[1440px] mx-auto px-6 sm:px-10 lg:px-16 flex items-center justify-between">
 

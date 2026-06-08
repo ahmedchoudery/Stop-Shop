@@ -29,7 +29,7 @@ const MarqueeBar = ({ announcement, scrolled = true, isHome = false }) => {
 
   return (
     <div
-      className={`fixed top-0 left-0 w-full z-[110] overflow-hidden select-none transition-all duration-500 ${
+      className={`w-full overflow-hidden select-none pointer-events-auto transition-colors duration-500 ${
         useTransparent ? 'bg-transparent' : 'bg-black border-b border-white/10'
       }`}
       style={{ height: '34px' }}

@@ -86,26 +86,26 @@ const Layout = ({ children, products = [] }) => {
   return (
     <div className="min-h-screen flex flex-col bg-white w-full max-w-full overflow-x-hidden relative">
 
-      {/* ── Flash sale banner (topmost, 36px, dismissible) ─── */}
-      <FlashSaleBanner />
+      {/* ── Fixed Header Wrapper (Unified fixed container to prevent gaps/drifting on mobile) ─── */}
+      <div className="fixed top-0 left-0 w-full z-[110] pointer-events-none">
+        {/* ── Flash sale banner (topmost, 36px, dismissible) ─── */}
+        <FlashSaleBanner />
 
-      {/* ── Marquee announcement bar (34px) ─────────────────── */}
-      <MarqueeBar
-        announcement={settings?.announcement}
-        scrolled={scrolled}
-        isHome={isHome}
-      />
+        {/* ── Marquee announcement bar (34px) ─────────────────── */}
+        <MarqueeBar
+          announcement={settings?.announcement}
+          scrolled={scrolled}
+          isHome={isHome}
+        />
 
-      {/* ── Navbar (sits below marquee bar, top-[34px]) ─ */}
-      {/* Note: Navbar itself is fixed top-0 — we offset it internally */}
-      {/* The Navbar component handles its own `top` via fixed positioning */}
-      {/* We pass scrolled + isHome so it can change its own style */}
-      <Navbar
-        onSearchOpen={() => setSearchOpen(true)}
-        products={products}
-        scrolled={scrolled}
-        isHome={isHome}
-      />
+        {/* ── Navbar (sits below marquee bar) ─────────────────── */}
+        <Navbar
+          onSearchOpen={() => setSearchOpen(true)}
+          products={products}
+          scrolled={scrolled}
+          isHome={isHome}
+        />
+      </div>
 
       {/* ── Page content ─────────────────────────────── */}
       <main className={`flex-grow relative ${mainPadding}`}>
