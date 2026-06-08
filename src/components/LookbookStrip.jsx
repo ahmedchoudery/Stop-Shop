@@ -69,17 +69,15 @@ export default function LookbookStrip({ onShopNow }) {
       .finally(() => setLoading(false));
   }, []);
 
-  const items = dbLooks.length > 0
-    ? dbLooks.map((look, i) => ({
-        id: look.id || look._id,
-        image: look.lifestyleImage || look.image,
-        tag: `Look ${String(i + 1).padStart(2, '0')}`,
-        title: look.name,
-        desc: look.specs?.[0] || `Premium ${look.subCategory || 'apparel'} designed for modern living.`,
-        price: look.price,
-        product: look,
-      }))
-    : LOOKS;
+  const items = dbLooks.map((look, i) => ({
+    id: look.id || look._id,
+    image: look.lifestyleImage || look.image,
+    tag: `Look ${String(i + 1).padStart(2, '0')}`,
+    title: look.name,
+    desc: look.specs?.[0] || `Premium ${look.subCategory || 'apparel'} designed for modern living.`,
+    price: look.price,
+    product: look,
+  }));
 
   useEffect(() => {
     const updateConstraints = () => {
@@ -118,6 +116,10 @@ export default function LookbookStrip({ onShopNow }) {
     onShopNow?.('All');
     scrollToGrid();
   };
+
+  if (loading || dbLooks.length === 0) {
+    return null;
+  }
 
   return (
     <section

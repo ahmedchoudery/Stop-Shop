@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import FeaturedCarousel from './FeaturedCarousel.jsx';
 
-export default function PiecesThatSpeak({ fallbackProducts = [] }) {
+export default function PiecesThatSpeak() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -20,15 +20,13 @@ export default function PiecesThatSpeak({ fallbackProducts = [] }) {
       .finally(() => setLoading(false));
   }, []);
 
-  const displayProducts = products.length > 0 ? products : fallbackProducts;
-
-  if (loading && products.length === 0 && fallbackProducts.length === 0) {
+  if (loading || products.length === 0) {
     return null;
   }
 
   return (
     <FeaturedCarousel
-      products={displayProducts}
+      products={products}
       headline="Pieces That Speak for Themselves."
       subline="Best Sellers · Fan Favourites"
     />
