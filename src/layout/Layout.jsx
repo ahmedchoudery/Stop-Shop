@@ -52,6 +52,7 @@ const Layout = ({ children, products = [] }) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const isAdmin = location.pathname.startsWith('/admin');
   const isHome = location.pathname === '/';
 
   // Top padding calculation:
@@ -59,7 +60,28 @@ const Layout = ({ children, products = [] }) => {
   //   Navbar     = 64px scrolled / 72px default (fixed, top-[34px])
   //   Total      = 34 + 72 = 106px on non-home pages
   //   Home page gets pt-0 because the hero is full-bleed under the bars
-  const mainPadding = isHome ? 'pt-0' : 'pt-[106px]';
+  const mainPadding = isAdmin ? 'pt-0' : (isHome ? 'pt-0' : 'pt-[106px]');
+
+  if (isAdmin) {
+    return (
+      <div className="min-h-screen flex flex-col bg-white">
+        <main className="flex-grow relative pt-0">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={location.pathname}
+              variants={pageVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              className="w-full"
+            >
+              {children}
+            </motion.div>
+          </AnimatePresence>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
