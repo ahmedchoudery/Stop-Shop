@@ -86,10 +86,16 @@ const Layout = ({ children, products = [] }) => {
   return (
     <>
       {/* ── Fixed Header Wrapper (Unified fixed container outside overflow constraints to prevent gaps/drifting on mobile) ─── */}
-      <div className="fixed top-0 left-0 w-full z-[110] pointer-events-none">
+      <div 
+        className="fixed left-0 w-full z-[110] pointer-events-none"
+        style={{ top: '-100px', paddingTop: '100px' }}
+      >
         {/* Black block extending above the header wrapper to cover status bar safe area on mobile */}
         {(!isHome || scrolled) && (
-          <div className="absolute bottom-full left-0 right-0 h-40 bg-black pointer-events-none" />
+          <div 
+            className="absolute left-0 right-0 bg-black pointer-events-none" 
+            style={{ top: 0, height: '100px' }}
+          />
         )}
 
         {/* ── Flash sale banner (topmost, 36px, dismissible) ─── */}
