@@ -64,7 +64,7 @@ const Layout = ({ children, products = [] }) => {
 
   if (isAdmin) {
     return (
-      <div className="min-h-screen flex flex-col bg-white">
+      <div className="min-h-screen flex flex-col bg-white max-w-full overflow-x-hidden">
         <main className="flex-grow relative pt-0">
           <AnimatePresence mode="wait">
             <motion.div
@@ -84,7 +84,7 @@ const Layout = ({ children, products = [] }) => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-white">
+    <div className="min-h-screen flex flex-col bg-white max-w-full overflow-x-hidden">
 
       {/* ── Flash sale banner (topmost, 36px, dismissible) ─── */}
       <FlashSaleBanner />
