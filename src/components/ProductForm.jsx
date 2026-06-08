@@ -147,76 +147,53 @@ const ProductForm = memo(({
   };
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-white/60 backdrop-blur-sm">
-      <div className="bg-white w-full sm:max-w-2xl max-h-[95vh] sm:max-h-[90vh] rounded-t-[4px] sm:rounded-[4px] overflow-hidden flex flex-col border border-gray-150">
-        <div className="flex items-center justify-between px-6 py-5 border-b border-gray-150 flex-shrink-0 bg-black text-white">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-white/10 rounded-[4px] flex items-center justify-center"><Package size={16} /></div>
-            <h3 className="font-black uppercase tracking-tight">{editingProduct ? 'Edit Product' : 'Add New Product'}</h3>
-          </div>
-          <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-[4px] transition-all hover:rotate-90 transform"><X size={20} /></button>
-        </div>
+    <div className="space-y-7 text-left">
+      <MediaSection
+        form={form}
+        onImageUpload={handleImageUpload}
+        uploading={uploading}
+      />
 
-        <div className="overflow-y-auto flex-grow p-6 space-y-7">
-          <MediaSection
-            form={form}
-            onImageUpload={handleImageUpload}
-            uploading={uploading}
-          />
+      <GallerySection
+        form={form}
+        onGalleryUpload={handleGalleryUpload}
+        onRemoveGallery={removeGalleryItem}
+        uploading={uploading}
+      />
 
-          <GallerySection
-            form={form}
-            onGalleryUpload={handleGalleryUpload}
-            onRemoveGallery={removeGalleryItem}
-            uploading={uploading}
-          />
+      <BasicInfoSection form={form} setForm={setForm} />
 
-          <BasicInfoSection form={form} setForm={setForm} />
+      <StockCategorySection form={form} setForm={setForm} />
 
-          <StockCategorySection form={form} setForm={setForm} />
+      <PlacementSection
+        form={form}
+        setForm={setForm}
+        allProducts={allProducts}
+        editingProduct={editingProduct}
+      />
 
-          <PlacementSection
-            form={form}
-            setForm={setForm}
-            allProducts={allProducts}
-            editingProduct={editingProduct}
-          />
+      <SpecsSection form={form} setForm={setForm} />
 
-          <SpecsSection form={form} setForm={setForm} />
+      <ColorsSection
+        form={form}
+        colorInput={colorInput}
+        setColorInput={setColorInput}
+        onAddColor={addColor}
+        onRemoveColor={removeColor}
+        onVariantImageUpload={handleVariantImageUpload}
+        uploading={uploading}
+      />
 
-          <ColorsSection
-            form={form}
-            colorInput={colorInput}
-            setColorInput={setColorInput}
-            onAddColor={addColor}
-            onRemoveColor={removeColor}
-            onVariantImageUpload={handleVariantImageUpload}
-            uploading={uploading}
-          />
+      <SizesSection
+        form={form}
+        sizeInput={sizeInput}
+        setSizeInput={setSizeInput}
+        onAddSize={addSize}
+        onRemoveSize={removeSize}
+        onSetSizeStock={setSizeStock}
+      />
 
-          <SizesSection
-            form={form}
-            sizeInput={sizeInput}
-            setSizeInput={setSizeInput}
-            onAddSize={addSize}
-            onRemoveSize={removeSize}
-            onSetSizeStock={setSizeStock}
-          />
-
-          <RatingSection form={form} setForm={setForm} />
-        </div>
-
-        <div className="flex items-center space-x-3 px-6 py-5 border-t border-gray-150 flex-shrink-0">
-          <button onClick={onClose} className="flex-1 py-3 border border-gray-200 rounded-[4px] font-black uppercase text-xs tracking-widest hover:border-black transition-colors bg-white text-black">Cancel</button>
-          <button onClick={onSave} disabled={saving}
-            className="flex-[2] py-3 bg-black hover:bg-black/90 text-white rounded-[4px] font-black uppercase text-xs tracking-widest transition-all disabled:opacity-50 flex items-center justify-center space-x-2">
-            {saving
-              ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-              : <><Save size={16} /><span>{editingProduct ? 'Save Changes' : 'Add Product'}</span></>
-            }
-          </button>
-        </div>
-      </div>
+      <RatingSection form={form} setForm={setForm} />
     </div>
   );
 });
@@ -442,12 +419,13 @@ RatingSection.displayName = 'RatingSection';
 
 const PlacementSection = memo(({ form, setForm, allProducts, editingProduct }) => {
   const sections = [
-    { id: 'drop', name: "The Drop You've Been Waiting For", desc: "Hero/Featured section" },
+    { id: 'collection', name: "Collection", desc: "Standard Catalog only" },
+    { id: 'drop', name: "The Drop", desc: "Hero/Featured section" },
     { id: 'attitude', name: "Defined by Attitude", desc: "Lookbook Editorial strip" },
-    { id: 'pieces', name: "Pieces That Speak for Themselves", desc: "Curated Highlights grid" },
+    { id: 'pieces', name: "Pieces That Speak", desc: "Curated Highlights grid" },
   ];
 
-  const selectedSection = form.featuredSection || 'drop';
+  const selectedSection = form.featuredSection || 'collection';
   
   // Calculate products in the currently selected section
   const sectionProducts = (allProducts || []).filter(
@@ -459,8 +437,10 @@ const PlacementSection = memo(({ form, setForm, allProducts, editingProduct }) =
   // Check if this displayOrder is taken
   const conflictProduct = sectionProducts.find(p => (parseInt(p.displayOrder) || 0) === displayOrderVal);
 
+  const showPositionInput = selectedSection !== 'collection';
+
   return (
-    <div className="border border-gray-150 rounded-[4px] p-6 bg-gray-50/50 space-y-4">
+    <div className="border border-gray-150 rounded-[4px] p-6 bg-gray-50/50 space-y-4 text-left">
       <div className="flex items-center justify-between">
         <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500">
           Storefront Placement *
@@ -470,8 +450,8 @@ const PlacementSection = memo(({ form, setForm, allProducts, editingProduct }) =
         </span>
       </div>
 
-      {/* Grid of 3 Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      {/* Grid of 4 Cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {sections.map(s => {
           const isSelected = form.featuredSection === s.id;
           const count = (allProducts || []).filter(p => p.featuredSection === s.id).length;
@@ -499,7 +479,7 @@ const PlacementSection = memo(({ form, setForm, allProducts, editingProduct }) =
       </div>
 
       {/* Display Order Selection */}
-      {form.featuredSection && (
+      {showPositionInput && (
         <div className="bg-white border border-gray-200 rounded-[4px] p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex-grow">
             <span className="block text-[9px] font-black uppercase tracking-widest text-gray-400 mb-1">
@@ -523,7 +503,7 @@ const PlacementSection = memo(({ form, setForm, allProducts, editingProduct }) =
       )}
 
       {/* Conflict Warning */}
-      {conflictProduct && (
+      {showPositionInput && conflictProduct && (
         <div className="bg-yellow-50 border border-yellow-250 text-yellow-800 rounded-[4px] p-3 text-xs flex items-center space-x-2">
           <span className="text-sm">⚠️</span>
           <p className="font-bold">
@@ -548,7 +528,7 @@ export const EMPTY_FORM = {
   variantImages: {},
   sizes: [],
   sizeStock: {},
-  featuredSection: 'drop',
+  featuredSection: 'collection',
   displayOrder: 0,
 };
 

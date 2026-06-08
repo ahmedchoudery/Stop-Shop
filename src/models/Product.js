@@ -44,7 +44,7 @@ const productSchema = new mongoose.Schema({
   lifestyleImage: { type: String, default: '' },
   variantImages: { type: Map, of: String, default: {} },  // { 'Red': 'url', 'Blue': 'url' }
   gallery:       [{ type: String }],
-  featuredSection: { type: String, enum: ['drop', 'attitude', 'pieces'], required: true },
+  featuredSection: { type: String, enum: ['collection', 'drop', 'attitude', 'pieces'], required: true },
   displayOrder:    { type: Number, default: 0, min: 0 },
 }, { timestamps: true, versionKey: false, autoIndex: true });
 

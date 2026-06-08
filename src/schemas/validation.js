@@ -61,7 +61,7 @@ export const createProductSchema = z.object({
   lifestyleImage: z.string().max(2000).optional().default(''),
   variantImages: z.record(z.string(), z.string()).optional().default({}),
   gallery:       z.array(z.string().max(2000)).optional().default([]),
-  featuredSection: z.enum(['drop', 'attitude', 'pieces'], { required_error: 'Storefront section is required' }),
+  featuredSection: z.enum(['collection', 'drop', 'attitude', 'pieces'], { required_error: 'Storefront section is required' }),
   displayOrder:    z.number().int().nonnegative().optional().default(0),
 });
 

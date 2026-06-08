@@ -48,7 +48,7 @@ const DEFAULT_FORM = {
   lifestyleImage: '',
   variantImages:  {},
   gallery:        [],
-  featuredSection: 'drop',
+  featuredSection: 'collection',
   displayOrder:    0,
 };
 
@@ -252,7 +252,7 @@ const AdminProducts = () => {
                         ? Object.fromEntries(product.variantImages)
                         : (product.variantImages ?? {}),
       gallery:        product.gallery        ?? [],
-      featuredSection: product.featuredSection ?? 'drop',
+      featuredSection: product.featuredSection ?? 'collection',
       displayOrder:    product.displayOrder    ?? 0,
     });
     setColorInput('');
