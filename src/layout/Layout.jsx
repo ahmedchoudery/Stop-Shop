@@ -64,7 +64,7 @@ const Layout = ({ children, products = [] }) => {
 
   if (isAdmin) {
     return (
-      <div className="min-h-screen flex flex-col bg-white w-full max-w-full overflow-x-hidden relative">
+      <div className="min-h-screen flex flex-col bg-white w-full max-w-full relative">
         <main className="flex-grow relative pt-0">
           <AnimatePresence mode="wait">
             <motion.div
@@ -86,7 +86,14 @@ const Layout = ({ children, products = [] }) => {
   return (
     <>
       {/* ── Fixed Header Wrapper (Unified fixed container outside overflow constraints to prevent gaps/drifting on mobile) ─── */}
-      <div className="fixed top-0 left-0 right-0 z-[110] pointer-events-none">
+      <div 
+        className="fixed top-0 left-0 right-0 z-[110] pointer-events-none"
+        style={{
+          transform: 'translate3d(0, 0, 0)',
+          WebkitTransform: 'translate3d(0, 0, 0)',
+          willChange: 'transform'
+        }}
+      >
         {/* Safe-area spacer to prevent content overlapping notch and paint status bar black on scroll */}
         <div 
           className={`w-full pointer-events-none transition-colors duration-500 ${
@@ -114,7 +121,7 @@ const Layout = ({ children, products = [] }) => {
         />
       </div>
 
-      <div className="min-h-screen flex flex-col bg-white w-full max-w-full overflow-x-hidden relative">
+      <div className="min-h-screen flex flex-col bg-white w-full max-w-full relative">
         {/* ── Page content ─────────────────────────────── */}
         <main className={`flex-grow relative ${mainPadding}`}>
           <AnimatePresence mode="wait">
