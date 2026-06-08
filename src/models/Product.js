@@ -21,7 +21,7 @@ const productSchema = new mongoose.Schema({
     validate: {
       validator: function(v) {
         const CATEGORY_MAP = {
-          Tops: ['Polo', 'Shirt', 'Tshirt', 'Sweatshirt', 'Hoodie', 'Jacket'],
+          Tops: ['Polo', 'Polos', 'Shirt', 'Shirts', 'Tshirt', 'Tshirts', 'T-Shirt', 'T-Shirts', 'Sweatshirt', 'Sweatshirts', 'Hoodie', 'Hoodies', 'Jacket', 'Jackets'],
           Bottoms: ['Jeans', 'Trousers', 'Shorts'],
           Footwear: ['Shoes', 'Slippers', 'Socks'],
           Accessories: ['Glasses', 'Watches', 'Rings', 'Bracelet', 'Chains', 'Caps', 'Belts', 'Bags'],

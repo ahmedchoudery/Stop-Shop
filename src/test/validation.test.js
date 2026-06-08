@@ -53,7 +53,7 @@ describe('loginSchema', () => {
 // ─────────────────────────────────────────────────────────────────
 
 describe('createProductSchema', () => {
-  const minimal = { name: 'Classic Tee', price: 999 };
+  const minimal = { name: 'Classic Tee', price: 999, featuredSection: 'collection' };
 
   it('accepts minimal valid product', () => {
     const data = assertValid(createProductSchema, minimal);
@@ -84,6 +84,7 @@ describe('createProductSchema', () => {
       lifestyleImage: '',
       variantImages: { Black: 'https://cdn.example.com/black.jpg' },
       gallery: [],
+      featuredSection: 'collection',
     };
     const data = assertValid(createProductSchema, full);
     expect(data.id).toBe('PRD-TEST12345');
