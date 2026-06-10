@@ -4,6 +4,8 @@ import Coupon from '../../../../models/Coupon';
 import { requireAdmin } from '../../../../lib/adminAuth';
 import { logAudit } from '../../../../lib/audit';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(req) {
   try {
     await dbConnect();

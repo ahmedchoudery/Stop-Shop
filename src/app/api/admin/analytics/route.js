@@ -4,6 +4,8 @@ import Order from '../../../../models/Order';
 import Product from '../../../../models/Product';
 import { requireAdmin } from '../../../../lib/adminAuth';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(req) {
   try {
     await dbConnect();

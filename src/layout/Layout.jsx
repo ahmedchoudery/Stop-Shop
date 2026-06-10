@@ -87,6 +87,17 @@ const Layout = ({ children, products = [] }) => {
 
   return (
     <>
+      {/* ── Solid top status bar/notch mask for iOS and Android ── */}
+      <div 
+        className="fixed top-0 left-0 right-0 bg-black z-[120]"
+        style={{
+          height: 'env(safe-area-inset-top, 0px)',
+          transform: 'translate3d(0, 0, 0)',
+          WebkitTransform: 'translate3d(0, 0, 0)',
+          willChange: 'transform'
+        }}
+      />
+
       {/* ── Fixed Header Wrapper (Unified fixed container outside overflow constraints to prevent gaps/drifting on mobile) ─── */}
       <div 
         className="fixed top-0 left-0 right-0 z-[110] pointer-events-none"
@@ -96,9 +107,9 @@ const Layout = ({ children, products = [] }) => {
           willChange: 'transform'
         }}
       >
-        {/* Safe-area spacer to prevent content overlapping notch and paint status bar black on scroll */}
+        {/* Transparent spacer to offset the header elements below the safe area */}
         <div 
-          className="w-full pointer-events-none bg-black"
+          className="w-full"
           style={{ height: 'env(safe-area-inset-top, 0px)' }}
         />
 
