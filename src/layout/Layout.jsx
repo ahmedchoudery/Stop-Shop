@@ -87,14 +87,54 @@ const Layout = ({ children, products = [] }) => {
 
   return (
     <>
+      <div className="min-h-screen flex flex-col bg-white w-full max-w-full overflow-x-clip relative">
+        {/* ── Page content ─────────────────────────────── */}
+        <main className={`flex-grow relative ${mainPadding}`}>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={location.pathname}
+              variants={pageVariants}
+              initial="initial"
+              animate="animate"
+              exit="exit"
+              className="w-full"
+            >
+              {children}
+            </motion.div>
+          </AnimatePresence>
+        </main>
+
+        {/* ── Footer ───────────────────────────────────── */}
+        <Footer />
+
+        {/* ── Search overlay ────────────────────────────── */}
+        <SearchOverlay
+          isOpen={searchOpen}
+          onClose={() => setSearchOpen(false)}
+          products={products}
+        />
+
+        {/* ── Mobile Navigation Drawer ─────────────────── */}
+        <MobileDrawer
+          isOpen={mobileOpen}
+          onClose={() => setMobileOpen(false)}
+        />
+
+        {/* ── WhatsApp floating button ──────────────────── */}
+        <WhatsAppButton />
+      </div>
+
       {/* ── Solid top status bar/notch mask for iOS and Android ── */}
       <div 
-        className="fixed top-0 left-0 right-0 bg-black z-[120]"
+        className="fixed top-0 left-0 right-0 bg-black z-[120] pointer-events-none"
         style={{
           height: 'env(safe-area-inset-top, 0px)',
+          backgroundColor: '#000000',
           transform: 'translate3d(0, 0, 0)',
           WebkitTransform: 'translate3d(0, 0, 0)',
-          willChange: 'transform'
+          willChange: 'transform',
+          WebkitBackfaceVisibility: 'hidden',
+          backfaceVisibility: 'hidden'
         }}
       />
 
@@ -131,43 +171,6 @@ const Layout = ({ children, products = [] }) => {
           scrolled={scrolled}
           isHome={isHome}
         />
-      </div>
-
-      <div className="min-h-screen flex flex-col bg-white w-full max-w-full overflow-x-clip relative">
-        {/* ── Page content ─────────────────────────────── */}
-        <main className={`flex-grow relative ${mainPadding}`}>
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={location.pathname}
-              variants={pageVariants}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              className="w-full"
-            >
-              {children}
-            </motion.div>
-          </AnimatePresence>
-        </main>
-
-        {/* ── Footer ───────────────────────────────────── */}
-        <Footer />
-
-        {/* ── Search overlay ────────────────────────────── */}
-        <SearchOverlay
-          isOpen={searchOpen}
-          onClose={() => setSearchOpen(false)}
-          products={products}
-        />
-
-        {/* ── Mobile Navigation Drawer ─────────────────── */}
-        <MobileDrawer
-          isOpen={mobileOpen}
-          onClose={() => setMobileOpen(false)}
-        />
-
-        {/* ── WhatsApp floating button ──────────────────── */}
-        <WhatsAppButton />
       </div>
     </>
   );
