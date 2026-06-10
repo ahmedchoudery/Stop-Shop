@@ -40,6 +40,15 @@ const Layout = ({ children, products = [] }) => {
   const { data: settings } = useSettings(false);
   const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
+  const [safeAreaHeight, setSafeAreaHeight] = useState('env(safe-area-inset-top, 0px)');
+
+  // Detect iOS to apply notch height fallback in Safari
+  useEffect(() => {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    if (isIOS) {
+      setSafeAreaHeight('max(env(safe-area-inset-top, 0px), 47px)');
+    }
+  }, []);
 
   // Scroll to top on route change
   useEffect(() => {
@@ -62,7 +71,13 @@ const Layout = ({ children, products = [] }) => {
   //   Navbar     = 64px scrolled / 72px default (fixed, top-[34px])
   //   Total      = 34 + 72 = 106px on non-home pages
   //   Home page gets pt-0 because the hero is full-bleed under the bars
-  const mainPadding = isAdmin ? 'pt-0' : (isHome ? 'pt-0' : 'pt-[106px] pt-safe');
+  const mainStyle = isAdmin 
+    ? {} 
+    : (isHome 
+        ? {} 
+        : { paddingTop: `calc(106px + ${safeAreaHeight})` }
+      );
+  const mainClass = isAdmin ? 'pt-0' : (isHome ? 'pt-0' : '');
 
   if (isAdmin) {
     return (
@@ -89,7 +104,7 @@ const Layout = ({ children, products = [] }) => {
     <>
       <div className="min-h-screen flex flex-col bg-white w-full max-w-full overflow-x-clip relative">
         {/* ── Page content ─────────────────────────────── */}
-        <main className={`flex-grow relative ${mainPadding}`}>
+        <main className={`flex-grow relative ${mainClass}`} style={mainStyle}>
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}
@@ -128,7 +143,7 @@ const Layout = ({ children, products = [] }) => {
       <div 
         className="fixed top-0 left-0 right-0 bg-black z-[120] pointer-events-none"
         style={{
-          height: 'env(safe-area-inset-top, 0px)',
+          height: safeAreaHeight,
           backgroundColor: '#000000',
           transform: 'translate3d(0, 0, 0)',
           WebkitTransform: 'translate3d(0, 0, 0)',
@@ -150,7 +165,7 @@ const Layout = ({ children, products = [] }) => {
         {/* Transparent spacer to offset the header elements below the safe area */}
         <div 
           className="w-full"
-          style={{ height: 'env(safe-area-inset-top, 0px)' }}
+          style={{ height: safeAreaHeight }}
         />
 
         {/* ── Flash sale banner (topmost, 36px, dismissible) ─── */}
