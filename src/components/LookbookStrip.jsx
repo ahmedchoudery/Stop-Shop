@@ -6,7 +6,6 @@
  */
 
 import React, { useRef, useEffect, useState, useCallback } from 'react';
-import { motion } from 'framer-motion';
 import { ArrowRight, ArrowLeft } from 'lucide-react';
 import { playPremiumChime } from '../utils/audio.js';
 import { useNavigate } from '../utils/router-compat.jsx';
@@ -47,10 +46,7 @@ const LOOKS = [
 
 export default function LookbookStrip({ onShopNow }) {
   const navigate = useNavigate();
-  const containerRef  = useRef(null);
-  const innerRef      = useRef(null);
-  const [dragConstraints, setDragConstraints] = useState({ left: 0, right: 0 });
-  const [dragX, setDragX]     = useState(0);
+  const scrollRef = useRef(null);
   const [activeIdx, setActiveIdx] = useState(0);
 
   const [dbLooks, setDbLooks] = useState([]);
@@ -81,26 +77,30 @@ export default function LookbookStrip({ onShopNow }) {
       }))
     : LOOKS;
 
-  useEffect(() => {
-    const updateConstraints = () => {
-      if (containerRef.current && innerRef.current) {
-        const containerWidth = containerRef.current.offsetWidth;
-        const innerWidth     = innerRef.current.scrollWidth;
-        setDragConstraints({ left: Math.min(0, containerWidth - innerWidth - 64), right: 0 });
-      }
-    };
-    updateConstraints();
-    window.addEventListener('resize', updateConstraints);
-    const t = setTimeout(updateConstraints, 500);
-    return () => { window.removeEventListener('resize', updateConstraints); clearTimeout(t); };
+  const updateScrollState = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const cardWidth = CARD_W_PX + GAP_PX;
+    const idx = Math.round(el.scrollLeft / cardWidth);
+    setActiveIdx(Math.max(0, Math.min(items.length - 1, idx)));
   }, [items.length]);
 
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.addEventListener('scroll', updateScrollState, { passive: true });
+    updateScrollState();
+    return () => el.removeEventListener('scroll', updateScrollState);
+  }, [updateScrollState]);
+
   const stepTo = useCallback((idx) => {
+    const el = scrollRef.current;
+    if (!el) return;
     const clampedIdx = Math.max(0, Math.min(items.length - 1, idx));
     setActiveIdx(clampedIdx);
-    const newX = Math.max(dragConstraints.left, -(clampedIdx * (CARD_W_PX + GAP_PX)));
-    setDragX(newX);
-  }, [dragConstraints.left, items.length]);
+    const cardWidth = CARD_W_PX + GAP_PX;
+    el.scrollTo({ left: clampedIdx * cardWidth, behavior: 'smooth' });
+  }, [items.length]);
 
   const handlePrev = () => { playPremiumChime(); stepTo(activeIdx - 1); };
   const handleNext = () => { playPremiumChime(); stepTo(activeIdx + 1); };
@@ -119,13 +119,8 @@ export default function LookbookStrip({ onShopNow }) {
     scrollToGrid();
   };
 
-  if (loading) {
-    return null;
-  }
-
   return (
     <section
-      ref={containerRef}
       className="bg-[var(--bg-base)] py-20 sm:py-28 border-t border-[var(--border)] overflow-hidden"
     >
       <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16">
@@ -182,26 +177,22 @@ export default function LookbookStrip({ onShopNow }) {
           </div>
         </div>
 
-        {/* Drag Container */}
-        <div className="relative cursor-grab active:cursor-grabbing">
-          <motion.div
-            ref={innerRef}
-            drag="x"
-            dragConstraints={dragConstraints}
-            dragElastic={0.1}
-            dragTransition={{ power: 0.2, timeConstant: 300 }}
-            animate={{ x: dragX }}
-            onDragEnd={(_, info) => {
-              const newX = Math.max(dragConstraints.left, Math.min(0, dragX + info.offset.x));
-              setDragX(newX);
-              const estIdx = Math.round(-newX / (CARD_W_PX + GAP_PX));
-              setActiveIdx(Math.max(0, Math.min(items.length - 1, estIdx)));
+        {/* Scroll Track Container */}
+        <div className="relative">
+          <div
+            ref={scrollRef}
+            className="flex gap-10 sm:gap-12 overflow-x-auto scroll-smooth pb-6 [&::-webkit-scrollbar]:hidden"
+            style={{
+              scrollSnapType: 'x mandatory',
+              scrollbarWidth: 'none',
+              msOverflowStyle: 'none',
+              WebkitOverflowScrolling: 'touch',
             }}
-            className="flex gap-10 sm:gap-12 w-max"
           >
             {items.map((look) => (
               <div
                 key={look.id}
+                style={{ scrollSnapAlign: 'start' }}
                 className="w-[280px] sm:w-[340px] md:w-[360px] flex-shrink-0 group cursor-pointer text-left"
                 onClick={() => {
                   if (look.product) {
@@ -244,7 +235,10 @@ export default function LookbookStrip({ onShopNow }) {
             ))}
 
             {/* Final CTA Slide */}
-            <div className="w-[260px] sm:w-[300px] flex-shrink-0 flex flex-col justify-center items-center p-8 border border-dashed border-[var(--border-mid)] bg-white/60 text-center">
+            <div 
+              style={{ scrollSnapAlign: 'start' }}
+              className="w-[260px] sm:w-[300px] flex-shrink-0 flex flex-col justify-center items-center p-8 border border-dashed border-[var(--border-mid)] bg-white/60 text-center"
+            >
               <p className="text-[8px] font-black uppercase tracking-[0.5em] text-[#a4a4a2] mb-4">SS '26</p>
               <h4 className="text-sm font-black uppercase tracking-[0.15em] text-gray-950 mb-3">
                 Curated Collection
@@ -261,7 +255,7 @@ export default function LookbookStrip({ onShopNow }) {
               </button>
             </div>
 
-          </motion.div>
+          </div>
         </div>
 
       </div>

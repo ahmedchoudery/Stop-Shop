@@ -71,6 +71,7 @@
     text-rendering: optimizeLegibility;
     scroll-behavior: smooth;
     overflow-x: clip;
+    background-color: #000000;
   }
 
   body {
