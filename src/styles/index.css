@@ -70,6 +70,7 @@
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
     scroll-behavior: smooth;
+    overflow-x: clip;
   }
 
   body {
@@ -78,6 +79,7 @@
     background-color: var(--bg-base);
     color: var(--text-primary);
     line-height: 1.5;
+    overflow-x: clip;
   }
 
   body::after {

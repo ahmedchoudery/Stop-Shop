@@ -64,7 +64,7 @@ const Layout = ({ children, products = [] }) => {
 
   if (isAdmin) {
     return (
-      <div className="min-h-screen flex flex-col bg-white w-full max-w-full relative">
+      <div className="min-h-screen flex flex-col bg-white w-full max-w-full overflow-x-clip relative">
         <main className="flex-grow relative pt-0">
           <AnimatePresence mode="wait">
             <motion.div
@@ -121,7 +121,7 @@ const Layout = ({ children, products = [] }) => {
         />
       </div>
 
-      <div className="min-h-screen flex flex-col bg-white w-full max-w-full relative">
+      <div className="min-h-screen flex flex-col bg-white w-full max-w-full overflow-x-clip relative">
         {/* ── Page content ─────────────────────────────── */}
         <main className={`flex-grow relative ${mainPadding}`}>
           <AnimatePresence mode="wait">
