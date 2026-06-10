@@ -18,15 +18,37 @@ const MobileDrawer = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
   const [activeCategoryView, setActiveCategoryView] = useState(null);
 
+  const [shouldRender, setShouldRender] = useState(isOpen);
+  const [isAnimating, setIsAnimating] = useState(false);
+
   useEffect(() => {
     if (isOpen) {
+      setShouldRender(true);
+      const frame = requestAnimationFrame(() => {
+        setIsAnimating(true);
+      });
       document.body.style.overflow = 'hidden';
+      return () => {
+        cancelAnimationFrame(frame);
+      };
     } else {
+      setIsAnimating(false);
       document.body.style.overflow = '';
-      setTimeout(() => setActiveCategoryView(null), 300);
+      const timer = setTimeout(() => {
+        setShouldRender(false);
+        setActiveCategoryView(null);
+      }, 500);
+      return () => {
+        clearTimeout(timer);
+      };
     }
-    return () => { document.body.style.overflow = ''; };
   }, [isOpen]);
+
+  useEffect(() => {
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, []);
 
   const handleCategorySelect = (category) => {
     setActiveCategoryView(category);
@@ -49,12 +71,14 @@ const MobileDrawer = ({ isOpen, onClose }) => {
     { label: 'WhatsApp Us',       icon: MessageCircle,  action: () => { window.open('https://wa.me/923068458655', '_blank'); onClose(); } },
   ];
 
+  if (!shouldRender) return null;
+
   return (
     <>
       {/* Backdrop */}
       <div
         className={`fixed inset-0 bg-black/30 backdrop-blur-xs z-[150] transition-opacity duration-300 ${
-          isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+          isAnimating ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`}
         onClick={onClose}
       />
@@ -64,7 +88,7 @@ const MobileDrawer = ({ isOpen, onClose }) => {
         className={`fixed z-[151] bg-[#F7F6F3] shadow-2xl transition-transform duration-500 ease-out flex flex-col pointer-events-auto
           bottom-0 left-0 w-full h-[82vh] border-t border-gray-200 rounded-t-[30px] pb-safe
           sm:top-0 sm:left-0 sm:h-full sm:w-[380px] sm:border-r sm:border-t-0 sm:rounded-none sm:pb-0
-          ${isOpen ? 'translate-y-0 sm:translate-x-0' : 'translate-y-full sm:-translate-x-full sm:translate-y-0'}`}
+          ${isAnimating ? 'translate-y-0 sm:translate-x-0' : 'translate-y-full sm:-translate-x-full sm:translate-y-0'}`}
         style={{
           transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
           willChange: 'transform'
