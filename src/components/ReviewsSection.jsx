@@ -340,8 +340,7 @@ const ReviewsSection = () => {
         <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 py-20 sm:py-28">
           <div
             ref={setHeaderRef}
-            className={`flex flex-col lg:flex-row lg:items-end justify-between gap-10 transition-all duration-1000 ${isIntersecting ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
-              }`}
+            className="flex flex-col lg:flex-row lg:items-end justify-between gap-10 transition-all duration-1000 opacity-100 translate-y-0"
           >
             {/* Left: Brand claim */}
             <div className="lg:max-w-xl">

@@ -121,10 +121,8 @@ const CarouselCard = ({ product }) => {
 
 export default function FeaturedCarousel({ products = [], headline, subline }) {
   const scrollRef = useRef(null);
-  const sectionRef = useRef(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
-  const [visible, setVisible] = useState(false);
 
   const CARD_WIDTH = 306;
 
@@ -143,15 +141,6 @@ export default function FeaturedCarousel({ products = [], headline, subline }) {
     return () => el.removeEventListener('scroll', updateScrollState);
   }, [updateScrollState]);
 
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => { if (entry.isIntersecting) { setVisible(true); observer.disconnect(); } },
-      { threshold: 0.1 }
-    );
-    if (sectionRef.current) observer.observe(sectionRef.current);
-    return () => observer.disconnect();
-  }, []);
-
   const scroll = useCallback((dir) => {
     const el = scrollRef.current;
     if (!el) return;
@@ -162,13 +151,7 @@ export default function FeaturedCarousel({ products = [], headline, subline }) {
 
   return (
     <section
-      ref={sectionRef}
       className="bg-white py-16 sm:py-24 overflow-hidden"
-      style={{
-        opacity: visible ? 1 : 0,
-        transform: visible ? 'translateY(0)' : 'translateY(32px)',
-        transition: 'opacity 0.7s ease, transform 0.7s ease',
-      }}
     >
       <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16">
 

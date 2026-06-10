@@ -107,7 +107,6 @@ const RecentlyViewedSection = () => {
                 key={`${product.id}-${idx}`}
                 data-rv-card
                 className="flex-shrink-0 w-48 group"
-                style={{ opacity: 0 }}
               >
                 {/* Image */}
                 <div

@@ -69,15 +69,17 @@ export default function LookbookStrip({ onShopNow }) {
       .finally(() => setLoading(false));
   }, []);
 
-  const items = dbLooks.map((look, i) => ({
-    id: look.id || look._id,
-    image: look.lifestyleImage || look.image,
-    tag: `Look ${String(i + 1).padStart(2, '0')}`,
-    title: look.name,
-    desc: look.specs?.[0] || `Premium ${look.subCategory || 'apparel'} designed for modern living.`,
-    price: look.price,
-    product: look,
-  }));
+  const items = dbLooks.length > 0
+    ? dbLooks.map((look, i) => ({
+        id: look.id || look._id,
+        image: look.lifestyleImage || look.image,
+        tag: `Look ${String(i + 1).padStart(2, '0')}`,
+        title: look.name,
+        desc: look.specs?.[0] || `Premium ${look.subCategory || 'apparel'} designed for modern living.`,
+        price: look.price,
+        product: look,
+      }))
+    : LOOKS;
 
   useEffect(() => {
     const updateConstraints = () => {
@@ -117,7 +119,7 @@ export default function LookbookStrip({ onShopNow }) {
     scrollToGrid();
   };
 
-  if (loading || dbLooks.length === 0) {
+  if (loading) {
     return null;
   }
 
@@ -210,14 +212,10 @@ export default function LookbookStrip({ onShopNow }) {
               >
                 {/* Image */}
                 <div className="relative aspect-[3/4] overflow-hidden bg-gray-100 border border-[var(--border)]">
-                  <motion.img
+                  <img
                     src={look.image}
                     alt={look.title}
                     className="w-full h-full object-cover select-none pointer-events-none group-hover:scale-[1.04] transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)]"
-                    initial={{ clipPath: 'inset(0 100% 0 0)' }}
-                    whileInView={{ clipPath: 'inset(0 0% 0 0)' }}
-                    viewport={{ once: true, margin: '-5%' }}
-                    transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1], delay: 0.1 }}
                   />
                   {/* Dark overlay that fades on hover */}
                   <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-500 pointer-events-none" />

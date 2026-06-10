@@ -25,7 +25,7 @@ const MarqueeBar = ({ announcement, scrolled = true, isHome = false }) => {
     : DEFAULT_ITEMS;
 
   const allItems = [...items, ...items, ...items];
-  const useTransparent = isHome && !scrolled;
+  const useTransparent = false;
 
   return (
     <div

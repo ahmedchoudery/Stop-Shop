@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import FeaturedCarousel from './FeaturedCarousel.jsx';
 
-export default function FeaturedDrop() {
+export default function FeaturedDrop({ fallbackProducts = [] }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -14,19 +14,24 @@ export default function FeaturedDrop() {
         return res.json();
       })
       .then(data => {
-        setProducts(data || []);
+        setProducts(data && data.length > 0 ? data : fallbackProducts);
       })
-      .catch(err => console.error('[FeaturedDrop] fetch failed:', err))
+      .catch(err => {
+        console.error('[FeaturedDrop] fetch failed:', err);
+        setProducts(fallbackProducts);
+      })
       .finally(() => setLoading(false));
-  }, []);
+  }, [fallbackProducts]);
 
-  if (loading || products.length === 0) {
+  const displayProducts = products.length > 0 ? products : fallbackProducts;
+
+  if (displayProducts.length === 0) {
     return null;
   }
 
   return (
     <FeaturedCarousel
-      products={products}
+      products={displayProducts}
       headline="The Drop You've Been Waiting For."
       subline="New Arrivals · Limited Stock"
     />

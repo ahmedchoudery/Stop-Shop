@@ -98,9 +98,7 @@ const Layout = ({ children, products = [] }) => {
       >
         {/* Safe-area spacer to prevent content overlapping notch and paint status bar black on scroll */}
         <div 
-          className={`w-full pointer-events-none transition-colors duration-500 ${
-            (!isHome || scrolled) ? 'bg-black' : 'bg-transparent'
-          }`}
+          className="w-full pointer-events-none bg-black"
           style={{ height: 'env(safe-area-inset-top, 0px)' }}
         />
 

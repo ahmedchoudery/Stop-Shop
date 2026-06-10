@@ -65,13 +65,13 @@ export default function HomePageClient({ products = [] }) {
       />
 
       {/* 4 ─ Featured Drop: "The Drop You've Been Waiting For" */}
-      <FeaturedDrop />
+      <FeaturedDrop fallbackProducts={featuredProducts} />
 
       {/* 5 ─ Lookbook Full-Bleed Strip */}
       <LookbookStrip onShopNow={handleCategorySelect} />
 
       {/* 6 ─ Pieces That Speak: "Pieces That Speak for Themselves" */}
-      <PiecesThatSpeak />
+      <PiecesThatSpeak fallbackProducts={bestSellers} />
 
       {/* 7 ─ Full Product Catalog Grid */}
       <ProductGrid
