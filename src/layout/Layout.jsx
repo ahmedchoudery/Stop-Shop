@@ -12,6 +12,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation } from '../utils/router-compat.jsx';
 import { motion, AnimatePresence } from 'framer-motion';
 import Navbar from './Navbar.jsx';
+import MobileDrawer from './MobileDrawer.jsx';
 import Footer from './Footer.jsx';
 import MarqueeBar from '../components/MarqueeBar.jsx';
 import FlashSaleBanner from '../components/FlashSaleBanner.jsx';
@@ -35,6 +36,7 @@ const pageVariants = {
 
 const Layout = ({ children, products = [] }) => {
   const [searchOpen, setSearchOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const { data: settings } = useSettings(false);
   const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
@@ -115,6 +117,7 @@ const Layout = ({ children, products = [] }) => {
         {/* ── Navbar (sits below marquee bar) ─────────────────── */}
         <Navbar
           onSearchOpen={() => setSearchOpen(true)}
+          onMenuOpen={() => setMobileOpen(true)}
           products={products}
           scrolled={scrolled}
           isHome={isHome}
@@ -146,6 +149,12 @@ const Layout = ({ children, products = [] }) => {
           isOpen={searchOpen}
           onClose={() => setSearchOpen(false)}
           products={products}
+        />
+
+        {/* ── Mobile Navigation Drawer ─────────────────── */}
+        <MobileDrawer
+          isOpen={mobileOpen}
+          onClose={() => setMobileOpen(false)}
         />
 
         {/* ── WhatsApp floating button ──────────────────── */}

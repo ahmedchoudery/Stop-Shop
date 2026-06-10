@@ -54,14 +54,14 @@ const MobileDrawer = ({ isOpen, onClose }) => {
       {/* Backdrop */}
       <div
         className={`fixed inset-0 bg-black/30 backdrop-blur-xs z-[150] transition-opacity duration-300 ${
-          isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'
+          isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`}
         onClick={onClose}
       />
 
       {/* Drawer panel — premium iOS slide-up bottom sheet on mobile, side panel on tablet/desktop */}
       <div
-        className={`fixed z-[151] bg-[#F7F6F3] shadow-2xl transition-transform duration-500 ease-out flex flex-col
+        className={`fixed z-[151] bg-[#F7F6F3] shadow-2xl transition-transform duration-500 ease-out flex flex-col pointer-events-auto
           bottom-0 left-0 w-full h-[82vh] border-t border-gray-200 rounded-t-[30px] pb-safe
           sm:top-0 sm:left-0 sm:h-full sm:w-[380px] sm:border-r sm:border-t-0 sm:rounded-none sm:pb-0
           ${isOpen ? 'translate-y-0 sm:translate-x-0' : 'translate-y-full sm:-translate-x-full sm:translate-y-0'}`}

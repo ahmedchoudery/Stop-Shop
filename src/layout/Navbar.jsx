@@ -16,21 +16,19 @@ import {
 import { useCart } from '../context/CartContext.tsx';
 import { useWishlist } from '../context/WishlistContext.jsx';
 import { useCustomer } from '../context/CustomerContext.jsx';
-import MobileDrawer from './MobileDrawer.jsx';
 import { CATEGORIES, CATEGORY_MAP } from '../utils/categories.js';
 import { playPremiumChime } from '../utils/audio.js';
 import MagneticElement from '../components/MagneticElement.jsx';
 
 const BUCKETS = ['All', ...CATEGORIES];
 
-const Navbar = ({ products = [], onSearchOpen, scrolled, isHome }) => {
+const Navbar = ({ products = [], onSearchOpen, onMenuOpen, scrolled, isHome }) => {
   const { cartCount, setActiveBucket, openDrawer } = useCart();
   const { wishlistCount } = useWishlist();
   const { customer, isLoggedIn, logout } = useCustomer();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [mobileOpen, setMobileOpen]   = useState(false);
   const [accountOpen, setAccountOpen] = useState(false);
   const [subMenuOpen, setSubMenuOpen] = useState(null);
   const [activeTab, setActiveTab]     = useState('All');
@@ -210,14 +208,12 @@ const Navbar = ({ products = [], onSearchOpen, scrolled, isHome }) => {
               </button>
             </MagneticElement>
 
-            <button onClick={() => setMobileOpen(true)} className={`lg:hidden w-11 h-11 flex items-center justify-center ml-1 transition-colors duration-200 active-scale ${iconColor} ${iconHover}`} aria-label="Menu">
+            <button onClick={onMenuOpen} className={`lg:hidden w-11 h-11 flex items-center justify-center ml-1 transition-colors duration-200 active-scale ${iconColor} ${iconHover}`} aria-label="Menu">
               <Menu size={20} strokeWidth={1.8} />
             </button>
           </div>
         </div>
       </header>
-
-      <MobileDrawer isOpen={mobileOpen} onClose={() => setMobileOpen(false)} />
     </>
   );
 };
