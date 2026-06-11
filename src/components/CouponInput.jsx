@@ -24,7 +24,7 @@ const CouponInput = ({ cartTotal, onApply, onRemove, appliedCoupon }) => {
         body:    JSON.stringify({
           code:             trimmed,
           cartTotal,
-          activeCouponCode: appliedCoupon?.code ?? null,
+          activeCouponCode: appliedCoupon?.code ?? '',
         }),
       });
       const data = await res.json();
@@ -59,6 +59,7 @@ const CouponInput = ({ cartTotal, onApply, onRemove, appliedCoupon }) => {
           </div>
         </div>
         <button
+          type="button"
           onClick={handleRemove}
           className="p-1 text-gray-400 hover:text-gray-900 transition-colors"
           title="Remove coupon"
@@ -89,6 +90,7 @@ const CouponInput = ({ cartTotal, onApply, onRemove, appliedCoupon }) => {
 
         {/* Apply button */}
         <button
+          type="button"
           onClick={handleApply}
           disabled={!code.trim() || loading}
           className="px-5 py-3 bg-gray-900 text-white text-[9px] font-black uppercase tracking-[0.25em] hover:bg-cardinal transition-colors duration-300 disabled:opacity-30 disabled:cursor-not-allowed flex items-center space-x-1.5 flex-shrink-0"

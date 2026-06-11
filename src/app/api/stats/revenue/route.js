@@ -14,15 +14,20 @@ export async function GET(req) {
 
     const data = await cacheService.getOrSet(CACHE_KEYS.STATS_REVENUE, async () => {
       const yesterday    = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      const dayBefore    = new Date(Date.now() - 48 * 60 * 60 * 1000);
       const sevenDaysAgo = new Date(Date.now() - 7  * 24 * 60 * 60 * 1000);
 
-      const [[result], [yesterdayResult], weeklyRaw] = await Promise.all([
+      const [[result], [yesterdayResult], [dayBeforeResult], weeklyRaw] = await Promise.all([
         Order.aggregate([
           { $match: { status: { $ne: 'Cancelled' } } },
           { $group: { _id: null, totalRevenue: { $sum: '$total' }, totalOrders: { $sum: 1 } } },
         ]),
         Order.aggregate([
           { $match: { status: { $ne: 'Cancelled' }, createdAt: { $gte: yesterday } } },
+          { $group: { _id: null, revenue: { $sum: '$total' } } },
+        ]),
+        Order.aggregate([
+          { $match: { status: { $ne: 'Cancelled' }, createdAt: { $gte: dayBefore, $lt: yesterday } } },
           { $group: { _id: null, revenue: { $sum: '$total' } } },
         ]),
         Order.aggregate([
@@ -41,7 +46,8 @@ export async function GET(req) {
 
       const totalRevenue = result?.totalRevenue ?? 0;
       const yesterdayRev = yesterdayResult?.revenue ?? 0;
-      const trend        = yesterdayRev > 0 ? ((totalRevenue - yesterdayRev) / yesterdayRev) * 100 : 0;
+      const dayBeforeRev = dayBeforeResult?.revenue ?? 0;
+      const trend        = dayBeforeRev > 0 ? ((yesterdayRev - dayBeforeRev) / dayBeforeRev) * 100 : 0;
 
       const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
       const dayNames = { '1': 'Mon', '2': 'Tue', '3': 'Wed', '4': 'Thu', '5': 'Fri', '6': 'Sat', '7': 'Sun' };

@@ -5,6 +5,7 @@ import dbConnect from '../../../../lib/db';
 import Customer from '../../../../models/Customer';
 import { CUSTOMER_JWT_SECRET } from '../../../../lib/adminAuth';
 import { createCustomerSchema } from '../../../../schemas/validation';
+import { sendWelcomeEmail } from '../../../../services/emailService';
 
 export async function POST(req) {
   try {
@@ -43,6 +44,12 @@ export async function POST(req) {
     delete safeCustomer.password;
     if (safeCustomer._id) {
       safeCustomer._id = safeCustomer._id.toString();
+    }
+
+    try {
+      sendWelcomeEmail(customer);
+    } catch (err) {
+      console.error('[WelcomeEmail] Failed to initiate email dispatch:', err.message);
     }
 
     return NextResponse.json({ token, customer: safeCustomer }, { status: 201 });

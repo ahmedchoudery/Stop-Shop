@@ -5,7 +5,7 @@ import Order from '../../../models/Order';
 import Coupon from '../../../models/Coupon';
 import { checkoutSchema } from '../../../schemas/validation';
 import { syncInventory } from '../../../services/inventoryService';
-import { sendEmail, checkAndAlertLowStock } from '../../../services/emailService';
+import { sendOrderConfirmationEmail, checkAndAlertLowStock } from '../../../services/emailService';
 import { cacheService, CACHE_KEYS } from '../../../services/cacheService';
 
 const getEnv = (...keys) => keys.map(k => process.env[k]).find(Boolean);
@@ -169,7 +169,7 @@ export async function POST(req) {
 
     const finalTotal = Math.max(0, verifiedTotal - discount);
 
-    await Order.create({
+    const orderDoc = await Order.create({
       orderID,
       customer,
       items: enrichedItems,
@@ -192,19 +192,7 @@ export async function POST(req) {
       CACHE_KEYS.PUBLIC_PRODUCTS,
     ]);
 
-    sendEmail({
-      from:    `"Stop & Shop" <${getEnv('EMAIL_USER', 'email_user')}>`,
-      to:      customer.email,
-      subject: `Order Confirmed — ${orderID}`,
-      html:    `
-        <h2>Thank you, ${escapeHtml(customer.name)}!</h2>
-        <p>Your order <strong>${orderID}</strong> has been placed successfully.</p>
-        <p><strong>Total:</strong> PKR ${finalTotal.toLocaleString()}</p>
-        <p><strong>Payment:</strong> ${paymentMethod}</p>
-        <p>Track your order: <a href="https://stop-shop-gamma.vercel.app/track?orderID=${orderID}">Click here</a></p>
-        <p>Thank you for shopping with Stop & Shop.</p>
-      `,
-    });
+    sendOrderConfirmationEmail(orderDoc);
 
     checkAndAlertLowStock(items);
 

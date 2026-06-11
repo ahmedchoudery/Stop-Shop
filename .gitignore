@@ -48,3 +48,7 @@ tsconfig.tsbuildinfo
 # Runtime logs (generated, not source)
 logs/
 *.log
+
+# Playwright Test Outputs
+playwright-report/
+test-results/

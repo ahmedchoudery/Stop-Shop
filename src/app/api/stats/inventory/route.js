@@ -15,7 +15,7 @@ export async function GET(req) {
     const data = await cacheService.getOrSet(CACHE_KEYS.STATS_INVENTORY, async () => {
       const [total, lowStock, outOfStock, rawProducts] = await Promise.all([
         Product.countDocuments(),
-        Product.countDocuments({ quantity: { $gt: 0, $lt: 5 } }),
+        Product.countDocuments({ quantity: { $gt: 0, $lte: 5 } }),
         Product.countDocuments({ quantity: 0 }),
         Product.find({}, { id: 1, name: 1, quantity: 1, bucket: 1 }).lean(),
       ]);
