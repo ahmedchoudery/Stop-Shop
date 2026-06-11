@@ -101,43 +101,41 @@ const Layout = ({ children, products = [] }) => {
   }
 
   return (
-    <>
-      <div className="min-h-screen flex flex-col bg-white w-full max-w-full overflow-x-clip relative">
-        {/* ── Page content ─────────────────────────────── */}
-        <main className={`flex-grow relative ${mainClass}`} style={mainStyle}>
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={location.pathname}
-              variants={pageVariants}
-              initial="initial"
-              animate="animate"
-              exit="exit"
-              className="w-full"
-            >
-              {children}
-            </motion.div>
-          </AnimatePresence>
-        </main>
+    <div className="min-h-screen flex flex-col bg-white w-full max-w-full overflow-x-clip relative">
+      {/* ── Page content ─────────────────────────────── */}
+      <main className={`flex-grow relative ${mainClass}`} style={mainStyle}>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={location.pathname}
+            variants={pageVariants}
+            initial="initial"
+            animate="animate"
+            exit="exit"
+            className="w-full"
+          >
+            {children}
+          </motion.div>
+        </AnimatePresence>
+      </main>
 
-        {/* ── Footer ───────────────────────────────────── */}
-        <Footer />
+      {/* ── Footer ───────────────────────────────────── */}
+      <Footer />
 
-        {/* ── Search overlay ────────────────────────────── */}
-        <SearchOverlay
-          isOpen={searchOpen}
-          onClose={() => setSearchOpen(false)}
-          products={products}
-        />
+      {/* ── Search overlay ────────────────────────────── */}
+      <SearchOverlay
+        isOpen={searchOpen}
+        onClose={() => setSearchOpen(false)}
+        products={products}
+      />
 
-        {/* ── Mobile Navigation Drawer ─────────────────── */}
-        <MobileDrawer
-          isOpen={mobileOpen}
-          onClose={() => setMobileOpen(false)}
-        />
+      {/* ── Mobile Navigation Drawer ─────────────────── */}
+      <MobileDrawer
+        isOpen={mobileOpen}
+        onClose={() => setMobileOpen(false)}
+      />
 
-        {/* ── WhatsApp floating button ──────────────────── */}
-        <WhatsAppButton />
-      </div>
+      {/* ── WhatsApp floating button ──────────────────── */}
+      <WhatsAppButton />
 
       {/* ── Solid top status bar/notch mask for iOS and Android ── */}
       <div 
@@ -153,7 +151,7 @@ const Layout = ({ children, products = [] }) => {
         }}
       />
 
-      {/* ── Fixed Header Wrapper (Unified fixed container outside overflow constraints to prevent gaps/drifting on mobile) ─── */}
+      {/* ── Fixed Header Wrapper (Unified fixed container inside overflow constraints to force WebKit z-index layering) ─── */}
       <div 
         className="fixed top-0 left-0 right-0 z-[110] pointer-events-none"
         style={{
@@ -187,7 +185,7 @@ const Layout = ({ children, products = [] }) => {
           isHome={isHome}
         />
       </div>
-    </>
+    </div>
   );
 };
 
