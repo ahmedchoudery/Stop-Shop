@@ -12,7 +12,7 @@ import {
   AlertTriangle, Lock, CheckCircle, Loader,
   UserCheck, X
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link } from '../utils/router-compat.jsx';
 import { useCart } from '../context/CartContext.tsx';
 import { useCurrency } from '../context/CurrencyContext.jsx';
 import { useCustomer } from '../context/CustomerContext.jsx';

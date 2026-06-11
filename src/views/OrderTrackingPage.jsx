@@ -176,51 +176,64 @@ const StatusTracker = ({ status }) => {
 // ORDER SEARCH FORM
 // ─────────────────────────────────────────────────────────────────
 
-const OrderSearchForm = ({ onSearch, loading }) => {
-  const [input, setInput] = useState('');
+const OrderSearchForm = ({ onSearch, loading, initialOrderId = '' }) => {
+  const [orderID, setOrderID] = useState(initialOrderId);
+  const [email, setEmail] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    const id = input.trim().toUpperCase();
-    if (id) onSearch(id);
+    const id = orderID.trim().toUpperCase();
+    const mail = email.trim().toLowerCase();
+    if (id && mail) onSearch(id, mail);
   };
 
   return (
-    <div className="max-w-lg mx-auto">
-      <form onSubmit={handleSubmit} className="relative">
-        <div className="flex border-2 border-gray-900 shadow-[0_20px_60px_rgba(0,0,0,0.08)] hover:shadow-[0_25px_70px_rgba(0,0,0,0.12)] transition-shadow duration-500">
-          <div className="relative flex-grow">
-            <Search
-              className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400"
-              size={16}
-            />
+    <div className="max-w-lg mx-auto bg-white border-2 border-gray-900 p-6 shadow-[0_20px_60px_rgba(0,0,0,0.08)] hover:shadow-[0_25px_70px_rgba(0,0,0,0.12)] transition-shadow duration-500 text-left">
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div>
+          <label className="block text-[9px] font-black uppercase tracking-[0.4em] text-gray-500 mb-2">Order ID</label>
+          <div className="relative border-b-2 border-gray-200 focus-within:border-gray-900 transition-colors">
+            <Search className="absolute left-0 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
             <input
               type="text"
-              value={input}
-              onChange={e => setInput(e.target.value.toUpperCase())}
+              value={orderID}
+              onChange={e => setOrderID(e.target.value.toUpperCase())}
               placeholder="ORD-XXXXXXXX"
-              className="w-full bg-transparent pl-12 pr-4 py-5 text-gray-900 font-black text-sm outline-none placeholder:text-gray-300 placeholder:font-normal tracking-widest uppercase"
-              autoFocus
+              className="w-full bg-transparent pl-7 py-3.5 text-gray-900 font-black text-sm outline-none placeholder:text-gray-300 placeholder:font-normal tracking-widest uppercase"
+              required
             />
           </div>
-          <button
-            type="submit"
-            disabled={!input.trim() || loading}
-            className="bg-cardinal hover:bg-gray-900 text-white px-8 py-5 font-black uppercase tracking-[0.3em] text-[10px] transition-all duration-300 border-l-2 border-gray-900 disabled:opacity-40 flex items-center space-x-2 flex-shrink-0"
-          >
-            {loading ? (
-              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-            ) : (
-              <>
-                <span>Track</span>
-                <ArrowRight size={14} />
-              </>
-            )}
-          </button>
         </div>
+        <div>
+          <label className="block text-[9px] font-black uppercase tracking-[0.4em] text-gray-500 mb-2">Email Address</label>
+          <div className="relative border-b-2 border-gray-200 focus-within:border-gray-900 transition-colors">
+            <input
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder="your-email@example.com"
+              className="w-full bg-transparent py-3.5 text-gray-900 font-bold text-sm outline-none placeholder:text-gray-300 placeholder:font-normal"
+              required
+            />
+          </div>
+        </div>
+        <button
+          type="submit"
+          disabled={!orderID.trim() || !email.trim() || loading}
+          className="w-full bg-cardinal hover:bg-gray-900 text-white py-4.5 font-black uppercase tracking-[0.3em] text-[10px] transition-all duration-300 disabled:opacity-40 flex items-center justify-center space-x-2"
+        >
+          {loading ? (
+            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          ) : (
+            <>
+              <span>Track Order</span>
+              <ArrowRight size={14} />
+            </>
+          )}
+        </button>
       </form>
       <p className="text-center text-[9px] font-black uppercase tracking-[0.4em] text-gray-300 mt-5">
-        Enter the order ID from your confirmation email
+        Enter the order ID & email address from your confirmation
       </p>
     </div>
   );
@@ -456,33 +469,35 @@ const OrderResult = ({ order, onReset }) => {
 const OrderTrackingPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const urlOrderId = searchParams.get('orderID') || searchParams.get('orderId') || '';
+  const urlEmail = searchParams.get('email') || '';
 
   const [orderID, setOrderID]   = useState(urlOrderId.toUpperCase());
+  const [email, setEmail]       = useState(urlEmail.toLowerCase());
   const [order, setOrder]       = useState(null);
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState('');
   const hasFetchedRef           = useRef(false);
 
-  // Auto-fetch if orderID is in the URL
+  // Auto-fetch if both orderID and email are in the URL
   useEffect(() => {
-    if (urlOrderId && !hasFetchedRef.current) {
+    if (urlOrderId && urlEmail && !hasFetchedRef.current) {
       hasFetchedRef.current = true;
-      fetchOrder(urlOrderId.toUpperCase());
+      fetchOrder(urlOrderId.toUpperCase(), urlEmail.toLowerCase());
     }
-  }, [urlOrderId]);
+  }, [urlOrderId, urlEmail]);
 
-  const fetchOrder = async (id) => {
-    if (!id) return;
+  const fetchOrder = async (id, mail) => {
+    if (!id || !mail) return;
     setLoading(true);
     setError('');
     setOrder(null);
 
     try {
-      const res = await fetch(apiUrl(`/api/public/track/${encodeURIComponent(id)}`));
+      const res = await fetch(apiUrl(`/api/public/track/${encodeURIComponent(id)}?email=${encodeURIComponent(mail)}`));
       const data = await res.json().catch(() => ({}));
 
       if (res.status === 404) {
-        setError(`No order found with ID "${id}". Please check and try again.`);
+        setError(`No order found matching those details. Please check and try again.`);
         return;
       }
       if (res.status === 429) {
@@ -490,13 +505,13 @@ const OrderTrackingPage = () => {
         return;
       }
       if (!res.ok) {
-        setError(data.message ?? 'Something went wrong. Please try again.');
+        setError(data.error ?? 'Something went wrong. Please try again.');
         return;
       }
 
       setOrder(data);
-      // Sync URL param
-      setSearchParams({ orderID: id }, { replace: true });
+      // Sync URL params
+      setSearchParams({ orderID: id, email: mail }, { replace: true });
 
     } catch {
       setError('Could not connect to the server. Please check your connection.');
@@ -505,15 +520,17 @@ const OrderTrackingPage = () => {
     }
   };
 
-  const handleSearch = (id) => {
+  const handleSearch = (id, mail) => {
     setOrderID(id);
-    fetchOrder(id);
+    setEmail(mail);
+    fetchOrder(id, mail);
   };
 
   const handleReset = () => {
     setOrder(null);
     setError('');
     setOrderID('');
+    setEmail('');
     setSearchParams({}, { replace: true });
     hasFetchedRef.current = false;
   };
@@ -567,7 +584,7 @@ const OrderTrackingPage = () => {
         {/* Search form — show when no result yet */}
         {!order && (
           <div className="mb-10">
-            <OrderSearchForm onSearch={handleSearch} loading={loading} />
+            <OrderSearchForm onSearch={handleSearch} loading={loading} initialOrderId={orderID} />
           </div>
         )}
 

@@ -6,15 +6,21 @@ export async function GET(req, { params }) {
   try {
     await dbConnect();
     const { orderID } = params;
+    const { searchParams } = new URL(req.url);
+    const email = searchParams.get('email')?.trim().toLowerCase() || '';
 
     if (!orderID || !orderID.toUpperCase().startsWith('ORD-')) {
       return NextResponse.json({ error: 'Invalid order ID format. Must start with ORD-' }, { status: 400 });
     }
 
+    if (!email) {
+      return NextResponse.json({ error: 'Email address is required for verification' }, { status: 400 });
+    }
+
     const order = await Order.findOne({ orderID: orderID.toUpperCase() }).lean();
 
-    if (!order) {
-      return NextResponse.json({ error: `Order ${orderID} not found` }, { status: 404 });
+    if (!order || !order.customer || order.customer.email.toLowerCase() !== email) {
+      return NextResponse.json({ error: 'Order not found or verification failed' }, { status: 404 });
     }
 
     const data = {

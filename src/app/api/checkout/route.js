@@ -22,7 +22,7 @@ export async function POST(req) {
       }, { status: 400 });
     }
 
-    const { customer, items, total, paymentMethod } = validation.data;
+    const { customer, items, total, paymentMethod, couponCode } = validation.data;
     const clientIp = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || '127.0.0.1';
     const productIds = [...new Set(items.map(i => i.id))];
 
@@ -105,7 +105,33 @@ export async function POST(req) {
     const verifiedTotal = enrichedItems.reduce((sum, item) => {
       return sum + item.price * item.quantity;
     }, 0);
-    const finalTotal = Math.max(0, verifiedTotal);
+
+    let discount = 0;
+    let appliedCoupon = null;
+
+    if (couponCode) {
+      const coupon = await Coupon.findOne({
+        code: couponCode.trim().toUpperCase(),
+        isActive: true,
+      }).lean();
+
+      if (coupon) {
+        const isExpired = coupon.expiresAt && new Date(coupon.expiresAt) < new Date();
+        const isMaxed = coupon.maxUses !== null && coupon.usedCount >= coupon.maxUses;
+        const meetsMinOrder = !coupon.minOrderValue || verifiedTotal >= coupon.minOrderValue;
+
+        if (!isExpired && !isMaxed && meetsMinOrder) {
+          appliedCoupon = coupon;
+          if (coupon.type === 'percentage') {
+            discount = Math.round((verifiedTotal * coupon.value) / 100);
+          } else {
+            discount = Math.min(coupon.value, verifiedTotal);
+          }
+        }
+      }
+    }
+
+    const finalTotal = Math.max(0, verifiedTotal - discount);
 
     await Order.create({
       orderID,
@@ -116,9 +142,9 @@ export async function POST(req) {
       ip: clientIp
     });
 
-    if (body.couponCode) {
-      await Coupon.findOneAndUpdate(
-        { code: body.couponCode.trim().toUpperCase() },
+    if (appliedCoupon) {
+      await Coupon.findByIdAndUpdate(
+        appliedCoupon._id,
         { $inc: { usedCount: 1 } }
       );
     }

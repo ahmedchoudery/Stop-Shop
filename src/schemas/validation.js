@@ -117,6 +117,7 @@ export const checkoutSchema = z.object({
   paymentMethod: z.enum(PAYMENT_METHODS, {
     errorMap: () => ({ message: `Payment method must be one of: ${PAYMENT_METHODS.join(', ')}` }),
   }),
+  couponCode:    z.string().trim().toUpperCase().optional().default(''),
 });
 
 /** @typedef {z.infer<typeof checkoutSchema>} CheckoutInput */

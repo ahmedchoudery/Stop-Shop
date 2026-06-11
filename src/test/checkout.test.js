@@ -311,6 +311,27 @@ describe('Checkout flow — end-to-end logic', () => {
       expect(order.items[1].price).toBe(2500); // server-verified price
     });
 
+    it('applies coupon code discount correctly during checkout total validation', () => {
+      setupProducts([
+        { id: 'P1', name: 'Tee', price: 1000, quantity: 10 },
+      ]);
+      const cartItems = [
+        { id: 'P1', name: 'Tee', price: 1000, quantity: 2 },
+      ];
+      const enriched = enrichItems(cartItems, mockProducts);
+      const verifiedTotal = computeVerifiedTotal(enriched); // 2000
+
+      // percentage-based discount check (e.g. CARDINAL20 - 20%)
+      const coupon = { code: 'CARDINAL20', type: 'percentage', value: 20, minOrderValue: 0, maxUses: null, usedCount: 0, isActive: true };
+      let discount = 0;
+      if (coupon.type === 'percentage') {
+        discount = Math.round((verifiedTotal * coupon.value) / 100);
+      }
+      const finalTotal = Math.max(0, verifiedTotal - discount);
+      expect(discount).toBe(400);
+      expect(finalTotal).toBe(1600);
+    });
+
     it('rejects manipulated price when DB price is higher', () => {
       setupProducts([{ id: 'P1', name: 'Premium Tee', price: 3000, quantity: 20 }]);
 
