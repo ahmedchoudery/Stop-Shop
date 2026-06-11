@@ -129,3 +129,52 @@ jobs:
 
       - name: Build frontend
         run: npm run build
+
+  e2e-tests:
+    name: E2E Tests (Playwright)
+    runs-on: ubuntu-latest
+    services:
+      mongodb:
+        image: mongo:7
+        ports:
+          - 27017:27017
+    env:
+      MONGODB_URI: 'mongodb://127.0.0.1:27017/stopshop_test'
+      MONGO_URL: 'mongodb://127.0.0.1:27017/stopshop_test'
+      JWT_SECRET: 'ci_test_secret_key_do_not_use_in_production'
+      NODE_ENV: 'test'
+      REDIS_URL: ''
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js 20.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps chromium
+
+      - name: Initialize MongoDB replica set
+        run: |
+          sleep 5
+          mongosh --host 127.0.0.1:27017 --eval 'rs.initiate({_id:"rs0",members:[{_id:0,host:"127.0.0.1:27017"}]})' || true
+
+      - name: Seed Database
+        run: node scripts/seed.js
+
+      - name: Run E2E Tests
+        run: npm run test:e2e
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
