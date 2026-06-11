@@ -4,6 +4,16 @@ import Product from '../models/Product.js';
 
 const getEnv = (...keys) => keys.map(k => process.env[k]).find(Boolean);
 
+const escapeHtml = (unsafe) => {
+  if (!unsafe) return '';
+  return unsafe
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+};
+
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
@@ -201,7 +211,7 @@ export const sendOrderStatusEmail = async (order, status) => {
       <!-- Body -->
       <div style="padding: 32px; background: #ffffff; border: 1px solid #f3f4f6; border-top: none;">
         <p style="margin: 0 0 20px; font-size: 15px; line-height: 1.6; color: #374151;">
-          Hi <strong>${order.customer?.name ?? 'Valued Customer'}</strong>,
+          Hi <strong>${escapeHtml(order.customer?.name ?? 'Valued Customer')}</strong>,
           ${status === 'Shipped'
             ? 'your order is on its way! You should receive it within 2–5 business days.'
             : 'your order has been delivered. We hope you love your new purchase!'}

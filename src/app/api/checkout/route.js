@@ -10,6 +10,16 @@ import { cacheService, CACHE_KEYS } from '../../../services/cacheService';
 
 const getEnv = (...keys) => keys.map(k => process.env[k]).find(Boolean);
 
+const escapeHtml = (unsafe) => {
+  if (!unsafe) return '';
+  return unsafe
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+};
+
 export async function POST(req) {
   try {
     await dbConnect();
@@ -59,6 +69,9 @@ export async function POST(req) {
 
     const orderID = `ORD-${Date.now().toString(36).toUpperCase()}`;
 
+    const completedDecrements = [];
+    let stockError = null;
+
     // Decrement stock + sync inventory per product
     for (const item of items) {
       const qty = Math.max(1, parseInt(item.quantity) || 1);
@@ -78,14 +91,37 @@ export async function POST(req) {
         { new: true }
       );
 
-      if (updatedProduct) {
-        await syncInventory(
-          updatedProduct,
-          'SALE',
-          `Sold ${qty}x ${updatedProduct.name}${size ? ` (${size})` : ''} via order ${orderID}`,
-          orderID
+      if (!updatedProduct) {
+        const dbProduct = productMap.get(item.id);
+        const name = dbProduct ? dbProduct.name : item.id;
+        stockError = `Not enough stock for ${name}${size ? ` (size ${size})` : ''}. Please adjust your quantity and try again.`;
+        break;
+      }
+
+      completedDecrements.push({ item, qty, sizeKey });
+
+      await syncInventory(
+        updatedProduct,
+        'SALE',
+        `Sold ${qty}x ${updatedProduct.name}${size ? ` (${size})` : ''} via order ${orderID}`,
+        orderID
+      );
+    }
+
+    if (stockError) {
+      // Rollback successful decrements
+      for (const dec of completedDecrements) {
+        const rollbackUpdate = dec.sizeKey
+          ? { $inc: { quantity: dec.qty, stock: dec.qty, [dec.sizeKey]: dec.qty } }
+          : { $inc: { quantity: dec.qty, stock: dec.qty } };
+
+        await Product.findOneAndUpdate(
+          { id: dec.item.id },
+          rollbackUpdate
         );
       }
+
+      return NextResponse.json({ error: stockError }, { status: 400 });
     }
 
     const enrichedItems = items.map(item => {
@@ -161,7 +197,7 @@ export async function POST(req) {
       to:      customer.email,
       subject: `Order Confirmed — ${orderID}`,
       html:    `
-        <h2>Thank you, ${customer.name}!</h2>
+        <h2>Thank you, ${escapeHtml(customer.name)}!</h2>
         <p>Your order <strong>${orderID}</strong> has been placed successfully.</p>
         <p><strong>Total:</strong> PKR ${finalTotal.toLocaleString()}</p>
         <p><strong>Payment:</strong> ${paymentMethod}</p>
