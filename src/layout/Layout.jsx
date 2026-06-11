@@ -40,15 +40,6 @@ const Layout = ({ children, products = [] }) => {
   const { data: settings } = useSettings(false);
   const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
-  const [safeAreaHeight, setSafeAreaHeight] = useState('env(safe-area-inset-top, 0px)');
-
-  // Detect iOS to apply notch height fallback in Safari
-  useEffect(() => {
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-    if (isIOS) {
-      setSafeAreaHeight('max(env(safe-area-inset-top, 0px), 47px)');
-    }
-  }, []);
 
   // Scroll to top on route change
   useEffect(() => {
@@ -75,7 +66,7 @@ const Layout = ({ children, products = [] }) => {
     ? {} 
     : (isHome 
         ? {} 
-        : { paddingTop: `calc(106px + ${safeAreaHeight})` }
+        : { paddingTop: '106px' }
       );
   const mainClass = isAdmin ? 'pt-0' : (isHome ? 'pt-0' : '');
 
@@ -137,20 +128,6 @@ const Layout = ({ children, products = [] }) => {
       {/* ── WhatsApp floating button ──────────────────── */}
       <WhatsAppButton />
 
-      {/* ── Solid top status bar/notch mask for iOS and Android ── */}
-      <div 
-        className="fixed top-0 left-0 right-0 bg-black z-[120] pointer-events-none"
-        style={{
-          height: safeAreaHeight,
-          backgroundColor: '#000000',
-          transform: 'translate3d(0, 0, 0)',
-          WebkitTransform: 'translate3d(0, 0, 0)',
-          willChange: 'transform',
-          WebkitBackfaceVisibility: 'hidden',
-          backfaceVisibility: 'hidden'
-        }}
-      />
-
       {/* ── Fixed Header Wrapper (Unified fixed container inside overflow constraints to force WebKit z-index layering) ─── */}
       <div 
         className="fixed top-0 left-0 right-0 z-[110] pointer-events-none"
@@ -160,11 +137,7 @@ const Layout = ({ children, products = [] }) => {
           willChange: 'transform'
         }}
       >
-        {/* Transparent spacer to offset the header elements below the safe area */}
-        <div 
-          className="w-full"
-          style={{ height: safeAreaHeight }}
-        />
+
 
         {/* ── Flash sale banner (topmost, 36px, dismissible) ─── */}
         <FlashSaleBanner />

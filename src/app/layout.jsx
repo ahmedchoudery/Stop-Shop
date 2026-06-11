@@ -24,7 +24,7 @@ export const metadata = {
   description: 'Exquisite clothing, accessories, and luxury styles. Gujrat, Pakistan.',
   appleWebApp: {
     capable: true,
-    statusBarStyle: 'black-translucent',
+    statusBarStyle: 'default',
     title: 'Stop & Shop',
   },
 };
@@ -32,7 +32,6 @@ export const metadata = {
 export const viewport = {
   width: 'device-width',
   initialScale: 1,
-  viewportFit: 'cover',
   themeColor: '#000000',
 };
 
