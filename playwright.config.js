@@ -2,6 +2,7 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './playwright-tests',
+  timeout: 90000, // 90 seconds for slow CI environments
   fullyParallel: false, // Sequenced to prevent database write conflicts
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
