@@ -40,20 +40,6 @@ const Layout = ({ children, products = [] }) => {
   const { data: settings } = useSettings(false);
   const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
-  const [safeAreaHeight, setSafeAreaHeight] = useState('0px');
-  const [topOffset, setTopOffset] = useState('0px');
-  const [isIOS, setIsIOS] = useState(false);
-
-  // Detect iOS to apply notch height fallback in Safari
-  useEffect(() => {
-    const checkIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-    if (checkIOS) {
-      setIsIOS(true);
-      const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
-      setSafeAreaHeight('59px');
-      setTopOffset(isStandalone ? '0px' : '-59px');
-    }
-  }, []);
 
   // Scroll to top on route change
   useEffect(() => {
@@ -75,12 +61,13 @@ const Layout = ({ children, products = [] }) => {
   //   MarqueeBar = 34px (fixed, top-0)
   //   Navbar     = 64px scrolled / 72px default (fixed, top-[34px])
   //   Total      = 34 + 72 = 106px on non-home pages
+  //   Plus dynamic safe-area-inset-top on iOS/notched devices
   //   Home page gets pt-0 because the hero is full-bleed under the bars
   const mainStyle = isAdmin 
     ? {} 
     : (isHome 
         ? {} 
-        : { paddingTop: isIOS ? '165px' : '106px' }
+        : { paddingTop: 'calc(106px + env(safe-area-inset-top, 0px))' }
       );
   const mainClass = isAdmin ? 'pt-0' : (isHome ? 'pt-0' : '');
 
@@ -148,17 +135,17 @@ const Layout = ({ children, products = [] }) => {
     <div 
       className="fixed left-0 right-0 z-[110] pointer-events-none"
       style={{
-        top: topOffset,
+        top: 0,
         transform: 'translate3d(0, 0, 0)',
         WebkitTransform: 'translate3d(0, 0, 0)',
         willChange: 'transform'
       }}
     >
-      {/* Solid black spacer to act as the status bar safe area mask */}
+      {/* Dynamic solid black safe-area top spacer for notched screens */}
       <div 
-        className="w-full bg-black"
+        className="w-full bg-black pointer-events-none"
         style={{ 
-          height: safeAreaHeight,
+          height: 'env(safe-area-inset-top, 0px)',
           backgroundColor: '#000000'
         }}
       />
