@@ -40,6 +40,15 @@ const Layout = ({ children, products = [] }) => {
   const { data: settings } = useSettings(false);
   const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
+  const [safeAreaHeight, setSafeAreaHeight] = useState('env(safe-area-inset-top, 0px)');
+
+  // Detect iOS to apply notch height fallback in Safari
+  useEffect(() => {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    if (isIOS) {
+      setSafeAreaHeight('max(env(safe-area-inset-top, 0px), 47px)');
+    }
+  }, []);
 
   // Scroll to top on route change
   useEffect(() => {
@@ -66,7 +75,7 @@ const Layout = ({ children, products = [] }) => {
     ? {} 
     : (isHome 
         ? {} 
-        : { paddingTop: '106px' }
+        : { paddingTop: `calc(106px + ${safeAreaHeight})` }
       );
   const mainClass = isAdmin ? 'pt-0' : (isHome ? 'pt-0' : '');
 
@@ -137,7 +146,14 @@ const Layout = ({ children, products = [] }) => {
           willChange: 'transform'
         }}
       >
-
+        {/* Solid black spacer to act as the status bar safe area mask */}
+        <div 
+          className="w-full bg-black"
+          style={{ 
+            height: safeAreaHeight,
+            backgroundColor: '#000000'
+          }}
+        />
 
         {/* ── Flash sale banner (topmost, 36px, dismissible) ─── */}
         <FlashSaleBanner />
