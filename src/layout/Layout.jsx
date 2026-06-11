@@ -40,13 +40,18 @@ const Layout = ({ children, products = [] }) => {
   const { data: settings } = useSettings(false);
   const location = useLocation();
   const [scrolled, setScrolled] = useState(false);
-  const [safeAreaHeight, setSafeAreaHeight] = useState('env(safe-area-inset-top, 0px)');
+  const [safeAreaHeight, setSafeAreaHeight] = useState('0px');
+  const [topOffset, setTopOffset] = useState('0px');
+  const [isIOS, setIsIOS] = useState(false);
 
   // Detect iOS to apply notch height fallback in Safari
   useEffect(() => {
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-    if (isIOS) {
-      setSafeAreaHeight('max(env(safe-area-inset-top, 0px), 47px)');
+    const checkIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    if (checkIOS) {
+      setIsIOS(true);
+      const isStandalone = window.navigator.standalone || window.matchMedia('(display-mode: standalone)').matches;
+      setSafeAreaHeight('59px');
+      setTopOffset(isStandalone ? '0px' : '-59px');
     }
   }, []);
 
@@ -75,7 +80,7 @@ const Layout = ({ children, products = [] }) => {
     ? {} 
     : (isHome 
         ? {} 
-        : { paddingTop: `calc(106px + ${safeAreaHeight})` }
+        : { paddingTop: isIOS ? '165px' : '106px' }
       );
   const mainClass = isAdmin ? 'pt-0' : (isHome ? 'pt-0' : '');
 
@@ -141,8 +146,9 @@ const Layout = ({ children, products = [] }) => {
 
     {/* ── Fixed Header Wrapper (Unified fixed container outside overflow constraints to prevent WebKit shifting) ─── */}
     <div 
-      className="fixed top-0 left-0 right-0 z-[110] pointer-events-none"
+      className="fixed left-0 right-0 z-[110] pointer-events-none"
       style={{
+        top: topOffset,
         transform: 'translate3d(0, 0, 0)',
         WebkitTransform: 'translate3d(0, 0, 0)',
         willChange: 'transform'
