@@ -101,7 +101,8 @@ const Layout = ({ children, products = [] }) => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-white w-full max-w-full overflow-x-clip relative">
+    <>
+      <div className="min-h-screen flex flex-col bg-white w-full max-w-full overflow-x-clip relative">
       {/* ── Page content ─────────────────────────────── */}
       <main className={`flex-grow relative ${mainClass}`} style={mainStyle}>
         <AnimatePresence mode="wait">
@@ -136,45 +137,46 @@ const Layout = ({ children, products = [] }) => {
 
       {/* ── WhatsApp floating button ──────────────────── */}
       <WhatsAppButton />
-
-      {/* ── Fixed Header Wrapper (Unified fixed container inside overflow constraints to force WebKit z-index layering) ─── */}
-      <div 
-        className="fixed top-0 left-0 right-0 z-[110] pointer-events-none"
-        style={{
-          transform: 'translate3d(0, 0, 0)',
-          WebkitTransform: 'translate3d(0, 0, 0)',
-          willChange: 'transform'
-        }}
-      >
-        {/* Solid black spacer to act as the status bar safe area mask */}
-        <div 
-          className="w-full bg-black"
-          style={{ 
-            height: safeAreaHeight,
-            backgroundColor: '#000000'
-          }}
-        />
-
-        {/* ── Flash sale banner (topmost, 36px, dismissible) ─── */}
-        <FlashSaleBanner />
-
-        {/* ── Marquee announcement bar (34px) ─────────────────── */}
-        <MarqueeBar
-          announcement={settings?.announcement}
-          scrolled={scrolled}
-          isHome={isHome}
-        />
-
-        {/* ── Navbar (sits below marquee bar) ─────────────────── */}
-        <Navbar
-          onSearchOpen={() => setSearchOpen(true)}
-          onMenuOpen={() => setMobileOpen(true)}
-          products={products}
-          scrolled={scrolled}
-          isHome={isHome}
-        />
-      </div>
     </div>
+
+    {/* ── Fixed Header Wrapper (Unified fixed container outside overflow constraints to prevent WebKit shifting) ─── */}
+    <div 
+      className="fixed top-0 left-0 right-0 z-[110] pointer-events-none"
+      style={{
+        transform: 'translate3d(0, 0, 0)',
+        WebkitTransform: 'translate3d(0, 0, 0)',
+        willChange: 'transform'
+      }}
+    >
+      {/* Solid black spacer to act as the status bar safe area mask */}
+      <div 
+        className="w-full bg-black"
+        style={{ 
+          height: safeAreaHeight,
+          backgroundColor: '#000000'
+        }}
+      />
+
+      {/* ── Flash sale banner (topmost, 36px, dismissible) ─── */}
+      <FlashSaleBanner />
+
+      {/* ── Marquee announcement bar (34px) ─────────────────── */}
+      <MarqueeBar
+        announcement={settings?.announcement}
+        scrolled={scrolled}
+        isHome={isHome}
+      />
+
+      {/* ── Navbar (sits below marquee bar) ─────────────────── */}
+      <Navbar
+        onSearchOpen={() => setSearchOpen(true)}
+        onMenuOpen={() => setMobileOpen(true)}
+        products={products}
+        scrolled={scrolled}
+        isHome={isHome}
+      />
+    </div>
+  </>
   );
 };
 
