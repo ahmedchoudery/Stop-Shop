@@ -32,7 +32,19 @@ const productSchema = new mongoose.Schema({
   gallery: [{ type: String }],
 }, { timestamps: true, versionKey: false });
 
+const couponSchema = new mongoose.Schema({
+  code:          { type: String, required: true, unique: true, uppercase: true, trim: true },
+  type:          { type: String, enum: ['percentage', 'fixed'], default: 'percentage' },
+  value:         { type: Number, required: true, min: 0 },
+  minOrderValue: { type: Number, default: 0 },
+  maxUses:       { type: Number, default: null },
+  usedCount:     { type: Number, default: 0 },
+  isActive:      { type: Boolean, default: true },
+  expiresAt:     { type: Date, default: null },
+}, { timestamps: true, versionKey: false });
+
 const Product = mongoose.model('Product', productSchema);
+const Coupon = mongoose.models.Coupon || mongoose.model('Coupon', couponSchema);
 
 async function seed() {
   try {
@@ -42,6 +54,10 @@ async function seed() {
 
     console.log('Cleaning existing products...');
     await Product.deleteMany({});
+    console.log('Cleaned.');
+
+    console.log('Cleaning existing coupons...');
+    await Coupon.deleteMany({});
     console.log('Cleaned.');
 
     console.log(`Inserting ${products.length} products...`);
@@ -56,7 +72,20 @@ async function seed() {
     }));
 
     await Product.insertMany(preparedProducts);
-    console.log('Seeding successful!');
+    console.log('Seeding products successful!');
+
+    console.log('Inserting CARDINAL20 coupon...');
+    await Coupon.create({
+      code: 'CARDINAL20',
+      type: 'percentage',
+      value: 20,
+      minOrderValue: 0,
+      maxUses: null,
+      usedCount: 0,
+      isActive: true,
+      expiresAt: null
+    });
+    console.log('Seeding coupon successful!');
 
   } catch (error) {
     console.error('Seeding failed:', error);
@@ -65,5 +94,6 @@ async function seed() {
     console.log('Disconnected.');
   }
 }
+
 
 seed();
