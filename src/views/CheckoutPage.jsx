@@ -29,16 +29,20 @@ const CheckoutPage = () => {
         zip:     formData.zip ?? '',
       };
 
-      const items = cartItems.map(item => ({
-        id:            item.id,
-        name:          item.name,
-        price:         item.price,
-        quantity:      item.quantity ?? 1,
-        selectedSize:  item.selectedSize  ?? '',
-        selectedColor: item.selectedColor ?? '',
-        category:      item.bucket        ?? '',
-        subCategory:   item.subCategory   ?? '',
-      }));
+      const items = cartItems.map(item => {
+        const discount = item.discount ?? 0;
+        const finalPrice = discount > 0 ? item.price * (1 - discount / 100) : item.price;
+        return {
+          id:            item.id,
+          name:          item.name,
+          price:         finalPrice,
+          quantity:      item.quantity ?? 1,
+          selectedSize:  item.selectedSize  ?? '',
+          selectedColor: item.selectedColor ?? '',
+          category:      item.bucket        ?? '',
+          subCategory:   item.subCategory   ?? '',
+        };
+      });
 
       const res = await fetch(apiUrl('/api/checkout'), {
         method: 'POST',

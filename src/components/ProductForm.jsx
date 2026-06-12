@@ -268,7 +268,7 @@ const GallerySection = memo(({ form, onGalleryUpload, onRemoveGallery, uploading
 GallerySection.displayName = 'GallerySection';
 
 const BasicInfoSection = memo(({ form, setForm }) => (
-  <div className="grid grid-cols-2 gap-4">
+  <div className="grid grid-cols-3 gap-4">
     <div>
       <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Product Name *</label>
       <input type="text" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
@@ -284,35 +284,64 @@ const BasicInfoSection = memo(({ form, setForm }) => (
           className="w-full border border-gray-200 rounded-[4px] pl-10 pr-4 py-3 text-sm font-bold focus:border-black outline-none transition-colors" />
       </div>
     </div>
+    <div>
+      <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Discount %</label>
+      <input type="number" min="0" max="100" value={form.discount ?? 0} onChange={e => setForm(f => ({ ...f, discount: Math.min(100, Math.max(0, parseInt(e.target.value) || 0)) }))}
+        placeholder="0"
+        className="w-full border border-gray-200 rounded-[4px] px-4 py-3 text-sm font-bold focus:border-black outline-none transition-colors" />
+    </div>
   </div>
 ));
 
 BasicInfoSection.displayName = 'BasicInfoSection';
 
-const StockCategorySection = memo(({ form, setForm }) => (
-  <div className="grid grid-cols-3 gap-4">
-    <div>
-      <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Stock Qty</label>
-      <input type="number" value={form.quantity} onChange={e => setForm(f => ({ ...f, quantity: e.target.value }))}
-        placeholder="0"
-        className="w-full border border-gray-200 rounded-[4px] px-4 py-3 text-sm font-bold focus:border-black outline-none transition-colors" />
+const StockCategorySection = memo(({ form, setForm }) => {
+  const hasSizes = form.sizes?.length > 0;
+  
+  // Calculate total stock from sizes if active
+  const calculatedQty = hasSizes
+    ? Object.values(form.sizeStock || {}).reduce((sum, q) => sum + (parseInt(q) || 0), 0)
+    : form.quantity;
+
+  // Sync calculated quantity back to form state if it differs
+  useEffect(() => {
+    if (hasSizes && form.quantity !== calculatedQty) {
+      setForm(f => ({ ...f, quantity: calculatedQty }));
+    }
+  }, [hasSizes, calculatedQty, form.quantity, setForm]);
+
+  return (
+    <div className="grid grid-cols-3 gap-4">
+      <div>
+        <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Stock Qty</label>
+        <input 
+          type="number" 
+          value={calculatedQty} 
+          onChange={e => !hasSizes && setForm(f => ({ ...f, quantity: e.target.value }))}
+          disabled={hasSizes}
+          placeholder="0"
+          className={`w-full border border-gray-200 rounded-[4px] px-4 py-3 text-sm font-bold focus:border-black outline-none transition-colors ${
+            hasSizes ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
+          }`} 
+        />
+      </div>
+      <div>
+        <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Category</label>
+        <select value={form.bucket} onChange={e => setForm(f => ({ ...f, bucket: e.target.value, subCategory: getDefaultSubCategory(e.target.value) }))}
+          className="w-full border border-gray-200 rounded-[4px] px-4 py-3 text-sm font-bold focus:border-black outline-none bg-white">
+          {CATEGORIES.map(b => <option key={b} value={b}>{b}</option>)}
+        </select>
+      </div>
+      <div>
+        <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Sub-Category</label>
+        <select value={form.subCategory} onChange={e => setForm(f => ({ ...f, subCategory: e.target.value }))}
+          className="w-full border border-gray-200 rounded-[4px] px-4 py-3 text-sm font-bold focus:border-black outline-none bg-white">
+          {(CATEGORY_MAP[form.bucket] || []).map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
+      </div>
     </div>
-    <div>
-      <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Category</label>
-      <select value={form.bucket} onChange={e => setForm(f => ({ ...f, bucket: e.target.value, subCategory: getDefaultSubCategory(e.target.value) }))}
-        className="w-full border border-gray-200 rounded-[4px] px-4 py-3 text-sm font-bold focus:border-black outline-none bg-white">
-        {CATEGORIES.map(b => <option key={b} value={b}>{b}</option>)}
-      </select>
-    </div>
-    <div>
-      <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Sub-Category</label>
-      <select value={form.subCategory} onChange={e => setForm(f => ({ ...f, subCategory: e.target.value }))}
-        className="w-full border border-gray-200 rounded-[4px] px-4 py-3 text-sm font-bold focus:border-black outline-none bg-white">
-        {(CATEGORY_MAP[form.bucket] || []).map(s => <option key={s} value={s}>{s}</option>)}
-      </select>
-    </div>
-  </div>
-));
+  );
+});
 
 StockCategorySection.displayName = 'StockCategorySection';
 
@@ -530,6 +559,7 @@ export const EMPTY_FORM = {
   sizeStock: {},
   featuredSection: 'collection',
   displayOrder: 0,
+  discount: 0,
 };
 
 export { ProductForm };

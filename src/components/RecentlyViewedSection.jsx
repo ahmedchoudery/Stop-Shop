@@ -102,92 +102,116 @@ const RecentlyViewedSection = () => {
           className="flex space-x-4 overflow-x-auto pb-4 scrollbar-hide"
         >
           <div ref={cardsRef} className="flex space-x-4">
-            {recentlyViewed.map((product, idx) => (
-              <div
-                key={`${product.id}-${idx}`}
-                data-rv-card
-                className="flex-shrink-0 w-48 group"
-              >
-                {/* Image */}
+            {recentlyViewed.map((product, idx) => {
+              const hasDiscount = product.discount > 0;
+              const discountedPrice = hasDiscount ? product.price * (1 - product.discount / 100) : product.price;
+              return (
                 <div
-                  onClick={() => openDrawer('product', product)}
-                  className="relative w-full aspect-[3/4] bg-gray-50 rounded-[4px] overflow-hidden cursor-pointer mb-3"
+                  key={`${product.id}-${idx}`}
+                  data-rv-card
+                  className="flex-shrink-0 w-48 group"
                 >
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-600 ${
-                      product.stock === 0 ? 'grayscale opacity-60' : ''
-                    }`}
-                    loading="lazy"
-                  />
-
-                  {/* Sold out */}
-                  {product.stock === 0 && (
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <span className="bg-white text-black text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-[4px]">
-                        Sold Out
-                      </span>
-                    </div>
-                  )}
-
-                  {/* Quick add overlay */}
-                  {product.stock !== 0 && (
-                    <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-4">
-                      <button
-                        onClick={(e) => { e.stopPropagation(); addToCart(product); }}
-                        className="bg-white text-black text-[9px] font-black uppercase tracking-widest px-4 py-2.5 rounded-[4px] border border-gray-200 hover:bg-cardinal hover:text-white transition-all duration-300 active:scale-95"
-                      >
-                        + Add to Bag
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Wishlist */}
-                  <button
-                    onClick={(e) => { e.stopPropagation(); toggleWishlist(product); }}
-                    className={`absolute top-2.5 right-2.5 w-8 h-8 rounded-[4px] flex items-center justify-center border border-gray-200/30 transition-all duration-300 ${
-                      isWishlisted(product.id)
-                        ? 'bg-cardinal text-white scale-110'
-                        : 'bg-white/90 text-gray-400 opacity-0 group-hover:opacity-100'
-                    }`}
-                  >
-                    <Heart size={13} className={isWishlisted(product.id) ? 'fill-white' : ''} />
-                  </button>
-                </div>
-
-                {/* Info */}
-                <div className="px-1">
-                  <h3
+                  {/* Image */}
+                  <div
                     onClick={() => openDrawer('product', product)}
-                    className="text-sm font-black uppercase tracking-tight text-gray-900 leading-tight cursor-pointer hover:text-cardinal transition-colors duration-200 line-clamp-1"
+                    className="relative w-full aspect-[3/4] bg-gray-50 rounded-[4px] overflow-hidden cursor-pointer mb-3"
                   >
-                    {product.name}
-                  </h3>
-                  <div className="flex items-center justify-between mt-1">
-                    <p className="text-sm font-black text-cardinal">
-                      {formatPrice(product.price)}
-                    </p>
-                    <div className="flex items-center space-x-0.5 opacity-50">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} size={9} className={i < (product.rating ?? 4) ? 'fill-cardinal text-cardinal' : 'text-gray-200'} />
-                      ))}
-                    </div>
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-600 ${
+                        product.stock === 0 ? 'grayscale opacity-60' : ''
+                      }`}
+                      loading="lazy"
+                    />
+
+                    {/* Sold out */}
+                    {product.stock === 0 && (
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <span className="bg-white text-black text-[9px] font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-[4px]">
+                          Sold Out
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Discount badge */}
+                    {hasDiscount && product.stock !== 0 && (
+                      <div className="absolute top-2.5 left-2.5 z-10 bg-black px-2 py-0.5 border border-white/20">
+                        <span className="text-[7px] font-black uppercase tracking-[0.3em] text-white">
+                          {product.discount}% OFF
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Quick add overlay */}
+                    {product.stock !== 0 && (
+                      <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-4">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); addToCart(product); }}
+                          className="bg-white text-black text-[9px] font-black uppercase tracking-widest px-4 py-2.5 rounded-[4px] border border-gray-200 hover:bg-cardinal hover:text-white transition-all duration-300 active:scale-95"
+                        >
+                          + Add to Bag
+                        </button>
+                      </div>
+                    )}
+
+                    {/* Wishlist */}
+                    <button
+                      onClick={(e) => { e.stopPropagation(); toggleWishlist(product); }}
+                      className={`absolute top-2.5 right-2.5 w-8 h-8 rounded-[4px] flex items-center justify-center border border-gray-200/30 transition-all duration-300 ${
+                        isWishlisted(product.id)
+                          ? 'bg-cardinal text-white scale-110'
+                          : 'bg-white/90 text-gray-400 opacity-0 group-hover:opacity-100'
+                      }`}
+                    >
+                      <Heart size={13} className={isWishlisted(product.id) ? 'fill-white' : ''} />
+                    </button>
                   </div>
-                  {/* Color dots */}
-                  {product.colors?.length > 0 && (
-                    <div className="flex items-center space-x-1 mt-1.5">
-                      {product.colors.slice(0, 4).map(c => (
-                        <div key={c} className="w-2.5 h-2.5 rounded-full border border-gray-200" style={{ background: c }} />
-                      ))}
-                      {product.colors.length > 4 && (
-                        <span className="text-[8px] text-gray-400 font-bold">+{product.colors.length - 4}</span>
+
+                  {/* Info */}
+                  <div className="px-1">
+                    <h3
+                      onClick={() => openDrawer('product', product)}
+                      className="text-sm font-black uppercase tracking-tight text-gray-900 leading-tight cursor-pointer hover:text-cardinal transition-colors duration-200 line-clamp-1"
+                    >
+                      {product.name}
+                    </h3>
+                    <div className="flex items-center justify-between mt-1">
+                      {hasDiscount ? (
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-black text-cardinal font-mono">
+                            {formatPrice(discountedPrice)}
+                          </span>
+                          <span className="text-[10px] text-gray-400 line-through font-mono">
+                            {formatPrice(product.price)}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-sm font-black text-gray-900 font-mono">
+                          {formatPrice(product.price)}
+                        </span>
                       )}
+                      <div className="flex items-center space-x-0.5 opacity-50">
+                        {[...Array(5)].map((_, i) => (
+                          <Star key={i} size={9} className={i < (product.rating ?? 4) ? 'fill-cardinal text-cardinal' : 'text-gray-200'} />
+                        ))}
+                      </div>
                     </div>
-                  )}
+                    {/* Color dots */}
+                    {product.colors?.length > 0 && (
+                      <div className="flex items-center space-x-1 mt-1.5">
+                        {product.colors.slice(0, 4).map(c => (
+                          <div key={c} className="w-2.5 h-2.5 rounded-full border border-gray-200" style={{ background: c }} />
+                        ))}
+                        {product.colors.length > 4 && (
+                          <span className="text-[8px] text-gray-400 font-bold">+{product.colors.length - 4}</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>

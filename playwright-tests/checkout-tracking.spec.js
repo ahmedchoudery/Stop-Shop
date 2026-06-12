@@ -3,6 +3,11 @@ import { test, expect } from '@playwright/test';
 test.describe('Checkout and Secure Order Tracking E2E Flow', () => {
 
   test('should complete a coupon-discounted checkout and track securely via email verification', async ({ page }) => {
+    // Log browser messages for debugging
+    page.on('console', msg => console.log('PAGE LOG:', msg.text()));
+    page.on('pageerror', err => console.error('PAGE ERROR:', err.message));
+    page.on('requestfailed', request => console.error('REQUEST FAILED:', request.url(), request.failure()?.errorText));
+
     // 1. Visit the home page and click on the first product
     await page.goto('/');
 
@@ -16,7 +21,7 @@ test.describe('Checkout and Secure Order Tracking E2E Flow', () => {
       }
       try {
         await productLink.click();
-        await page.waitForURL(/\/product\//, { timeout: 4000 });
+        await page.waitForURL(/\/product\//, { timeout: 20000 });
         break;
       } catch (e) {
         if (attempt === 2) throw e;

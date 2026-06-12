@@ -22,6 +22,7 @@ export async function GET(req) {
 
     const data = reviews.map(r => ({
       ...r,
+      name: r.customerName || '',
       _id: r._id?.toString() || null,
       productId: r.productId || null,
       createdAt: r.createdAt ? new Date(r.createdAt).toISOString() : null,

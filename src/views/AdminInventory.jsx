@@ -44,7 +44,7 @@ const AdminInventory = () => {
   useEffect(() => { fetchProducts(); }, [fetchProducts]);
 
   const handleUpdate = useCallback(async (productId, field, value) => {
-    const parsed = field === 'quantity' ? parseInt(value) || 0 : parseFloat(value) || 0;
+    const parsed = field === 'quantity' || field === 'discount' ? parseInt(value) || 0 : parseFloat(value) || 0;
     try {
       const res = await authFetch(apiUrl(`/api/admin/products/${productId}`), {
         method: 'PATCH',
@@ -159,7 +159,7 @@ const AdminInventory = () => {
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-gray-50 border-b border-gray-150">
-                  {['SKU', 'Product', 'Price (PKR)', 'Stock', 'Status'].map(h => (
+                  {['SKU', 'Product', 'Price (PKR)', '% Off', 'Stock', 'Status'].map(h => (
                     <th key={h} className="p-4 text-[9px] font-black uppercase tracking-widest text-gray-400">{h}</th>
                   ))}
                 </tr>
@@ -193,6 +193,16 @@ const AdminInventory = () => {
                           onBlur={e => handleUpdate(product.id, 'price', e.target.value)}
                           onKeyDown={e => e.key === 'Enter' && handleUpdate(product.id, 'price', e.target.value)}
                           className="w-24 bg-transparent border-b-2 border-transparent focus:border-black outline-none py-1 text-sm font-black transition-all"
+                        />
+                      </td>
+                      <td className="p-4">
+                        <input
+                          type="number" min="0" max="100"
+                          value={product.discount ?? 0}
+                          onChange={e => handleLocalChange(product.id, 'discount', e.target.value)}
+                          onBlur={e => handleUpdate(product.id, 'discount', e.target.value)}
+                          onKeyDown={e => e.key === 'Enter' && handleUpdate(product.id, 'discount', e.target.value)}
+                          className="w-16 bg-transparent border-b-2 border-transparent focus:border-black outline-none py-1 text-sm font-black transition-all"
                         />
                       </td>
                       <td className="p-4">

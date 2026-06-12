@@ -109,7 +109,22 @@ const RelatedProducts = ({ currentId, category, subCategory, allProducts }) => {
               <p className="text-[11px] font-black uppercase tracking-tight text-gray-900 mb-1 group-hover:text-cardinal transition-colors line-clamp-1">
                 {product.name}
               </p>
-              <p className="text-sm font-black text-gray-900">{formatPrice(product.price)}</p>
+              <div className="flex items-center gap-2">
+                {product.discount > 0 ? (
+                  <>
+                    <span className="text-xs font-mono font-black text-cardinal">
+                      {formatPrice(product.price * (1 - product.discount / 100))}
+                    </span>
+                    <span className="text-[10px] font-mono text-gray-400 line-through">
+                      {formatPrice(product.price)}
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-xs font-bold font-mono text-gray-900">
+                    {formatPrice(product.price)}
+                  </span>
+                )}
+              </div>
             </Link>
           ))}
         </div>
@@ -187,6 +202,9 @@ const ProductPage = () => {
   const outOfStock = stockQty === 0;
   const isWished = product ? isWishlisted(product.id) : false;
   const category = product?.subCategory && product.subCategory !== 'General' ? product.subCategory : product?.bucket;
+
+  const hasDiscount = product?.discount > 0;
+  const discountedPrice = hasDiscount ? product.price * (1 - product.discount / 100) : product?.price;
 
   const handleAddToCart = useCallback(() => {
     if (!product || outOfStock) return;
@@ -378,14 +396,31 @@ const ProductPage = () => {
             </h1>
 
             {/* Price */}
-            <p className="text-2xl font-black text-gray-900 mb-7">
-              {formatPrice(product.price)}
+            <div className="flex items-baseline gap-3 mb-7">
+              {hasDiscount ? (
+                <>
+                  <span className="text-2xl font-black text-cardinal">
+                    {formatPrice(discountedPrice)}
+                  </span>
+                  <span className="text-base text-gray-400 line-through font-mono">
+                    {formatPrice(product.price)}
+                  </span>
+                  <span className="bg-black text-white text-[8px] font-black uppercase tracking-[0.3em] px-2 py-1 select-none border border-white/20">
+                    {product.discount}% OFF
+                  </span>
+                </>
+              ) : (
+                <span className="text-2xl font-black text-gray-900">
+                  {formatPrice(product.price)}
+                </span>
+              )}
+
               {stockQty > 0 && stockQty < 5 && (
                 <span className="ml-3 text-[10px] font-black text-orange-500 uppercase tracking-widest">
                   {stockQty} in stock
                 </span>
               )}
-            </p>
+            </div>
 
             <div className="h-px bg-gray-100 mb-7" />
 

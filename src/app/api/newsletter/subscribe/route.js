@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '../../../../lib/db';
 import Subscriber from '../../../../models/Subscriber';
+import Coupon from '../../../../models/Coupon';
 
 export async function POST(req) {
   try {
@@ -12,7 +13,14 @@ export async function POST(req) {
     }
     const trimmed = email.toLowerCase().trim();
     await Subscriber.findOneAndUpdate({ email: trimmed }, { email: trimmed }, { upsert: true });
-    return NextResponse.json({ message: 'Subscribed! Use code CARDINAL20 for 20% off your first order.' });
+
+    const coupon = await Coupon.findOne({ isActive: true }).sort({ createdAt: -1 }).lean();
+    let message = 'Subscribed!';
+    if (coupon) {
+      const discountText = coupon.type === 'percentage' ? `${coupon.value}%` : `Rs. ${coupon.value}`;
+      message = `Subscribed! Use code ${coupon.code} for ${discountText} off your first order.`;
+    }
+    return NextResponse.json({ message });
   } catch (error) {
     return NextResponse.json({ error: error.message || 'Server error' }, { status: 500 });
   }

@@ -18,6 +18,18 @@ const Newsletter = () => {
   const [status, setStatus]   = useState('idle');
   const [errorMsg, setErrorMsg] = useState('');
   const [isFocused, setIsFocused] = useState(false);
+  const [activeCoupon, setActiveCoupon] = useState(null);
+
+  useEffect(() => {
+    fetch(`${API_BASE}/api/public/coupons/active`)
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.code) {
+          setActiveCoupon(data);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const headlineRef = useRef(null);
   const formRef     = useRef(null);
@@ -208,9 +220,15 @@ const Newsletter = () => {
               </button>
             </div>
             <p className="text-white/25 text-[8px] font-black uppercase tracking-[0.45em] mt-5 leading-relaxed">
-              Privacy first. Use code{' '}
-              <span className="text-white/50 border-b border-white/20 cursor-pointer">CARDINAL20</span>
-              {' '}for 20% off your first order.
+              Privacy first. {activeCoupon ? (
+                <>
+                  Use code{' '}
+                  <span className="text-white/50 border-b border-white/20 cursor-pointer">{activeCoupon.code}</span>
+                  {' '}for {activeCoupon.type === 'percentage' ? `${activeCoupon.value}%` : `Rs. ${activeCoupon.value}`} off your first order.
+                </>
+              ) : (
+                'Check back later for active discount offers.'
+              )}
             </p>
           </form>
         )}

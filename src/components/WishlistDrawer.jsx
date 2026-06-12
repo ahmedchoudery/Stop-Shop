@@ -141,74 +141,98 @@ const WishlistDrawer = ({ isOpen, onClose }) => {
             </div>
           ) : (
             <div className="px-8 py-6 space-y-0">
-              {wishlist.map((product, idx) => (
-                <div
-                  key={product.id}
-                  data-wish-item
-                  data-wish-id={product.id}
-                  className={`flex space-x-4 py-6 group ${
-                    idx < wishlist.length - 1 ? 'border-b border-gray-50' : ''
-                  }`}
-                >
-                  {/* Product image */}
+              {wishlist.map((product, idx) => {
+                const hasDiscount = product.discount > 0;
+                const discountedPrice = hasDiscount ? product.price * (1 - product.discount / 100) : product.price;
+                return (
                   <div
-                    onClick={() => { openDrawer('product', product); handleClose(); }}
-                    className="w-[72px] h-[90px] bg-[#F8F7F5] overflow-hidden flex-shrink-0 cursor-pointer"
+                    key={product.id}
+                    data-wish-item
+                    data-wish-id={product.id}
+                    className={`flex space-x-4 py-6 group ${
+                      idx < wishlist.length - 1 ? 'border-b border-gray-50' : ''
+                    }`}
                   >
-                    {product.image ? (
-                      <img
-                        src={product.image}
-                        alt={product.name}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        loading="lazy"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <ShoppingBag size={16} className="text-gray-300" />
+                    {/* Product image */}
+                    <div
+                      onClick={() => { openDrawer('product', product); handleClose(); }}
+                      className="w-[72px] h-[90px] bg-[#F8F7F5] overflow-hidden flex-shrink-0 cursor-pointer relative"
+                    >
+                      {product.image ? (
+                        <>
+                          <img
+                            src={product.image}
+                            alt={product.name}
+                            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                            loading="lazy"
+                          />
+                          {hasDiscount && (
+                            <div className="absolute top-1 left-1 bg-black px-1.5 py-0.5 border border-white/20 z-10">
+                              <span className="text-[6px] font-black uppercase tracking-[0.2em] text-white">
+                                {product.discount}% OFF
+                              </span>
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <ShoppingBag size={16} className="text-gray-300" />
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Info */}
+                    <div className="flex-grow min-w-0 flex flex-col justify-between py-0.5">
+                      <div>
+                        {/* Category */}
+                        <p className="text-[8px] font-bold uppercase tracking-[0.35em] text-gray-400 mb-1">
+                          {product.bucket}
+                        </p>
+                        {/* Name */}
+                        <h3
+                          onClick={() => { openDrawer('product', product); handleClose(); }}
+                          className="text-[11px] font-black uppercase tracking-tight text-gray-900 leading-snug cursor-pointer hover:text-cardinal transition-colors line-clamp-2 mb-2"
+                        >
+                          {product.name}
+                        </h3>
+                        {/* Price */}
+                        {hasDiscount ? (
+                          <div className="flex items-center gap-1.5">
+                            <span className="text-sm font-black text-cardinal font-mono">
+                              {formatPrice(discountedPrice)}
+                            </span>
+                            <span className="text-[10px] text-gray-400 line-through font-mono">
+                              {formatPrice(product.price)}
+                            </span>
+                          </div>
+                        ) : (
+                          <p className="text-sm font-black text-gray-900">
+                            {formatPrice(product.price)}
+                          </p>
+                        )}
                       </div>
-                    )}
-                  </div>
 
-                  {/* Info */}
-                  <div className="flex-grow min-w-0 flex flex-col justify-between py-0.5">
-                    <div>
-                      {/* Category */}
-                      <p className="text-[8px] font-bold uppercase tracking-[0.35em] text-gray-400 mb-1">
-                        {product.bucket}
-                      </p>
-                      {/* Name */}
-                      <h3
-                        onClick={() => { openDrawer('product', product); handleClose(); }}
-                        className="text-[11px] font-black uppercase tracking-tight text-gray-900 leading-snug cursor-pointer hover:text-cardinal transition-colors line-clamp-2 mb-2"
-                      >
-                        {product.name}
-                      </h3>
-                      {/* Price */}
-                      <p className="text-sm font-black text-gray-900">
-                        {formatPrice(product.price)}
-                      </p>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex items-center space-x-3 mt-3">
-                      <button
-                        onClick={() => handleMoveToCart(product)}
-                        className="flex items-center space-x-1.5 text-[9px] font-black uppercase tracking-[0.25em] text-white bg-black px-3.5 py-2.5 rounded-[4px] hover:bg-cardinal transition-colors duration-300"
-                      >
-                        <ShoppingBag size={10} />
-                        <span>Add to Bag</span>
-                      </button>
-                      <button
-                        onClick={() => toggleWishlist(product)}
-                        className="p-2 text-gray-300 hover:text-cardinal transition-colors"
-                        title="Remove"
-                      >
-                        <Trash2 size={13} />
-                      </button>
+                      {/* Actions */}
+                      <div className="flex items-center space-x-3 mt-3">
+                        <button
+                          onClick={() => handleMoveToCart(product)}
+                          className="flex items-center space-x-1.5 text-[9px] font-black uppercase tracking-[0.25em] text-white bg-black px-3.5 py-2.5 rounded-[4px] hover:bg-cardinal transition-colors duration-300"
+                        >
+                          <ShoppingBag size={10} />
+                          <span>Add to Bag</span>
+                        </button>
+                        <button
+                          onClick={() => toggleWishlist(product)}
+                          className="p-2 text-gray-300 hover:text-cardinal transition-colors"
+                          title="Remove"
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>

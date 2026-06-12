@@ -48,6 +48,7 @@ export const createProductSchema = z.object({
   price:         priceSchema,
   quantity:      z.number().int().nonnegative().optional().default(0),
   stock:         z.number().int().nonnegative().optional().default(0),
+  discount:      z.number().int().min(0).max(100).optional().default(0),
   image:         z.string().max(2000).optional().default(''),
   mediaType:     z.enum(['upload', 'url', 'embed']).optional().default('upload'),
   embedCode:     z.string().max(5000).optional().default(''),

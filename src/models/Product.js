@@ -46,6 +46,7 @@ const productSchema = new mongoose.Schema({
   gallery:       [{ type: String }],
   featuredSection: { type: String, enum: ['collection', 'drop', 'attitude', 'pieces'], required: true },
   displayOrder:    { type: Number, default: 0, min: 0 },
+  discount:        { type: Number, default: 0, min: 0, max: 100 },
 }, { timestamps: true, versionKey: false, autoIndex: true });
 
 productSchema.index({ bucket: 1, createdAt: -1 });

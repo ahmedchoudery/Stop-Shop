@@ -50,6 +50,7 @@ const DEFAULT_FORM = {
   gallery:        [],
   featuredSection: 'collection',
   displayOrder:    0,
+  discount:       0,
 };
 
 // ─────────────────────────────────────────────────────────────────
@@ -254,6 +255,7 @@ const AdminProducts = () => {
       gallery:        product.gallery        ?? [],
       featuredSection: product.featuredSection ?? 'collection',
       displayOrder:    product.displayOrder    ?? 0,
+      discount:        product.discount        ?? 0,
     });
     setColorInput('');
     setSizeInput('');
@@ -286,6 +288,7 @@ const AdminProducts = () => {
         price:    parseFloat(form.price),
         quantity: parseInt(form.quantity) || 0,
         stock:    parseInt(form.quantity) || 0,
+        discount: parseInt(form.discount) || 0,
         // Ensure sizeStock values are numbers
         sizeStock: Object.fromEntries(
           Object.entries(form.sizeStock ?? {}).map(([k, v]) => [k, parseInt(v) || 0])

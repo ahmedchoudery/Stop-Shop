@@ -17,6 +17,7 @@ import { useCart } from '../context/CartContext.tsx';
 import { useCurrency } from '../context/CurrencyContext.jsx';
 import { useCustomer } from '../context/CustomerContext.jsx';
 import CouponInput from './CouponInput.jsx';
+import { API_BASE } from '../config/api.js';
 
 // ─────────────────────────────────────────────────────────────────
 // PAYMENT METHODS
@@ -77,9 +78,22 @@ const OrderSummary = ({ cartItems, total, coupon, formatPrice }) => (
             )}
             <p className="text-[10px] font-black text-gray-500 mt-0.5">Qty: {item.quantity ?? 1}</p>
           </div>
-          <p className="text-[11px] font-black text-gray-900 flex-shrink-0">
-            {formatPrice((item.price ?? 0) * (item.quantity ?? 1))}
-          </p>
+          <div className="text-right flex-shrink-0">
+            {item.discount > 0 ? (
+              <>
+                <p className="text-[11px] font-black text-cardinal">
+                  {formatPrice(item.price * (1 - item.discount / 100) * (item.quantity ?? 1))}
+                </p>
+                <p className="text-[9px] text-gray-450 line-through font-mono">
+                  {formatPrice(item.price * (item.quantity ?? 1))}
+                </p>
+              </>
+            ) : (
+              <p className="text-[11px] font-black text-gray-900">
+                {formatPrice((item.price ?? 0) * (item.quantity ?? 1))}
+              </p>
+            )}
+          </div>
         </div>
       ))}
     </div>
@@ -117,6 +131,18 @@ const CheckoutForm = ({ onComplete, stockWarnings = [], isSubmitting = false }) 
 
   const [coupon, setCoupon] = useState(null);
   const [usingSavedAddress, setUsingSavedAddress] = useState(false);
+  const [activeCoupon, setActiveCoupon] = useState(null);
+
+  useEffect(() => {
+    fetch(`${API_BASE}/api/public/coupons/active`)
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.code) {
+          setActiveCoupon(data);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const [form, setForm] = useState({
     firstName:     '',
@@ -335,7 +361,11 @@ const CheckoutForm = ({ onComplete, stockWarnings = [], isSubmitting = false }) 
               <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-900">Coupon Code</h2>
             </div>
             <CouponInput cartTotal={total} appliedCoupon={coupon} onApply={setCoupon} onRemove={() => setCoupon(null)} />
-            {!coupon && <p className="text-[9px] font-bold text-gray-300 uppercase tracking-widest mt-2">Try CARDINAL20 for 20% off</p>}
+            {!coupon && activeCoupon && (
+              <p className="text-[9px] font-bold text-gray-300 uppercase tracking-widest mt-2">
+                Try {activeCoupon.code.toUpperCase()} for {activeCoupon.type === 'percentage' ? `${activeCoupon.value}%` : `Rs. ${activeCoupon.value}`} off
+              </p>
+            )}
           </section>
         </div>
 

@@ -247,7 +247,11 @@ export const CartProvider = ({ children }: CartProviderProps) => {
   );
 
   const total = useMemo(
-    () => state.cartItems.reduce((sum, item) => sum + item.price * (item.quantity ?? 1), 0),
+    () => state.cartItems.reduce((sum, item) => {
+      const discount = item.discount ?? 0;
+      const finalPrice = discount > 0 ? item.price * (1 - discount / 100) : item.price;
+      return sum + finalPrice * (item.quantity ?? 1);
+    }, 0),
     [state.cartItems]
   );
 

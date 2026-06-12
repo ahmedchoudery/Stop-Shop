@@ -38,6 +38,9 @@ const ProductCard = ({ product, onImageLoad }) => {
         ? Date.now() - new Date(product.createdAt).getTime() < 30 * 24 * 60 * 60 * 1000
         : false);
 
+  const hasDiscount = product.discount > 0;
+  const discountedPrice = hasDiscount ? product.price * (1 - product.discount / 100) : product.price;
+
   const category =
     product.subCategory && product.subCategory.toLowerCase() !== 'general'
       ? product.subCategory
@@ -213,12 +216,30 @@ const ProductCard = ({ product, onImageLoad }) => {
               Sold Out
             </span>
           </div>
-        ) : isNew && (
-          <div className="absolute top-3 left-3 z-10 bg-cardinal px-2.5 py-1" style={{ transform: 'translateZ(25px)' }}>
-            <span className="text-[7px] font-black uppercase tracking-[0.35em] text-white">
-              New
-            </span>
-          </div>
+        ) : (
+          <>
+            {isNew && (
+              <div className="absolute top-3 left-3 z-10 bg-cardinal px-2.5 py-1" style={{ transform: 'translateZ(25px)' }}>
+                <span className="text-[7px] font-black uppercase tracking-[0.35em] text-white">
+                  New
+                </span>
+              </div>
+            )}
+            {hasDiscount && (
+              <div
+                className="absolute z-10 bg-black px-2.5 py-1 border border-white/20"
+                style={{
+                  transform: 'translateZ(25px)',
+                  top: isNew ? '34px' : '12px',
+                  left: '12px'
+                }}
+              >
+                <span className="text-[7px] font-black uppercase tracking-[0.35em] text-white">
+                  {product.discount}% OFF
+                </span>
+              </div>
+            )}
+          </>
         )}
       </div>
 
@@ -236,9 +257,22 @@ const ProductCard = ({ product, onImageLoad }) => {
 
         {/* Price + Colors */}
         <div className="flex items-center justify-between">
-          <span className="text-xs font-bold font-mono text-gray-900">
-            {formatPrice(product.price)}
-          </span>
+          <div className="flex items-center gap-2">
+            {hasDiscount ? (
+              <>
+                <span className="text-xs font-mono font-black text-cardinal">
+                  {formatPrice(discountedPrice)}
+                </span>
+                <span className="text-[10px] font-mono text-gray-400 line-through">
+                  {formatPrice(product.price)}
+                </span>
+              </>
+            ) : (
+              <span className="text-xs font-bold font-mono text-gray-900">
+                {formatPrice(product.price)}
+              </span>
+            )}
+          </div>
 
           {/* Color swatches */}
           {product.colors?.length > 0 && (

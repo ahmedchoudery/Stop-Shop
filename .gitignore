@@ -31,6 +31,7 @@ pnpm-debug.log*
 /seed.js
 /seed_settings.js
 /migrate_admins.js
+/scripts/restore-db.js
 
 # Temporary output files
 lint_output.txt

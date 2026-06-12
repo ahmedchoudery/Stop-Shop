@@ -1,6 +1,7 @@
 import nodemailer from 'nodemailer';
 import mongoose from 'mongoose';
 import Product from '../models/Product.js';
+import Coupon from '../models/Coupon.js';
 
 const getEnv = (...keys) => keys.map(k => process.env[k]).find(Boolean);
 
@@ -387,6 +388,17 @@ export const sendWelcomeEmail = async (customer) => {
 
   const subject = `Welcome to Stop & Shop — Gujrat's Finest Menswear`;
 
+  let couponText = 'Check our website for active seasonal promotions and discount codes!';
+  try {
+    const activeCoupon = await Coupon.findOne({ isActive: true }).sort({ createdAt: -1 }).lean();
+    if (activeCoupon) {
+      const offVal = activeCoupon.type === 'percentage' ? `${activeCoupon.value}%` : `Rs. ${activeCoupon.value}`;
+      couponText = `Use coupon code <strong>${activeCoupon.code.toUpperCase()}</strong> at checkout for ${offVal} off your first order!`;
+    }
+  } catch (err) {
+    console.error('[WelcomeEmail] Failed to fetch active coupon:', err.message);
+  }
+
   const content = `
     <p style="margin: 0 0 20px; font-size: 14px; line-height: 1.6; color: #404040;">
       Hi <strong>${escapeHtml(customer.name)}</strong>,
@@ -407,7 +419,7 @@ export const sendWelcomeEmail = async (customer) => {
         <strong>Status:</strong> Verified Account
       </p>
       <p style="margin: 12px 0 0; font-size: 11px; color: #ba1f3d; font-weight: bold; text-transform: uppercase; letter-spacing: 1px;">
-        Use coupon code <strong>CARDINAL20</strong> at checkout for 20% off your first order!
+        ${couponText}
       </p>
     </div>
     

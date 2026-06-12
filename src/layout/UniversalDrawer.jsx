@@ -69,9 +69,22 @@ const CartItem = ({ item, onRemove, onQtyChange }) => {
 
         {/* Price + Controls */}
         <div className="flex items-center justify-between mt-2">
-          <span className="text-sm font-black text-gray-900">
-            {formatPrice(item.price * (item.quantity ?? 1))}
-          </span>
+          <div className="flex items-center gap-2">
+            {item.discount > 0 ? (
+              <>
+                <span className="text-sm font-black text-cardinal">
+                  {formatPrice(item.price * (1 - item.discount / 100) * (item.quantity ?? 1))}
+                </span>
+                <span className="text-xs text-gray-400 line-through font-mono">
+                  {formatPrice(item.price * (item.quantity ?? 1))}
+                </span>
+              </>
+            ) : (
+              <span className="text-sm font-black text-gray-900">
+                {formatPrice(item.price * (item.quantity ?? 1))}
+              </span>
+            )}
+          </div>
 
           <div className="flex items-center space-x-1">
             {/* Qty */}
@@ -318,9 +331,25 @@ const UniversalDrawer = () => {
                   <h2 className="text-lg font-black uppercase tracking-tight text-gray-900 mb-3">
                     {selectedProduct.name}
                   </h2>
-                  <p className="text-xl font-black text-gray-900 mb-6">
-                    {formatPrice(selectedProduct.price)}
-                  </p>
+                  <div className="flex items-baseline gap-2.5 mb-6">
+                    {selectedProduct.discount > 0 ? (
+                      <>
+                        <span className="text-xl font-black text-cardinal">
+                          {formatPrice(selectedProduct.price * (1 - selectedProduct.discount / 100))}
+                        </span>
+                        <span className="text-sm text-gray-400 line-through font-mono">
+                          {formatPrice(selectedProduct.price)}
+                        </span>
+                        <span className="bg-black text-white text-[7px] font-black uppercase tracking-widest px-1.5 py-0.5 border border-white/20 select-none">
+                          {selectedProduct.discount}% OFF
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-xl font-black text-gray-900">
+                        {formatPrice(selectedProduct.price)}
+                      </span>
+                    )}
+                  </div>
                   <Link
                     to={`/product/${selectedProduct.id}`}
                     onClick={handleClose}

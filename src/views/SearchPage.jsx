@@ -27,6 +27,8 @@ const SearchProductCard = ({ product }) => {
   const { formatPrice } = useCurrency();
   const { addToCart, openDrawer } = useCart();
   const outOfStock = (product.quantity ?? 0) === 0;
+  const hasDiscount = product.discount > 0;
+  const discountedPrice = hasDiscount ? product.price * (1 - product.discount / 100) : product.price;
 
   const handleAdd = (e) => {
     e.preventDefault();
@@ -59,6 +61,14 @@ const SearchProductCard = ({ product }) => {
           </div>
         )}
 
+        {hasDiscount && !outOfStock && (
+          <div className="absolute top-3 left-3 z-10 bg-black px-2 py-1 border border-white/20">
+            <span className="text-[7px] font-black uppercase tracking-[0.35em] text-white">
+              {product.discount}% OFF
+            </span>
+          </div>
+        )}
+
         {!outOfStock && (
           <button
             onClick={handleAdd}
@@ -75,9 +85,22 @@ const SearchProductCard = ({ product }) => {
       <p className="text-xs font-black uppercase tracking-tight text-gray-900 truncate group-hover:text-cardinal transition-colors">
         {product.name}
       </p>
-      <p className="text-sm font-black text-gray-900 mt-1">
-        {formatPrice(product.price)}
-      </p>
+      <div className="flex items-center gap-2 mt-1">
+        {hasDiscount ? (
+          <>
+            <span className="text-sm font-black text-cardinal font-mono">
+              {formatPrice(discountedPrice)}
+            </span>
+            <span className="text-xs text-gray-400 line-through font-mono">
+              {formatPrice(product.price)}
+            </span>
+          </>
+        ) : (
+          <span className="text-sm font-black text-gray-900 font-mono">
+            {formatPrice(product.price)}
+          </span>
+        )}
+      </div>
     </Link>
   );
 };

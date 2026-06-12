@@ -126,10 +126,14 @@ export async function POST(req) {
 
     const enrichedItems = items.map(item => {
       const product = productMap.get(item.id);
+      const discount = product?.discount ?? 0;
+      const basePrice = product?.price ?? item.price ?? 0;
+      const finalPrice = discount > 0 ? basePrice * (1 - discount / 100) : basePrice;
+      
       return {
         id:            item.id,
         name:          product?.name || item.name || '',
-        price:         product?.price ?? item.price ?? 0,
+        price:         finalPrice,
         quantity:      Math.max(1, parseInt(item.quantity) || 1),
         selectedSize:  (item.selectedSize ?? '').trim(),
         selectedColor: (item.selectedColor ?? '').trim(),

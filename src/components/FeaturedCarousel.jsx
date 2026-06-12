@@ -25,6 +25,9 @@ const CarouselCard = ({ product }) => {
   const wishlisted = isWishlisted(product.id);
   const outOfStock = product.stock === 0;
 
+  const hasDiscount = product.discount > 0;
+  const discountedPrice = hasDiscount ? product.price * (1 - product.discount / 100) : product.price;
+
   const handleAddToCart = useCallback((e) => {
     e.stopPropagation();
     if (outOfStock) return;
@@ -88,6 +91,15 @@ const CarouselCard = ({ product }) => {
           </button>
         )}
 
+        {/* Discount Badge */}
+        {hasDiscount && !outOfStock && (
+          <div className="absolute top-3 left-3 bg-black px-2 py-1 border border-white/20 z-20 shadow-sm">
+            <span className="text-[7px] font-black uppercase tracking-[0.35em] text-white">
+              {product.discount}% OFF
+            </span>
+          </div>
+        )}
+
         {/* Out of Stock Label */}
         {outOfStock && (
           <div className="absolute top-3 left-3 bg-white/95 px-2 py-0.5 shadow-sm border border-gray-100 z-20">
@@ -103,9 +115,22 @@ const CarouselCard = ({ product }) => {
           {product.name}
         </h3>
         <div className="flex items-center justify-between">
-          <span className="text-sm font-bold text-black tracking-wide">
-            {formatPrice(product.price)}
-          </span>
+          <div className="flex items-center gap-2">
+            {hasDiscount ? (
+              <>
+                <span className="text-sm font-black text-cardinal font-mono">
+                  {formatPrice(discountedPrice)}
+                </span>
+                <span className="text-xs text-gray-400 line-through font-mono">
+                  {formatPrice(product.price)}
+                </span>
+              </>
+            ) : (
+              <span className="text-sm font-bold text-black tracking-wide font-mono">
+                {formatPrice(product.price)}
+              </span>
+            )}
+          </div>
           {cartAdded && (
             <span className="text-[9px] font-bold text-black uppercase tracking-wider animate-pulse">
               Added

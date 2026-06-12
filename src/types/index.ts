@@ -22,6 +22,7 @@ export interface Product {
   lifestyleImage?: string;
   variantImages?: Record<string, string>;
   gallery?: string[];
+  discount?: number;
 }
 
 export interface CartItem extends Product {

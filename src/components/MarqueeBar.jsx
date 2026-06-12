@@ -3,12 +3,12 @@
  * Background matches site base (#0d0d0d).
  */
 
-import React, { useRef } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
+import { API_BASE } from '../config/api.js';
 
 const SEP = '  —  ';
 
 const DEFAULT_ITEMS = [
-  `USE CODE CARDINAL20 FOR 20% OFF${SEP}`,
   `FREE DELIVERY ON ORDERS OVER RS. 2,000${SEP}`,
   `NEW ARRIVALS EVERY FRIDAY${SEP}`,
   `PREMIUM FABRICS · CRAFTED IN PAKISTAN${SEP}`,
@@ -19,10 +19,30 @@ const DEFAULT_ITEMS = [
 
 const MarqueeBar = ({ announcement, scrolled = true, isHome = false }) => {
   const trackRef = useRef(null);
+  const [activeCoupon, setActiveCoupon] = useState(null);
 
-  const items = announcement
-    ? [`✦ ${announcement.toUpperCase()}`, ...DEFAULT_ITEMS]
-    : DEFAULT_ITEMS;
+  useEffect(() => {
+    fetch(`${API_BASE}/api/public/coupons/active`)
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.code) {
+          setActiveCoupon(data);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const items = [];
+  if (announcement) {
+    items.push(`✦ ${announcement.toUpperCase()}${SEP}`);
+  }
+  
+  if (activeCoupon) {
+    const offText = activeCoupon.type === 'percentage' ? `${activeCoupon.value}%` : `RS. ${activeCoupon.value}`;
+    items.push(`USE CODE ${activeCoupon.code.toUpperCase()} FOR ${offText} OFF${SEP}`);
+  }
+
+  items.push(...DEFAULT_ITEMS);
 
   const allItems = [...items, ...items, ...items];
   const useTransparent = false;

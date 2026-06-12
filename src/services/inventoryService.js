@@ -72,6 +72,7 @@ export const syncInventory = async (product, moveType = 'ADMIN_UPDATE', note = '
           rating:       product.rating ?? 5,
           colorVariants: product.colors ?? [],
           sizes:        product.sizes ?? [],
+          discount:     product.discount ?? 0,
           totalStock,
           sizeStock:    sizeStockPlain,
           status,

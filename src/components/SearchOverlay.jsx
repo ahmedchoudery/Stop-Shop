@@ -154,7 +154,18 @@ const SearchOverlay = ({ isOpen, onClose, products = [] }) => {
                           <div className="flex-grow min-w-0">
                             <p className="text-gray-400 text-[8px] font-black uppercase tracking-widest mb-1">{product.bucket}</p>
                             <h3 className="text-gray-900 font-black uppercase tracking-tight text-sm leading-tight mb-1 truncate">{product.name}</h3>
-                            <p className="text-cardinal font-black text-xs tracking-wider">{formatPrice(product.price)}</p>
+                            {product.discount > 0 ? (
+                              <div className="flex items-center gap-2">
+                                <span className="text-cardinal font-black text-xs tracking-wider">
+                                  {formatPrice(product.price * (1 - product.discount / 100))}
+                                </span>
+                                <span className="text-gray-400 line-through text-[10px] font-mono">
+                                  {formatPrice(product.price)}
+                                </span>
+                              </div>
+                            ) : (
+                              <p className="text-cardinal font-black text-xs tracking-wider">{formatPrice(product.price)}</p>
+                            )}
                           </div>
                           <ArrowRight className="text-gray-400/0 group-hover:text-gray-400/80 -translate-x-3 group-hover:translate-x-0 transition-all duration-300 flex-shrink-0" size={16} />
                         </motion.button>
