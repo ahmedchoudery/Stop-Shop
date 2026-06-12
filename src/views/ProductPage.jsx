@@ -70,6 +70,38 @@ const TRUST = [
   { Icon: Package,   label: 'Authentic', sub: 'Original Stop & Shop' },
 ];
 
+const getBackgroundStyle = (color) => {
+  if (!color) return {};
+  if (color.includes('|')) {
+    const parts = color.split('|');
+    const part0 = parts[0].trim();
+    const part1 = parts[1].trim();
+    const isHex = (str) => /^#([0-9A-F]{3}){1,2}$/i.test(str);
+    if (isHex(part0) && !isHex(part1)) {
+      return { backgroundColor: part0 };
+    } else {
+      return { background: `linear-gradient(135deg, ${part0} 50%, ${part1} 50%)` };
+    }
+  }
+  return { backgroundColor: color };
+};
+
+const getColorName = (color) => {
+  if (!color) return '';
+  if (color.includes('|')) {
+    const parts = color.split('|');
+    const part0 = parts[0].trim();
+    const part1 = parts[1].trim();
+    const isHex = (str) => /^#([0-9A-F]{3}){1,2}$/i.test(str);
+    if (isHex(part0) && !isHex(part1)) {
+      return part1;
+    } else {
+      return parts.join(' / ');
+    }
+  }
+  return color;
+};
+
 // ── Related Products ─────────────────────────────────────────────
 
 const RelatedProducts = ({ currentId, category, subCategory, allProducts }) => {
@@ -431,13 +463,12 @@ const ProductPage = () => {
                   Color
                   {selectedColor && (
                     <span className="ml-2 text-gray-900 normal-case tracking-normal text-[10px] font-bold">
-                      — {selectedColor.split('|').pop()}
+                      — {getColorName(selectedColor)}
                     </span>
                   )}
                 </p>
                 <div className="flex flex-wrap gap-2">
                   {product.colors.map(color => {
-                    const hex = color.includes('|') ? color.split('|')[0] : color;
                     return (
                       <button
                         key={color}
@@ -449,13 +480,13 @@ const ProductPage = () => {
                             if (idx > -1) setGalleryIndex(idx);
                           }
                         }}
-                        title={color.split('|').pop()}
-                        className={`w-8 h-8 border-2 transition-all duration-200 ${
+                        title={getColorName(color)}
+                        className={`w-8 h-8 border-2 transition-all duration-200 focus:outline-none ${
                           selectedColor === color
                             ? 'border-gray-900 ring-1 ring-gray-900 ring-offset-2'
                             : 'border-transparent hover:border-gray-300'
                         }`}
-                        style={{ backgroundColor: hex }}
+                        style={getBackgroundStyle(color)}
                       />
                     );
                   })}

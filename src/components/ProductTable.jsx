@@ -9,6 +9,38 @@ import React, { memo } from 'react';
 import { Edit3, Trash2, AlertTriangle } from 'lucide-react';
 import MediaRenderer from './MediaRenderer.jsx';
 
+const getBackgroundStyle = (color) => {
+  if (!color) return {};
+  if (color.includes('|')) {
+    const parts = color.split('|');
+    const part0 = parts[0].trim();
+    const part1 = parts[1].trim();
+    const isHex = (str) => /^#([0-9A-F]{3}){1,2}$/i.test(str);
+    if (isHex(part0) && !isHex(part1)) {
+      return { backgroundColor: part0 };
+    } else {
+      return { background: `linear-gradient(135deg, ${part0} 50%, ${part1} 50%)` };
+    }
+  }
+  return { backgroundColor: color };
+};
+
+const getColorName = (color) => {
+  if (!color) return '';
+  if (color.includes('|')) {
+    const parts = color.split('|');
+    const part0 = parts[0].trim();
+    const part1 = parts[1].trim();
+    const isHex = (str) => /^#([0-9A-F]{3}){1,2}$/i.test(str);
+    if (isHex(part0) && !isHex(part1)) {
+      return part1;
+    } else {
+      return parts.join(' / ');
+    }
+  }
+  return color;
+};
+
 const StockBadge = ({ qty }) => {
   if (qty === 0) {
     return (
@@ -85,8 +117,8 @@ const ProductTable = memo(({ products = [], onEdit, onDelete }) => {
                           <span
                             key={color}
                             className="w-2.5 h-2.5 rounded-full border border-white shadow-sm"
-                            style={{ backgroundColor: color.includes('|') ? color.split('|')[0] : color }}
-                            title={color}
+                            style={getBackgroundStyle(color)}
+                            title={getColorName(color)}
                           />
                         ))}
                         {product.colors.length > 4 && (

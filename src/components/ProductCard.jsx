@@ -18,6 +18,37 @@ import { useCurrency } from '../context/CurrencyContext.jsx';
 import MediaRenderer from './MediaRenderer.jsx';
 import { playPremiumChime } from '../utils/audio.js';
 import MagneticElement from './MagneticElement.jsx';
+const getBackgroundStyle = (color) => {
+  if (!color) return {};
+  if (color.includes('|')) {
+    const parts = color.split('|');
+    const part0 = parts[0].trim();
+    const part1 = parts[1].trim();
+    const isHex = (str) => /^#([0-9A-F]{3}){1,2}$/i.test(str);
+    if (isHex(part0) && !isHex(part1)) {
+      return { backgroundColor: part0 };
+    } else {
+      return { background: `linear-gradient(135deg, ${part0} 50%, ${part1} 50%)` };
+    }
+  }
+  return { backgroundColor: color };
+};
+
+const getColorName = (color) => {
+  if (!color) return '';
+  if (color.includes('|')) {
+    const parts = color.split('|');
+    const part0 = parts[0].trim();
+    const part1 = parts[1].trim();
+    const isHex = (str) => /^#([0-9A-F]{3}){1,2}$/i.test(str);
+    if (isHex(part0) && !isHex(part1)) {
+      return part1;
+    } else {
+      return parts.join(' / ');
+    }
+  }
+  return color;
+};
 
 const ProductCard = ({ product, onImageLoad }) => {
   const navigate      = useNavigate();
@@ -276,21 +307,21 @@ const ProductCard = ({ product, onImageLoad }) => {
 
           {/* Color swatches */}
           {product.colors?.length > 0 && (
-            <div className="flex items-center gap-1">
+            <div className="flex items-center gap-1.5">
               {product.colors.slice(0, 4).map((color) => {
-                const hex = color.includes('|') ? color.split('|')[0] : color;
+                const isSelected = activeColor === color;
                 return (
                   <button
                     key={color}
                     onClick={(e) => { e.stopPropagation(); setActiveColor(color); }}
-                    aria-label={`Select colour ${hex}`}
+                    aria-label={`Select colour ${getColorName(color)}`}
                     className={[
-                      'w-2.5 h-2.5 rounded-full border transition-all duration-200',
-                      activeColor === color
-                        ? 'border-black ring-1 ring-black ring-offset-1 ring-offset-white'
-                        : 'border-gray-300 hover:border-gray-500',
+                      'w-3.5 h-3.5 rounded-full border transition-all duration-200 focus:outline-none',
+                      isSelected
+                        ? 'border-black ring-2 ring-black ring-offset-2 ring-offset-white z-10'
+                        : 'border-gray-450 hover:border-black/60',
                     ].join(' ')}
-                    style={{ backgroundColor: hex }}
+                    style={getBackgroundStyle(color)}
                   />
                 );
               })}

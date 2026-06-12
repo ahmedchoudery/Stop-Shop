@@ -34,20 +34,7 @@ const itemVariants = {
   }
 };
 
-const getAsymmetricClass = (index) => {
-  const mod = index % 8;
-  if (mod === 0) {
-    return "col-span-2 sm:col-span-2 lg:col-span-2 row-span-2";
-  }
-  if (mod === 3) {
-    return "col-span-1 lg:mt-12 sm:mt-6";
-  }
-  if (mod === 5) {
-    return "col-span-1 lg:-mt-12 sm:-mt-6";
-  }
-  if (mod === 7) {
-    return "col-span-1 lg:mt-6";
-  }
+const getAsymmetricClass = () => {
   return "col-span-1";
 };
 

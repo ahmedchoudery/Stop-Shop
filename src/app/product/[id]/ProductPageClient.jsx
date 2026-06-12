@@ -21,6 +21,38 @@ const TRUST = [
   { Icon: Package,   label: 'Authentic', sub: 'Original Stop & Shop' },
 ];
 
+const getBackgroundStyle = (color) => {
+  if (!color) return {};
+  if (color.includes('|')) {
+    const parts = color.split('|');
+    const part0 = parts[0].trim();
+    const part1 = parts[1].trim();
+    const isHex = (str) => /^#([0-9A-F]{3}){1,2}$/i.test(str);
+    if (isHex(part0) && !isHex(part1)) {
+      return { backgroundColor: part0 };
+    } else {
+      return { background: `linear-gradient(135deg, ${part0} 50%, ${part1} 50%)` };
+    }
+  }
+  return { backgroundColor: color };
+};
+
+const getColorName = (color) => {
+  if (!color) return '';
+  if (color.includes('|')) {
+    const parts = color.split('|');
+    const part0 = parts[0].trim();
+    const part1 = parts[1].trim();
+    const isHex = (str) => /^#([0-9A-F]{3}){1,2}$/i.test(str);
+    if (isHex(part0) && !isHex(part1)) {
+      return part1;
+    } else {
+      return parts.join(' / ');
+    }
+  }
+  return color;
+};
+
 const RelatedProducts = ({ currentId, category, subCategory, allProducts = [] }) => {
   const { formatPrice } = useCurrency();
   const related = [
@@ -198,18 +230,17 @@ export default function ProductPageClient({ product, allProducts = [] }) {
                 <span className="text-[8px] font-black uppercase tracking-widest text-gray-400 block mb-3">Select Color</span>
                 <div className="flex items-center space-x-3">
                   {product.colors.map(col => {
-                    const hex = col.includes('|') ? col.split('|')[0] : col;
                     return (
                       <button
                         key={col}
                         onClick={() => setSelectedColor(col)}
-                        className={`w-7 h-7 rounded-full border transition-all duration-300 ${
+                        className={`w-7 h-7 rounded-full border transition-all duration-300 focus:outline-none ${
                           selectedColor === col
                             ? 'border-cardinal ring-2 ring-cardinal ring-offset-2'
                             : 'border-gray-200 hover:border-gray-400'
                         }`}
-                        style={{ backgroundColor: hex }}
-                        title={col}
+                        style={getBackgroundStyle(col)}
+                        title={getColorName(col)}
                       />
                     );
                   })}
