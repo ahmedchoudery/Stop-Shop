@@ -148,6 +148,11 @@ const ProductTable = memo(({ products = [], onEdit, onDelete }) => {
                   <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">
                     {product.subCategory || '—'}
                   </p>
+                  {product.sectionName && (
+                    <span className="inline-block mt-1 text-[8px] font-black tracking-widest bg-gray-100 text-gray-600 px-2 py-0.5 rounded-[2px] uppercase">
+                      {product.sectionName}
+                    </span>
+                  )}
                 </div>
               </td>
 

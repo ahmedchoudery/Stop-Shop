@@ -297,6 +297,7 @@ BasicInfoSection.displayName = 'BasicInfoSection';
 
 const StockCategorySection = memo(({ form, setForm }) => {
   const hasSizes = form.sizes?.length > 0;
+  const isAttitude = form.featuredSection === 'attitude';
   
   // Calculate total stock from sizes if active
   const calculatedQty = hasSizes
@@ -309,6 +310,15 @@ const StockCategorySection = memo(({ form, setForm }) => {
       setForm(f => ({ ...f, quantity: calculatedQty }));
     }
   }, [hasSizes, calculatedQty, form.quantity, setForm]);
+
+  // Automatically sync bucket and subCategory to 'Outfit' when featuredSection is 'attitude'
+  useEffect(() => {
+    if (isAttitude) {
+      if (form.bucket !== 'Outfit' || form.subCategory !== 'Outfit') {
+        setForm(f => ({ ...f, bucket: 'Outfit', subCategory: 'Outfit' }));
+      }
+    }
+  }, [isAttitude, form.bucket, form.subCategory, setForm]);
 
   return (
     <div className="grid grid-cols-3 gap-4">
@@ -325,20 +335,29 @@ const StockCategorySection = memo(({ form, setForm }) => {
           }`} 
         />
       </div>
-      <div>
-        <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Category</label>
-        <select value={form.bucket} onChange={e => setForm(f => ({ ...f, bucket: e.target.value, subCategory: getDefaultSubCategory(e.target.value) }))}
-          className="w-full border border-gray-200 rounded-[4px] px-4 py-3 text-sm font-bold focus:border-black outline-none bg-white">
-          {CATEGORIES.map(b => <option key={b} value={b}>{b}</option>)}
-        </select>
-      </div>
-      <div>
-        <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Sub-Category</label>
-        <select value={form.subCategory} onChange={e => setForm(f => ({ ...f, subCategory: e.target.value }))}
-          className="w-full border border-gray-200 rounded-[4px] px-4 py-3 text-sm font-bold focus:border-black outline-none bg-white">
-          {(CATEGORY_MAP[form.bucket] || []).map(s => <option key={s} value={s}>{s}</option>)}
-        </select>
-      </div>
+      {isAttitude ? (
+        <div className="col-span-2 bg-gray-50 border border-gray-200 rounded-[4px] px-4 py-3 flex flex-col justify-center">
+          <span className="block text-[9px] font-black uppercase tracking-widest text-gray-400 mb-0.5">Category & Sub-Category</span>
+          <p className="text-xs font-black uppercase tracking-wider text-black">Outfit</p>
+        </div>
+      ) : (
+        <>
+          <div>
+            <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Category</label>
+            <select value={form.bucket} onChange={e => setForm(f => ({ ...f, bucket: e.target.value, subCategory: getDefaultSubCategory(e.target.value) }))}
+              className="w-full border border-gray-200 rounded-[4px] px-4 py-3 text-sm font-bold focus:border-black outline-none bg-white">
+              {CATEGORIES.map(b => <option key={b} value={b}>{b}</option>)}
+            </select>
+          </div>
+          <div>
+            <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Sub-Category</label>
+            <select value={form.subCategory} onChange={e => setForm(f => ({ ...f, subCategory: e.target.value }))}
+              className="w-full border border-gray-200 rounded-[4px] px-4 py-3 text-sm font-bold focus:border-black outline-none bg-white">
+              {(CATEGORY_MAP[form.bucket] || []).map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          </div>
+        </>
+      )}
     </div>
   );
 });
@@ -488,7 +507,18 @@ const PlacementSection = memo(({ form, setForm, allProducts, editingProduct }) =
             <button
               key={s.id}
               type="button"
-              onClick={() => setForm(f => ({ ...f, featuredSection: s.id }))}
+              onClick={() => setForm(f => {
+                const nextSec = s.id;
+                const updates = { featuredSection: nextSec };
+                if (nextSec === 'attitude') {
+                  updates.bucket = 'Outfit';
+                  updates.subCategory = 'Outfit';
+                } else if (f.featuredSection === 'attitude') {
+                  updates.bucket = 'Tops';
+                  updates.subCategory = 'Polo';
+                }
+                return { ...f, ...updates };
+              })}
               className={`p-4 rounded-[4px] border text-left flex flex-col justify-between transition-all min-h-[110px] ${
                 isSelected
                   ? 'border-black bg-black text-white shadow-sm'

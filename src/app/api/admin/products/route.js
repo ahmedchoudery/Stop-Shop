@@ -50,7 +50,22 @@ export async function POST(req) {
     }
 
     const buildId = () => `PRD-${Math.random().toString(36).substring(2, 11).toUpperCase()}`;
-    const productData = { ...validation.data, id: validation.data.id || buildId() };
+    
+    const getSectionName = (sec) => {
+      if (sec === 'drop') return 'The Drop';
+      if (sec === 'attitude') return 'Defined by Attitude';
+      if (sec === 'pieces') return 'Pieces That Speak';
+      return 'Collection';
+    };
+
+    const isAttitude = validation.data.featuredSection === 'attitude';
+    const productData = {
+      ...validation.data,
+      sectionName: getSectionName(validation.data.featuredSection),
+      bucket: isAttitude ? 'Outfit' : (validation.data.bucket || 'Tops'),
+      subCategory: isAttitude ? 'Outfit' : (validation.data.subCategory || 'Tshirt'),
+      id: validation.data.id || buildId()
+    };
 
     let product;
     try {

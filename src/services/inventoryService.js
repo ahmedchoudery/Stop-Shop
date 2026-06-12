@@ -76,6 +76,7 @@ export const syncInventory = async (product, moveType = 'ADMIN_UPDATE', note = '
           totalStock,
           sizeStock:    sizeStockPlain,
           status,
+          sectionName:  product.sectionName || 'Collection',
           ...timeFields,
         },
         $push: {

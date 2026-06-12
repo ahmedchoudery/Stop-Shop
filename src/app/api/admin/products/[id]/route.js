@@ -35,6 +35,20 @@ export async function PATCH(req, { params }) {
 
     const updateData = { ...validation.data };
 
+    if (updateData.featuredSection) {
+      const getSectionName = (sec) => {
+        if (sec === 'drop') return 'The Drop';
+        if (sec === 'attitude') return 'Defined by Attitude';
+        if (sec === 'pieces') return 'Pieces That Speak';
+        return 'Collection';
+      };
+      updateData.sectionName = getSectionName(updateData.featuredSection);
+      if (updateData.featuredSection === 'attitude') {
+        updateData.bucket = 'Outfit';
+        updateData.subCategory = 'Outfit';
+      }
+    }
+
     if (updateData.sizeStock && typeof updateData.sizeStock === 'object') {
       const total = Object.values(updateData.sizeStock)
         .reduce((sum, n) => sum + Math.max(0, parseInt(n) || 0), 0);

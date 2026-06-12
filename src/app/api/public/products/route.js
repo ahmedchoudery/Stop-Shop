@@ -6,8 +6,8 @@ export async function GET() {
   try {
     await dbConnect();
     
-    // Fetch products directly on the server
-    const products = await Product.find().lean();
+    // Fetch products directly on the server (excluding attitude outfits)
+    const products = await Product.find({ featuredSection: { $ne: 'attitude' } }).lean();
     
     const data = products.map(p => ({
       ...p,

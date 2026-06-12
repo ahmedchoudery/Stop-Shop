@@ -12,7 +12,7 @@ const productSchema = new mongoose.Schema({
   rating:        { type: Number, default: 5, min: 1, max: 5 },
   bucket:        {
     type: String,
-    enum: ['Tops', 'Bottoms', 'Footwear', 'Accessories'],
+    enum: ['Tops', 'Bottoms', 'Footwear', 'Accessories', 'Outfit'],
     default: 'Tops',
     trim: true
   },
@@ -33,6 +33,7 @@ const productSchema = new mongoose.Schema({
           Bottoms: ['Jeans', 'Trousers', 'Shorts'],
           Footwear: ['Shoes', 'Slippers', 'Socks'],
           Accessories: ['Glasses', 'Watches', 'Rings', 'Bracelet', 'Chains', 'Caps', 'Belts', 'Bags'],
+          Outfit: ['Outfit'],
         };
         // If there's a bucket defined, validate against that bucket's options, otherwise allow any from all buckets
         if (this.bucket && CATEGORY_MAP[this.bucket]) {
@@ -53,6 +54,7 @@ const productSchema = new mongoose.Schema({
   variantImages: { type: Map, of: String, default: {} },  // { 'Red': 'url', 'Blue': 'url' }
   gallery:       [{ type: String }],
   featuredSection: { type: String, enum: ['collection', 'drop', 'attitude', 'pieces'], required: true },
+  sectionName:     { type: String, default: 'Collection' },
   displayOrder:    { type: Number, default: 0, min: 0 },
   discount:        { type: Number, default: 0, min: 0, max: 100 },
 }, { timestamps: true, versionKey: false, autoIndex: true });

@@ -13,36 +13,7 @@ import { useNavigate } from '../utils/router-compat.jsx';
 const CARD_W_PX = 360; // approximate card width for step navigation
 const GAP_PX    = 48;
 
-const LOOKS = [
-  {
-    id: 1,
-    image: '/Hero-Desktop.jpeg',
-    tag: 'Look 01',
-    title: 'The Linen Silhouette',
-    desc: 'Lightweight linen shirt paired with pleated sand-colored trousers.',
-  },
-  {
-    id: 2,
-    image: '/lookbook-strip.jpg',
-    tag: 'Look 02',
-    title: 'Structured Modernism',
-    desc: 'Heavy cotton boxy overshirt over dry indigo raw denim.',
-  },
-  {
-    id: 3,
-    image: '/Hero-Tablet.jpeg',
-    tag: 'Look 03',
-    title: 'Monochrome Utilitarian',
-    desc: 'Water-resistant technical windbreaker with dark grey cargo pants.',
-  },
-  {
-    id: 4,
-    image: '/Hero-Mobile.jpeg',
-    tag: 'Look 04',
-    title: 'Relaxed Athleisure',
-    desc: 'Premium French Terry cotton pullover in charcoal wash.',
-  },
-];
+const LOOKS = [];
 
 export default function LookbookStrip({ onShopNow }) {
   const navigate = useNavigate();
@@ -76,6 +47,8 @@ export default function LookbookStrip({ onShopNow }) {
         product: look,
       }))
     : LOOKS;
+
+
 
   const updateScrollState = useCallback(() => {
     const el = scrollRef.current;
@@ -118,6 +91,10 @@ export default function LookbookStrip({ onShopNow }) {
     onShopNow?.('All');
     scrollToGrid();
   };
+
+  if (items.length === 0) {
+    return null;
+  }
 
   return (
     <section
