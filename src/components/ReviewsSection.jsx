@@ -260,32 +260,7 @@ const ReviewCard = ({ review, index }) => {
   );
 };
 
-const MOCK_REVIEWS = [
-  {
-    _id: "mock-1",
-    name: "Ahmad Malik",
-    title: "Exceptional Stitching & Fit",
-    body: "The denim fit is perfect. The Japanese denim feels heavy and premium, and the details are top-notch. Truly a luxury menswear piece.",
-    rating: 5,
-    createdAt: "2026-05-15T12:00:00Z"
-  },
-  {
-    _id: "mock-2",
-    name: "Zainab Raza",
-    title: "Gifted the linen shirt, husband loves it",
-    body: "The Summer Linen Shirt is incredibly breathable. The relaxed collar has a very casual yet tailored shape. Exceeded our expectations.",
-    rating: 5,
-    createdAt: "2026-05-20T12:00:00Z"
-  },
-  {
-    _id: "mock-3",
-    name: "Bilal Lodhi",
-    title: "Best menswear experience in Pakistan",
-    body: "Finding clean, minimalistic streetwear and casualwear with proper European sizes in Pakistan has been a challenge. Stop & Shop nails it.",
-    rating: 5,
-    createdAt: "2026-06-01T12:00:00Z"
-  }
-];
+const MOCK_REVIEWS = [];
 
 // ── Main Component ────────────────────────────────────────────────────
 const ReviewsSection = () => {
@@ -319,8 +294,11 @@ const ReviewsSection = () => {
 
   useEffect(() => { fetchReviews(); }, [fetchReviews]);
 
+  if (loading) return null;
+  if (!reviews || reviews.length === 0) return null;
+
   // Fallback to mock reviews if db is empty
-  const activeReviews = reviews.length > 0 ? reviews : MOCK_REVIEWS;
+  const activeReviews = reviews;
 
   // Compute aggregate rating
   const avgRating =

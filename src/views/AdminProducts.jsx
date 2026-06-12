@@ -51,6 +51,8 @@ const DEFAULT_FORM = {
   featuredSection: 'collection',
   displayOrder:    0,
   discount:       0,
+  description:    '',
+  careInstructions: '',
 };
 
 // ─────────────────────────────────────────────────────────────────
@@ -256,6 +258,8 @@ const AdminProducts = () => {
       featuredSection: product.featuredSection ?? 'collection',
       displayOrder:    product.displayOrder    ?? 0,
       discount:        product.discount        ?? 0,
+      description:    product.description    ?? '',
+      careInstructions: product.careInstructions ?? '',
     });
     setColorInput('');
     setSizeInput('');

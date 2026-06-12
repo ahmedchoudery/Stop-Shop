@@ -163,6 +163,8 @@ const ProductForm = memo(({
 
       <BasicInfoSection form={form} setForm={setForm} />
 
+      <DescriptionSection form={form} setForm={setForm} />
+
       <StockCategorySection form={form} setForm={setForm} />
 
       <PlacementSection
@@ -294,6 +296,37 @@ const BasicInfoSection = memo(({ form, setForm }) => (
 ));
 
 BasicInfoSection.displayName = 'BasicInfoSection';
+
+const DescriptionSection = memo(({ form, setForm }) => (
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div>
+      <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">
+        {form.featuredSection === 'attitude' ? 'Short Description (Lookbook Editorial) *' : 'Product Description'}
+      </label>
+      <textarea
+        value={form.description || ''}
+        onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+        placeholder={form.featuredSection === 'attitude'
+          ? "e.g. Lightweight linen shirt paired with pleated sand-colored trousers."
+          : "Enter product description details..."}
+        className="w-full border border-gray-200 rounded-[4px] px-4 py-3 text-sm font-bold focus:border-black outline-none transition-colors h-28 resize-none"
+      />
+    </div>
+    <div>
+      <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">
+        Care Instructions (optional)
+      </label>
+      <textarea
+        value={form.careInstructions || ''}
+        onChange={e => setForm(f => ({ ...f, careInstructions: e.target.value }))}
+        placeholder="e.g. Dry clean recommended. Machine wash cold with like colors."
+        className="w-full border border-gray-200 rounded-[4px] px-4 py-3 text-sm font-bold focus:border-black outline-none transition-colors h-28 resize-none"
+      />
+    </div>
+  </div>
+));
+
+DescriptionSection.displayName = 'DescriptionSection';
 
 const StockCategorySection = memo(({ form, setForm }) => {
   const hasSizes = form.sizes?.length > 0;
@@ -590,6 +623,8 @@ export const EMPTY_FORM = {
   featuredSection: 'collection',
   displayOrder: 0,
   discount: 0,
+  description: '',
+  careInstructions: '',
 };
 
 export { ProductForm };

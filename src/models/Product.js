@@ -57,6 +57,8 @@ const productSchema = new mongoose.Schema({
   sectionName:     { type: String, default: 'Collection' },
   displayOrder:    { type: Number, default: 0, min: 0 },
   discount:        { type: Number, default: 0, min: 0, max: 100 },
+  description:     { type: String, default: '' },
+  careInstructions: { type: String, default: '' },
 }, { timestamps: true, versionKey: false, autoIndex: true });
 
 productSchema.index({ bucket: 1, createdAt: -1 });

@@ -42,7 +42,7 @@ export default function LookbookStrip({ onShopNow }) {
         image: look.lifestyleImage || look.image,
         tag: `Look ${String(i + 1).padStart(2, '0')}`,
         title: look.name,
-        desc: look.specs?.[0] || `Premium ${look.subCategory || 'apparel'} designed for modern living.`,
+        desc: look.description || look.specs?.[0] || `Premium ${look.subCategory || 'apparel'} designed for modern living.`,
         price: look.price,
         product: look,
       }))

@@ -36,6 +36,8 @@ const inventorySchema = new mongoose.Schema({
   sizeStock:           { type: Map, of: Number, default: {} },   // per-size breakdown
   lowStockThreshold:   { type: Number, default: 5 },
   sectionName:         { type: String, default: 'Collection' },
+  description:         { type: String, default: '' },
+  careInstructions:    { type: String, default: '' },
 
   // ── Status (computed from totalStock) ─────────────────────────
   status: {

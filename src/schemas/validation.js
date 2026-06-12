@@ -65,6 +65,8 @@ export const createProductSchema = z.object({
   featuredSection: z.enum(['collection', 'drop', 'attitude', 'pieces'], { required_error: 'Storefront section is required' }),
   sectionName:     z.string().optional(),
   displayOrder:    z.number().int().nonnegative().optional().default(0),
+  description:     z.string().max(10000).optional().default(''),
+  careInstructions: z.string().max(10000).optional().default(''),
 });
 
 /** @typedef {z.infer<typeof createProductSchema>} CreateProductInput */

@@ -77,7 +77,7 @@ const PowerOfChoiceHero = () => {
   return (
     <section
       id="hero-section"
-      className="relative bg-cardinal overflow-hidden w-full flex flex-col"
+      className="relative bg-[#0a0a0a] overflow-hidden w-full flex flex-col lg:grid lg:grid-cols-12"
       style={{ minHeight: '100dvh' }}
     >
       {/* ── Grain overlay ────────────────────────────────────────────── */}
@@ -93,116 +93,92 @@ const PowerOfChoiceHero = () => {
         aria-hidden="true"
       />
 
-      {/* ── Gradient vignette bottom ─────────────────────────────────── */}
-      <div
-        className="absolute bottom-0 left-0 right-0 h-[45%] z-10 pointer-events-none"
-        style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.72) 0%, transparent 100%)' }}
-        aria-hidden="true"
-      />
-
-      {/* ── Background Image ──────────────────────────────────────────── */}
-      <div className="absolute inset-0 z-0">
-        <div className="relative w-full h-full bg-cardinal overflow-hidden">
-          <img
-            src="/Hero-Mobile.jpeg"
-            alt="SS'26 Collection Mobile"
-            className="block md:hidden w-full h-full object-cover animate-kenburns"
-            style={{ objectPosition: '50% calc(100% + 1.2in)' }}
-            loading="eager"
-          />
-          <img
-            src="/Hero-Tablet.jpeg"
-            alt="SS'26 Collection Tablet"
-            className="hidden md:block lg:hidden w-full h-full object-cover object-bottom animate-kenburns"
-            loading="eager"
-          />
-          <img
-            src="/Hero-Desktop.jpeg"
-            alt="SS'26 Collection Desktop"
-            className="hidden lg:block w-full h-full object-cover object-bottom animate-kenburns"
-            loading="eager"
-          />
-        </div>
+      {/* ── Background Image / Character Container ──────────────────── */}
+      {/* Visual positioning prevents text overlap on models across all layouts */}
+      <div className="order-1 lg:order-2 lg:col-span-6 relative h-[45vh] lg:h-full w-full overflow-hidden border-b lg:border-b-0 lg:border-l border-white/5 bg-[#0d0d0d]">
+        <img
+          src="/Hero-Mobile.jpeg"
+          alt="SS'26 Collection Mobile"
+          className="block md:hidden w-full h-full object-cover animate-kenburns"
+          loading="eager"
+        />
+        <img
+          src="/Hero-Tablet.jpeg"
+          alt="SS'26 Collection Tablet"
+          className="hidden md:block lg:hidden w-full h-full object-cover object-bottom animate-kenburns"
+          loading="eager"
+        />
+        <img
+          src="/Hero-Desktop.jpeg"
+          alt="SS'26 Collection Desktop"
+          className="hidden lg:block w-full h-full object-cover object-center animate-kenburns"
+          loading="eager"
+        />
+        {/* Editorial glass overlay */}
+        <div className="absolute inset-0 bg-black/10 pointer-events-none" />
       </div>
 
-      {/* ── Content ───────────────────────────────────────────────────── */}
-      <div className="relative z-30 flex-1 w-full max-w-[1920px] mx-auto flex flex-col pt-[110px] lg:pt-[130px] pb-0 lg:pb-0">
-
-        {/* Floating badge — mobile only */}
-        <div className="w-full px-6 flex justify-center lg:hidden mt-2">
+      {/* ── Content / Copywriting Container ─────────────────────────── */}
+      <div className="order-2 lg:order-1 lg:col-span-6 flex flex-col justify-between pt-8 lg:pt-[130px] bg-[#0a0a0a] relative z-20">
+        
+        {/* Floating badge */}
+        <div className="w-full px-6 md:px-12 lg:px-16 flex justify-center lg:justify-start">
           <span
-            className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm border border-white/20 px-4 py-2 rounded-full"
+            className="inline-flex items-center gap-2 bg-white/5 border border-white/10 px-4 py-2 rounded-full"
           >
             <span className="w-1.5 h-1.5 rounded-full bg-cardinal animate-pulse" />
-            <span className="text-[8.5px] font-black uppercase tracking-[0.4em] text-white/80">
+            <span className="text-[8px] font-black uppercase tracking-[0.4em] text-white/80">
               Pakistan's Premium Fashion Hub · SS '26
             </span>
           </span>
         </div>
 
         {/* Main copy block */}
-        <div className="w-full flex-grow flex flex-col justify-start lg:justify-center items-center lg:items-start px-6 md:px-12 lg:px-24 pt-6 lg:pt-0">
-          <div ref={contentRef} className="max-w-xl xl:max-w-2xl flex flex-col items-center text-center lg:items-start lg:text-left">
-
-            {/* Desktop eyebrow */}
-            <div
-              data-anime
-              className="hidden lg:flex items-center gap-4 mb-6"
-              style={{ opacity: 0 }}
-            >
-              <span className="w-7 h-px bg-white/40" />
-              <span className="text-[9px] font-black uppercase tracking-[0.5em] text-white/80 drop-shadow-md">
-                Pakistan's Premium Fashion Hub · SS '26
-              </span>
-            </div>
-
+        <div className="w-full flex-grow flex flex-col justify-center items-center lg:items-start px-6 md:px-12 lg:px-16 pt-8 pb-10">
+          <div ref={contentRef} className="max-w-md xl:max-w-lg flex flex-col items-center text-center lg:items-start lg:text-left">
+            
             {/* New Arrivals badge — desktop */}
             <div
               data-anime
-              className="hidden lg:inline-flex items-center gap-2.5 bg-white/10 backdrop-blur-md border border-white/20 px-4 py-2 rounded-full mb-7"
+              className="hidden lg:inline-flex items-center gap-2.5 bg-white/5 border border-white/10 px-4 py-2 rounded-full mb-6"
               style={{ opacity: 0 }}
             >
-              <span className="w-1.5 h-1.5 rounded-full bg-[#ffd166] animate-pulse" />
-              <span className="text-[8px] font-black uppercase tracking-[0.4em] text-white/90">New Arrivals Available</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-cardinal animate-pulse" />
+              <span className="text-[8px] font-black uppercase tracking-[0.4em] text-white/90">New Arrivals Live</span>
             </div>
 
             {/* Headline */}
+            {/* [Psychological Mechanism: Identity & Self-Relevant Aspiration] */}
             <h1
               data-anime
-              className={[
-                'text-white font-heading font-black uppercase',
-                'leading-[1.05] lg:leading-[0.88]',
-                'tracking-[-0.03em]',
-                'mb-5 lg:mb-8',
-                'text-[2.5rem] md:text-[3.5rem]',
-                'lg:text-[clamp(3rem,8vw,5.5rem)]',
-                'drop-shadow-lg',
-              ].join(' ')}
+              className="text-white font-heading font-black uppercase leading-[1.05] lg:leading-[0.9] tracking-[-0.03em] mb-4 text-[2.2rem] md:text-[3rem] lg:text-[3.8rem] xl:text-[4.2rem]"
               style={{ opacity: 0 }}
             >
-              Classics
+              Crafting Confidence.
               <br />
-              Reimagined.
+              <span className="text-cardinal">Defining Character.</span>
             </h1>
 
             {/* Sub-copy */}
+            {/* [Psychological Mechanism: Pain Agitation & Cognitive Relief] */}
             <p
               data-anime
-              className="text-white/90 font-sans text-[13px] md:text-sm lg:text-[1.05rem] leading-relaxed max-w-[290px] md:max-w-md lg:max-w-lg mb-6 lg:mb-10 font-normal drop-shadow-md"
+              className="text-white/70 font-sans text-xs md:text-sm leading-relaxed max-w-[310px] md:max-w-md lg:max-w-lg mb-6 lg:mb-8 font-normal"
               style={{ opacity: 0 }}
             >
-              Timeless designs, crafted with premium fabrics for absolute comfort and style. Discover our signature menswear essentials.
+              Off-the-rack fits fail. Stop & Shop is engineered for precision. We combine premium fabrics with master-tailored structures to deliver comfort that commands respect.
             </p>
 
             {/* CTA */}
+            {/* [Psychological Mechanism: Low-Friction Autonomy-Preserving CTAs] */}
             <div
               data-anime
-              className="flex flex-wrap justify-center lg:justify-start gap-4 lg:gap-8 mb-10 lg:mb-12"
+              className="flex flex-wrap justify-center lg:justify-start gap-4 lg:gap-6"
               style={{ opacity: 0 }}
             >
               <button
                 onClick={scrollToGrid}
-                className="group relative flex items-center gap-3 bg-white text-black text-[10px] font-black uppercase tracking-[0.3em] px-7 py-3.5 overflow-hidden transition-all duration-300 hover:bg-opacity-90 active:scale-[0.98]"
+                className="group relative flex items-center gap-3 bg-white text-black text-[9px] font-black uppercase tracking-[0.3em] px-6 py-3.5 overflow-hidden transition-all duration-300 hover:bg-opacity-90 active:scale-[0.98]"
               >
                 <span className="relative z-10">Shop the Collection</span>
                 <span className="relative z-10 w-5 h-px bg-black group-hover:w-7 transition-all duration-300" />
@@ -211,7 +187,7 @@ const PowerOfChoiceHero = () => {
               </button>
               <button
                 onClick={scrollToGrid}
-                className="flex items-center gap-2 text-[10px] lg:text-[11px] font-black uppercase tracking-[0.3em] text-white pb-1 border-b border-white/40 hover:border-white transition-colors duration-300 drop-shadow-md"
+                className="flex items-center gap-2 text-[9px] lg:text-[10px] font-black uppercase tracking-[0.3em] text-white pb-1 border-b border-white/40 hover:border-white transition-colors duration-300"
               >
                 Explore the Brand
               </button>
@@ -221,23 +197,24 @@ const PowerOfChoiceHero = () => {
         </div>
 
         {/* ── Stat Bar ────────────────────────────────────────────────── */}
+        {/* [Psychological Mechanism: Social Proof & Heritage Verification] */}
         <div
           ref={statsRef}
-          className="relative z-30 w-full border-t border-white/10 bg-black/30 backdrop-blur-sm mt-auto"
+          className="w-full border-t border-white/5 bg-black/40 backdrop-blur-sm mt-auto"
         >
-          <div className="max-w-[1920px] mx-auto px-6 md:px-12 lg:px-24">
-            <div className="flex items-stretch divide-x divide-white/10 overflow-x-auto scrollbar-none">
-              {STATS.map((stat, i) => (
+          <div className="px-6 md:px-12 lg:px-16">
+            <div className="flex items-stretch divide-x divide-white/5 overflow-x-auto scrollbar-none">
+              {STATS.map((stat) => (
                 <div
                   key={stat.label}
                   data-stat
-                  className="flex flex-col justify-center py-5 px-7 md:px-10 flex-1 min-w-[110px]"
+                  className="flex flex-col justify-center py-4 px-4 md:px-6 flex-1 min-w-[95px]"
                   style={{ opacity: 0 }}
                 >
-                  <span className="text-white font-black text-lg md:text-2xl leading-none tracking-tighter tabular-nums">
+                  <span className="text-white font-black text-base md:text-xl leading-none tracking-tighter tabular-nums">
                     {stat.value}
                   </span>
-                  <span className="text-white/50 text-[8px] font-bold uppercase tracking-[0.35em] mt-1">
+                  <span className="text-white/50 text-[7.5px] font-bold uppercase tracking-[0.35em] mt-1">
                     {stat.label}
                   </span>
                 </div>
@@ -252,7 +229,7 @@ const PowerOfChoiceHero = () => {
       <button
         ref={scrollRef}
         onClick={scrollToGrid}
-        className="absolute bottom-[72px] lg:bottom-[84px] left-1/2 -translate-x-1/2 z-40 flex flex-col items-center gap-1.5 text-white/60 hover:text-white transition-colors duration-200"
+        className="absolute bottom-[72px] lg:bottom-[84px] left-1/2 -translate-x-1/2 z-40 flex flex-col items-center gap-1.5 text-white/60 hover:text-white transition-colors duration-200 lg:hidden"
         aria-label="Scroll down"
         style={{ opacity: 0 }}
       >

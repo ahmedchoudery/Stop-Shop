@@ -5,7 +5,7 @@ import {
   Heart, ShoppingBag, Share2, MessageCircle, Check,
   ChevronRight, Star, Package, Truck, RotateCcw,
   Shield, ArrowLeft, AlertTriangle, ChevronLeft,
-  Minus, Plus
+  Minus, Plus, X
 } from 'lucide-react';
 import { Link, useNavigate } from '../../../utils/router-compat.jsx';
 import { useCart } from '../../../context/CartContext.tsx';
@@ -113,6 +113,7 @@ export default function ProductPageClient({ product, allProducts = [] }) {
   const [selectedSize, setSelectedSize] = useState(product?.sizes?.length === 1 ? product.sizes[0] : '');
   const [qty, setQty] = useState(1);
   const [activeTab, setActiveTab] = useState('description');
+  const [showSizeChart, setShowSizeChart] = useState(false);
   
   const [copied, setCopied] = useState(false);
   const [cartAdded, setCartAdded] = useState(false);
@@ -249,10 +250,20 @@ export default function ProductPageClient({ product, allProducts = [] }) {
             )}
 
             {/* Sizes */}
-            {product.sizes?.length > 0 && (
+            {product.sizes?.length > 0 ? (
               <div className="mb-8">
                 <div className="flex justify-between items-baseline mb-3">
-                  <span className="text-[8px] font-black uppercase tracking-widest text-gray-400">Select Size</span>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-[8px] font-black uppercase tracking-widest text-gray-400">Select Size</span>
+                    <span className="text-gray-300">|</span>
+                    <button
+                      type="button"
+                      onClick={() => setShowSizeChart(true)}
+                      className="text-[8px] font-black uppercase tracking-widest text-cardinal hover:underline cursor-pointer focus:outline-none"
+                    >
+                      Size Chart
+                    </button>
+                  </div>
                   {sizeError && (
                     <span className="text-[8px] font-black uppercase text-cardinal tracking-widest animate-pulse">
                       Please select a size first
@@ -283,6 +294,17 @@ export default function ProductPageClient({ product, allProducts = [] }) {
                     );
                   })}
                 </div>
+              </div>
+            ) : (
+              <div className="mb-6 flex items-center justify-between">
+                <span className="text-[8px] font-black uppercase tracking-widest text-gray-400">One Size</span>
+                <button
+                  type="button"
+                  onClick={() => setShowSizeChart(true)}
+                  className="text-[8px] font-black uppercase tracking-widest text-cardinal hover:underline cursor-pointer focus:outline-none"
+                >
+                  Size Chart
+                </button>
               </div>
             )}
 
@@ -370,7 +392,7 @@ export default function ProductPageClient({ product, allProducts = [] }) {
         {/* Dynamic Editorial Content Tabs */}
         <div className="border-t border-gray-100 pt-16 mb-20">
           <div className="flex items-center space-x-8 border-b border-gray-100 mb-8 overflow-x-auto scrollbar-hide">
-            {['description', 'sizing'].map(tab => (
+            {['description', 'care instructions', 'sizing'].map(tab => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -392,9 +414,14 @@ export default function ProductPageClient({ product, allProducts = [] }) {
                 {product.description || 'Premium, custom-crafted apparel engineered with the finest detailing, offering an exceptional luxury structure.'}
               </div>
             )}
+            {activeTab === 'care instructions' && (
+              <div className="text-sm text-gray-600 leading-relaxed uppercase tracking-wider font-bold">
+                {product.careInstructions || 'Dry clean recommended. Alternately, hand wash cold inside out. Lay flat to dry.'}
+              </div>
+            )}
             {activeTab === 'sizing' && (
               <div className="text-xs text-gray-500 uppercase tracking-widest leading-relaxed">
-                Standard fitting. Fits true to size. We recommend selecting your standard waist/chest sizing.
+                Standard fitting. Fits true to size. We recommend selecting your standard waist/chest sizing. Refer to the size chart near the size options for exact measurements.
               </div>
             )}
           </div>
@@ -412,6 +439,176 @@ export default function ProductPageClient({ product, allProducts = [] }) {
         />
 
       </div>
+
+      {/* Size Chart Modal */}
+      {showSizeChart && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+            onClick={() => setShowSizeChart(false)}
+          />
+
+          {/* Modal Container */}
+          <div className="relative bg-white rounded-[4px] w-full max-w-lg overflow-hidden border border-gray-150 shadow-2xl z-10 p-6 sm:p-8 animate-scale-in text-left">
+            {/* Close Button */}
+            <button
+              onClick={() => setShowSizeChart(false)}
+              className="absolute top-4 right-4 p-2 text-gray-400 hover:text-black rounded-[4px] transition-colors focus:outline-none"
+              aria-label="Close modal"
+            >
+              <X size={20} />
+            </button>
+
+            {/* Title */}
+            <div className="mb-6">
+              <p className="text-[8px] font-black uppercase tracking-[0.4em] text-cardinal mb-2">Size Guide</p>
+              <h3 className="text-lg font-black uppercase tracking-tight text-gray-900">
+                {product.bucket} Sizing Chart
+              </h3>
+            </div>
+
+            {/* Table Content based on Category */}
+            <div className="overflow-x-auto">
+              {product.bucket === 'Tops' || product.bucket === 'Outfit' ? (
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="border-b border-gray-200 text-gray-400 font-bold uppercase text-[9px] tracking-wider">
+                      <th className="pb-3">Size</th>
+                      <th className="pb-3">Chest (in)</th>
+                      <th className="pb-3">Length (in)</th>
+                      <th className="pb-3">Sleeve (in)</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 font-medium text-gray-700">
+                    <tr>
+                      <td className="py-3 font-bold text-gray-900">S</td>
+                      <td className="py-3">36 - 38</td>
+                      <td className="py-3">28.0</td>
+                      <td className="py-3">33.5</td>
+                    </tr>
+                    <tr>
+                      <td className="py-3 font-bold text-gray-900">M</td>
+                      <td className="py-3">38 - 40</td>
+                      <td className="py-3">29.0</td>
+                      <td className="py-3">34.5</td>
+                    </tr>
+                    <tr>
+                      <td className="py-3 font-bold text-gray-900">L</td>
+                      <td className="py-3">40 - 42</td>
+                      <td className="py-3">30.0</td>
+                      <td className="py-3">35.5</td>
+                    </tr>
+                    <tr>
+                      <td className="py-3 font-bold text-gray-900">XL</td>
+                      <td className="py-3">42 - 44</td>
+                      <td className="py-3">31.0</td>
+                      <td className="py-3">36.5</td>
+                    </tr>
+                    <tr>
+                      <td className="py-3 font-bold text-gray-900">XXL</td>
+                      <td className="py-3">44 - 46</td>
+                      <td className="py-3">32.0</td>
+                      <td className="py-3">37.5</td>
+                    </tr>
+                  </tbody>
+                </table>
+              ) : product.bucket === 'Bottoms' ? (
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="border-b border-gray-200 text-gray-400 font-bold uppercase text-[9px] tracking-wider">
+                      <th className="pb-3">Size</th>
+                      <th className="pb-3">Waist (in)</th>
+                      <th className="pb-3">Hips (in)</th>
+                      <th className="pb-3">Inseam (in)</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 font-medium text-gray-700">
+                    <tr>
+                      <td className="py-3 font-bold text-gray-900">30</td>
+                      <td className="py-3">30.0</td>
+                      <td className="py-3">37.0</td>
+                      <td className="py-3">32.0</td>
+                    </tr>
+                    <tr>
+                      <td className="py-3 font-bold text-gray-900">32</td>
+                      <td className="py-3">32.0</td>
+                      <td className="py-3">39.0</td>
+                      <td className="py-3">32.0</td>
+                    </tr>
+                    <tr>
+                      <td className="py-3 font-bold text-gray-900">34</td>
+                      <td className="py-3">34.0</td>
+                      <td className="py-3">41.0</td>
+                      <td className="py-3">32.0</td>
+                    </tr>
+                    <tr>
+                      <td className="py-3 font-bold text-gray-900">36</td>
+                      <td className="py-3">36.0</td>
+                      <td className="py-3">43.0</td>
+                      <td className="py-3">32.0</td>
+                    </tr>
+                  </tbody>
+                </table>
+              ) : product.bucket === 'Footwear' ? (
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="border-b border-gray-200 text-gray-400 font-bold uppercase text-[9px] tracking-wider">
+                      <th className="pb-3">US Size</th>
+                      <th className="pb-3">UK Size</th>
+                      <th className="pb-3">EU Size</th>
+                      <th className="pb-3">Foot Length (cm)</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 font-medium text-gray-700">
+                    <tr>
+                      <td className="py-3 font-bold text-gray-900">7</td>
+                      <td className="py-3">6.0</td>
+                      <td className="py-3">40</td>
+                      <td className="py-3">25.0</td>
+                    </tr>
+                    <tr>
+                      <td className="py-3 font-bold text-gray-900">8</td>
+                      <td className="py-3">7.0</td>
+                      <td className="py-3">41</td>
+                      <td className="py-3">26.0</td>
+                    </tr>
+                    <tr>
+                      <td className="py-3 font-bold text-gray-900">9</td>
+                      <td className="py-3">8.0</td>
+                      <td className="py-3">42</td>
+                      <td className="py-3">27.0</td>
+                    </tr>
+                    <tr>
+                      <td className="py-3 font-bold text-gray-900">10</td>
+                      <td className="py-3">9.0</td>
+                      <td className="py-3">43</td>
+                      <td className="py-3">28.0</td>
+                    </tr>
+                    <tr>
+                      <td className="py-3 font-bold text-gray-900">11</td>
+                      <td className="py-3">10.0</td>
+                      <td className="py-3">44</td>
+                      <td className="py-3">29.0</td>
+                    </tr>
+                  </tbody>
+                </table>
+              ) : (
+                <div className="py-4 text-center text-gray-500 font-bold text-xs uppercase tracking-wide">
+                  Standard One Size Guide. Measurements are standard and fit most variations.
+                </div>
+              )}
+            </div>
+
+            {/* Note */}
+            <div className="mt-8 pt-6 border-t border-gray-100">
+              <p className="text-[9px] text-gray-400 leading-relaxed font-bold uppercase tracking-wider">
+                Note: Measurements are general guidelines. Fit may vary depending on material, construction, and subcategory.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
