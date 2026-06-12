@@ -21,7 +21,15 @@ const productSchema = new mongoose.Schema({
     validate: {
       validator: function(v) {
         const CATEGORY_MAP = {
-          Tops: ['Polo', 'Polos', 'Shirt', 'Shirts', 'Tshirt', 'Tshirts', 'T-Shirt', 'T-Shirts', 'Sweatshirt', 'Sweatshirts', 'Hoodie', 'Hoodies', 'Jacket', 'Jackets'],
+          Tops: [
+            'Shirt', 'Shirts',
+            'T-Shirt', 'T-Shirts', 'Tshirt', 'Tshirts',
+            'Polo', 'Polos',
+            'Sweatshirt', 'Sweatshirts',
+            'Hoodie', 'Hoodies',
+            'Jacket', 'Jackets',
+            'Tank-Top', 'Tank-Tops', 'Tank Top', 'Tank Tops'
+          ],
           Bottoms: ['Jeans', 'Trousers', 'Shorts'],
           Footwear: ['Shoes', 'Slippers', 'Socks'],
           Accessories: ['Glasses', 'Watches', 'Rings', 'Bracelet', 'Chains', 'Caps', 'Belts', 'Bags'],
@@ -34,7 +42,7 @@ const productSchema = new mongoose.Schema({
       },
       message: props => `${props.value} is not a valid subCategory for the selected category!`
     },
-    default: 'Polo',
+    default: 'Shirts',
     trim: true
   },
   specs:         [{ type: String }],
@@ -83,15 +91,19 @@ productSchema.post('save', async function (doc) {
   }
 });
 
-// ── Post-delete: remove from Inventory ─────────────────────────
+// ── Post-delete: remove from Inventory and Reviews ─────────────
 productSchema.post('findOneAndDelete', async function (doc) {
   if (!doc) return;
   try {
     const Inventory = mongoose.models.Inventory || mongoose.model('Inventory');
     await Inventory.deleteOne({ productId: doc.id });
     console.log(`[Inventory] Removed inventory entry for deleted product: ${doc.id}`);
+
+    const Review = mongoose.models.Review || mongoose.model('Review');
+    await Review.deleteMany({ productId: doc.id });
+    console.log(`[Review] Removed all reviews for deleted product: ${doc.id}`);
   } catch (err) {
-    console.error('[Inventory] post-delete cleanup failed:', err.message);
+    console.error('[Product Post-delete] cleanup failed:', err.message);
   }
 });
 

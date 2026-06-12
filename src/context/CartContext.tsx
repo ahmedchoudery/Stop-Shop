@@ -5,7 +5,7 @@
  *          javascript-mastery (pure functions, immutability, switch/case)
  */
 
-import React, { createContext, useContext, useReducer, useMemo, useCallback, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useReducer, useMemo, useCallback, useEffect, useRef, ReactNode } from 'react';
 import { useLocalStorage } from '../hooks/useUtils.js';
 import { CartItem, Product } from '../types/index.ts';
 
@@ -30,6 +30,7 @@ export interface CartState {
 
 export type CartAction =
   | { type: 'LOAD_FROM_STORAGE'; payload: CartItem[] }
+  | { type: 'SYNC_CART'; payload: CartItem[] }
   | { type: 'ADD_ITEM'; payload: { product: CartItem } }
   | { type: 'REMOVE_ITEM'; payload: { id: string; activeColor?: string; selectedSize?: string; cartId?: number | null } }
   | { type: 'UPDATE_QUANTITY'; payload: { id: string; activeColor?: string; selectedSize?: string; delta: number; cartId?: number | null } }
@@ -80,6 +81,9 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
   switch (action.type) {
     case 'LOAD_FROM_STORAGE':
       return { ...state, cartItems: action.payload ?? [] };
+
+    case 'SYNC_CART':
+      return { ...state, cartItems: action.payload };
 
     case 'ADD_ITEM': {
       const { product } = action.payload;
@@ -233,6 +237,92 @@ export const CartProvider = ({ children }: CartProviderProps) => {
   useEffect(() => {
     dispatch({ type: 'LOAD_FROM_STORAGE', payload: storedCart });
   }, []);  
+
+  const syncAttempted = useRef(false);
+
+  // Synchronize cart items with the database on mount
+  useEffect(() => {
+    if (state.cartItems.length === 0 || syncAttempted.current) return;
+    syncAttempted.current = true;
+
+    let active = true;
+    const syncCartWithDb = async () => {
+      try {
+        const res = await fetch(`/api/public/products?_t=${Date.now()}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        const dbProducts: Product[] = Array.isArray(data) ? data : (data.products ?? []);
+
+        if (!active) return;
+
+        let changed = false;
+        const syncedItems = state.cartItems.reduce((acc: CartItem[], item) => {
+          const dbProd = dbProducts.find(p => p.id === item.id);
+          if (!dbProd) {
+            // Product deleted from database, remove from cart
+            changed = true;
+            return acc;
+          }
+
+          // Calculate available stock
+          let availableStock = dbProd.quantity ?? 0;
+          const size = (item.selectedSize ?? '').trim();
+          if (size && dbProd.sizeStock) {
+            const sizeStockObj = dbProd.sizeStock instanceof Map
+              ? Object.fromEntries(dbProd.sizeStock)
+              : dbProd.sizeStock;
+            availableStock = sizeStockObj[size] ?? 0;
+          }
+
+          if (availableStock <= 0) {
+            // No stock left, remove from cart
+            changed = true;
+            return acc;
+          }
+
+          const targetQty = Math.min(item.quantity ?? 1, availableStock);
+          if (targetQty !== item.quantity) {
+            changed = true;
+          }
+
+          const discount = dbProd.discount ?? 0;
+          // Check for price, discount, name, image changes
+          if (
+            item.price !== dbProd.price ||
+            item.discount !== discount ||
+            item.name !== dbProd.name ||
+            item.image !== dbProd.image
+          ) {
+            changed = true;
+          }
+
+          acc.push({
+            ...item,
+            name: dbProd.name,
+            price: dbProd.price,
+            discount: discount,
+            image: dbProd.image ?? '',
+            quantity: targetQty,
+          });
+
+          return acc;
+        }, []);
+
+        if (changed) {
+          dispatch({ type: 'SYNC_CART', payload: syncedItems });
+        }
+      } catch (err) {
+        console.error('[CartSync] Failed to sync cart items:', err);
+      }
+    };
+
+    // Delay slightly to ensure hydration is completed
+    const timer = setTimeout(syncCartWithDb, 300);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [state.cartItems.length]);
 
   // Persist cart to localStorage on changes
   useEffect(() => {

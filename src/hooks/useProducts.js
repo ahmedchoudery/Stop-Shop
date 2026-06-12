@@ -35,16 +35,15 @@ export const useProducts = (
         const itemSub = item.subCategory.toLowerCase().trim();
         const activeSub = activeSubCategory.toLowerCase().trim();
         
+        const normItem = itemSub.replace(/[^a-z0-9]/g, '');
+        const normActive = activeSub.replace(/[^a-z0-9]/g, '');
+        
         subMatch = 
-          itemSub === activeSub ||
-          itemSub + 's' === activeSub ||
-          itemSub === activeSub + 's' ||
-          (activeSub === 'trousers' && itemSub === 'pants') ||
-          (activeSub === 'shirts' && itemSub === 'shirt') ||
-          (activeSub === 'polos' && itemSub === 'polo') ||
-          (activeSub === 'hoodies' && itemSub === 'hoodie') ||
-          (activeSub === 'sweatshirts' && itemSub === 'sweatshirt') ||
-          (activeSub === 'bags' && (itemSub === 'backpack' || itemSub === 'bag'));
+          normItem === normActive ||
+          normItem + 's' === normActive ||
+          normItem === normActive + 's' ||
+          (normActive === 'trousers' && normItem === 'pants') ||
+          (normActive === 'bags' && (normItem === 'backpack' || normItem === 'bag'));
       }
       return bucketMatch && subMatch;
     });
