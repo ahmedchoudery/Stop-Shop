@@ -1,42 +1,33 @@
 'use client';
 
 /**
- * @fileoverview PowerOfChoiceHero — Premium Minimalist Fine-Art Gallery Hero
- * v5: Clean warm off-white canvas, hybrid typography, framed portrait imagery,
- *     zero text-image overlap, quiet underline transitions, and robust CSS-based entrance animations.
+ * @fileoverview PowerOfChoiceHero — Full-Bleed Editorial Campaign Hero
+ * v6: One unified design across all layouts.
+ *     - Hero fills exactly the viewport below the navbar (100dvh - 72px)
+ *     - Background image covers the entire section (object-fit: cover)
+ *     - Dark gradient scrim for text legibility
+ *     - Desktop: content left-aligned, left-third zone
+ *     - Tablet:  content top-left, diagonal scrim
+ *     - Mobile:  content centered top, full-width scrim from top
+ *     - No card borders, no image containers — pure editorial
  */
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import anime from 'animejs';
+import React, { useState, useEffect, useCallback } from 'react';
 import { ChevronDown } from 'lucide-react';
+
+const NAVBAR_HEIGHT = 72; // px — matches Navbar height when not scrolled
 
 const PowerOfChoiceHero = () => {
   const [mounted, setMounted] = useState(false);
-  const scrollRef = useRef(null);
 
-  // Trigger CSS-based animations on client mount to bypass hydration and loading screen collisions
   useEffect(() => {
     setMounted(true);
-  }, []);
-
-  // Scroll indicator bounce (using anime.js since it handles looping and offsets easily without collision)
-  useEffect(() => {
-    if (!scrollRef.current) return;
-    anime({
-      targets: scrollRef.current,
-      translateY: [0, 6, 0],
-      opacity: [0.4, 1, 0.4],
-      duration: 1800,
-      loop: true,
-      easing: 'easeInOutSine',
-      delay: 1200,
-    });
   }, []);
 
   const scrollToGrid = useCallback(() => {
     const el = document.getElementById('product-grid');
     if (el) {
-      const top = el.getBoundingClientRect().top + window.scrollY - 100;
+      const top = el.getBoundingClientRect().top + window.scrollY - 80;
       window.scrollTo({ top, behavior: 'smooth' });
     }
   }, []);
@@ -44,119 +35,235 @@ const PowerOfChoiceHero = () => {
   return (
     <section
       id="hero-section"
-      className="relative bg-[#faf9f6] overflow-hidden w-full flex flex-col lg:grid lg:grid-cols-12"
-      style={{ minHeight: '100dvh' }}
+      aria-label="Hero — Crafting Confidence"
+      style={{ height: `calc(100dvh - ${NAVBAR_HEIGHT}px)` }}
+      className="relative w-full overflow-hidden"
     >
-      {/* ── Grain overlay ────────────────────────────────────────────── */}
+      {/* ─── Background Images (per breakpoint) ───────────────────────── */}
+      {/* Mobile image (default, < 768px) */}
+      <img
+        src="/Hero-Mobile.jpeg"
+        alt=""
+        aria-hidden="true"
+        className="
+          absolute inset-0 w-full h-full
+          object-cover object-[center_bottom]
+          block md:hidden
+        "
+        loading="eager"
+        fetchPriority="high"
+      />
+      {/* Tablet image (768px – 1023px) */}
+      <img
+        src="/Hero-Tablet.jpeg"
+        alt=""
+        aria-hidden="true"
+        className="
+          absolute inset-0 w-full h-full
+          object-cover object-[center_bottom]
+          hidden md:block lg:hidden
+        "
+        loading="eager"
+        fetchPriority="high"
+      />
+      {/* Desktop image (1024px+) */}
+      <img
+        src="/Hero-Desktop.jpeg"
+        alt=""
+        aria-hidden="true"
+        className="
+          absolute inset-0 w-full h-full
+          object-cover object-[right_center]
+          hidden lg:block
+        "
+        loading="eager"
+        fetchPriority="high"
+      />
+
+      {/* ─── Gradient Scrims (per breakpoint) ──────────────────────────── */}
+      {/* Mobile: top-to-bottom dark scrim covering top 60% */}
       <div
+        aria-hidden="true"
+        className="absolute inset-0 z-10 md:hidden"
+        style={{
+          background: 'linear-gradient(to bottom, rgba(0,0,0,0.80) 0%, rgba(0,0,0,0.65) 45%, rgba(0,0,0,0.0) 72%)',
+        }}
+      />
+      {/* Tablet: top-left diagonal scrim */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 z-10 hidden md:block lg:hidden"
+        style={{
+          background: 'linear-gradient(135deg, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.70) 38%, rgba(0,0,0,0.0) 68%)',
+        }}
+      />
+      {/* Desktop: left-to-right scrim covering left half */}
+      <div
+        aria-hidden="true"
+        className="absolute inset-0 z-10 hidden lg:block"
+        style={{
+          background: 'linear-gradient(to right, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.60) 38%, rgba(0,0,0,0.0) 60%)',
+        }}
+      />
+
+      {/* ─── Subtle grain texture overlay ──────────────────────────────── */}
+      <div
+        aria-hidden="true"
         className="absolute inset-0 z-10 pointer-events-none"
         style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E")`,
           backgroundRepeat: 'repeat',
           backgroundSize: '160px',
-          opacity: 0.02,
-          mixBlendMode: 'multiply',
+          opacity: 0.025,
+          mixBlendMode: 'screen',
         }}
-        aria-hidden="true"
       />
 
-      {/* ── Copywriting Column ────────────────────────────────────────── */}
-      <div className="order-2 lg:order-1 lg:col-span-6 flex flex-col justify-center px-6 sm:px-12 md:px-16 lg:px-24 pt-8 pb-16 lg:py-0 relative z-20">
-        <div className="max-w-md xl:max-w-lg mx-auto lg:mx-0 flex flex-col items-center text-center lg:items-start lg:text-left">
-          
-          {/* Eyebrow */}
-          <span
-            className={`text-[9px] font-black uppercase tracking-[0.4em] text-gray-400 mb-6 transition-all duration-[1000ms] ease-[cubic-bezier(0.16,1,0.3,1)] delay-[100ms] transform ${
-              mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-            }`}
-          >
-            Pakistan's Premium Fashion Hub · SS '26
-          </span>
+      {/* ─── Content ───────────────────────────────────────────────────── */}
+      {/*
+        Mobile:  absolute, top-center, w-full, centered text
+        Tablet:  absolute, top-left, left-aligned
+        Desktop: absolute, left-zone, vertically centered, left-aligned
+      */}
+      <div
+        className={`
+          absolute z-20
+          flex flex-col
+          transition-all duration-[1100ms] ease-[cubic-bezier(0.16,1,0.3,1)]
+          ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}
 
-          {/* Headline */}
-          {/* [Psychological Mechanism: Identity & Self-Relevant Aspiration] */}
-          <h1
-            className={`text-gray-900 font-serif font-light text-[2.2rem] md:text-[3.2rem] lg:text-[4rem] xl:text-[4.5rem] leading-[1.1] tracking-tight mb-6 transition-all duration-[1000ms] ease-[cubic-bezier(0.16,1,0.3,1)] delay-[220ms] transform ${
-              mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-            }`}
-          >
-            Crafting Confidence.
-            <br />
-            <span className="font-serif italic text-cardinal">Defining Character.</span>
-          </h1>
+          /* Mobile — centered top */
+          top-[10%] left-0 right-0
+          items-center text-center
+          px-6
 
-          {/* Sub-copy */}
-          {/* [Psychological Mechanism: Pain Agitation & Cognitive Relief] */}
-          <p
-            className={`text-gray-500 font-sans text-xs md:text-sm leading-relaxed max-w-[310px] md:max-w-md lg:max-w-lg mb-8 font-normal transition-all duration-[1000ms] ease-[cubic-bezier(0.16,1,0.3,1)] delay-[340ms] transform ${
-              mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-            }`}
-          >
-            Off-the-rack fits fail. Stop & Shop is engineered for precision. We combine premium fabrics with master-tailored structures to deliver comfort that commands respect.
-          </p>
+          /* Tablet — top-left */
+          md:right-auto md:items-start md:text-left
+          md:top-[12%] md:left-[40px]
+          md:max-w-[420px]
 
-          {/* CTAs */}
-          {/* [Psychological Mechanism: Low-Friction Autonomy-Preserving CTAs] */}
-          <div
-            className={`flex items-center gap-8 transition-all duration-[1000ms] ease-[cubic-bezier(0.16,1,0.3,1)] delay-[460ms] transform ${
-              mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-            }`}
-          >
-            <button
-              onClick={scrollToGrid}
-              className="text-[9px] font-black uppercase tracking-[0.35em] text-gray-900 hover:text-cardinal border-b border-gray-900/30 hover:border-cardinal transition-colors duration-300 pb-1"
-            >
-              Shop the Collection
-            </button>
-            <button
-              onClick={scrollToGrid}
-              className="text-[9px] font-black uppercase tracking-[0.35em] text-gray-400 hover:text-gray-900 transition-colors duration-300 pb-1"
-            >
-              Explore the Brand
-            </button>
-          </div>
-
-        </div>
-      </div>
-
-      {/* ── Image Gallery Column ──────────────────────────────────────── */}
-      {/* Portrait frame with absolute separation from text to ensure no overlaps */}
-      <div className="order-1 lg:order-2 lg:col-span-6 flex items-center justify-center p-6 md:p-12 lg:p-16 pt-24 lg:pt-16">
-        <div className={`relative aspect-[3/4] w-full max-w-[340px] md:max-w-[420px] bg-[#fdfdfd] border border-black/10 shadow-[0_12px_40px_rgba(0,0,0,0.03)] overflow-hidden transition-all duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] delay-[300ms] transform ${
-          mounted ? 'opacity-100 scale-100' : 'opacity-0 scale-[0.97]'
-        }`}>
-          <img
-            src="/Hero-Mobile.jpeg"
-            alt="SS'26 Collection Mobile"
-            className="block md:hidden w-full h-full object-cover transition-transform duration-[1.5s] ease-out hover:scale-105"
-            loading="eager"
-          />
-          <img
-            src="/Hero-Tablet.jpeg"
-            alt="SS'26 Collection Tablet"
-            className="hidden md:block lg:hidden w-full h-full object-cover object-bottom transition-transform duration-[1.5s] ease-out hover:scale-105"
-            loading="eager"
-          />
-          <img
-            src="/Hero-Desktop.jpeg"
-            alt="SS'26 Collection Desktop"
-            className="hidden lg:block w-full h-full object-cover object-center transition-transform duration-[1.5s] ease-out hover:scale-105"
-            loading="eager"
-          />
-        </div>
-      </div>
-
-      {/* ── Scroll indicator ────────────────────────────────────────────── */}
-      <button
-        ref={scrollRef}
-        onClick={scrollToGrid}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-40 hidden lg:flex flex-col items-center gap-1.5 text-gray-400 hover:text-gray-900 transition-colors duration-200"
-        aria-label="Scroll down"
+          /* Desktop — vertically centered, left zone */
+          lg:top-1/2 lg:-translate-y-1/2
+          lg:left-[6%] lg:right-auto
+          lg:items-start lg:text-left
+          lg:max-w-[480px]
+        `}
       >
-        <span className="text-[8px] font-black uppercase tracking-[0.4em]">Scroll</span>
-        <ChevronDown size={12} strokeWidth={2.5} />
-      </button>
+        {/* Eyebrow */}
+        <span
+          className="
+            block mb-4 lg:mb-5
+            text-[8px] md:text-[9px]
+            font-black uppercase tracking-[0.45em]
+          "
+          style={{ color: 'rgba(255,255,255,0.50)' }}
+        >
+          Pakistan&apos;s Premium Fashion Hub&nbsp;·&nbsp;SS&nbsp;&apos;26
+        </span>
 
+        {/* Headline */}
+        <h1
+          className="
+            font-serif font-bold leading-[1.08] tracking-tight
+            mb-4 lg:mb-5
+            text-[2.1rem] md:text-[2.8rem] lg:text-[4.2rem]
+          "
+          style={{ transitionDelay: '80ms' }}
+        >
+          <span className="block text-white">Crafting Confidence.</span>
+          <span className="block italic" style={{ color: '#C8102E' }}>
+            Defining Character.
+          </span>
+        </h1>
+
+        {/* Sub-copy */}
+        <p
+          className="
+            font-sans font-normal leading-relaxed
+            mb-7 lg:mb-9
+            text-[11px] md:text-[12px] lg:text-[13px]
+            max-w-[280px] md:max-w-[360px] lg:max-w-[400px]
+          "
+          style={{ color: 'rgba(255,255,255,0.68)', transitionDelay: '160ms' }}
+        >
+          Off-the-rack fits fail. Stop &amp; Shop is engineered for precision — premium fabrics, master-tailored structures, comfort that commands respect.
+        </p>
+
+        {/* CTAs */}
+        <div
+          className="
+            flex gap-6 md:gap-8
+            flex-row
+          "
+          style={{ transitionDelay: '240ms' }}
+        >
+          {/* Primary ghost CTA */}
+          <button
+            id="hero-shop-cta"
+            onClick={scrollToGrid}
+            className="
+              group relative
+              text-[9px] md:text-[10px]
+              font-black uppercase tracking-[0.35em]
+              text-white
+              pb-1 border-b border-white/40
+              hover:border-white transition-colors duration-300
+            "
+          >
+            Shop the Collection
+            <span
+              className="
+                absolute bottom-0 left-0 h-[1.5px] w-0
+                bg-white
+                group-hover:w-full
+                transition-all duration-300 ease-out
+              "
+            />
+          </button>
+
+          {/* Secondary text CTA */}
+          <button
+            id="hero-explore-cta"
+            onClick={scrollToGrid}
+            className="
+              text-[9px] md:text-[10px]
+              font-black uppercase tracking-[0.35em]
+              hover:text-white transition-colors duration-300
+            "
+            style={{ color: 'rgba(255,255,255,0.45)' }}
+          >
+            Explore the Brand
+          </button>
+        </div>
+      </div>
+
+      {/* ─── Scroll Indicator ──────────────────────────────────────────── */}
+      <button
+        id="hero-scroll-indicator"
+        onClick={scrollToGrid}
+        aria-label="Scroll to products"
+        className={`
+          absolute bottom-7 left-1/2 -translate-x-1/2 z-30
+          flex flex-col items-center gap-1
+          transition-all duration-[1200ms] ease-out
+          hover:opacity-100
+          ${mounted ? 'opacity-100' : 'opacity-0'}
+        `}
+        style={{ transitionDelay: '600ms' }}
+      >
+        <span
+          className="text-[7px] md:text-[8px] font-black uppercase tracking-[0.5em]"
+          style={{ color: 'rgba(255,255,255,0.45)' }}
+        >
+          Scroll
+        </span>
+        <ChevronDown
+          size={11}
+          strokeWidth={2.5}
+          style={{ color: 'rgba(255,255,255,0.45)' }}
+          className="animate-bounce"
+        />
+      </button>
     </section>
   );
 };
