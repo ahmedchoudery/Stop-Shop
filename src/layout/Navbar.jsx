@@ -33,7 +33,7 @@ const Navbar = ({ products = [], onSearchOpen, onMenuOpen, scrolled, isHome }) =
   const [subMenuOpen, setSubMenuOpen] = useState(null);
   const [activeTab, setActiveTab]     = useState('All');
 
-  const isTransparent = isHome && !scrolled;
+  const isTransparent = false;
   const categoryMap = CATEGORY_MAP;
 
   const handleBucketClick = useCallback((bucket, sub = null) => {
@@ -53,10 +53,10 @@ const Navbar = ({ products = [], onSearchOpen, onMenuOpen, scrolled, isHome }) =
     return () => document.removeEventListener('click', handler);
   }, [accountOpen]);
 
-  const iconColor = isTransparent ? 'text-white/90' : 'text-gray-600';
-  const iconHover = isTransparent ? 'hover:text-white hover:bg-white/20' : 'hover:text-black hover:bg-white/5';
-  const navBg = isTransparent
-    ? 'bg-transparent border-b border-white/10'
+  const iconColor = 'text-gray-600';
+  const iconHover = 'hover:text-black hover:bg-white/5';
+  const navBg = (isHome && !scrolled)
+    ? 'bg-transparent border-b border-black/5'
     : `border-b border-black/5 ${scrolled ? 'navbar-glass' : 'bg-white'}`;
 
   return (

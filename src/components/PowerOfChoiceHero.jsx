@@ -1,68 +1,35 @@
 'use client';
 
 /**
- * @fileoverview PowerOfChoiceHero — Premium Menswear Editorial Hero
- * v3: grain texture overlay, animated scroll indicator, editorial stat bar,
- *     floating "New Arrivals" badge, stronger headline lock-up.
+ * @fileoverview PowerOfChoiceHero — Premium Minimalist Fine-Art Gallery Hero
+ * v5: Clean warm off-white canvas, hybrid typography, framed portrait imagery,
+ *     zero text-image overlap, quiet underline transitions, and robust CSS-based entrance animations.
  */
 
-import React, { useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import anime from 'animejs';
-import { EASING } from '../hooks/useAnime.js';
 import { ChevronDown } from 'lucide-react';
 
-const STATS = [
-  { value: '500+', label: 'Premium Pieces' },
-  { value: 'SS\'26', label: 'Collection' },
-  { value: '100%', label: 'Authentic Quality' },
-  { value: 'Gujrat', label: 'Pakistan' },
-];
-
 const PowerOfChoiceHero = () => {
-  const contentRef = useRef(null);
-  const statsRef  = useRef(null);
+  const [mounted, setMounted] = useState(false);
   const scrollRef = useRef(null);
 
+  // Trigger CSS-based animations on client mount to bypass hydration and loading screen collisions
   useEffect(() => {
-    if (!contentRef.current) return;
-    const items = contentRef.current.querySelectorAll('[data-anime]');
-    anime.set(items, { opacity: 0, translateY: 18 });
-    anime({
-      targets: items,
-      opacity: [0, 1],
-      translateY: [18, 0],
-      duration: 1000,
-      delay: anime.stagger(130, { start: 250 }),
-      easing: EASING.FABRIC,
-    });
+    setMounted(true);
   }, []);
 
-  // Stats bar entrance
-  useEffect(() => {
-    if (!statsRef.current) return;
-    const items = statsRef.current.querySelectorAll('[data-stat]');
-    anime.set(items, { opacity: 0, translateY: 10 });
-    anime({
-      targets: items,
-      opacity: [0, 1],
-      translateY: [10, 0],
-      duration: 800,
-      delay: anime.stagger(100, { start: 1100 }),
-      easing: EASING.FABRIC,
-    });
-  }, []);
-
-  // Scroll indicator bounce
+  // Scroll indicator bounce (using anime.js since it handles looping and offsets easily without collision)
   useEffect(() => {
     if (!scrollRef.current) return;
     anime({
       targets: scrollRef.current,
-      translateY: [0, 8, 0],
-      opacity: [0.5, 1, 0.5],
+      translateY: [0, 6, 0],
+      opacity: [0.4, 1, 0.4],
       duration: 1800,
       loop: true,
       easing: 'easeInOutSine',
-      delay: 1600,
+      delay: 1200,
     });
   }, []);
 
@@ -77,7 +44,7 @@ const PowerOfChoiceHero = () => {
   return (
     <section
       id="hero-section"
-      className="relative bg-[#0a0a0a] overflow-hidden w-full flex flex-col lg:grid lg:grid-cols-12"
+      className="relative bg-[#faf9f6] overflow-hidden w-full flex flex-col lg:grid lg:grid-cols-12"
       style={{ minHeight: '100dvh' }}
     >
       {/* ── Grain overlay ────────────────────────────────────────────── */}
@@ -87,154 +54,107 @@ const PowerOfChoiceHero = () => {
           backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E")`,
           backgroundRepeat: 'repeat',
           backgroundSize: '160px',
-          opacity: 0.04,
-          mixBlendMode: 'overlay',
+          opacity: 0.02,
+          mixBlendMode: 'multiply',
         }}
         aria-hidden="true"
       />
 
-      {/* ── Background Image / Character Container ──────────────────── */}
-      {/* Visual positioning prevents text overlap on models across all layouts */}
-      <div className="order-1 lg:order-2 lg:col-span-6 relative h-[45vh] lg:h-full w-full overflow-hidden border-b lg:border-b-0 lg:border-l border-white/5 bg-[#0d0d0d]">
-        <img
-          src="/Hero-Mobile.jpeg"
-          alt="SS'26 Collection Mobile"
-          className="block md:hidden w-full h-full object-cover animate-kenburns"
-          loading="eager"
-        />
-        <img
-          src="/Hero-Tablet.jpeg"
-          alt="SS'26 Collection Tablet"
-          className="hidden md:block lg:hidden w-full h-full object-cover object-bottom animate-kenburns"
-          loading="eager"
-        />
-        <img
-          src="/Hero-Desktop.jpeg"
-          alt="SS'26 Collection Desktop"
-          className="hidden lg:block w-full h-full object-cover object-center animate-kenburns"
-          loading="eager"
-        />
-        {/* Editorial glass overlay */}
-        <div className="absolute inset-0 bg-black/10 pointer-events-none" />
+      {/* ── Copywriting Column ────────────────────────────────────────── */}
+      <div className="order-2 lg:order-1 lg:col-span-6 flex flex-col justify-center px-6 sm:px-12 md:px-16 lg:px-24 pt-8 pb-16 lg:py-0 relative z-20">
+        <div className="max-w-md xl:max-w-lg mx-auto lg:mx-0 flex flex-col items-center text-center lg:items-start lg:text-left">
+          
+          {/* Eyebrow */}
+          <span
+            className={`text-[9px] font-black uppercase tracking-[0.4em] text-gray-400 mb-6 transition-all duration-[1000ms] ease-[cubic-bezier(0.16,1,0.3,1)] delay-[100ms] transform ${
+              mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+            }`}
+          >
+            Pakistan's Premium Fashion Hub · SS '26
+          </span>
+
+          {/* Headline */}
+          {/* [Psychological Mechanism: Identity & Self-Relevant Aspiration] */}
+          <h1
+            className={`text-gray-900 font-serif font-light text-[2.2rem] md:text-[3.2rem] lg:text-[4rem] xl:text-[4.5rem] leading-[1.1] tracking-tight mb-6 transition-all duration-[1000ms] ease-[cubic-bezier(0.16,1,0.3,1)] delay-[220ms] transform ${
+              mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+            }`}
+          >
+            Crafting Confidence.
+            <br />
+            <span className="font-serif italic text-cardinal">Defining Character.</span>
+          </h1>
+
+          {/* Sub-copy */}
+          {/* [Psychological Mechanism: Pain Agitation & Cognitive Relief] */}
+          <p
+            className={`text-gray-500 font-sans text-xs md:text-sm leading-relaxed max-w-[310px] md:max-w-md lg:max-w-lg mb-8 font-normal transition-all duration-[1000ms] ease-[cubic-bezier(0.16,1,0.3,1)] delay-[340ms] transform ${
+              mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+            }`}
+          >
+            Off-the-rack fits fail. Stop & Shop is engineered for precision. We combine premium fabrics with master-tailored structures to deliver comfort that commands respect.
+          </p>
+
+          {/* CTAs */}
+          {/* [Psychological Mechanism: Low-Friction Autonomy-Preserving CTAs] */}
+          <div
+            className={`flex items-center gap-8 transition-all duration-[1000ms] ease-[cubic-bezier(0.16,1,0.3,1)] delay-[460ms] transform ${
+              mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+            }`}
+          >
+            <button
+              onClick={scrollToGrid}
+              className="text-[9px] font-black uppercase tracking-[0.35em] text-gray-900 hover:text-cardinal border-b border-gray-900/30 hover:border-cardinal transition-colors duration-300 pb-1"
+            >
+              Shop the Collection
+            </button>
+            <button
+              onClick={scrollToGrid}
+              className="text-[9px] font-black uppercase tracking-[0.35em] text-gray-400 hover:text-gray-900 transition-colors duration-300 pb-1"
+            >
+              Explore the Brand
+            </button>
+          </div>
+
+        </div>
       </div>
 
-      {/* ── Content / Copywriting Container ─────────────────────────── */}
-      <div className="order-2 lg:order-1 lg:col-span-6 flex flex-col justify-between pt-8 lg:pt-[130px] bg-[#0a0a0a] relative z-20">
-        
-        {/* Floating badge */}
-        <div className="w-full px-6 md:px-12 lg:px-16 flex justify-center lg:justify-start">
-          <span
-            className="inline-flex items-center gap-2 bg-white/5 border border-white/10 px-4 py-2 rounded-full"
-          >
-            <span className="w-1.5 h-1.5 rounded-full bg-cardinal animate-pulse" />
-            <span className="text-[8px] font-black uppercase tracking-[0.4em] text-white/80">
-              Pakistan's Premium Fashion Hub · SS '26
-            </span>
-          </span>
+      {/* ── Image Gallery Column ──────────────────────────────────────── */}
+      {/* Portrait frame with absolute separation from text to ensure no overlaps */}
+      <div className="order-1 lg:order-2 lg:col-span-6 flex items-center justify-center p-6 md:p-12 lg:p-16 pt-24 lg:pt-16">
+        <div className={`relative aspect-[3/4] w-full max-w-[340px] md:max-w-[420px] bg-[#fdfdfd] border border-black/10 shadow-[0_12px_40px_rgba(0,0,0,0.03)] overflow-hidden transition-all duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] delay-[300ms] transform ${
+          mounted ? 'opacity-100 scale-100' : 'opacity-0 scale-[0.97]'
+        }`}>
+          <img
+            src="/Hero-Mobile.jpeg"
+            alt="SS'26 Collection Mobile"
+            className="block md:hidden w-full h-full object-cover transition-transform duration-[1.5s] ease-out hover:scale-105"
+            loading="eager"
+          />
+          <img
+            src="/Hero-Tablet.jpeg"
+            alt="SS'26 Collection Tablet"
+            className="hidden md:block lg:hidden w-full h-full object-cover object-bottom transition-transform duration-[1.5s] ease-out hover:scale-105"
+            loading="eager"
+          />
+          <img
+            src="/Hero-Desktop.jpeg"
+            alt="SS'26 Collection Desktop"
+            className="hidden lg:block w-full h-full object-cover object-center transition-transform duration-[1.5s] ease-out hover:scale-105"
+            loading="eager"
+          />
         </div>
-
-        {/* Main copy block */}
-        <div className="w-full flex-grow flex flex-col justify-center items-center lg:items-start px-6 md:px-12 lg:px-16 pt-8 pb-10">
-          <div ref={contentRef} className="max-w-md xl:max-w-lg flex flex-col items-center text-center lg:items-start lg:text-left">
-            
-            {/* New Arrivals badge — desktop */}
-            <div
-              data-anime
-              className="hidden lg:inline-flex items-center gap-2.5 bg-white/5 border border-white/10 px-4 py-2 rounded-full mb-6"
-              style={{ opacity: 0 }}
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-cardinal animate-pulse" />
-              <span className="text-[8px] font-black uppercase tracking-[0.4em] text-white/90">New Arrivals Live</span>
-            </div>
-
-            {/* Headline */}
-            {/* [Psychological Mechanism: Identity & Self-Relevant Aspiration] */}
-            <h1
-              data-anime
-              className="text-white font-heading font-black uppercase leading-[1.05] lg:leading-[0.9] tracking-[-0.03em] mb-4 text-[2.2rem] md:text-[3rem] lg:text-[3.8rem] xl:text-[4.2rem]"
-              style={{ opacity: 0 }}
-            >
-              Crafting Confidence.
-              <br />
-              <span className="text-cardinal">Defining Character.</span>
-            </h1>
-
-            {/* Sub-copy */}
-            {/* [Psychological Mechanism: Pain Agitation & Cognitive Relief] */}
-            <p
-              data-anime
-              className="text-white/70 font-sans text-xs md:text-sm leading-relaxed max-w-[310px] md:max-w-md lg:max-w-lg mb-6 lg:mb-8 font-normal"
-              style={{ opacity: 0 }}
-            >
-              Off-the-rack fits fail. Stop & Shop is engineered for precision. We combine premium fabrics with master-tailored structures to deliver comfort that commands respect.
-            </p>
-
-            {/* CTA */}
-            {/* [Psychological Mechanism: Low-Friction Autonomy-Preserving CTAs] */}
-            <div
-              data-anime
-              className="flex flex-wrap justify-center lg:justify-start gap-4 lg:gap-6"
-              style={{ opacity: 0 }}
-            >
-              <button
-                onClick={scrollToGrid}
-                className="group relative flex items-center gap-3 bg-white text-black text-[9px] font-black uppercase tracking-[0.3em] px-6 py-3.5 overflow-hidden transition-all duration-300 hover:bg-opacity-90 active:scale-[0.98]"
-              >
-                <span className="relative z-10">Shop the Collection</span>
-                <span className="relative z-10 w-5 h-px bg-black group-hover:w-7 transition-all duration-300" />
-                <span className="absolute inset-0 bg-cardinal scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-400 ease-[cubic-bezier(0.16,1,0.3,1)]" />
-                <span className="absolute inset-0 z-[1] group-hover:text-white transition-colors duration-400 ease-[cubic-bezier(0.16,1,0.3,1)]" />
-              </button>
-              <button
-                onClick={scrollToGrid}
-                className="flex items-center gap-2 text-[9px] lg:text-[10px] font-black uppercase tracking-[0.3em] text-white pb-1 border-b border-white/40 hover:border-white transition-colors duration-300"
-              >
-                Explore the Brand
-              </button>
-            </div>
-
-          </div>
-        </div>
-
-        {/* ── Stat Bar ────────────────────────────────────────────────── */}
-        {/* [Psychological Mechanism: Social Proof & Heritage Verification] */}
-        <div
-          ref={statsRef}
-          className="w-full border-t border-white/5 bg-black/40 backdrop-blur-sm mt-auto"
-        >
-          <div className="px-6 md:px-12 lg:px-16">
-            <div className="flex items-stretch divide-x divide-white/5 overflow-x-auto scrollbar-none">
-              {STATS.map((stat) => (
-                <div
-                  key={stat.label}
-                  data-stat
-                  className="flex flex-col justify-center py-4 px-4 md:px-6 flex-1 min-w-[95px]"
-                  style={{ opacity: 0 }}
-                >
-                  <span className="text-white font-black text-base md:text-xl leading-none tracking-tighter tabular-nums">
-                    {stat.value}
-                  </span>
-                  <span className="text-white/50 text-[7.5px] font-bold uppercase tracking-[0.35em] mt-1">
-                    {stat.label}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
       </div>
 
       {/* ── Scroll indicator ────────────────────────────────────────────── */}
       <button
         ref={scrollRef}
         onClick={scrollToGrid}
-        className="absolute bottom-[72px] lg:bottom-[84px] left-1/2 -translate-x-1/2 z-40 flex flex-col items-center gap-1.5 text-white/60 hover:text-white transition-colors duration-200 lg:hidden"
+        className="absolute bottom-8 left-1/2 -translate-x-1/2 z-40 hidden lg:flex flex-col items-center gap-1.5 text-gray-400 hover:text-gray-900 transition-colors duration-200"
         aria-label="Scroll down"
-        style={{ opacity: 0 }}
       >
         <span className="text-[8px] font-black uppercase tracking-[0.4em]">Scroll</span>
-        <ChevronDown size={14} strokeWidth={2.5} />
+        <ChevronDown size={12} strokeWidth={2.5} />
       </button>
 
     </section>
