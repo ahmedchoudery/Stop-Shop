@@ -24,6 +24,7 @@ pnpm-debug.log*
 
 # System
 .DS_Store
+.claude/
 
 # Custom
 /playground-1.mongodb.js

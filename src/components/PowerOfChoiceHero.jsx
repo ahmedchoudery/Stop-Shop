@@ -1,33 +1,84 @@
 'use client';
 
 /**
- * @fileoverview PowerOfChoiceHero — Full-Bleed Editorial Campaign Hero
- * v6: One unified design across all layouts.
- *     - Hero fills exactly the viewport below the navbar (100dvh - 72px)
- *     - Background image covers the entire section (object-fit: cover)
- *     - Dark gradient scrim for text legibility
- *     - Desktop: content left-aligned, left-third zone
- *     - Tablet:  content top-left, diagonal scrim
- *     - Mobile:  content centered top, full-width scrim from top
- *     - No card borders, no image containers — pure editorial
+ * @fileoverview PowerOfChoiceHero — Full-Bleed Editorial Hero
+ * Premium full-viewport image hero with refined text overlay.
+ * Uses existing responsive hero images (Mobile / Tablet / Desktop).
+ * No brand strip. Clean, minimal, editorial.
  */
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { ChevronDown } from 'lucide-react';
-
-const NAVBAR_HEIGHT = 72; // px — matches Navbar height when not scrolled
+import React, { useEffect, useRef, useCallback } from 'react';
+import anime from 'animejs';
+import { EASING } from '../hooks/useAnime.js';
+import { ChevronDown, ArrowRight } from 'lucide-react';
 
 const PowerOfChoiceHero = () => {
-  const [mounted, setMounted] = useState(false);
+  const contentRef = useRef(null);
+  const scrollRef = useRef(null);
+  const overlayRef = useRef(null);
 
+  /* ── Content entrance animation ──────────────────────────────── */
   useEffect(() => {
-    setMounted(true);
+    if (!contentRef.current) return;
+    const items = contentRef.current.querySelectorAll('[data-anime]');
+    anime.set(items, { opacity: 0, translateY: 24 });
+    anime({
+      targets: items,
+      opacity: [0, 1],
+      translateY: [24, 0],
+      duration: 1100,
+      delay: anime.stagger(140, { start: 400 }),
+      easing: EASING.FABRIC,
+    });
+  }, []);
+
+  /* ── Scroll indicator pulse ──────────────────────────────────── */
+  useEffect(() => {
+    if (!scrollRef.current) return;
+    anime({
+      targets: scrollRef.current,
+      translateY: [0, 6, 0],
+      opacity: [0.6, 1, 0.6],
+      duration: 2000,
+      loop: true,
+      easing: 'easeInOutSine',
+      delay: 2000,
+    });
+  }, []);
+
+  /* ── Parallax-lite on scroll (desktop only) ──────────────────── */
+  useEffect(() => {
+    const hero = document.getElementById('hero-section');
+    if (!hero || window.matchMedia('(max-width: 1023px)').matches) return;
+
+    let ticking = false;
+    const onScroll = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const scrollY = window.scrollY;
+        const heroH = hero.offsetHeight;
+        if (scrollY < heroH) {
+          const progress = scrollY / heroH;
+          const img = hero.querySelector('[data-hero-img]');
+          if (img) {
+            img.style.transform = `scale(${1 + progress * 0.08}) translateY(${progress * 30}px)`;
+          }
+          if (overlayRef.current) {
+            overlayRef.current.style.opacity = 1 + progress * 0.15;
+          }
+        }
+        ticking = false;
+      });
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
   const scrollToGrid = useCallback(() => {
     const el = document.getElementById('product-grid');
     if (el) {
-      const top = el.getBoundingClientRect().top + window.scrollY - 80;
+      const top = el.getBoundingClientRect().top + window.scrollY - 100;
       window.scrollTo({ top, behavior: 'smooth' });
     }
   }, []);
@@ -35,235 +86,171 @@ const PowerOfChoiceHero = () => {
   return (
     <section
       id="hero-section"
-      aria-label="Hero — Crafting Confidence"
-      style={{ height: `calc(100dvh - ${NAVBAR_HEIGHT}px)` }}
-      className="relative w-full overflow-hidden"
+      className="relative w-full overflow-hidden bg-[#0a0a0a]"
+      style={{ height: '100dvh', minHeight: '600px', maxHeight: '1000px' }}
     >
-      {/* ─── Background Images (per breakpoint) ───────────────────────── */}
-      {/* Mobile image (default, < 768px) */}
-      <img
-        src="/Hero-Mobile.jpeg"
-        alt=""
+      {/* ── Background Images ─────────────────────────────────────── */}
+      <div className="absolute inset-0 w-full h-full">
+        {/* Mobile */}
+        <img
+          data-hero-img
+          src="/Hero-Mobile.jpeg"
+          alt="SS'26 Collection"
+          className="block md:hidden w-full h-full object-cover object-top"
+          loading="eager"
+          fetchPriority="high"
+          style={{ willChange: 'transform' }}
+        />
+        {/* Tablet */}
+        <img
+          data-hero-img
+          src="/Hero-Tablet.jpeg"
+          alt="SS'26 Collection"
+          className="hidden md:block lg:hidden w-full h-full object-cover object-center"
+          loading="eager"
+          fetchPriority="high"
+          style={{ willChange: 'transform' }}
+        />
+        {/* Desktop */}
+        <img
+          data-hero-img
+          src="/Hero-Desktop.jpeg"
+          alt="SS'26 Collection"
+          className="hidden lg:block w-full h-full object-cover object-center"
+          loading="eager"
+          fetchPriority="high"
+          style={{ willChange: 'transform' }}
+        />
+      </div>
+
+      {/* ── Gradient overlays ─────────────────────────────────────── */}
+      {/* Bottom fade — ensures text legibility */}
+      <div
+        ref={overlayRef}
+        className="absolute inset-0 z-[1] pointer-events-none"
+        style={{
+          background: `
+            linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.5) 35%, rgba(0,0,0,0.1) 65%, transparent 100%),
+            linear-gradient(to right, rgba(0,0,0,0.25) 0%, transparent 60%)
+          `,
+          transition: 'opacity 0.3s ease',
+        }}
         aria-hidden="true"
-        className="
-          absolute inset-0 w-full h-full
-          object-cover object-[center_bottom]
-          block md:hidden
-        "
-        loading="eager"
-        fetchPriority="high"
       />
-      {/* Tablet image (768px – 1023px) */}
-      <img
-        src="/Hero-Tablet.jpeg"
-        alt=""
+      {/* Subtle vignette */}
+      <div
+        className="absolute inset-0 z-[1] pointer-events-none"
+        style={{
+          background: 'radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.3) 100%)',
+        }}
         aria-hidden="true"
-        className="
-          absolute inset-0 w-full h-full
-          object-cover object-[center_bottom]
-          hidden md:block lg:hidden
-        "
-        loading="eager"
-        fetchPriority="high"
-      />
-      {/* Desktop image (1024px+) */}
-      <img
-        src="/Hero-Desktop.jpeg"
-        alt=""
-        aria-hidden="true"
-        className="
-          absolute inset-0 w-full h-full
-          object-cover object-[right_center]
-          hidden lg:block
-        "
-        loading="eager"
-        fetchPriority="high"
       />
 
-      {/* ─── Gradient Scrims (per breakpoint) ──────────────────────────── */}
-      {/* Mobile: top-to-bottom dark scrim covering top 60% */}
+      {/* ── Grain texture ─────────────────────────────────────────── */}
       <div
-        aria-hidden="true"
-        className="absolute inset-0 z-10 md:hidden"
-        style={{
-          background: 'linear-gradient(to bottom, rgba(0,0,0,0.80) 0%, rgba(0,0,0,0.65) 45%, rgba(0,0,0,0.0) 72%)',
-        }}
-      />
-      {/* Tablet: top-left diagonal scrim */}
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 z-10 hidden md:block lg:hidden"
-        style={{
-          background: 'linear-gradient(135deg, rgba(0,0,0,0.82) 0%, rgba(0,0,0,0.70) 38%, rgba(0,0,0,0.0) 68%)',
-        }}
-      />
-      {/* Desktop: left-to-right scrim covering left half */}
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 z-10 hidden lg:block"
-        style={{
-          background: 'linear-gradient(to right, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.60) 38%, rgba(0,0,0,0.0) 60%)',
-        }}
-      />
-
-      {/* ─── Subtle grain texture overlay ──────────────────────────────── */}
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 z-10 pointer-events-none"
+        className="absolute inset-0 z-[2] pointer-events-none"
         style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E")`,
           backgroundRepeat: 'repeat',
           backgroundSize: '160px',
-          opacity: 0.025,
-          mixBlendMode: 'screen',
+          opacity: 0.035,
+          mixBlendMode: 'overlay',
         }}
+        aria-hidden="true"
       />
 
-      {/* ─── Content ───────────────────────────────────────────────────── */}
-      {/*
-        Mobile:  absolute, top-center, w-full, centered text
-        Tablet:  absolute, top-left, left-aligned
-        Desktop: absolute, left-zone, vertically centered, left-aligned
-      */}
-      <div
-        className={`
-          absolute z-20
-          flex flex-col
-          transition-all duration-[1100ms] ease-[cubic-bezier(0.16,1,0.3,1)]
-          ${mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-5'}
-
-          /* Mobile — centered top */
-          top-[10%] left-0 right-0
-          items-center text-center
-          px-6
-
-          /* Tablet — top-left */
-          md:right-auto md:items-start md:text-left
-          md:top-[12%] md:left-[40px]
-          md:max-w-[420px]
-
-          /* Desktop — vertically centered, left zone */
-          lg:top-1/2 lg:-translate-y-1/2
-          lg:left-[6%] lg:right-auto
-          lg:items-start lg:text-left
-          lg:max-w-[480px]
-        `}
-      >
-        {/* Eyebrow */}
-        <span
-          className="
-            block mb-4 lg:mb-5
-            text-[8px] md:text-[9px]
-            font-black uppercase tracking-[0.45em]
-          "
-          style={{ color: 'rgba(255,255,255,0.50)' }}
-        >
-          Pakistan&apos;s Premium Fashion Hub&nbsp;·&nbsp;SS&nbsp;&apos;26
-        </span>
-
-        {/* Headline */}
-        <h1
-          className="
-            font-serif font-bold leading-[1.08] tracking-tight
-            mb-4 lg:mb-5
-            text-[2.1rem] md:text-[2.8rem] lg:text-[4.2rem]
-          "
-          style={{ transitionDelay: '80ms' }}
-        >
-          <span className="block text-white">Crafting Confidence.</span>
-          <span className="block italic" style={{ color: '#C8102E' }}>
-            Defining Character.
-          </span>
-        </h1>
-
-        {/* Sub-copy */}
-        <p
-          className="
-            font-sans font-normal leading-relaxed
-            mb-7 lg:mb-9
-            text-[11px] md:text-[12px] lg:text-[13px]
-            max-w-[280px] md:max-w-[360px] lg:max-w-[400px]
-          "
-          style={{ color: 'rgba(255,255,255,0.68)', transitionDelay: '160ms' }}
-        >
-          Off-the-rack fits fail. Stop &amp; Shop is engineered for precision — premium fabrics, master-tailored structures, comfort that commands respect.
-        </p>
-
-        {/* CTAs */}
+      {/* ── Content ───────────────────────────────────────────────── */}
+      <div className="relative z-10 h-full flex flex-col justify-end">
         <div
-          className="
-            flex gap-6 md:gap-8
-            flex-row
-          "
-          style={{ transitionDelay: '240ms' }}
+          ref={contentRef}
+          className="w-full px-6 sm:px-10 lg:px-16 pb-16 sm:pb-20 lg:pb-24 max-w-[1440px] mx-auto"
         >
-          {/* Primary ghost CTA */}
-          <button
-            id="hero-shop-cta"
-            onClick={scrollToGrid}
-            className="
-              group relative
-              text-[9px] md:text-[10px]
-              font-black uppercase tracking-[0.35em]
-              text-white
-              pb-1 border-b border-white/40
-              hover:border-white transition-colors duration-300
-            "
-          >
-            Shop the Collection
+          {/* Season tag */}
+          <div data-anime style={{ opacity: 0 }}>
             <span
-              className="
-                absolute bottom-0 left-0 h-[1.5px] w-0
-                bg-white
-                group-hover:w-full
-                transition-all duration-300 ease-out
-              "
-            />
-          </button>
+              className="inline-flex items-center gap-2.5 border border-white/20 px-4 py-2 rounded-full mb-6 backdrop-blur-sm"
+              style={{ background: 'rgba(255,255,255,0.08)' }}
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+              <span className="text-[8px] font-black uppercase tracking-[0.4em] text-white/90">
+                SS '26 Collection · Now Live
+              </span>
+            </span>
+          </div>
 
-          {/* Secondary text CTA */}
-          <button
-            id="hero-explore-cta"
-            onClick={scrollToGrid}
-            className="
-              text-[9px] md:text-[10px]
-              font-black uppercase tracking-[0.35em]
-              hover:text-white transition-colors duration-300
-            "
-            style={{ color: 'rgba(255,255,255,0.45)' }}
+          {/* Headline */}
+          <h1
+            data-anime
+            className="text-white font-heading font-black uppercase leading-[0.95] tracking-[-0.03em] mb-4 lg:mb-5"
+            style={{
+              opacity: 0,
+              fontSize: 'clamp(2.4rem, 6vw, 5rem)',
+              textShadow: '0 2px 40px rgba(0,0,0,0.3)',
+            }}
           >
-            Explore the Brand
-          </button>
+            Crafting Confidence.
+            <br />
+            <span className="text-white/70">Defining Character.</span>
+          </h1>
+
+          {/* Sub-copy */}
+          <p
+            data-anime
+            className="text-white/60 font-sans text-sm sm:text-base leading-relaxed max-w-lg mb-8 lg:mb-10"
+            style={{ opacity: 0, textShadow: '0 1px 8px rgba(0,0,0,0.4)' }}
+          >
+            Premium fabrics meet master-tailored precision.
+            Engineered for the man who commands respect.
+          </p>
+
+          {/* CTAs */}
+          <div
+            data-anime
+            className="flex flex-wrap items-center gap-4 lg:gap-5"
+            style={{ opacity: 0 }}
+          >
+            {/* Primary CTA */}
+            <button
+              onClick={scrollToGrid}
+              className="hero-cta-primary group relative flex items-center gap-3 bg-white text-black text-[10px] font-black uppercase tracking-[0.25em] px-7 py-4 overflow-hidden transition-all duration-300 hover:shadow-[0_8px_30px_rgba(255,255,255,0.15)] active:scale-[0.98]"
+            >
+              <span className="relative z-10 transition-colors duration-300 group-hover:text-white">
+                Shop Collection
+              </span>
+              <ArrowRight
+                size={13}
+                strokeWidth={2.5}
+                className="relative z-10 transition-all duration-300 group-hover:translate-x-0.5 group-hover:text-white"
+              />
+              {/* Hover fill */}
+              <span className="absolute inset-0 bg-[#111] scale-x-0 origin-left group-hover:scale-x-100 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]" />
+            </button>
+
+            {/* Secondary CTA */}
+            <button
+              onClick={scrollToGrid}
+              className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.25em] text-white/70 hover:text-white pb-0.5 border-b border-white/30 hover:border-white/80 transition-all duration-300"
+            >
+              Explore the Brand
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* ─── Scroll Indicator ──────────────────────────────────────────── */}
+      {/* ── Scroll indicator ──────────────────────────────────────── */}
       <button
-        id="hero-scroll-indicator"
+        ref={scrollRef}
         onClick={scrollToGrid}
+        className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-1 text-white/50 hover:text-white/80 transition-colors duration-200"
         aria-label="Scroll to products"
-        className={`
-          absolute bottom-7 left-1/2 -translate-x-1/2 z-30
-          flex flex-col items-center gap-1
-          transition-all duration-[1200ms] ease-out
-          hover:opacity-100
-          ${mounted ? 'opacity-100' : 'opacity-0'}
-        `}
-        style={{ transitionDelay: '600ms' }}
+        style={{ opacity: 0 }}
       >
-        <span
-          className="text-[7px] md:text-[8px] font-black uppercase tracking-[0.5em]"
-          style={{ color: 'rgba(255,255,255,0.45)' }}
-        >
-          Scroll
-        </span>
-        <ChevronDown
-          size={11}
-          strokeWidth={2.5}
-          style={{ color: 'rgba(255,255,255,0.45)' }}
-          className="animate-bounce"
-        />
+        <span className="text-[7px] font-black uppercase tracking-[0.5em]">Scroll</span>
+        <ChevronDown size={14} strokeWidth={2} />
       </button>
+
+      {/* ── Bottom edge line ──────────────────────────────────────── */}
+      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent z-20" />
     </section>
   );
 };

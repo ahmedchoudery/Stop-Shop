@@ -2,7 +2,6 @@
 
 import React, { useEffect, useMemo, useCallback } from 'react';
 import PowerOfChoiceHero from '../components/PowerOfChoiceHero.jsx';
-import BrandStrip from '../components/BrandStrip.jsx';
 import CategoryTiles from '../components/CategoryTiles.jsx';
 import FeaturedDrop from '../components/FeaturedDrop.jsx';
 import PiecesThatSpeak from '../components/PiecesThatSpeak.jsx';
@@ -55,10 +54,7 @@ export default function HomePageClient({ products = [] }) {
       {/* 1 ─ Full-Screen Editorial Hero */}
       <PowerOfChoiceHero />
 
-      {/* 2 ─ Brand USP Trust Strip */}
-      <BrandStrip />
-
-      {/* 3 ─ Category Navigator Tiles */}
+      {/* 2 ─ Category Navigator Tiles */}
       <CategoryTiles
         onSelect={handleCategorySelect}
         activeBucket={activeBucket}
