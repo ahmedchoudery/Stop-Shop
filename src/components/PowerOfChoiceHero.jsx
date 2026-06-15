@@ -96,7 +96,7 @@ const PowerOfChoiceHero = () => {
           data-hero-img
           src="/Hero-Mobile.jpeg"
           alt="SS'26 Collection"
-          className="block md:hidden w-full h-full object-cover object-top"
+          className="block md:hidden w-full h-full object-cover object-bottom"
           loading="eager"
           fetchPriority="high"
           style={{ willChange: 'transform' }}
@@ -106,7 +106,7 @@ const PowerOfChoiceHero = () => {
           data-hero-img
           src="/Hero-Tablet.jpeg"
           alt="SS'26 Collection"
-          className="hidden md:block lg:hidden w-full h-full object-cover object-center"
+          className="hidden md:block lg:hidden w-full h-full object-cover object-bottom"
           loading="eager"
           fetchPriority="high"
           style={{ willChange: 'transform' }}
