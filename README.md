@@ -1,208 +1,228 @@
-# Stop & Shop - E-Commerce Platform
+# Stop & Shop — Premium Editorial E-Commerce Store
 
-A full-stack e-commerce application built with React, Express.js, and MongoDB.
+Stop & Shop is a full-stack, bespoke e-commerce platform built for high-end clothing and fashion retail. Modeled after global fashion houses, the application delivers a lightning-fast, secure, and visually stunning shopping experience featuring custom micro-interactions, responsive editorial hero blocks, and an enterprise-grade administration suite.
 
-## 🚀 Quick Start
+---
 
-### Prerequisites
-- Node.js 18+
-- MongoDB (local or Atlas)
-- npm or yarn
+## Key Features
 
-### Installation
+*   **Premium Editorial Design**: Modern layouts with curated OKLCH color palettes, strict typography hierarchies, and hardware-accelerated 3D parallax hover states on product cards.
+*   **Intelligent Hero Overlay**: Fully responsive viewport campaigns on desktop, tablet, and mobile, structured to prevent typography from obscuring campaign models.
+*   **Frictionless Checkout Flow**: A Pakistan-optimized 2-column payment grid supporting local channels (Cash on Delivery, Easypaisa, JazzCash, ATM Cards, and Bank Transfer) with customer profile auto-fill.
+*   **Wishlist & Cart Drawers**: Responsive slide-out panels with stagger-loaded items, spring-based micro-interactions, and high-contrast empty states.
+*   **Live Order Tracking**: Instant tracking references generated upon checkout, with a dedicated `/track` view for real-time delivery status updates.
+*   **Real-Time Admin Dashboard**: Sales analytics, revenue charts, best-selling product lists, payment method breakdowns, and interactive business flow managers.
+*   **Enterprise Administration tools**: CSV import/export managers for bulk product adjustments, audit log panels, and coupon management boards.
 
+---
+
+## Tech Stack
+
+*   **Core**: React 18 & Next.js 14 (App Router)
+*   **Backend API**: Next.js Route Handlers (Express-style logic in `/api`)
+*   **Database**: MongoDB & Mongoose Object Data Modeling (ODM)
+*   **Caching Layer**: Redis Cache (with automatic fallback to in-memory cache)
+*   **Validation**: Zod Schemas
+*   **Authentication**: JWT stored in `httpOnly` secure cookies
+*   **Animations**: GSAP, Anime.js, Framer Motion
+*   **Styling**: Tailwind CSS & Vanilla CSS (using OKLCH design tokens)
+*   **Testing**: Vitest & Playwright
+
+---
+
+## Prerequisites
+
+Ensure you have the following installed on your local machine:
+*   **Node.js**: Version 20.19.0 or higher (specified in `.nvmrc`)
+*   **MongoDB**: A running local MongoDB instance or a MongoDB Atlas connection string
+*   **Git**: For version control
+*   **Redis** (Optional): A local Redis server if you wish to run the performance caching layer locally
+
+---
+
+## Getting Started
+
+### 1. Clone the Repository
 ```bash
-# Clone the repository
-git clone <repository-url>
+git clone https://github.com/ahmedchoudery/Stop-Shop.git
 cd Stop-Shop
-
-# Install dependencies
-npm install
-
-# Create .env file (see Configuration section)
-cp .env.example .env
-
-# Start development server
-npm run dev
-
-# Build for production
-npm run build
 ```
 
-## 📁 Project Structure
+### 2. Install Dependencies
+```bash
+npm install
+```
 
+### 3. Environment Setup
+Copy the example environment template to create your local `.env` file:
+```bash
+cp .env.example .env
+```
+Open `.env` in your editor and configure your credentials. See the [Environment Variables](#environment-variables) section below for details.
+
+### 4. Database Setup & Seeding
+Initialize the database, reset the admin credentials, and populate the store with catalog products:
+```bash
+# 1. Reset/Upsert admin credentials and normalize categories
+node scripts/admin_fix.js
+
+# 2. Seed default collection products and coupon codes
+node scripts/seed.js
+```
+
+### 5. Start Development Server
+Run the Next.js development server:
+```bash
+npm run dev
+```
+Open [http://localhost:3000](http://localhost:3000) in your browser to view the application.
+
+---
+
+## Architecture
+
+### Directory Structure
 ```
 Stop-Shop/
+├── public/                 # Static assets (images, hero JPGs)
+├── scripts/                # Database seed, fix, and migration scripts
+│   ├── admin_fix.js        # Configures admin user from env & trims categories
+│   ├── seed.js             # Cleans DB and inserts catalog items
+│   └── purge-database.js   # DB reset utility
 ├── src/
-│   ├── components/          # Reusable React components
-│   │   ├── ProductCard.jsx
-│   │   ├── ProductGrid.jsx
-│   │   ├── ProductTable.jsx      # Admin product table
-│   │   ├── ProductFilters.jsx    # Product filtering UI
-│   │   ├── OrderTable.jsx
-│   │   ├── StatsGrid.jsx
+│   ├── app/                # Next.js App Router endpoints & layouts
+│   │   ├── api/            # Backend API routes (checkout, products, stats)
+│   │   │   └── checkout/   # Post checkout endpoint
+│   │   ├── admin/          # Admin routing
+│   │   ├── layout.jsx      # Global HTML Root Layout
+│   │   └── providers.jsx   # State context providers
+│   ├── components/         # Reusable UI Components
+│   │   ├── PowerOfChoiceHero.jsx # Full-bleed editorial hero
+│   │   ├── CheckoutForm.jsx      # Multi-method payment form
+│   │   ├── WishlistDrawer.jsx    # Slide-in saved items panel
+│   │   ├── ProductCard.jsx       # 3D tilting product grid item
 │   │   └── ...
-│   ├── pages/              # Page components
+│   ├── views/              # Main page views
 │   │   ├── HomePage.jsx
 │   │   ├── CheckoutPage.jsx
-│   │   ├── LoginPage.jsx
-│   │   ├── DashboardHome.jsx
-│   │   ├── AdminOrders.jsx
-│   │   ├── AdminProducts.jsx
-│   │   ├── AdminUsers.jsx
-│   │   ├── AdminInventory.jsx
-│   │   ├── AdminSettings.jsx
-│   │   └── AdminAuditPanel.jsx
-│   ├── context/            # React Context providers
-│   │   ├── CartContext.jsx
-│   │   ├── WishlistContext.jsx
-│   │   ├── CurrencyContext.jsx
-│   │   └── LocaleContext.jsx
-│   ├── layout/             # Layout components
-│   ├── services/          # Backend services
-│   │   ├── cacheService.js    # Redis caching
-│   │   └── auditService.js    # Audit logging
-│   ├── middleware/         # Express middleware
-│   │   └── security.js       # XSS sanitization
-│   ├── schemas/            # Validation schemas
-│   │   └── validation.js     # Zod schemas
-│   ├── types/              # TypeScript type definitions
-│   └── test/               # Test files
-├── server.js               # Express backend server
-├── vite.config.js          # Vite configuration
-├── tsconfig.json           # TypeScript configuration
-└── vitest.config.js        # Test configuration
+│   │   ├── OrderSuccessPage.jsx
+│   │   └── AdminAnalytics.jsx
+│   ├── context/            # React Context Providers
+│   │   ├── CartContext.tsx
+│   │   └── WishlistContext.jsx
+│   ├── models/             # Mongoose schemas
+│   ├── schemas/            # Zod validation rules
+│   ├── services/           # Backend services (cache, email, inventory)
+│   └── styles/             # Stylesheets (index.css with OKLCH tokens)
+├── package.json            # Scripts & dependencies configuration
+├── tailwind.config.js      # Tailwind theme parameters
+└── tsconfig.json           # TypeScript configuration
 ```
 
-## ⚙️ Configuration
+### Data Flow Lifecycle
 
-Create a `.env` file in the root directory:
+1.  **User Action**: Shopper clicks "Place Order" inside [CheckoutForm.jsx](file:///c:/Users/JAPAN%20COMPUTERS/OneDrive/Desktop/Stop-Shop/src/components/CheckoutForm.jsx).
+2.  **Frontend Validation**: Inputs are validated against client schemas.
+3.  **API Dispatch**: Form is serialized and sent to Next.js route handler `/api/checkout`.
+4.  **Zod Schema Validation**: Request payload is safely parsed in `/api/checkout/route.js` via `checkoutSchema`.
+5.  **Database Transaction**:
+    *   Finds purchased items in Mongoose `Product` collection.
+    *   Validates stock availability (overall and size-specific).
+    *   Deducts quantity and registers a transaction in Mongoose `Order` collection.
+6.  **Cache Invalidation**: Invalidates Redis cache keys (`stats_revenue`, `stats_orders`, `public_products`).
+7.  **Fulfillment Notification**: Triggers email confirmation and launches background check for low stock alerts.
+8.  **Routing Redirect**: Redirects user to [OrderSuccessPage.jsx](file:///c:/Users/JAPAN%20COMPUTERS/OneDrive/Desktop/Stop-Shop/src/views/OrderSuccessPage.jsx) demonstrating their unique order reference.
 
-```env
-# MongoDB Connection
-MONGO_URI=mongodb://localhost:27017/stopshop
-# Or use MongoDB Atlas:
-# MONGO_URI=mongodb+srv://user:password@cluster.mongodb.net/stopshop
+---
 
-# Server
-PORT=5000
+## Environment Variables
 
-# JWT Authentication
-JWT_SECRET=your-super-secret-jwt-key-min-32-chars
+The application reads configurations from `.env` in the root folder.
 
-# Admin Credentials (for initial setup)
-ADMIN_EMAIL=admin@example.com
-ADMIN_PASSWORD=your-secure-password
+### Required Fields
+| Variable | Description | Example / Recommended Value |
+| :--- | :--- | :--- |
+| `MONGO_URI` | MongoDB Atlas / Local connection URL | `mongodb+srv://user:pass@cluster.mongodb.net/db` |
+| `JWT_SECRET` | Secret key used to encrypt user auth tokens | *A random 64-character string* |
+| `ADMIN_EMAIL` | Credentials for logging in to the admin panel | `admin@example.com` |
+| `ADMIN_PASSWORD`| Password for logging in to the admin panel | `your-secure-password` |
 
-# Email (for order notifications)
-EMAIL_USER=your-email@gmail.com
-EMAIL_PASS=your-app-password
+### Optional Performance & Third-Party Integrations
+| Variable | Description | Default / Fallback |
+| :--- | :--- | :--- |
+| `PORT` | Local web server port | `5001` |
+| `REDIS_URL` | Redis server URL for analytics and catalog cache | Falls back to in-memory caching |
+| `CACHE_TTL` | Cache duration in seconds | `300` (5 minutes) |
+| `email_user` | Gmail/SMTP username to send order receipts | - |
+| `email_pass` | Gmail App Password for SMTP authentication | - |
+| `CLOUDINARY_CLOUD_NAME` | Cloudinary credentials for product image storage | - |
 
-# Redis (Optional - falls back to in-memory cache)
-REDIS_URL=redis://localhost:6379
-CACHE_TTL=300
+---
 
-# CORS Origins (comma-separated)
-ALLOWED_ORIGINS=http://localhost:5173,https://your-domain.com
-```
+## Available Scripts
 
-## 🛠️ Available Scripts
+Use the following commands from the root directory:
 
 | Command | Description |
-|---------|-------------|
-| `npm run dev` | Start Vite development server |
-| `npm run build` | Build for production |
-| `npm run start` | Start production server |
-| `npm run lint` | Run ESLint |
-| `npm run test` | Run tests |
-| `npm run test:watch` | Run tests in watch mode |
+| :--- | :--- |
+| `npm run dev` | Starts Next.js server in development mode |
+| `npm run build` | Builds the production bundle |
+| `npm run start` | Runs the compiled production server |
+| `npm run lint` | Runs ESLint analysis across javascript and typescript files |
+| `npm run test` | Runs unit/integration test suite via Vitest |
+| `npm run test:e2e` | Runs Playwright browser integration tests |
+| `node scripts/seed.js` | Drops product and coupon collections and inserts fresh seed data |
+| `node scripts/admin_fix.js` | Configures the primary administrator account using `.env` details |
 
-## 🔒 Security Features
+---
 
-- **JWT httpOnly Cookies** - Secure token storage
-- **CSRF Protection** - Token-based CSRF validation
-- **Rate Limiting** - 5 login attempts per 15 minutes
-- **Input Sanitization** - XSS prevention via DOMPurify
-- **Zod Validation** - Request body validation
-- **Helmet Security Headers** - CSP, X-Frame-Options, etc.
-- **Password Hashing** - bcrypt with salt rounds
+## Testing
 
-## 💾 Caching Strategy
+The application maintains unit tests, context integration tests, and full end-to-end user flow tests.
 
-The application supports Redis caching with automatic fallback to in-memory caching:
-
-- **Stats endpoints**: 5-minute TTL
-- **Public products**: 5-minute TTL
-- **Automatic invalidation**: On product/order changes
-
-To enable Redis, add `REDIS_URL` to your `.env` file.
-
-## 🧪 Testing
-
+### Running Test Suites
 ```bash
-# Run all tests
+# Run unit and service tests (Vitest)
 npm run test
 
-# Run tests in watch mode
-npm run test:watch
+# Run UI e2e integration tests (Playwright)
+npm run test:e2e
 ```
 
-## 📦 API Endpoints
+---
 
-### Public Endpoints
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/health` | Health check |
-| GET | `/api/public/products` | List all products |
-| GET | `/api/public/settings` | Get public settings |
-| POST | `/api/checkout` | Process order |
-| POST | `/api/admin/login` | Admin login |
+## Deployment
 
-### Protected Endpoints (Requires JWT)
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/orders` | List all orders |
-| PATCH | `/api/orders/:id` | Update order status |
-| GET | `/api/admin/products` | List admin products |
-| POST | `/api/admin/products` | Create product |
-| PATCH | `/api/admin/products/:id` | Update product |
-| DELETE | `/api/admin/products/:id` | Delete product |
-| GET | `/api/stats/revenue` | Revenue statistics |
-| GET | `/api/stats/orders` | Order statistics |
-| GET | `/api/stats/inventory` | Inventory statistics |
-| GET | `/api/settings` | Get settings |
-| POST | `/api/settings` | Update settings |
-| GET | `/api/admin/users` | List admin users |
-| POST | `/api/admin/users` | Create admin user |
-| DELETE | `/api/admin/users/:id` | Delete admin user |
-
-## 🚢 Deployment
-
-### Frontend (Vercel)
+### 1. Build and Run Production Locally
 ```bash
 npm run build
-# Deploy the dist/ folder to Vercel
+npm run start
 ```
 
-### Backend (Railway/Render)
-```bash
-# Set environment variables in Railway dashboard
-npm start
-```
+### 2. NextJS Frontend (Vercel)
+Connect the repository to your Vercel Dashboard. Vercel detects Next.js settings automatically. Make sure to define `MONGO_URI`, `JWT_SECRET`, `ADMIN_EMAIL`, and `ADMIN_PASSWORD` in Vercel's Environment Variables settings.
 
-## 📝 License
+### 3. Backend & Database (Railway / Atlas)
+Set up a MongoDB Atlas cluster and get the connection string. On Railway (or other cloud providers), link the repository, configure the port to run `npm run start`, and define your `.env` parameters in their dashboard.
 
-MIT License
+---
 
-## 👤 Author
+## Troubleshooting
 
-Ahmed Choudery
+### Storefront displays "No Pieces Found"
+*   **Cause**: The database connection succeeded but the `Product` collection is empty.
+*   **Solution**: Run the seeding script to populate items:
+    ```bash
+    node scripts/seed.js
+    ```
 
-## 🙏 Acknowledgments
+### Admin login fails with correct credentials
+*   **Cause**: The MongoDB database was reset or seeded after editing the `.env` settings, causing a mismatch.
+*   **Solution**: Re-run the admin configuration script to update the database values with your current `.env` properties:
+    ```bash
+    node scripts/admin_fix.js
+    ```
 
-- [React](https://reactjs.org/)
-- [Vite](https://vitejs.dev/)
-- [Tailwind CSS](https://tailwindcss.com/)
-- [Express.js](https://expressjs.com/)
-- [MongoDB](https://www.mongodb.com/)
-- [Redis](https://redis.io/)
+### ESLint warnings on build
+*   **Cause**: Hydration issues or unused declarations.
+*   **Solution**: Clean files or run `npm run lint` locally to pinpoint the exact line causing the warnings.
