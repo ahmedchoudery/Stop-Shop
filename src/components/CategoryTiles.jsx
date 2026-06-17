@@ -12,22 +12,22 @@ const TILES = [
   {
     key: 'Tops',
     label: 'Tops',
-    image: '/category-tops.jpg',
+    image: '/Tops.jpeg',
   },
   {
     key: 'Bottoms',
     label: 'Bottoms',
-    image: '/category-bottoms.jpg',
+    image: '/Bottoms.jpeg',
   },
   {
     key: 'Footwear',
     label: 'Footwear',
-    image: '/category-footwear.jpg',
+    image: '/FootWears.jpeg',
   },
   {
     key: 'Accessories',
     label: 'Accessories',
-    image: '/category-accessories.jpg',
+    image: '/Accessories.jpeg',
   },
 ];
 
