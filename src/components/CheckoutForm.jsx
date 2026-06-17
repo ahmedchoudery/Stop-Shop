@@ -233,9 +233,9 @@ const CheckoutForm = ({ onComplete, stockWarnings = [], isSubmitting = false }) 
 
           {/* Stock warnings */}
           {stockWarnings.length > 0 && (
-            <div className="p-4 bg-orange-50 border border-orange-200 rounded-sm">
+            <div className="p-4 bg-[#FAF9F5] border-l-2 border-cardinal">
               {stockWarnings.map((w, i) => (
-                <p key={i} className="text-xs font-bold text-orange-700 flex items-start space-x-2">
+                <p key={i} className="text-[10px] font-black uppercase tracking-wider text-cardinal flex items-start space-x-2.5">
                   <AlertTriangle size={13} className="flex-shrink-0 mt-0.5" /><span>{w}</span>
                 </p>
               ))}
@@ -244,29 +244,28 @@ const CheckoutForm = ({ onComplete, stockWarnings = [], isSubmitting = false }) 
 
           {/* Logged-in banner */}
           {isLoggedIn && (
-            <div className="flex items-center space-x-3 p-4 bg-green-50 border border-green-100 rounded-sm">
-              <UserCheck size={15} className="text-green-600 flex-shrink-0" />
+            <div className="flex items-center space-x-3.5 p-4 bg-[#FBFBFA] border border-gray-200/60">
+              <UserCheck size={14} className="text-gray-900 flex-shrink-0" />
               <div className="flex-grow">
-                <p className="text-[10px] font-black uppercase tracking-widest text-green-800">
-                  Signed in as {customer?.name}
+                <p className="text-[9px] font-black uppercase tracking-[0.15em] text-gray-900">
+                  Customer Profile: {customer?.name}
                 </p>
-                <p className="text-[9px] font-bold text-green-600 mt-0.5">
-                  {usingSavedAddress ? 'Using your saved delivery address' : 'Profile info auto-filled'}
+                <p className="text-[9px] font-bold text-gray-400 mt-0.5 uppercase tracking-wider">
+                  {usingSavedAddress ? 'Delivery details loaded' : 'Profile information loaded'}
                 </p>
               </div>
-              <Link to="/account" className="text-[8px] font-black uppercase tracking-widest text-green-600 hover:underline whitespace-nowrap">
-                My Account
+              <Link to="/account" className="text-[8px] font-black uppercase tracking-[0.2em] text-gray-900 hover:underline whitespace-nowrap">
+                Edit Account
               </Link>
             </div>
           )}
 
           {/* Not logged in nudge */}
           {!isLoggedIn && (
-            <div className="flex items-center space-x-3 p-4 bg-gray-50 border border-gray-100 rounded-sm">
-              <User size={14} className="text-gray-400 flex-shrink-0" />
-              <p className="text-[9px] font-bold text-gray-500">
-                <Link to="/account/login" className="text-cardinal font-black hover:underline">Sign in</Link>
-                {' '}to auto-fill your address and track this order in your account.
+            <div className="flex items-center space-x-3.5 p-4 bg-[#FBFBFA] border border-gray-200/60">
+              <User size={13} className="text-gray-800 flex-shrink-0" />
+              <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest leading-relaxed">
+                Have an account? <Link to="/account/login" className="text-gray-900 font-black hover:underline underline-offset-4 decoration-1">Sign In</Link> to load saved shipping details.
               </p>
             </div>
           )}
@@ -274,7 +273,7 @@ const CheckoutForm = ({ onComplete, stockWarnings = [], isSubmitting = false }) 
           {/* Contact */}
           <section>
             <div className="flex items-center space-x-2 mb-6">
-              <User size={15} className="text-cardinal" />
+              <User size={15} className="text-gray-900" />
               <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-900">Contact Details</h2>
             </div>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
@@ -297,7 +296,7 @@ const CheckoutForm = ({ onComplete, stockWarnings = [], isSubmitting = false }) 
           <section>
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center space-x-2">
-                <MapPin size={15} className="text-cardinal" />
+                <MapPin size={15} className="text-gray-900" />
                 <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-900">Delivery Address</h2>
               </div>
               {usingSavedAddress && (
@@ -308,9 +307,9 @@ const CheckoutForm = ({ onComplete, stockWarnings = [], isSubmitting = false }) 
             </div>
 
             {usingSavedAddress && (
-              <div className="mb-4 p-3 bg-blue-50 border border-blue-100 rounded-sm">
-                <p className="text-[9px] font-bold text-blue-700 uppercase tracking-widest">
-                  📍 Using your saved address from profile. <button type="button" onClick={clearSavedAddress} className="underline hover:no-underline">Enter a different address</button>
+              <div className="mb-6 p-4 bg-[#FBFBFA] border-l-2 border-gray-900">
+                <p className="text-[9px] font-bold text-gray-800 uppercase tracking-[0.15em] leading-relaxed">
+                  Using saved delivery address. <button type="button" onClick={clearSavedAddress} className="font-black underline underline-offset-4 hover:no-underline">Enter new address</button>
                 </p>
               </div>
             )}
@@ -333,25 +332,35 @@ const CheckoutForm = ({ onComplete, stockWarnings = [], isSubmitting = false }) 
           {/* Payment */}
           <section>
             <div className="flex items-center space-x-2 mb-6">
-              <CreditCard size={15} className="text-cardinal" />
+              <CreditCard size={15} className="text-gray-900" />
               <h2 className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-900">Payment Method</h2>
             </div>
-            <div className="space-y-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {PAYMENT_METHODS.map(({ value, label, sub }) => (
-                <label key={value} className={`flex items-center space-x-4 p-4 border-2 cursor-pointer transition-all duration-200 ${form.paymentMethod === value ? 'border-cardinal bg-cardinal/3' : 'border-gray-100 hover:border-gray-300'}`}>
+                <label 
+                  key={value} 
+                  className={`flex flex-col justify-between p-5 border cursor-pointer transition-all duration-300 rounded-none relative ${
+                    form.paymentMethod === value 
+                      ? 'border-gray-900 bg-[#FBFBFA] shadow-[0_4px_16px_rgba(0,0,0,0.03)]' 
+                      : 'border-gray-200/80 bg-white hover:border-gray-400'
+                  }`}
+                >
                   <input type="radio" name="paymentMethod" value={value} checked={form.paymentMethod === value} onChange={set('paymentMethod')} className="sr-only" />
-                  <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-all ${form.paymentMethod === value ? 'border-cardinal' : 'border-gray-300'}`}>
-                    {form.paymentMethod === value && <div className="w-2 h-2 rounded-full bg-cardinal" />}
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-900">{label}</p>
+                      <div className={`w-3.5 h-3.5 rounded-full border flex items-center justify-center transition-all ${
+                        form.paymentMethod === value ? 'border-gray-900' : 'border-gray-300'
+                      }`}>
+                        {form.paymentMethod === value && <div className="w-1.5 h-1.5 rounded-full bg-gray-900" />}
+                      </div>
+                    </div>
+                    <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest leading-relaxed">{sub}</p>
                   </div>
-                  <div className="flex-grow">
-                    <p className="text-xs font-black uppercase tracking-tight text-gray-900">{label}</p>
-                    <p className="text-[9px] font-bold text-gray-400 mt-0.5">{sub}</p>
-                  </div>
-                  {form.paymentMethod === value && <CheckCircle size={14} className="text-cardinal flex-shrink-0" />}
                 </label>
               ))}
-              {errors.paymentMethod && <p className="text-[9px] font-bold text-cardinal mt-1 flex items-center space-x-1"><AlertTriangle size={9} /><span>{errors.paymentMethod}</span></p>}
             </div>
+            {errors.paymentMethod && <p className="text-[9px] font-bold text-cardinal mt-2.5 flex items-center space-x-1"><AlertTriangle size={9} /><span>{errors.paymentMethod}</span></p>}
           </section>
 
           {/* Coupon */}
@@ -381,7 +390,7 @@ const CheckoutForm = ({ onComplete, stockWarnings = [], isSubmitting = false }) 
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full py-5 bg-cardinal text-white text-[10px] font-black uppercase tracking-[0.3em] hover:brightness-110 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-3 shadow-xl shadow-red-100/60"
+            className="w-full py-5 bg-gray-900 text-white text-[10px] font-black uppercase tracking-[0.3em] hover:bg-black transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-3 rounded-none"
           >
             {isSubmitting
               ? <><Loader size={14} className="animate-spin" /><span>Placing Order...</span></>

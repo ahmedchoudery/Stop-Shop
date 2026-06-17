@@ -37,27 +37,19 @@ const CHART_COLORS = ['#ba1f3d', '#374151', '#FBBF24', '#22C55E', '#3B82F6', '#8
 // STAT CARD
 // ─────────────────────────────────────────────────────────────────
 
-const StatCard = ({ label, value, sub, icon: Icon, trend, color = 'red' }) => {
-  const colorMap = {
-    red:    { bg: 'bg-red-50',    text: 'text-cardinal',  border: 'border-red-100' },
-    green:  { bg: 'bg-green-50',  text: 'text-green-600',  border: 'border-green-100' },
-    yellow: { bg: 'bg-yellow-50', text: 'text-yellow-600', border: 'border-yellow-100' },
-    blue:   { bg: 'bg-blue-50',   text: 'text-blue-600',   border: 'border-blue-100' },
-  };
-  const c = colorMap[color] ?? colorMap.red;
-
+const StatCard = ({ label, value, sub, icon: Icon, trend }) => {
   return (
-    <div className="bg-white border border-gray-100 rounded-sm p-6 shadow-sm hover:shadow-xl transition-all duration-500 group relative overflow-hidden">
+    <div className="bg-white border border-gray-150 p-6 shadow-sm hover:shadow-[0_8px_30px_rgba(0,0,0,0.02)] transition-all duration-500 group relative overflow-hidden rounded-none">
       <div className="absolute inset-0 bg-gradient-to-br from-transparent to-transparent group-hover:from-gray-50/50 transition-all duration-500 pointer-events-none" />
 
       <div className="relative z-10">
         <div className="flex items-center justify-between mb-4">
-          <div className={`w-10 h-10 ${c.bg} border ${c.border} rounded-lg flex items-center justify-center`}>
-            <Icon size={16} className={c.text} />
+          <div className="w-9 h-9 border border-gray-200 bg-[#FAFAF9] flex items-center justify-center">
+            <Icon size={14} className="text-gray-900" />
           </div>
           {trend !== undefined && (
             <div className={`flex items-center space-x-1 text-[9px] font-black uppercase tracking-widest ${
-              trend >= 0 ? 'text-green-600' : 'text-red-500'
+              trend >= 0 ? 'text-emerald-700' : 'text-rose-600'
             }`}>
               {trend >= 0
                 ? <ArrowUpRight size={11} />
@@ -69,11 +61,11 @@ const StatCard = ({ label, value, sub, icon: Icon, trend, color = 'red' }) => {
         </div>
 
         <p className="text-[9px] font-black uppercase tracking-[0.4em] text-gray-400 mb-1">{label}</p>
-        <p className="text-3xl font-black text-gray-900 tracking-tighter tabular-nums">{value}</p>
-        {sub && <p className="text-[9px] font-bold text-gray-400 mt-1 uppercase tracking-widest">{sub}</p>}
+        <p className="text-2xl font-black text-gray-900 tracking-tighter tabular-nums">{value}</p>
+        {sub && <p className="text-[9px] font-bold text-gray-400 mt-1.5 uppercase tracking-widest">{sub}</p>}
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-cardinal/20 to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-700 origin-left" />
+      <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-gray-900/10 to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-700 origin-left" />
     </div>
   );
 };
@@ -305,16 +297,16 @@ const AdminAnalytics = () => {
               {['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'].map(status => {
                 const count = d.ordersByStatus[status] ?? 0;
                 const colorMap = {
-                  Pending:    'bg-amber-50 text-amber-600 border-amber-100',
-                  Processing: 'bg-blue-50 text-blue-600 border-blue-100',
-                  Shipped:    'bg-purple-50 text-purple-600 border-purple-100',
-                  Delivered:  'bg-green-50 text-green-600 border-green-100',
-                  Cancelled:  'bg-gray-50 text-gray-500 border-gray-100',
+                  Pending:    'border-amber-200/80 text-amber-800 bg-[#FAF9F5]',
+                  Processing: 'border-blue-200/80 text-blue-800 bg-[#FAFAFC]',
+                  Shipped:    'border-purple-200/80 text-purple-800 bg-[#FCFAFD]',
+                  Delivered:  'border-emerald-200/80 text-emerald-800 bg-[#FAFCFA]',
+                  Cancelled:  'border-gray-200 text-gray-500 bg-[#FBFBFA]',
                 };
                 return (
-                  <div key={status} className={`p-4 border rounded-sm text-center ${colorMap[status]}`}>
+                  <div key={status} className={`p-4 border rounded-none text-center ${colorMap[status]}`}>
                     <p className="text-2xl font-black tabular-nums">{count}</p>
-                    <p className="text-[8px] font-black uppercase tracking-widest mt-1">{status}</p>
+                    <p className="text-[8px] font-black uppercase tracking-[0.25em] mt-1">{status}</p>
                   </div>
                 );
               })}

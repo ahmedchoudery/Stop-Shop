@@ -121,19 +121,19 @@ const WishlistDrawer = ({ isOpen, onClose }) => {
         <div ref={itemsRef} className="flex-grow overflow-y-auto">
           {wishlist.length === 0 ? (
             /* Empty state */
-            <div className="h-full flex flex-col items-center justify-center px-8 text-center">
-              <div className="w-16 h-16 border border-gray-100 flex items-center justify-center mb-6">
-                <Heart size={24} strokeWidth={1} className="text-gray-200" />
+            <div className="h-full flex flex-col items-center justify-center px-8 text-center bg-[#FBFBFA]">
+              <div className="w-16 h-16 border border-gray-200/80 flex items-center justify-center mb-6 bg-white rounded-none">
+                <Heart size={20} strokeWidth={1} className="text-gray-300" />
               </div>
-              <p className="text-sm font-black uppercase tracking-tight text-gray-900 mb-2">
-                Nothing saved yet
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-950 mb-3">
+                No Saved Pieces
               </p>
-              <p className="text-xs text-gray-400 mb-8 leading-relaxed">
-                Heart pieces you love and they'll appear here for easy access.
+              <p className="text-[9px] font-bold text-gray-400 mb-8 max-w-[200px] uppercase tracking-widest leading-relaxed">
+                Create a personal collection by saving items you love.
               </p>
               <button
                 onClick={handleClose}
-                className="flex items-center space-x-2 text-[10px] font-black uppercase tracking-[0.3em] text-cardinal border-b border-cardinal/40 pb-0.5 hover:border-cardinal transition-colors"
+                className="flex items-center space-x-2.5 text-[9px] font-black uppercase tracking-[0.25em] text-gray-900 border-b border-gray-900/30 pb-0.5 hover:border-gray-900 transition-colors"
               >
                 <span>Explore Collection</span>
                 <ArrowRight size={11} />
@@ -216,7 +216,7 @@ const WishlistDrawer = ({ isOpen, onClose }) => {
                       <div className="flex items-center space-x-3 mt-3">
                         <button
                           onClick={() => handleMoveToCart(product)}
-                          className="flex items-center space-x-1.5 text-[9px] font-black uppercase tracking-[0.25em] text-white bg-black px-3.5 py-2.5 rounded-[4px] hover:bg-cardinal transition-colors duration-300"
+                          className="flex items-center space-x-1.5 text-[9px] font-black uppercase tracking-[0.25em] text-white bg-gray-900 px-3.5 py-2.5 rounded-none hover:bg-black transition-colors duration-300"
                         >
                           <ShoppingBag size={10} />
                           <span>Add to Bag</span>
@@ -245,7 +245,7 @@ const WishlistDrawer = ({ isOpen, onClose }) => {
                 wishlist.forEach(p => addToCart(p));
                 handleClose();
               }}
-              className="btn-primary w-full flex items-center justify-center space-x-2 rounded-[4px]"
+              className="btn-primary w-full flex items-center justify-center space-x-2.5 rounded-none"
             >
               <ShoppingBag size={13} />
               <span>Add All to Bag</span>

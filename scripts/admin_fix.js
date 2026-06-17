@@ -39,8 +39,8 @@ async function run() {
     console.log('✅ Connected to MongoDB');
 
     // 1. Reset Admin Account
-    const email = 'admin@gmail.com';
-    const password = 'admin123';
+    const email = process.env.ADMIN_EMAIL || 'admin@gmail.com';
+    const password = process.env.ADMIN_PASSWORD || 'admin123';
     const hashedPassword = await bcrypt.hash(password, 12);
 
     console.log(`🔑 Resetting Admin: ${email}...`);
