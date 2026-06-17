@@ -119,14 +119,14 @@ const RegisterForm = ({ onSwitch }) => {
       </Field>
 
       {ctxError && (
-        <div className="flex items-center space-x-2 p-3 bg-red-50 border border-red-100 rounded-[4px]">
+        <div className="flex items-center space-x-2 p-3 bg-transparent border-l-2 border-cardinal pl-3">
           <AlertCircle size={13} className="text-cardinal flex-shrink-0" />
           <p className="text-xs font-bold text-cardinal">{ctxError}</p>
         </div>
       )}
 
       <button type="submit" disabled={loading}
-        className="w-full flex items-center justify-center space-x-2 py-4 bg-cardinal text-white text-[10px] font-black uppercase tracking-[0.3em] hover:brightness-110 transition-all disabled:opacity-50 border border-gray-250/20 rounded-[4px]">
+        className="w-full flex items-center justify-center space-x-2 py-4 bg-cardinal text-white text-[10px] font-black uppercase tracking-[0.3em] hover:brightness-110 transition-all disabled:opacity-50 border border-gray-250/20 rounded-none">
         {loading ? <Loader size={14} className="animate-spin" /> : <><span>Create Account</span><ChevronRight size={13} /></>}
       </button>
 
@@ -205,14 +205,14 @@ const LoginForm = ({ onSwitch }) => {
       </Field>
 
       {ctxError && (
-        <div className="flex items-center space-x-2 p-3 bg-red-50 border border-red-100 rounded-[4px]">
+        <div className="flex items-center space-x-2 p-3 bg-transparent border-l-2 border-cardinal pl-3">
           <AlertCircle size={13} className="text-cardinal flex-shrink-0" />
           <p className="text-xs font-bold text-cardinal">{ctxError}</p>
         </div>
       )}
 
       <button type="submit" disabled={loading}
-        className="w-full flex items-center justify-center space-x-2 py-4 bg-cardinal text-white text-[10px] font-black uppercase tracking-[0.3em] hover:brightness-110 transition-all disabled:opacity-50 border border-gray-250/20 rounded-[4px]">
+        className="w-full flex items-center justify-center space-x-2 py-4 bg-cardinal text-white text-[10px] font-black uppercase tracking-[0.3em] hover:brightness-110 transition-all disabled:opacity-50 border border-gray-250/20 rounded-none">
         {loading ? <Loader size={14} className="animate-spin" /> : <><span>Sign In</span><ChevronRight size={13} /></>}
       </button>
 
@@ -250,7 +250,7 @@ const CustomerAuthPage = () => {
         </Link>
 
         {/* Card */}
-        <div className="bg-white border border-gray-200 rounded-[4px] shadow-[0_8px_30px_rgba(0,0,0,0.03)] p-8">
+        <div className="bg-white border border-gray-200 rounded-none p-8">
           {/* Header */}
           <div className="mb-8">
             <div className="flex items-center space-x-2 mb-3">

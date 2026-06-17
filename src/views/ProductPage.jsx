@@ -557,7 +557,7 @@ const ProductPage = () => {
                 <button
                   onClick={handleAddToCart}
                   disabled={outOfStock}
-                  className={`btn-primary w-full rounded-[4px] ${
+                  className={`btn-primary w-full rounded-none ${
                     outOfStock
                       ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                       : cartAdded
@@ -579,14 +579,14 @@ const ProductPage = () => {
               <MagneticElement>
                 <button
                   onClick={() => toggleWishlist(product)}
-                  className={`btn-secondary w-14 h-[52px] rounded-[4px] flex items-center justify-center transition-all duration-300 ${
+                  className={`btn-secondary w-14 h-[52px] rounded-none flex items-center justify-center transition-all duration-300 ${
                     isWished
-                      ? 'border-cardinal bg-red-50 text-cardinal'
+                      ? 'border-cardinal bg-cardinal text-white'
                       : 'border-gray-200 text-gray-400 hover:border-cardinal hover:text-cardinal'
                   }`}
                   aria-label="Wishlist"
                 >
-                  <Heart size={17} className={isWished ? 'fill-cardinal' : ''} />
+                  <Heart size={17} className={isWished ? 'fill-white text-white' : ''} />
                 </button>
               </MagneticElement>
             </div>
@@ -604,7 +604,7 @@ const ProductPage = () => {
                 onClick={handleCopyLink}
                 className={`flex items-center space-x-2 px-4 py-2.5 border text-[9px] font-black uppercase tracking-[0.25em] transition-all duration-200 ${
                   copied
-                    ? 'border-gray-900 bg-gray-900 text-black'
+                    ? 'border-black bg-black text-white'
                     : 'border-gray-200 text-gray-500 hover:border-gray-400'
                 }`}
               >

@@ -210,7 +210,7 @@ const ProductCard = ({ product, onImageLoad }) => {
           <button
             onClick={handleWishlist}
             className={[
-              'w-8 h-8 flex items-center justify-center rounded-[4px] border border-gray-200/40 transition-all duration-300 shadow-sm active-scale',
+              'w-8 h-8 flex items-center justify-center rounded-none border border-gray-200/40 transition-all duration-300 shadow-sm active-scale',
               wishlisted
                 ? 'bg-cardinal opacity-100 text-white'
                 : 'bg-white/95 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 hover:bg-cardinal hover:text-white',
@@ -228,7 +228,7 @@ const ProductCard = ({ product, onImageLoad }) => {
             <button
               onClick={handleAddToCart}
               className={[
-                'w-8 h-8 flex items-center justify-center rounded-[4px] border border-gray-200/40 transition-all duration-300 shadow-sm active-scale',
+                'w-8 h-8 flex items-center justify-center rounded-none border border-gray-200/40 transition-all duration-300 shadow-sm active-scale',
                 cartAdded ? 'bg-cardinal text-white' : 'bg-white/95 text-black',
                 'opacity-100 lg:opacity-0 lg:group-hover:opacity-100 hover:bg-black hover:text-white',
               ].join(' ')}
@@ -240,38 +240,26 @@ const ProductCard = ({ product, onImageLoad }) => {
           </MagneticElement>
         )}
 
-        {/* Status badges — mutually exclusive */}
+        {/* Status badges — priority-based (cleanest) */}
         {outOfStock ? (
-          <div className="absolute top-3 left-3 z-10 bg-white/90 px-2 py-1 border border-gray-300" style={{ transform: 'translateZ(25px)' }}>
+          <div className="absolute top-3 left-3 z-10 bg-white/90 px-2.5 py-1 border border-gray-300" style={{ transform: 'translateZ(25px)' }}>
             <span className="text-[7px] font-black uppercase tracking-[0.35em] text-gray-500">
               Sold Out
             </span>
           </div>
-        ) : (
-          <>
-            {isNew && (
-              <div className="absolute top-3 left-3 z-10 bg-cardinal px-2.5 py-1" style={{ transform: 'translateZ(25px)' }}>
-                <span className="text-[7px] font-black uppercase tracking-[0.35em] text-white">
-                  New
-                </span>
-              </div>
-            )}
-            {hasDiscount && (
-              <div
-                className="absolute z-10 bg-black px-2.5 py-1 border border-white/20"
-                style={{
-                  transform: 'translateZ(25px)',
-                  top: isNew ? '34px' : '12px',
-                  left: '12px'
-                }}
-              >
-                <span className="text-[7px] font-black uppercase tracking-[0.35em] text-white">
-                  {product.discount}% OFF
-                </span>
-              </div>
-            )}
-          </>
-        )}
+        ) : hasDiscount ? (
+          <div className="absolute top-3 left-3 z-10 bg-black px-2.5 py-1 border border-white/20" style={{ transform: 'translateZ(25px)' }}>
+            <span className="text-[7px] font-black uppercase tracking-[0.35em] text-white">
+              {product.discount}% OFF
+            </span>
+          </div>
+        ) : isNew ? (
+          <div className="absolute top-3 left-3 z-10 bg-cardinal px-2.5 py-1" style={{ transform: 'translateZ(25px)' }}>
+            <span className="text-[7px] font-black uppercase tracking-[0.35em] text-white">
+              New
+            </span>
+          </div>
+        ) : null}
       </div>
 
       {/* ── Product Info ────────────────────────────────────── */}
