@@ -163,76 +163,77 @@ const PowerOfChoiceHero = () => {
       <div className="relative z-10 h-full flex flex-col justify-end">
         <div
           ref={contentRef}
-          className="w-full px-6 sm:px-10 lg:px-16 pb-16 sm:pb-20 lg:pb-24 max-w-[1440px] mx-auto"
+          className="w-full px-6 sm:px-10 lg:px-16 pb-12 sm:pb-16 lg:pb-20 max-w-[1440px] mx-auto"
         >
-          {/* Season tag */}
-          <div data-anime style={{ opacity: 0 }}>
-            <span
-              className="inline-flex items-center gap-2.5 border border-white/20 px-4 py-2 rounded-full mb-6 backdrop-blur-sm"
-              style={{ background: 'rgba(255,255,255,0.08)' }}
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-              <span className="text-[8px] font-black uppercase tracking-[0.4em] text-white/90">
-                SS '26 Collection · Now Live
+          {/* Text content container. Styled without glassmorphic cards or blurs on mobile
+              so that background image characters remain 100% visible and sharp. 
+              The existing bottom gradient scrim handles text legibility. */}
+          <div 
+            className="w-full max-w-[280px] sm:max-w-[340px] lg:max-w-[480px]"
+          >
+            {/* Season tag — redesigned for a premium, minimal clothing brand aesthetic */}
+            <div data-anime style={{ opacity: 0 }} className="mb-4 sm:mb-5">
+              <span className="text-[9px] font-bold uppercase tracking-[0.35em] text-white/60 block">
+                SS '26 Collection <span className="mx-1.5 text-white/20">|</span> Now Live
               </span>
-            </span>
-          </div>
+            </div>
 
-          {/* Headline */}
-          <h1
-            data-anime
-            className="text-white font-heading font-black uppercase leading-[0.95] tracking-[-0.03em] mb-4 lg:mb-5"
-            style={{
-              opacity: 0,
-              fontSize: 'clamp(2.4rem, 6vw, 5rem)',
-              textShadow: '0 2px 40px rgba(0,0,0,0.3)',
-            }}
-          >
-            Crafting Confidence.
-            <br />
-            <span className="text-white/70">Defining Character.</span>
-          </h1>
-
-          {/* Sub-copy */}
-          <p
-            data-anime
-            className="text-white/60 font-sans text-sm sm:text-base leading-relaxed max-w-lg mb-8 lg:mb-10"
-            style={{ opacity: 0, textShadow: '0 1px 8px rgba(0,0,0,0.4)' }}
-          >
-            Premium fabrics meet master-tailored precision.
-            Engineered for the man who commands respect.
-          </p>
-
-          {/* CTAs */}
-          <div
-            data-anime
-            className="flex flex-wrap items-center gap-4 lg:gap-5"
-            style={{ opacity: 0 }}
-          >
-            {/* Primary CTA */}
-            <button
-              onClick={scrollToGrid}
-              className="hero-cta-primary group relative flex items-center gap-3 bg-white text-black text-[10px] font-black uppercase tracking-[0.25em] px-7 py-4 overflow-hidden transition-all duration-300 hover:shadow-[0_8px_30px_rgba(255,255,255,0.15)] active:scale-[0.98]"
+            {/* Headline */}
+            <h1
+              data-anime
+              className="text-white font-heading font-black uppercase leading-[1.05] tracking-[-0.02em] mb-3 sm:mb-4"
+              style={{
+                opacity: 0,
+                fontSize: 'clamp(1.65rem, 5vw, 2.75rem)',
+                textShadow: '0 2px 20px rgba(0,0,0,0.4)',
+              }}
             >
-              <span className="relative z-10 transition-colors duration-300 group-hover:text-white">
-                Shop Collection
-              </span>
-              <ArrowRight
-                size={13}
-                strokeWidth={2.5}
-                className="relative z-10 transition-all duration-300 group-hover:translate-x-0.5 group-hover:text-white"
-              />
-              {/* Hover fill */}
-              <span className="absolute inset-0 bg-[#111] scale-x-0 origin-left group-hover:scale-x-100 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]" />
-            </button>
+              Crafting Confidence.
+              <br />
+              <span className="text-white/70">Defining Character.</span>
+            </h1>
 
-            {/* Secondary CTA */}
-            <button
-              onClick={scrollToGrid}
-              className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.25em] text-white/70 hover:text-white pb-0.5 border-b border-white/30 hover:border-white/80 transition-all duration-300"
+            {/* Sub-copy */}
+            <p
+              data-anime
+              className="text-white/50 font-sans text-xs sm:text-sm leading-relaxed mb-6 sm:mb-8"
+              style={{ opacity: 0, textShadow: '0 1px 8px rgba(0,0,0,0.5)' }}
             >
-              Explore the Brand
-            </button>
+              Premium fabrics meet master-tailored precision.
+              Engineered for the man who commands respect.
+            </p>
+
+            {/* CTAs */}
+            <div
+              data-anime
+              className="flex flex-wrap items-center gap-3 sm:gap-4"
+              style={{ opacity: 0 }}
+            >
+              {/* Primary CTA */}
+              <button
+                onClick={scrollToGrid}
+                className="hero-cta-primary group relative flex items-center gap-2.5 bg-white text-black text-[9px] font-black uppercase tracking-[0.2em] px-5 py-3.5 sm:px-7 sm:py-4 overflow-hidden transition-all duration-300 hover:shadow-[0_8px_30px_rgba(255,255,255,0.15)] active:scale-[0.98]"
+              >
+                <span className="relative z-10 transition-colors duration-300 group-hover:text-white">
+                  Shop Collection
+                </span>
+                <ArrowRight
+                  size={12}
+                  strokeWidth={2.5}
+                  className="relative z-10 transition-all duration-300 group-hover:translate-x-0.5 group-hover:text-white"
+                />
+                {/* Hover fill */}
+                <span className="absolute inset-0 bg-[#111] scale-x-0 origin-left group-hover:scale-x-100 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]" />
+              </button>
+
+              {/* Secondary CTA */}
+              <button
+                onClick={scrollToGrid}
+                className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.2em] text-white/70 hover:text-white pb-0.5 border-b border-white/20 hover:border-white/80 transition-all duration-300"
+              >
+                Explore the Brand
+              </button>
+            </div>
           </div>
         </div>
       </div>
