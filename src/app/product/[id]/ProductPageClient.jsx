@@ -119,6 +119,39 @@ export default function ProductPageClient({ product, allProducts = [] }) {
   const [cartAdded, setCartAdded] = useState(false);
   const [sizeError, setSizeError] = useState(false);
 
+  const [notifyEmail, setNotifyEmail] = useState('');
+  const [notifyLoading, setNotifyLoading] = useState(false);
+  const [notifyStatus, setNotifyStatus] = useState(null);
+
+  const handleNotifySubmit = async (e) => {
+    e.preventDefault();
+    if (!notifyEmail?.trim()) return;
+    setNotifyLoading(true);
+    setNotifyStatus(null);
+    try {
+      const res = await fetch('/api/public/notify-me', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: notifyEmail,
+          productId: product.id,
+          selectedSize: selectedSize || '',
+          selectedColor: selectedColor || '',
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to submit notification request');
+      }
+      setNotifyStatus({ type: 'success', message: data.message || 'Notification request saved.' });
+      setNotifyEmail('');
+    } catch (err) {
+      setNotifyStatus({ type: 'error', message: err.message || 'Something went wrong.' });
+    } finally {
+      setNotifyLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (product?.colors?.length) setSelectedColor(product.colors[0]);
     if (product?.sizes?.length === 1) setSelectedSize(product.sizes[0]);
@@ -235,7 +268,7 @@ export default function ProductPageClient({ product, allProducts = [] }) {
                       <button
                         key={col}
                         onClick={() => setSelectedColor(col)}
-                        className={`w-7 h-7 rounded-full border transition-all duration-300 focus:outline-none ${
+                        className={`w-7 h-7 rounded-[4px] border transition-all duration-300 focus:outline-none ${
                           selectedColor === col
                             ? 'border-cardinal ring-2 ring-cardinal ring-offset-2'
                             : 'border-gray-200 hover:border-gray-400'
@@ -277,14 +310,13 @@ export default function ProductPageClient({ product, allProducts = [] }) {
                     return (
                       <button
                         key={size}
-                        disabled={soldOut}
                         onClick={() => setSelectedSize(size)}
                         className={`
-                          min-w-[48px] h-11 border text-[10px] font-black uppercase tracking-widest flex items-center justify-center transition-all duration-300
-                          ${soldOut
-                            ? 'border-gray-100 text-gray-300 line-through cursor-not-allowed'
-                            : selectedSize === size
-                              ? 'border-gray-900 bg-gray-900 text-black'
+                          min-w-[48px] h-11 border text-[10px] font-black uppercase tracking-widest flex items-center justify-center transition-all duration-300 rounded-[4px]
+                          ${selectedSize === size
+                            ? 'border-gray-900 bg-gray-900 text-white'
+                            : soldOut
+                              ? 'border-gray-200 text-gray-300 line-through cursor-pointer hover:border-gray-900 hover:text-gray-900'
                               : 'border-gray-200 text-gray-600 hover:border-gray-900'
                           }
                         `}
@@ -333,9 +365,53 @@ export default function ProductPageClient({ product, allProducts = [] }) {
             {/* Actions */}
             <div className="flex flex-col space-y-3 mb-10">
               {outOfStock ? (
-                <button disabled className="w-full bg-gray-100 text-gray-400 py-4 text-[10px] font-black uppercase tracking-[0.35em] cursor-not-allowed">
-                  Sold Out
-                </button>
+                <div className="border border-gray-200 p-5 rounded-[4px] bg-[#F7F6F3] space-y-4">
+                  <div className="text-center">
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-900 block mb-1">
+                      Sold Out
+                    </span>
+                    <p className="text-[8px] font-bold text-gray-500 uppercase tracking-widest leading-relaxed">
+                      This item is currently unavailable. Register below to be notified as soon as it restocks.
+                    </p>
+                  </div>
+                  
+                  <form onSubmit={handleNotifySubmit} className="space-y-3">
+                    <div className="flex flex-col">
+                      <label htmlFor="notify-email" className="text-[8px] font-black uppercase tracking-widest text-gray-400 mb-1.5">
+                        Email Address
+                      </label>
+                      <input
+                        id="notify-email"
+                        type="email"
+                        required
+                        value={notifyEmail}
+                        onChange={(e) => setNotifyEmail(e.target.value)}
+                        placeholder="ENTER YOUR EMAIL"
+                        className="bg-transparent border-b border-gray-200 pb-2 text-xs font-black uppercase tracking-widest text-gray-900 focus:outline-none focus:border-gray-950 transition-colors placeholder:text-gray-300 rounded-none"
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={notifyLoading}
+                      className="w-full bg-gray-900 text-white hover:bg-cardinal py-4 text-[10px] font-black uppercase tracking-[0.35em] transition-all duration-300 rounded-[4px] disabled:opacity-50"
+                    >
+                      {notifyLoading ? 'Submitting...' : 'Notify Me'}
+                    </button>
+                  </form>
+
+                  {notifyStatus && (
+                    <div className={`p-3 text-center border rounded-[4px] ${
+                      notifyStatus.type === 'success'
+                        ? 'bg-[#EDF3EC] border-[#EDF3EC] text-[#346538]'
+                        : 'bg-[#FDEBEC] border-[#FDEBEC] text-[#9F2F2D]'
+                    }`}>
+                      <p className="text-[9px] font-black uppercase tracking-widest leading-relaxed">
+                        {notifyStatus.message}
+                      </p>
+                    </div>
+                  )}
+                </div>
               ) : (
                 <button
                   onClick={handleAddToCart}
