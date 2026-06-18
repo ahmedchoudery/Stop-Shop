@@ -5,8 +5,10 @@ import Order from '../../../models/Order';
 import Coupon from '../../../models/Coupon';
 import { checkoutSchema } from '../../../schemas/validation';
 import { syncInventory } from '../../../services/inventoryService';
-import { sendOrderConfirmationEmail, checkAndAlertLowStock } from '../../../services/emailService';
+import { sendOrderConfirmationEmail, checkAndAlertLowStock, sendOrderFailedEmail, sendAdminNewOrderNotification } from '../../../services/emailService';
 import { cacheService, CACHE_KEYS } from '../../../services/cacheService';
+import paymentFactory from '../../../lib/payments/PaymentFactory';
+import { calculateDiscount } from '../../../utils/pricing';
 
 const getEnv = (...keys) => keys.map(k => process.env[k]).find(Boolean);
 
@@ -32,7 +34,7 @@ export async function POST(req) {
       }, { status: 400 });
     }
 
-    const { customer, items, total, paymentMethod, couponCode } = validation.data;
+    const { customer, items, total, paymentMethod, couponCode, paymentDetails } = validation.data;
     const clientIp = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || '127.0.0.1';
     const productIds = [...new Set(items.map(i => i.id))];
 
@@ -108,8 +110,8 @@ export async function POST(req) {
       );
     }
 
-    if (stockError) {
-      // Rollback successful decrements
+    // Handle rollback function
+    const rollbackStock = async () => {
       for (const dec of completedDecrements) {
         const rollbackUpdate = dec.sizeKey
           ? { $inc: { quantity: dec.qty, stock: dec.qty, [dec.sizeKey]: dec.qty } }
@@ -120,10 +122,14 @@ export async function POST(req) {
           rollbackUpdate
         );
       }
+    };
 
+    if (stockError) {
+      await rollbackStock();
       return NextResponse.json({ error: stockError }, { status: 400 });
     }
 
+    // Enrich items
     const enrichedItems = items.map(item => {
       const product = productMap.get(item.id);
       const discount = product?.discount ?? 0;
@@ -158,14 +164,12 @@ export async function POST(req) {
       if (coupon) {
         const isExpired = coupon.expiresAt && new Date(coupon.expiresAt) < new Date();
         const isMaxed = coupon.maxUses !== null && coupon.usedCount >= coupon.maxUses;
-        const meetsMinOrder = !coupon.minOrderValue || verifiedTotal >= coupon.minOrderValue;
 
-        if (!isExpired && !isMaxed && meetsMinOrder) {
-          appliedCoupon = coupon;
-          if (coupon.type === 'percentage') {
-            discount = Math.round((verifiedTotal * coupon.value) / 100);
-          } else {
-            discount = Math.min(coupon.value, verifiedTotal);
+        if (!isExpired && !isMaxed) {
+          const res = calculateDiscount(verifiedTotal, coupon);
+          if (res.discount > 0) {
+            appliedCoupon = coupon;
+            discount = res.discount;
           }
         }
       }
@@ -173,12 +177,59 @@ export async function POST(req) {
 
     const finalTotal = Math.max(0, verifiedTotal - discount);
 
+    // Call Payment Gateway authorize method
+    let authResult;
+    try {
+      const gateway = paymentFactory.get(paymentMethod);
+      authResult = await gateway.authorize({ orderID, total: finalTotal }, paymentDetails);
+    } catch (paymentGatewayErr) {
+      authResult = { success: false, error: paymentGatewayErr.message || 'Payment provider resolution failed' };
+    }
+
+    if (!authResult.success) {
+      await rollbackStock();
+      const failedOrderStub = {
+        orderID,
+        customer,
+        total: finalTotal,
+        paymentMethod,
+      };
+      sendOrderFailedEmail(failedOrderStub, authResult.error || 'Payment authorization failed').catch(err => {
+        console.error('[CheckoutFailedEmail] Failed to notify:', err.message);
+      });
+      return NextResponse.json({ error: authResult.error || 'Payment authorization failed' }, { status: 400 });
+    }
+
+    // Determine initial order and payment statuses
+    // For COD: Order is Pending, Payment is Pending
+    // For manual online payments: Order is Pending, Payment is Pending
+    // For direct online payments: Order is Paid, Payment is Paid
+    let initialOrderStatus = 'Pending';
+    if (paymentMethod !== 'COD') {
+      if (authResult.status === 'Paid') {
+        initialOrderStatus = 'Paid';
+      }
+    }
+
     const orderDoc = await Order.create({
       orderID,
       customer,
       items: enrichedItems,
       total: finalTotal,
       paymentMethod,
+      status: initialOrderStatus,
+      paymentDetails: {
+        transactionID:  authResult.transactionID,
+        status:         authResult.status || 'Pending',
+        paymentAccount: authResult.account || '',
+        cardBrand:      authResult.brand || '',
+        gatewayLogs:    [
+          {
+            action: authResult.logs?.action || 'PAYMENT_INITIALIZED',
+            details: authResult.logs?.details || {},
+          }
+        ]
+      },
       ip: clientIp
     });
 
@@ -197,8 +248,11 @@ export async function POST(req) {
     ]);
 
     sendOrderConfirmationEmail(orderDoc);
+    sendAdminNewOrderNotification(orderDoc).catch(err => {
+      console.error('[AdminNewOrderNotification] Failed:', err.message);
+    });
 
-    checkAndAlertLowStock(items);
+    checkAndAlertLowStock(enrichedItems);
 
     return NextResponse.json({ message: 'Order placed', orderID, verifiedTotal: finalTotal }, { status: 201 });
   } catch (error) {
