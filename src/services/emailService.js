@@ -30,7 +30,44 @@ export const sendEmail = async (options) => {
       console.log(`ℹ️ [Email] Suppressing dispatch to dummy/testing address: ${options.to}`);
       return;
     }
+
+    const resendApiKey = getEnv('RESEND_API_KEY');
+    if (resendApiKey) {
+      const defaultFrom = getEnv('RESEND_FROM_EMAIL') || 'Stop & Shop <onboarding@resend.dev>';
+      const from = options.from || defaultFrom;
+      const to = Array.isArray(options.to) ? options.to : [options.to];
+
+      const payload = {
+        from,
+        to,
+        subject: options.subject,
+        html: options.html,
+      };
+      if (options.text) {
+        payload.text = options.text;
+      }
+
+      const response = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${resendApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`Resend API error: ${response.status} - ${errText}`);
+      }
+
+      const resData = await response.json();
+      console.log(`📧 [Resend] Email dispatched successfully to ${options.to}. ID: ${resData.id}`);
+      return resData;
+    }
+
     await transporter.sendMail(options);
+    console.log(`📧 [Nodemailer] Email sent successfully to ${options.to}`);
   } catch (err) {
     console.error('[Email] Failed to send:', err.message);
   }
@@ -447,30 +484,53 @@ export const sendWelcomeEmail = async (customer) => {
 };
 
 const STATUS_ICONS = {
+  Paid:      '💳',
   Shipped:   '📦',
   Delivered: '✅',
+  Failed:    '❌',
 };
 
 /**
  * Sends a branded order status notification email to the customer.
  */
 export const sendOrderStatusEmail = async (order, status) => {
-  if (!['Shipped', 'Delivered'].includes(status)) return;
+  if (!['Paid', 'Shipped', 'Delivered', 'Failed'].includes(status)) return;
 
   const customerEmail = order?.customer?.email;
   if (!customerEmail) return;
 
   const icon = STATUS_ICONS[status] ?? '📋';
   const trackUrl = `https://stop-shop-gamma.vercel.app/track?orderID=${order.orderID}`;
-  const subject = `${icon} Your order ${order.orderID} has been ${status.toLowerCase()}`;
 
-  const deliveryNote = status === 'Delivered'
-    ? `<p style="margin: 0 0 20px; font-size: 13px; color: #525252; line-height: 1.6; font-weight: 500;">
+  let subject = `${icon} Your order ${order.orderID} has been ${status.toLowerCase()}`;
+  if (status === 'Paid') {
+    subject = `${icon} Payment verified successfully for order ${order.orderID}`;
+  } else if (status === 'Shipped') {
+    subject = `${icon} Your order ${order.orderID} has been dispatched`;
+  } else if (status === 'Delivered') {
+    subject = `${icon} Your order ${order.orderID} has arrived`;
+  } else if (status === 'Failed') {
+    subject = `${icon} Order payment/fulfillment failed — ${order.orderID}`;
+  }
+
+  let deliveryNote = '';
+  if (status === 'Paid') {
+    deliveryNote = `<p style="margin: 0 0 20px; font-size: 13px; color: #525252; line-height: 1.6; font-weight: 500;">
+         We have received and verified your payment. Your order is now in preparation and will be dispatched soon.
+       </p>`;
+  } else if (status === 'Delivered') {
+    deliveryNote = `<p style="margin: 0 0 20px; font-size: 13px; color: #525252; line-height: 1.6; font-weight: 500;">
          Loved your style upgrade? Leave a review on the product page to let us know!
-       </p>`
-    : `<p style="margin: 0 0 20px; font-size: 13px; color: #525252; line-height: 1.6; font-weight: 500;">
+       </p>`;
+  } else if (status === 'Shipped') {
+    deliveryNote = `<p style="margin: 0 0 20px; font-size: 13px; color: #525252; line-height: 1.6; font-weight: 500;">
          Your style upgrade is on its way. You can track its shipment path below.
        </p>`;
+  } else if (status === 'Failed') {
+    deliveryNote = `<p style="margin: 0 0 20px; font-size: 13px; color: #525252; line-height: 1.6; font-weight: 500;">
+         Unfortunately, we encountered an issue processing or fulfilling your order. The transaction has been updated to Failed. Please contact support if you need assistance.
+       </p>`;
+  }
 
   const schemaJson = JSON.stringify({
     "@context": "http://schema.org",
@@ -482,7 +542,11 @@ export const sendOrderStatusEmail = async (order, status) => {
     "orderNumber": order.orderID,
     "priceCurrency": "PKR",
     "price": order.total.toString(),
-    "orderStatus": status === 'Shipped' ? "http://schema.org/OrderShipped" : "http://schema.org/OrderDelivered",
+    "orderStatus": status === 'Shipped'
+      ? "http://schema.org/OrderShipped"
+      : status === 'Delivered'
+        ? "http://schema.org/OrderDelivered"
+        : "http://schema.org/OrderCancelled",
     "customer": {
       "@type": "Person",
       "name": order.customer.name
@@ -514,7 +578,9 @@ export const sendOrderStatusEmail = async (order, status) => {
           </tr>
           <tr>
             <td style="padding: 6px 0; font-size: 12px; color: #737373;">Current Status</td>
-            <td style="padding: 6px 0; font-size: 12px; font-weight: 700; text-align: right; color: ${status === 'Delivered' ? '#16a34a' : '#2563eb'};">
+            <td style="padding: 6px 0; font-size: 12px; font-weight: 700; text-align: right; color: ${
+              status === 'Delivered' ? '#16a34a' : status === 'Failed' ? '#dc2626' : '#2563eb'
+            };">
               ${icon} ${status.toUpperCase()}
             </td>
           </tr>
@@ -546,5 +612,124 @@ export const sendOrderStatusEmail = async (order, status) => {
     console.log(`📧 [OrderStatus] ${status} email sent to ${customerEmail}`);
   } catch (err) {
     console.error('[OrderStatus] Email failed:', err.message);
+  }
+};
+
+/**
+ * Sends a notification summary to the Admin when a new order is placed successfully.
+ */
+export const sendAdminNewOrderNotification = async (order) => {
+  try {
+    const adminEmail = process.env.ADMIN_EMAIL || getEnv('EMAIL_USER');
+    if (!adminEmail) return;
+
+    const subject = `🔔 New Order Placed — ${order.orderID}`;
+    const content = `
+      <p style="margin: 0 0 16px; font-size: 14px; line-height: 1.6; color: #404040;">
+        A new order has been successfully placed on Stop & Shop.
+      </p>
+      <div style="background-color: #fcfcfc; border: 1px solid #e5e7eb; padding: 20px; margin-bottom: 24px;">
+        <p style="margin: 0 0 8px; font-size: 10px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; color: #737373;">
+          Order Details Summary
+        </p>
+        <p style="margin: 0; font-size: 12px; color: #171717; line-height: 1.5;">
+          <strong>Order ID:</strong> ${order.orderID}<br>
+          <strong>Customer Name:</strong> ${escapeHtml(order.customer?.name)}<br>
+          <strong>Customer Phone:</strong> ${escapeHtml(order.customer?.phone)}<br>
+          <strong>Customer Email:</strong> ${escapeHtml(order.customer?.email)}<br>
+          <strong>Total Amount:</strong> Rs. ${order.total.toLocaleString('en-PK')}<br>
+          <strong>Payment Method:</strong> ${order.paymentMethod} (${order.paymentDetails?.status || 'Pending'})
+        </p>
+      </div>
+      <div style="text-align: center;">
+        <a href="https://stop-shop-gamma.vercel.app/admin/orders"
+           style="display: inline-block; background-color: #ba1f3d; color: #ffffff; padding: 12px 28px; font-size: 10px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; text-decoration: none; border-radius: 2px;">
+          View in Admin Dashboard &rarr;
+        </a>
+      </div>
+    `;
+    const html = emailLayout(`New Order Alert: ${order.orderID}`, content);
+    await sendEmail({
+      to: adminEmail,
+      subject,
+      html,
+    });
+    console.log(`📧 [AdminNewOrder] Admin notification sent to ${adminEmail}`);
+  } catch (err) {
+    console.error('[AdminNewOrder] Failed:', err.message);
+  }
+};
+
+/**
+ * Sends a payment/authorization failure email alert to the Customer and Admin.
+ */
+export const sendOrderFailedEmail = async (order, reason = 'Payment declined by gateway') => {
+  try {
+    const customerEmail = order?.customer?.email;
+    const adminEmail = process.env.ADMIN_EMAIL || getEnv('EMAIL_USER');
+
+    // 1. Send to Customer
+    if (customerEmail) {
+      const subject = `❌ Payment Failed — Order ${order.orderID || 'Attempt'}`;
+      const content = `
+        <p style="margin: 0 0 16px; font-size: 14px; line-height: 1.6; color: #404040;">
+          Hi <strong>${escapeHtml(order.customer?.name ?? 'Valued Customer')}</strong>,
+        </p>
+        <p style="margin: 0 0 16px; font-size: 14px; line-height: 1.6; color: #404040;">
+          We were unable to process your payment of <strong>Rs. ${(order.total ?? 0).toLocaleString('en-PK')}</strong>.
+        </p>
+        <div style="background-color: #fee2e2; border-left: 4px solid #dc2626; padding: 16px; margin-bottom: 24px; color: #991b1b; font-size: 13px;">
+          <strong>Decline Reason:</strong> ${escapeHtml(reason)}
+        </div>
+        <p style="margin: 0 0 24px; font-size: 14px; line-height: 1.6; color: #404040;">
+          Please return to the checkout to try again with a different payment card or method.
+        </p>
+        <div style="text-align: center;">
+          <a href="https://stop-shop-gamma.vercel.app/checkout"
+             style="display: inline-block; background-color: #0d0d0d; color: #ffffff; padding: 14px 32px; font-size: 10px; font-weight: 900; letter-spacing: 3px; text-transform: uppercase; text-decoration: none; border-radius: 2px;">
+            Return to Checkout &rarr;
+          </a>
+        </div>
+      `;
+      const html = emailLayout(`Payment Failed — ${order.orderID || 'Checkout'}`, content);
+      await sendEmail({
+        to: customerEmail,
+        subject,
+        html,
+      });
+      console.log(`📧 [OrderFailed] Customer alert sent to ${customerEmail}`);
+    }
+
+    // 2. Send to Admin
+    if (adminEmail) {
+      const subject = `⚠️ Alert: Order Payment Failed — ${order.orderID || 'Attempt'}`;
+      const content = `
+        <p style="margin: 0 0 16px; font-size: 14px; line-height: 1.6; color: #404040;">
+          An order payment attempt has failed.
+        </p>
+        <div style="background-color: #fcfcfc; border: 1px solid #e5e7eb; padding: 20px; margin-bottom: 24px;">
+          <p style="margin: 0 0 8px; font-size: 10px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; color: #737373;">
+            Failed Transaction Details
+          </p>
+          <p style="margin: 0; font-size: 12px; color: #171717; line-height: 1.5;">
+            <strong>Order ID:</strong> ${order.orderID || 'N/A'}<br>
+            <strong>Customer:</strong> ${escapeHtml(order.customer?.name)} (${escapeHtml(order.customer?.email)})<br>
+            <strong>Phone:</strong> ${escapeHtml(order.customer?.phone)}<br>
+            <strong>Total Amount:</strong> Rs. ${(order.total ?? 0).toLocaleString('en-PK')}<br>
+            <strong>Payment Method:</strong> ${order.paymentMethod}<br>
+            <strong>Decline Reason:</strong> ${escapeHtml(reason)}
+          </p>
+        </div>
+      `;
+      const html = emailLayout(`Admin Alert: Payment Failed`, content);
+      await sendEmail({
+        to: adminEmail,
+        subject,
+        html,
+      });
+      console.log(`📧 [AdminOrderFailed] Admin alert sent to ${adminEmail}`);
+    }
+  } catch (err) {
+    console.error('[OrderFailed] Email trigger failed:', err.message);
   }
 };
