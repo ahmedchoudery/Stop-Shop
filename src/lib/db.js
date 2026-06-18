@@ -25,7 +25,7 @@ async function dbConnect() {
   if (!cached.promise) {
     const opts = {
       dbName: 'stopshop',
-      maxPoolSize: 10,
+      maxPoolSize: parseInt(process.env.MONGODB_MAX_POOL_SIZE || '10', 10),
       socketTimeoutMS: 45000,
       family: 4,
       bufferCommands: false,

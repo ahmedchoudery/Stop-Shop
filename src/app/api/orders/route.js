@@ -11,7 +11,19 @@ export async function GET(req) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
-    const orders = await Order.find().sort({ createdAt: -1 }).lean();
+    const { searchParams } = new URL(req.url);
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1', 10));
+    const limit = Math.max(1, Math.min(100, parseInt(searchParams.get('limit') || '100', 10)));
+    const skip = (page - 1) * limit;
+
+    const totalCount = await Order.countDocuments({});
+    const orders = await Order.find({})
+      .select('orderID customer total status paymentMethod paymentDetails createdAt updatedAt')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
     const formatted = orders.map(order => ({
       ...order,
       _id: order._id?.toString() || null,
@@ -19,7 +31,14 @@ export async function GET(req) {
       updatedAt: order.updatedAt ? new Date(order.updatedAt).toISOString() : null,
     }));
 
-    return NextResponse.json(formatted);
+    return NextResponse.json(formatted, {
+      headers: {
+        'X-Total-Count': totalCount.toString(),
+        'X-Total-Pages': Math.ceil(totalCount / limit).toString(),
+        'X-Current-Page': page.toString(),
+        'X-Limit': limit.toString(),
+      }
+    });
   } catch (error) {
     if (error.message === 'Authentication required') {
       return NextResponse.json({ error: error.message }, { status: 401 });
