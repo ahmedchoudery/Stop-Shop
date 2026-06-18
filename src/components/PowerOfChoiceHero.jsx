@@ -160,7 +160,7 @@ const PowerOfChoiceHero = () => {
       />
 
       {/* ── Content ───────────────────────────────────────────────── */}
-      <div className="relative z-10 h-full flex flex-col justify-end">
+      <div className="relative z-10 h-full flex flex-col justify-start md:justify-end pt-28 md:pt-0">
         <div
           ref={contentRef}
           className="w-full px-6 sm:px-10 lg:px-16 pb-12 sm:pb-16 lg:pb-20 max-w-[1440px] mx-auto"
