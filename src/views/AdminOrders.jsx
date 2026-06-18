@@ -13,7 +13,7 @@ import { useOrders } from '../hooks/useDomain.js';
 import { useDebounce } from '../hooks/useUtils.js';
 import { generateInvoice } from '../utils/generateInvoice.js';
 
-const ORDER_STATUSES = ['All', 'Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
+const ORDER_STATUSES = ['All', 'Pending', 'Processing', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled', 'Paid', 'Failed', 'Refunded'];
 
 const AdminOrders = () => {
   const { orders, loading, error, updating, updateOrderStatus, refetch } = useOrders();

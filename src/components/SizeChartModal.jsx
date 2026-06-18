@@ -7,7 +7,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import anime from 'animejs';
-import { X, Ruler, Info, MessageCircle } from 'lucide-react';
+import { X, Ruler, Info, MessageCircle, Shirt, Scissors, Footprints } from 'lucide-react';
 import { EASING } from '../hooks/useAnime.js';
 import { useScrollLock } from '../hooks/useUtils.js';
 
@@ -94,9 +94,9 @@ const SIZE_DATA = {
 };
 
 const TABS = [
-  { key: 'Tops', label: '👕 Tops' },
-  { key: 'Bottoms', label: '👖 Bottoms' },
-  { key: 'Footwear', label: '👟 Footwear' },
+  { key: 'Tops', label: 'Tops', icon: Shirt },
+  { key: 'Bottoms', label: 'Bottoms', icon: Scissors },
+  { key: 'Footwear', label: 'Footwear', icon: Footprints },
 ];
 
 // ─────────────────────────────────────────────────────────────────
@@ -237,16 +237,17 @@ const SizeChartModal = ({ isOpen, onClose, defaultCategory = 'Tops', highlightSi
             style={{ willChange: 'left, width' }}
           />
           <div className="flex">
-            {TABS.map(({ key, label }) => (
+            {TABS.map(({ key, label, icon: Icon }) => (
               <button
                 key={key}
                 ref={el => { tabRefs.current[key] = el; }}
                 onClick={() => setActiveTab(key)}
-                className={`py-4 px-4 text-[10px] font-black uppercase tracking-widest transition-colors duration-200 ${
+                className={`py-4 px-4 text-[10px] font-black uppercase tracking-widest transition-colors duration-200 flex items-center space-x-1.5 ${
                   activeTab === key ? 'text-cardinal' : 'text-gray-400 hover:text-gray-700'
                 }`}
               >
-                {label}
+                <Icon size={12} />
+                <span>{label}</span>
               </button>
             ))}
           </div>
@@ -257,7 +258,7 @@ const SizeChartModal = ({ isOpen, onClose, defaultCategory = 'Tops', highlightSi
 
           {/* Pro tip */}
           <div className="bg-yellow-50 border border-yellow-100 rounded-[4px] p-4 mb-5 flex items-start space-x-3">
-            <span className="text-base flex-shrink-0">💡</span>
+            <Info size={14} className="text-yellow-800 flex-shrink-0 mt-0.5" />
             <p className="text-xs font-bold text-yellow-800 leading-relaxed">
               <span className="font-black">Pro tip: </span>
               Between sizes? Size up for relaxed fit, size down for slim. Our fabrics have slight stretch.

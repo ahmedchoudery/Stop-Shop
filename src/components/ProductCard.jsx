@@ -59,7 +59,6 @@ const ProductCard = ({ product, onImageLoad }) => {
   const [activeColor, setActiveColor] = useState(product.colors?.[0] ?? null);
   const [cartAdded,   setCartAdded]   = useState(false);
   const [isHovered,   setIsHovered]   = useState(false);
-  const [tiltStyle,   setTiltStyle]   = useState({});
 
   const wishlisted = isWishlisted(product.id);
   const outOfStock = product.stock === 0;
@@ -77,28 +76,8 @@ const ProductCard = ({ product, onImageLoad }) => {
       ? product.subCategory
       : product.bucket;
 
-  // ── 3D Parallax Tilt interactions ────────────────────────────────
-  const handleCardMouseMove = useCallback((e) => {
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left - rect.width / 2;
-    const y = e.clientY - rect.top - rect.height / 2;
-    
-    // Smoothly tilt card based on cursor coordinates
-    const rotateX = -(y / (rect.height / 2)) * 8; // Max 8 deg tilt
-    const rotateY = (x / (rect.width / 2)) * 8;
-
-    setTiltStyle({
-      transform: `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`,
-      transition: 'transform 0.1s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
-    });
-  }, []);
-
   const handleCardMouseLeave = useCallback(() => {
     setIsHovered(false);
-    setTiltStyle({
-      transform: 'perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)',
-      transition: 'transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94)'
-    });
   }, []);
 
   // ── Handlers ─────────────────────────────────────────────────────
@@ -155,23 +134,12 @@ const ProductCard = ({ product, onImageLoad }) => {
       className="group relative cursor-pointer"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={handleCardMouseLeave}
-      onMouseMove={handleCardMouseMove}
       onClick={handleCardClick}
-      style={{
-        transformStyle: 'preserve-3d',
-      }}
     >
-      {/* ── Image Container with 3D Tilt ──────────────────────── */}
-      <div 
-        className="relative aspect-[3/4] overflow-hidden mb-3.5"
-        style={{
-          ...tiltStyle,
-          transformStyle: 'preserve-3d',
-          willChange: 'transform'
-        }}
-      >
+      {/* ── Image Container ── */}
+      <div className="relative aspect-[3/4] overflow-hidden mb-3.5">
         {/* Main Image */}
-        <div style={{ transform: 'translateZ(10px)', transformStyle: 'preserve-3d' }} className="w-full h-full">
+        <div className="w-full h-full">
           <MediaRenderer
             src={product.mediaType === 'embed' ? null : product.image}
             embedCode={product.mediaType === 'embed' ? product.embedCode : undefined}
@@ -189,7 +157,6 @@ const ProductCard = ({ product, onImageLoad }) => {
         {/* Hover overlay */}
         <div
           className={`absolute inset-0 transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'}`}
-          style={{ transform: 'translateZ(15px)' }}
         >
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
 
@@ -215,7 +182,6 @@ const ProductCard = ({ product, onImageLoad }) => {
                 ? 'bg-cardinal opacity-100 text-white'
                 : 'bg-white/95 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 hover:bg-cardinal hover:text-white',
             ].join(' ')}
-            style={{ transform: 'translateZ(20px)' }}
             aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
           >
             <Heart size={12} className={wishlisted ? 'fill-white text-white' : 'text-black hover:text-white transition-colors duration-200'} />
@@ -232,7 +198,6 @@ const ProductCard = ({ product, onImageLoad }) => {
                 cartAdded ? 'bg-cardinal text-white' : 'bg-white/95 text-black',
                 'opacity-100 lg:opacity-0 lg:group-hover:opacity-100 hover:bg-black hover:text-white',
               ].join(' ')}
-              style={{ transform: 'translateZ(20px)' }}
               aria-label="Add to cart"
             >
               <ShoppingBag size={12} className={cartAdded ? 'text-white' : 'text-black hover:text-white transition-colors duration-200'} />
@@ -242,19 +207,19 @@ const ProductCard = ({ product, onImageLoad }) => {
 
         {/* Status badges — priority-based (cleanest) */}
         {outOfStock ? (
-          <div className="absolute top-3 left-3 z-10 bg-white/90 px-2.5 py-1 border border-gray-300" style={{ transform: 'translateZ(25px)' }}>
+          <div className="absolute top-3 left-3 z-10 bg-white/90 px-2.5 py-1 border border-gray-300">
             <span className="text-[7px] font-black uppercase tracking-[0.35em] text-gray-500">
               Sold Out
             </span>
           </div>
         ) : hasDiscount ? (
-          <div className="absolute top-3 left-3 z-10 bg-black px-2.5 py-1 border border-white/20" style={{ transform: 'translateZ(25px)' }}>
+          <div className="absolute top-3 left-3 z-10 bg-black px-2.5 py-1 border border-white/20">
             <span className="text-[7px] font-black uppercase tracking-[0.35em] text-white">
               {product.discount}% OFF
             </span>
           </div>
         ) : isNew ? (
-          <div className="absolute top-3 left-3 z-10 bg-cardinal px-2.5 py-1" style={{ transform: 'translateZ(25px)' }}>
+          <div className="absolute top-3 left-3 z-10 bg-cardinal px-2.5 py-1">
             <span className="text-[7px] font-black uppercase tracking-[0.35em] text-white">
               New
             </span>
@@ -304,7 +269,7 @@ const ProductCard = ({ product, onImageLoad }) => {
                     onClick={(e) => { e.stopPropagation(); setActiveColor(color); }}
                     aria-label={`Select colour ${getColorName(color)}`}
                     className={[
-                      'w-3.5 h-3.5 rounded-full border transition-all duration-200 focus:outline-none',
+                      'w-3.5 h-3.5 rounded-[4px] border transition-all duration-200 focus:outline-none',
                       isSelected
                         ? 'border-black ring-2 ring-black ring-offset-2 ring-offset-white z-10'
                         : 'border-gray-450 hover:border-black/60',

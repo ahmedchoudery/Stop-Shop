@@ -218,7 +218,7 @@ const ProductLightbox = ({ images = [], startIndex = 0, isOpen, onClose }) => {
         {images.length > 1 && (
           <button
             onClick={(e) => { e.stopPropagation(); prev(); }}
-            className="absolute left-4 z-10 p-3 bg-white/10 hover:bg-white/25 backdrop-blur-sm rounded-2xl text-black transition-all group"
+            className="absolute left-4 z-10 p-3 bg-black/5 hover:bg-black/10 backdrop-blur-sm rounded-[4px] text-black transition-all group border border-black/10"
           >
             <ChevronLeft size={22} className="group-hover:-translate-x-0.5 transition-transform" />
           </button>
@@ -227,7 +227,21 @@ const ProductLightbox = ({ images = [], startIndex = 0, isOpen, onClose }) => {
         <div className="relative w-full h-full flex items-center justify-center p-8">
           {!isLoaded && (
             <div className="absolute inset-0 flex items-center justify-center">
-              <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+              <style>{`
+                @keyframes loading-slide {
+                  0% { transform: translateX(-100%); }
+                  100% { transform: translateX(200%); }
+                }
+              `}</style>
+              <div className="w-24 h-[2px] bg-black/10 overflow-hidden relative">
+                <div 
+                  className="absolute inset-y-0 w-1/2 bg-black" 
+                  style={{ 
+                    animation: 'loading-slide 1.5s infinite ease-in-out',
+                    willChange: 'transform' 
+                  }} 
+                />
+              </div>
             </div>
           )}
           <img
@@ -249,7 +263,7 @@ const ProductLightbox = ({ images = [], startIndex = 0, isOpen, onClose }) => {
         {images.length > 1 && (
           <button
             onClick={(e) => { e.stopPropagation(); next(); }}
-            className="absolute right-4 z-10 p-3 bg-white/10 hover:bg-white/25 backdrop-blur-sm rounded-2xl text-black transition-all group"
+            className="absolute right-4 z-10 p-3 bg-black/5 hover:bg-black/10 backdrop-blur-sm rounded-[4px] text-black transition-all group border border-black/10"
           >
             <ChevronRight size={22} className="group-hover:translate-x-0.5 transition-transform" />
           </button>

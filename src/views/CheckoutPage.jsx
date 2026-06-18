@@ -24,6 +24,7 @@ const CheckoutPage = () => {
       const customer = {
         name:    `${formData.firstName} ${formData.lastName}`.trim(),
         email:   formData.email,
+        phone:   formData.phone,
         address: formData.address,
         city:    formData.city,
         zip:     formData.zip ?? '',
@@ -52,7 +53,8 @@ const CheckoutPage = () => {
           items, 
           total: formData.finalTotal, 
           paymentMethod: formData.paymentMethod,
-          couponCode: formData.couponCode 
+          couponCode: formData.couponCode,
+          paymentDetails: formData.paymentDetails,
         }),
       });
 

@@ -7,32 +7,33 @@ import React from 'react';
  */
 export default function Loading() {
   return (
-    <div className="fixed inset-0 z-[9999] bg-white flex flex-col items-center justify-center">
-      {/* Decorative Brand Accent (Top pulsing strip) */}
-      <div className="absolute top-0 left-0 w-full h-[3px] bg-gradient-to-r from-red-100 via-cardinal to-red-100 animate-pulse" />
-
-      {/* Main Loader Content */}
-      <div className="flex flex-col items-center space-y-6 max-w-xs text-center px-6">
-        {/* Pulsing editorial brand initials */}
-        <div className="relative">
-          <div className="w-16 h-16 rounded-full border border-gray-100 flex items-center justify-center shadow-lg shadow-gray-100/50 bg-white/80 backdrop-blur-md animate-scale">
-            <span className="text-xl font-black italic text-cardinal tracking-tighter">S</span>
-            <span className="text-xs text-gray-400 font-bold mx-0.5">&</span>
-            <span className="text-xl font-black italic text-cardinal tracking-tighter">S</span>
-          </div>
-          {/* External animated orbit ring */}
-          <div className="absolute -inset-1 border border-cardinal/20 rounded-full animate-spin [animation-duration:3s]" />
+    <div className="fixed inset-0 z-[9999] bg-[#F7F6F3] flex flex-col items-center justify-center">
+      <div className="flex flex-col items-center space-y-6 text-center">
+        {/* Brand initials */}
+        <div className="text-lg font-black uppercase tracking-[0.3em] text-[#111111]">
+          Stop & Shop
         </div>
 
-        {/* Minimal text loading feedback */}
-        <div>
-          <h2 className="text-xs font-black uppercase tracking-[0.4em] text-gray-900 mb-1">
-            Deliberating Style
-          </h2>
-          <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest leading-relaxed">
-            Acquiring premium items...
-          </p>
+        {/* Minimal linear loader */}
+        <style>{`
+          @keyframes loading-slide {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(200%); }
+          }
+        `}</style>
+        <div className="w-48 h-[2px] bg-gray-200 overflow-hidden relative">
+          <div 
+            className="absolute inset-y-0 w-1/2 bg-gray-900" 
+            style={{ 
+              animation: 'loading-slide 1.5s infinite ease-in-out',
+              willChange: 'transform' 
+            }} 
+          />
         </div>
+
+        <p className="text-[9px] font-black uppercase tracking-[0.4em] text-gray-400">
+          Loading
+        </p>
       </div>
     </div>
   );

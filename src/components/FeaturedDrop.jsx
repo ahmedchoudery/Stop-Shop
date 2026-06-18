@@ -3,11 +3,16 @@
 import React, { useState, useEffect } from 'react';
 import FeaturedCarousel from './FeaturedCarousel.jsx';
 
-export default function FeaturedDrop({ fallbackProducts = [] }) {
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+export default function FeaturedDrop({ products: initialProducts = [], fallbackProducts = [] }) {
+  const [products, setProducts] = useState(initialProducts);
+  const [loading, setLoading] = useState(initialProducts.length === 0);
 
   useEffect(() => {
+    if (initialProducts && initialProducts.length > 0) {
+      setProducts(initialProducts);
+      setLoading(false);
+      return;
+    }
     fetch('/api/public/featured?section=drop')
       .then(res => {
         if (!res.ok) throw new Error('Failed to fetch');
@@ -21,7 +26,7 @@ export default function FeaturedDrop({ fallbackProducts = [] }) {
         setProducts(fallbackProducts);
       })
       .finally(() => setLoading(false));
-  }, [fallbackProducts]);
+  }, [initialProducts, fallbackProducts]);
 
   const displayProducts = products.length > 0 ? products : fallbackProducts;
 

@@ -15,15 +15,20 @@ const GAP_PX    = 48;
 
 const LOOKS = [];
 
-export default function LookbookStrip({ onShopNow }) {
+export default function LookbookStrip({ products: initialProducts = [], onShopNow }) {
   const navigate = useNavigate();
   const scrollRef = useRef(null);
   const [activeIdx, setActiveIdx] = useState(0);
 
-  const [dbLooks, setDbLooks] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [dbLooks, setDbLooks] = useState(initialProducts);
+  const [loading, setLoading] = useState(initialProducts.length === 0);
 
   useEffect(() => {
+    if (initialProducts && initialProducts.length > 0) {
+      setDbLooks(initialProducts);
+      setLoading(false);
+      return;
+    }
     fetch('/api/public/featured?section=attitude')
       .then(res => {
         if (!res.ok) throw new Error('Failed to fetch');
@@ -34,7 +39,7 @@ export default function LookbookStrip({ onShopNow }) {
       })
       .catch(err => console.error('[Lookbook] fetch failed:', err))
       .finally(() => setLoading(false));
-  }, []);
+  }, [initialProducts]);
 
   const items = dbLooks.length > 0
     ? dbLooks.map((look, i) => ({

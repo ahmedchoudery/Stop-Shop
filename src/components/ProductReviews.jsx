@@ -4,44 +4,14 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Star, MessageCircle, Send, CheckCircle, AlertCircle } from 'lucide-react';
+import { MessageCircle, CheckCircle } from 'lucide-react';
 import { apiUrl } from '../config/api.js';
-
-const Stars = ({ rating, size = 13 }) => (
-  <div className="flex space-x-0.5">
-    {[...Array(5)].map((_, i) => (
-      <Star 
-        key={i} 
-        size={size} 
-        className={i < rating ? 'fill-cardinal text-cardinal' : 'text-gray-200'} 
-      />
-    ))}
-  </div>
-);
-
-const StarPicker = ({ value, onChange }) => (
-  <div className="flex space-x-1">
-    {[1, 2, 3, 4, 5].map(n => (
-      <button
-        key={n}
-        type="button"
-        onClick={() => onChange(n)}
-        className="transition-transform hover:scale-110"
-      >
-        <Star 
-          size={24} 
-          className={n <= value ? 'fill-cardinal text-cardinal' : 'text-gray-300 hover:text-gray-400'} 
-        />
-      </button>
-    ))}
-  </div>
-);
 
 const ProductReviews = ({ productId, productName }) => {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ name: '', email: '', title: '', body: '', rating: 5 });
+  const [form, setForm] = useState({ name: '', email: '', body: '' });
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [apiError, setApiError] = useState('');
@@ -80,7 +50,7 @@ const ProductReviews = ({ productId, productName }) => {
       setTimeout(() => {
         setDone(false);
         setShowForm(false);
-        setForm({ name: '', email: '', title: '', body: '', rating: 5 });
+        setForm({ name: '', email: '', body: '' });
         fetchReviews();
       }, 3000);
     } catch (err) {
@@ -91,111 +61,150 @@ const ProductReviews = ({ productId, productName }) => {
   };
 
   if (loading) {
-    return <div className="py-20 text-center text-gray-400">Loading reviews...</div>;
+    return (
+      <section className="bg-[var(--bg-surface)] py-20 border-t border-[var(--border)]">
+        <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-12">
+            {/* Left Col Skeleton */}
+            <div className="md:col-span-4 space-y-6">
+              <div className="h-3 w-24 bg-gray-250 animate-pulse rounded-none" />
+              <div className="h-12 w-48 bg-gray-250 animate-pulse rounded-none" />
+              <div className="h-10 w-full bg-gray-200 animate-pulse rounded-none" />
+            </div>
+            {/* Right Col Skeleton */}
+            <div className="md:col-span-8 space-y-8">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="border-b border-gray-150 pb-8 last:border-0 space-y-4">
+                  <div className="h-4 w-5/6 bg-gray-250 animate-pulse rounded-none" />
+                  <div className="h-4 w-4/6 bg-gray-250 animate-pulse rounded-none" />
+                  <div className="h-3 w-32 bg-gray-200 animate-pulse rounded-none" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+    );
   }
 
   return (
     <section className="bg-[var(--bg-surface)] py-20 border-t border-[var(--border)]">
       <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12">
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12">
-          <div>
-            <p className="text-[9px] font-black uppercase tracking-[0.5em] text-[#a4a4a2] mb-4">Product Feedback</p>
-            <h2 className="text-4xl font-black uppercase tracking-tighter text-gray-900">Customer Reviews</h2>
-          </div>
-          <button 
-            onClick={() => setShowForm(!showForm)}
-            className="mt-6 md:mt-0 btn-primary rounded-[4px] !py-3 flex items-center space-x-2"
-          >
-            <MessageCircle size={14} />
-            <span>{showForm ? 'Cancel' : 'Write a Review'}</span>
-          </button>
-        </div>
-
-        {showForm && (
-          <div className="mb-16 p-8 border border-[var(--border)] bg-[var(--bg-base)] rounded-[4px] animate-fade-up max-w-2xl">
-            {done ? (
-              <div className="text-center py-6">
-                <CheckCircle size={32} className="text-[#346538] mx-auto mb-4" />
-                <p className="font-black uppercase tracking-tight text-gray-900">Thank You!</p>
-                <p className="text-xs text-gray-400 font-bold mt-1">Your review is pending moderation.</p>
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-12">
+          {/* Left Column: Sticky Summary & Action */}
+          <div className="md:col-span-4">
+            <div className="md:sticky md:top-24 space-y-6">
+              <div>
+                <p className="text-[9px] font-black uppercase tracking-[0.4em] text-gray-400 mb-2">Feedback</p>
+                <h2 className="text-4xl font-black uppercase tracking-tighter text-gray-900">
+                  {reviews.length.toString().padStart(2, '0')} {reviews.length === 1 ? 'Review' : 'Reviews'}
+                </h2>
               </div>
-            ) : (
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="mb-4">
-                  <p className="text-[9px] font-black uppercase tracking-[0.4em] text-gray-400 mb-2">Rating</p>
-                  <StarPicker value={form.rating} onChange={r => setForm({...form, rating: r})} />
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                  <input 
-                    type="text" 
-                    placeholder="Name *" 
-                    required
-                    className="input-premium"
-                    value={form.name}
-                    onChange={e => setForm({...form, name: e.target.value})}
-                  />
-                  <input 
-                    type="email" 
-                    placeholder="Email *" 
-                    required
-                    className="input-premium"
-                    value={form.email}
-                    onChange={e => setForm({...form, email: e.target.value})}
-                  />
-                </div>
-                <input 
-                  type="text" 
-                  placeholder="Review Title"
-                  className="input-premium"
-                  value={form.title}
-                  onChange={e => setForm({...form, title: e.target.value})}
-                />
-                <textarea 
-                  placeholder="Your review... *" 
-                  required
-                  rows={4}
-                  className="input-premium resize-none"
-                  value={form.body}
-                  onChange={e => setForm({...form, body: e.target.value})}
-                />
-                {apiError && <p className="text-[10px] text-red-500 font-bold">{apiError}</p>}
-                <button 
-                  disabled={submitting}
-                  className="w-full btn-primary rounded-[4px]"
-                >
-                  {submitting ? 'Submitting...' : 'Submit Review'}
-                </button>
-              </form>
-            )}
-          </div>
-        )}
+              
+              <p className="text-xs text-gray-400 font-medium leading-relaxed max-w-sm">
+                Honest feedback from verified buyers. Reviews are published after standard moderation.
+              </p>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {reviews.length === 0 ? (
-            <div className="col-span-full py-10 border border-dashed border-[var(--border-mid)] text-center rounded-[4px]">
-              <p className="text-xs font-bold text-gray-450">No reviews yet for this product. Be the first!</p>
+              <button 
+                onClick={() => {
+                  setShowForm(!showForm);
+                  setApiError('');
+                  setDone(false);
+                }}
+                className="btn-primary rounded-none shadow-none text-[9px] tracking-[0.25em] !py-3.5 !px-6 w-full md:w-auto uppercase flex items-center justify-center space-x-2 border border-black hover:bg-white hover:text-black transition-colors"
+              >
+                <MessageCircle size={12} />
+                <span>{showForm ? 'Close Form' : 'Write a Review'}</span>
+              </button>
             </div>
-          ) : (
-            reviews.map((r, i) => (
-              <div key={r._id || i} className="p-8 border border-[var(--border)] bg-[var(--bg-surface)] hover:border-[var(--border-mid)] transition-all duration-300 rounded-[4px] group">
-                <div className="flex justify-between items-start mb-4">
-                  <Stars rating={r.rating} />
-                  <span className="text-[9px] font-black uppercase tracking-widest text-[#a4a4a2]">Verified</span>
-                </div>
-                <h4 className="font-black uppercase tracking-tight text-gray-900 mb-2">{r.title}</h4>
-                <p className="text-xs text-gray-500 leading-relaxed font-medium mb-6 italic">"{r.body}"</p>
-                <div className="flex items-center space-x-3">
-                  <div className="w-8 h-8 rounded-[4px] bg-gray-100 border border-gray-200 flex items-center justify-center text-[10px] font-black text-gray-450">
-                    {r.name.charAt(0).toUpperCase()}
+          </div>
+
+          {/* Right Column: Reviews List & Write Review Form */}
+          <div className="md:col-span-8 space-y-12">
+            {/* Slide Down Form */}
+            {showForm && (
+              <div className="border-b border-gray-200 pb-12 animate-fade-up">
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-900 mb-6">Write your review</p>
+                {done ? (
+                  <div className="border-l-2 border-black pl-6 py-4 bg-transparent">
+                    <p className="text-xs font-black uppercase tracking-wider text-gray-900 flex items-center space-x-2">
+                      <CheckCircle size={14} className="text-black" />
+                      <span>Review Submitted</span>
+                    </p>
+                    <p className="text-[11px] text-gray-400 font-semibold mt-1">
+                      Thank you. Your review has been sent for editorial moderation.
+                    </p>
                   </div>
-                  <div>
-                    <p className="text-[10px] font-black uppercase text-gray-700">{r.name}</p>
-                    <p className="text-[8px] font-bold text-gray-400">{new Date(r.createdAt || Date.now()).toLocaleDateString()}</p>
-                  </div>
-                </div>
+                ) : (
+                  <form onSubmit={handleSubmit} className="space-y-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                      <input 
+                        type="text" 
+                        placeholder="NAME *" 
+                        required
+                        className="input-premium uppercase text-xs tracking-wider"
+                        value={form.name}
+                        onChange={e => setForm({...form, name: e.target.value})}
+                      />
+                      <input 
+                        type="email" 
+                        placeholder="EMAIL *" 
+                        required
+                        className="input-premium uppercase text-xs tracking-wider"
+                        value={form.email}
+                        onChange={e => setForm({...form, email: e.target.value})}
+                      />
+                    </div>
+                    <textarea 
+                      placeholder="YOUR REVIEW (MINIMUM 20 CHARACTERS) *" 
+                      required
+                      rows={4}
+                      className="input-premium resize-none uppercase text-xs tracking-wider"
+                      value={form.body}
+                      onChange={e => setForm({...form, body: e.target.value})}
+                    />
+                    {apiError && (
+                      <div className="border-l-2 border-cardinal pl-4 py-1.5">
+                        <p className="text-[10px] text-cardinal font-bold uppercase tracking-wider">{apiError}</p>
+                      </div>
+                    )}
+                    <button 
+                      disabled={submitting}
+                      className="btn-primary rounded-none shadow-none text-[9px] tracking-[0.25em] !py-4 !px-8 w-full md:w-auto uppercase"
+                    >
+                      {submitting ? 'Submitting...' : 'Submit Review'}
+                    </button>
+                  </form>
+                )}
               </div>
-            ))
-          )}
+            )}
+
+            {/* List */}
+            <div className="space-y-8 divide-y divide-gray-150">
+              {reviews.length === 0 ? (
+                <div className="py-12 text-left">
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">
+                    No reviews yet for this product.
+                  </p>
+                </div>
+              ) : (
+                reviews.map((r, i) => (
+                  <div key={r._id || i} className={`${i > 0 ? 'pt-8' : ''} space-y-4`}>
+                    <p className="text-sm font-normal text-gray-700 leading-relaxed max-w-2xl">
+                      {r.body}
+                    </p>
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[9px] tracking-[0.25em] font-semibold text-gray-450 uppercase">
+                      <span>BY {r.name}</span>
+                      <span className="text-gray-250">•</span>
+                      <span>{new Date(r.createdAt || Date.now()).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+                      <span className="text-gray-250">•</span>
+                      <span className="text-black font-black tracking-widest">[ VERIFIED PURCHASE ]</span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -203,3 +212,4 @@ const ProductReviews = ({ productId, productName }) => {
 };
 
 export default ProductReviews;
+

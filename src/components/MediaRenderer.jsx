@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import Image from 'next/image';
 
 function parseEmbed(raw) {
   if (!raw?.trim()) return null;
@@ -154,13 +155,17 @@ const MediaRenderer = ({ src, embedCode, mediaType, alt, className, onLoad }) =>
     }
     if (parsed.type === 'image') {
       return (
-        <img
-          src={parsed.src}
-          alt={alt || 'Embedded image'}
-          className={className}
-          onLoad={onLoad}
-          loading="lazy"
-        />
+        <div className="relative w-full h-full">
+          <Image
+            src={parsed.src}
+            alt={alt || 'Embedded image'}
+            fill
+            sizes="(max-width: 768px) 100vw, 33vw"
+            className={className}
+            onLoad={onLoad}
+            loading="lazy"
+          />
+        </div>
       );
     }
     if (parsed.type === 'raw') {
@@ -193,13 +198,17 @@ const MediaRenderer = ({ src, embedCode, mediaType, alt, className, onLoad }) =>
   }
 
   return (
-    <img
-      src={src}
-      alt={alt || "Product media"}
-      className={className}
-      onLoad={onLoad}
-      loading="lazy"
-    />
+    <div className="relative w-full h-full">
+      <Image
+        src={src}
+        alt={alt || "Product media"}
+        fill
+        sizes="(max-width: 768px) 100vw, 33vw"
+        className={className}
+        onLoad={onLoad}
+        loading="lazy"
+      />
+    </div>
   );
 };
 

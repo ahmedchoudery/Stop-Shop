@@ -13,20 +13,17 @@ const StatsGrid = ({ totalSales, totalOrders, trend = 0, pendingOrders = 0 }) =>
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 lg:gap-8 mb-6 sm:mb-12">
 
       {/* Revenue Card */}
-      <div className="group bg-white p-5 sm:p-8 rounded-[4px] border border-gray-100 shadow-xl shadow-gray-100/50 hover:border-green-400/50 hover:shadow-2xl hover:shadow-green-100/60 transition-all duration-700 relative overflow-hidden cursor-default">
-
-        {/* Background glow — reveals on hover */}
-        <div className="absolute inset-0 bg-gradient-to-br from-green-50/0 via-green-50/0 to-green-100/0 group-hover:from-green-50/80 group-hover:to-green-50/20 transition-all duration-700 pointer-events-none" />
+      <div className="group bg-white p-5 sm:p-8 rounded-[4px] border border-gray-100 shadow-[0_4px_12px_rgba(0,0,0,0.03)] hover:border-gray-300 transition-all duration-300 relative overflow-hidden cursor-default">
 
         {/* Icon watermark */}
-        <div className="absolute top-0 right-0 p-4 opacity-[0.04] group-hover:opacity-[0.08] translate-x-4 -translate-y-4 group-hover:translate-x-2 group-hover:translate-y-0 transition-all duration-700">
-          <TrendingUp size={90} className="text-green-600" />
+        <div className="absolute top-0 right-0 p-4 opacity-[0.04] translate-x-4 -translate-y-4 transition-all duration-500">
+          <TrendingUp size={90} className="text-gray-900" />
         </div>
 
         <div className="relative z-10">
           {/* Status dot + label */}
           <div className="flex items-center space-x-2 mb-5">
-            <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+            <span className="w-2 h-2 bg-green-600 rounded-full" />
             <h3 className="text-[10px] font-black uppercase tracking-[0.35em] text-gray-400">
               Total Revenue
             </h3>
@@ -34,7 +31,7 @@ const StatsGrid = ({ totalSales, totalOrders, trend = 0, pendingOrders = 0 }) =>
 
           {/* Animated number */}
           <div className="flex items-baseline space-x-2 mb-3">
-            <span className="text-3xl font-black text-green-600 tracking-tighter">Rs.</span>
+            <span className="text-3xl font-black text-gray-900 tracking-tighter">Rs.</span>
             <AnimatedCounter
               value={totalSales}
               duration={1800}
@@ -47,7 +44,7 @@ const StatsGrid = ({ totalSales, totalOrders, trend = 0, pendingOrders = 0 }) =>
           </div>
 
           {/* Trend indicator */}
-          <div className={`flex items-center space-x-2 mt-6 ${trend >= 0 ? 'text-green-600' : 'text-red-500'}`}>
+          <div className={`flex items-center space-x-2 mt-6 ${trend >= 0 ? 'text-[#346538]' : 'text-cardinal'}`}>
             <ArrowUpRight
               size={15}
               className={`transition-transform duration-300 ${trend < 0 ? 'rotate-90' : 'group-hover:-translate-y-0.5 group-hover:translate-x-0.5'}`}
@@ -57,25 +54,19 @@ const StatsGrid = ({ totalSales, totalOrders, trend = 0, pendingOrders = 0 }) =>
             </span>
           </div>
         </div>
-
-        {/* Bottom shimmer on hover — design spell */}
-        <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-green-400 to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-700 origin-left" />
       </div>
 
       {/* Orders Card */}
-      <div className="group bg-white p-5 sm:p-8 rounded-[4px] border border-gray-100 shadow-xl shadow-gray-100/50 hover:border-black/30 hover:shadow-2xl hover:shadow-gray-200/40 transition-all duration-700 relative overflow-hidden cursor-default">
-
-        {/* Background glow */}
-        <div className="absolute inset-0 bg-gradient-to-br from-gray-50/0 to-gray-50/0 group-hover:from-gray-50/40 group-hover:to-transparent transition-all duration-700 pointer-events-none" />
+      <div className="group bg-white p-5 sm:p-8 rounded-[4px] border border-gray-100 shadow-[0_4px_12px_rgba(0,0,0,0.03)] hover:border-gray-300 transition-all duration-300 relative overflow-hidden cursor-default">
 
         {/* Icon watermark */}
-        <div className="absolute top-0 right-0 p-4 opacity-[0.04] group-hover:opacity-[0.08] transition-opacity duration-700 transform translate-x-4 -translate-y-4 group-hover:translate-x-2 group-hover:translate-y-0">
-          <ShoppingBag size={90} className="text-black" />
+        <div className="absolute top-0 right-0 p-4 opacity-[0.04] translate-x-4 -translate-y-4 transition-all duration-500">
+          <ShoppingBag size={90} className="text-gray-900" />
         </div>
 
         <div className="relative z-10">
           <div className="flex items-center space-x-2 mb-5">
-            <span className="w-2 h-2 bg-black rounded-full" />
+            <span className="w-2 h-2 bg-gray-900 rounded-full" />
             <h3 className="text-[10px] font-black uppercase tracking-[0.35em] text-gray-400">
               Orders Placed
             </h3>
@@ -110,9 +101,6 @@ const StatsGrid = ({ totalSales, totalOrders, trend = 0, pendingOrders = 0 }) =>
             </span>
           </div>
         </div>
-
-        {/* Bottom shimmer */}
-        <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-black to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-700 origin-left" />
       </div>
     </div>
   );

@@ -7,6 +7,7 @@
 
 import React, { useRef, useEffect } from 'react';
 import { ArrowUpRight } from 'lucide-react';
+import Image from 'next/image';
 
 const TILES = [
   {
@@ -101,10 +102,12 @@ export default function CategoryTiles({ onSelect, activeBucket }) {
               >
                 {/* Image Wrapper */}
                 <div className="relative w-full aspect-[3/4] overflow-hidden bg-gray-50">
-                  <img
+                  <Image
                     src={image}
                     alt={label}
-                    className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+                    fill
+                    sizes="(max-width: 768px) 50vw, 25vw"
+                    className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
                   />
                   
                   {/* Clean borders overlay: thin outline by default, black on hover/active */}

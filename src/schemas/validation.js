@@ -76,7 +76,8 @@ export const updateProductSchema = createProductSchema.partial();
 /** @typedef {z.infer<typeof updateProductSchema>} UpdateProductInput */
 
 export const updateOrderStatusSchema = z.object({
-  status: z.enum(['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled']),
+  status: z.enum(['Pending', 'Processing', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled', 'Paid', 'Failed', 'Refunded']).optional(),
+  paymentStatus: z.enum(['Pending', 'Paid', 'Failed', 'Refunded']).optional(),
 });
 
 /** @typedef {z.infer<typeof updateOrderStatusSchema>} UpdateOrderStatusInput */
@@ -88,6 +89,7 @@ export const updateOrderStatusSchema = z.object({
 const customerSchema = z.object({
   name:    z.string().trim().min(2, 'Name too short').max(100, 'Name too long'),
   email:   emailSchema,
+  phone:   z.string().trim().min(10, 'Phone number must be at least 10 digits').max(15, 'Phone number cannot exceed 15 digits'),
   address: z.string().trim().min(5, 'Address too short').max(300, 'Address too long'),
   city:    z.string().trim().min(2, 'City too short').max(100, 'City too long'),
   zip:     z.string().trim().max(20, 'ZIP too long').optional().default(''),
@@ -122,6 +124,15 @@ export const checkoutSchema = z.object({
     errorMap: () => ({ message: `Payment method must be one of: ${PAYMENT_METHODS.join(', ')}` }),
   }),
   couponCode:    z.string().trim().toUpperCase().optional().default(''),
+  paymentDetails: z.object({
+    easypaisaMode:   z.enum(['direct', 'manual']).optional(),
+    easypaisaNumber: z.string().trim().optional(),
+    easypaisaTid:    z.string().trim().optional(),
+    cardholderName:  z.string().trim().optional(),
+    cardNumber:      z.string().trim().optional(),
+    cardExpiry:      z.string().trim().optional(),
+    cardCvv:         z.string().trim().optional(),
+  }).optional(),
 });
 
 /** @typedef {z.infer<typeof checkoutSchema>} CheckoutInput */
@@ -170,10 +181,11 @@ export const updateSettingsSchema = z.object({
 export const reviewSchema = z.object({
   name:      z.string().trim().min(1, 'Name required').max(100),
   email:     emailSchema,
-  rating:    z.number().int().min(1).max(5),
-  title:     z.string().trim().min(2, 'Title too short').max(120),
+  rating:    z.number().int().min(1).max(5).optional().default(5),
+  title:     z.string().trim().max(120).optional().default(''),
   body:      z.string().trim().min(5, 'Review content too short').max(2000),
   productId: z.string().max(100).optional().default(''),
+  productName: z.string().max(200).optional().default(''),
 });
 
 /** @typedef {z.infer<typeof reviewSchema>} ReviewInput */

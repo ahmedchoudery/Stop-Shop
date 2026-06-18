@@ -1,5 +1,6 @@
 import React from 'react';
 import mongoose from 'mongoose';
+import { headers } from 'next/headers';
 import dbConnect from '../../../lib/db';
 import Product from '../../../models/Product';
 import ProductPageClient from './ProductPageClient.jsx';
@@ -76,5 +77,45 @@ export default async function Page({ params }) {
   const product = serialize(rawProduct);
   const allProducts = rawAllProducts.map(serialize);
 
-  return <ProductPageClient product={product} allProducts={allProducts} />;
+  // Dynamic host detection for JSON-LD URLs
+  const headersList = headers();
+  const host = headersList.get('host') || 'stop-shop-ecommerce.vercel.app';
+  const protocol = headersList.get('x-forwarded-proto') || 'https';
+  const baseUrl = `${protocol}://${host}`;
+
+  const jsonLd = {
+    "@context": "https://schema.org/",
+    "@type": "Product",
+    "name": product.name,
+    "image": product.image,
+    "description": product.description || `${product.name} premium clothing item.`,
+    "sku": product.id,
+    "mpn": product.id,
+    "brand": {
+      "@type": "Brand",
+      "name": "Stop & Shop"
+    },
+    "offers": {
+      "@type": "Offer",
+      "url": `${baseUrl}/product/${product.id}`,
+      "priceCurrency": "PKR",
+      "price": product.price,
+      "itemCondition": "https://schema.org/NewCondition",
+      "availability": product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      "seller": {
+        "@type": "Organization",
+        "name": "Stop & Shop"
+      }
+    }
+  };
+
+  return (
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <ProductPageClient product={product} allProducts={allProducts} />
+    </>
+  );
 }

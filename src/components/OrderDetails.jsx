@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import { X, Printer, Package, Truck, User, MapPin, CreditCard, Calendar } from 'lucide-react';
-import { ShoppingBag, Clock } from 'lucide-react';
+import { ShoppingBag, Clock, ShieldCheck, RefreshCcw, Loader } from 'lucide-react';
 import { apiUrl } from '../config/api';
 
 const OrderDetails = ({ order, isOpen, onClose, onStatusUpdated }) => {
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isRefunding, setIsRefunding] = useState(false);
+  const [isVerifying, setIsVerifying] = useState(false);
 
   if (!isOpen || !order) return null;
 
-  const handleStatusToggle = async () => {
-    const newStatus = order.status === 'Pending' ? 'Shipped' : 'Pending';
-    
+  const handleStatusChange = async (newStatus) => {
     setIsUpdating(true);
     try {
       const response = await fetch(apiUrl(`/api/orders/${order._id}`), {
@@ -20,7 +20,10 @@ const OrderDetails = ({ order, isOpen, onClose, onStatusUpdated }) => {
         body: JSON.stringify({ status: newStatus }),
       });
       
-      if (!response.ok) throw new Error('Failed to update status');
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error ?? 'Failed to update status');
+      }
       
       if (onStatusUpdated) onStatusUpdated();
     } catch (err) {
@@ -30,14 +33,94 @@ const OrderDetails = ({ order, isOpen, onClose, onStatusUpdated }) => {
     }
   };
 
+  const handleMarkCodPaid = async () => {
+    setIsUpdating(true);
+    try {
+      const response = await fetch(apiUrl(`/api/orders/${order._id}`), {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ paymentStatus: 'Paid' }),
+      });
+      
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error ?? 'Failed to update payment status');
+      }
+      
+      if (onStatusUpdated) onStatusUpdated();
+    } catch (err) {
+      alert('Error: ' + err.message);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleVerifyManualPayment = async () => {
+    setIsVerifying(true);
+    try {
+      const response = await fetch(apiUrl(`/api/admin/orders/${order._id}/verify-payment`), {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error ?? 'Failed to verify manual payment');
+      }
+      
+      if (onStatusUpdated) onStatusUpdated();
+      alert('Manual payment verified successfully!');
+    } catch (err) {
+      alert('Error: ' + err.message);
+    } finally {
+      setIsVerifying(false);
+    }
+  };
+
+  const handleRefund = async () => {
+    if (!window.confirm('Are you sure you want to process a refund for this order?')) return;
+    setIsRefunding(true);
+    try {
+      const response = await fetch(apiUrl(`/api/orders/${order._id}`), {
+        method: 'PATCH',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'Refunded' }),
+      });
+      
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw new Error(data.error ?? 'Failed to process refund');
+      }
+      
+      if (onStatusUpdated) onStatusUpdated();
+      alert('Order successfully refunded via gateway!');
+    } catch (err) {
+      alert('Error: ' + err.message);
+    } finally {
+      setIsRefunding(false);
+    }
+  };
+
   const handlePrint = () => {
     window.print();
   };
 
+  // Determine valid statuses based on payment method
+  const isCod = order.paymentMethod === 'COD';
+  const validStatuses = isCod
+    ? ['Pending', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled']
+    : ['Pending', 'Paid', 'Failed', 'Refunded'];
+
+  const paymentStatus = order.paymentDetails?.status || 'Pending';
+  const hasManualTid = !isCod && order.paymentDetails?.transactionID && !order.paymentDetails.transactionID.startsWith('EP-DIR') && !order.paymentDetails.transactionID.startsWith('TXN-CARD');
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-white/60 backdrop-blur-sm print:static print:bg-white print:p-0">
       {/* Modal Container */}
-      <div className="bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-[4px] border border-gray-150 relative print:border-none print:max-h-none print:overflow-visible print:w-full">
+      <div className="bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-none border border-gray-150 relative print:border-none print:max-h-none print:overflow-visible print:w-full">
         
         {/* Header - Hidden on Print */}
         <div className="sticky top-0 bg-white border-b border-gray-150 p-6 flex justify-between items-center z-10 print:hidden">
@@ -47,7 +130,7 @@ const OrderDetails = ({ order, isOpen, onClose, onStatusUpdated }) => {
           </div>
           <button 
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-[4px] transition-colors text-gray-400 hover:text-black"
+            className="p-2 hover:bg-gray-100 rounded-none transition-colors text-gray-400 hover:text-black"
           >
             <X size={24} />
           </button>
@@ -56,10 +139,10 @@ const OrderDetails = ({ order, isOpen, onClose, onStatusUpdated }) => {
         {/* Content Section */}
         <div className="p-8 sm:p-12 print:p-0">
           
-          {/* Invoice Header (Brand Focus) */}
+          {/* Invoice Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start mb-12 border-b-2 border-black pb-8">
             <div>
-              <h1 className="text-4xl font-black italic uppercase tracking-tighter text-black">Stop & Shop</h1>
+              <h1 className="text-4xl font-black italic uppercase tracking-tighter text-black font-serif">Stop & Shop</h1>
               <p className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400 mt-1">International Logistics • Pakistan Edition</p>
               <div className="mt-6 space-y-1 text-xs font-bold text-gray-500 uppercase tracking-widest leading-relaxed">
                 <p>Building 42C, DHA Phase 6</p>
@@ -79,46 +162,89 @@ const OrderDetails = ({ order, isOpen, onClose, onStatusUpdated }) => {
               </div>
             </div>
           </div>
+
+          {/* Verification Banner if manual transaction ID is pending */}
+          {hasManualTid && paymentStatus === 'Pending' && (
+            <div className="mb-10 p-5 bg-[#FAF9F5] border border-amber-200 flex flex-col sm:flex-row items-center justify-between gap-4 print:hidden">
+              <div>
+                <p className="text-[9px] font-black uppercase tracking-[0.25em] text-amber-600 mb-1">Manual Payment Pending Verification</p>
+                <p className="text-xs font-bold text-gray-700">Transaction ID: <span className="font-mono text-black font-black">{order.paymentDetails?.transactionID}</span></p>
+              </div>
+              <button
+                onClick={handleVerifyManualPayment}
+                disabled={isVerifying}
+                className="flex items-center space-x-2 bg-black text-white px-5 py-3 text-[9px] font-black uppercase tracking-widest hover:bg-black/90 transition-all disabled:opacity-50"
+              >
+                {isVerifying ? <Loader size={12} className="animate-spin" /> : <ShieldCheck size={14} />}
+                <span>Verify & Mark Paid</span>
+              </button>
+            </div>
+          )}
+
           {/* Quick Controls - Hidden on Print */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-12 print:hidden">
-            {/* Status Toggle Card */}
-            <div className="bg-gray-50 p-6 rounded-[4px] border border-gray-150 flex items-center justify-between">
+            {/* Status Change Dropdown Card */}
+            <div className="bg-gray-50 p-6 rounded-none border border-gray-150 flex items-center justify-between">
               <div className="flex items-center space-x-4">
-                <div className={`p-3 rounded-[4px] ${order.status === 'Shipped' ? 'bg-green-50 border border-green-200 text-green-600' : 'bg-yellow-50 border border-yellow-250 text-yellow-600'}`}>
-                  {order.status === 'Shipped' ? <Truck size={20} /> : <Clock size={20} />}
+                <div className={`p-3 rounded-none border ${order.status === 'Delivered' || order.status === 'Paid' ? 'bg-green-50 border-green-200 text-green-600' : 'bg-yellow-50 border-yellow-250 text-yellow-600'}`}>
+                  {order.status === 'Delivered' || order.status === 'Paid' ? <Truck size={20} /> : <Clock size={20} />}
                 </div>
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Current Status</p>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Order Status</p>
                   <p className="text-sm font-black uppercase tracking-tight">{order.status}</p>
                 </div>
               </div>
-              <button
-                onClick={handleStatusToggle}
-                disabled={isUpdating}
-                className={`px-4 py-2 text-[10px] font-black uppercase tracking-widest rounded-[4px] transition-all ${
-                  order.status === 'Shipped' 
-                    ? 'bg-gray-150 text-gray-700 hover:bg-black hover:text-white' 
-                    : 'bg-black text-white hover:bg-black/90'
-                }`}
-              >
-                {isUpdating ? 'Updating...' : order.status === 'Shipped' ? 'Mark Pending' : 'Mark Shipped'}
-              </button>
+
+              <div>
+                <select
+                  value={order.status}
+                  disabled={isUpdating}
+                  onChange={(e) => handleStatusChange(e.target.value)}
+                  className="bg-white border border-gray-200 px-3 py-2 text-[10px] font-black uppercase tracking-widest focus:border-black outline-none cursor-pointer"
+                >
+                  {validStatuses.map(st => (
+                    <option key={st} value={st}>{st}</option>
+                  ))}
+                </select>
+              </div>
             </div>
  
-            {/* Print Card */}
-            <div className="bg-gray-50 p-6 rounded-[4px] border border-gray-150 flex items-center justify-between">
+            {/* Payment Actions / Print Card */}
+            <div className="bg-gray-50 p-6 rounded-none border border-gray-150 flex items-center justify-between">
               <div className="flex items-center space-x-4 text-black">
                 <Printer size={24} />
-                <p className="text-sm font-black uppercase tracking-widest">Printer-Friendly Version</p>
+                <p className="text-sm font-black uppercase tracking-widest">Controls</p>
               </div>
-              <button
-                onClick={handlePrint}
-                className="bg-black text-white px-6 py-2 text-[10px] font-black uppercase tracking-widest rounded-[4px] hover:bg-black/90 transition-all"
-              >
-                Print Invoice
-              </button>
+              <div className="flex space-x-2">
+                {isCod && paymentStatus === 'Pending' && (
+                  <button
+                    onClick={handleMarkCodPaid}
+                    disabled={isUpdating}
+                    className="bg-black text-white px-4 py-2.5 text-[9px] font-black uppercase tracking-widest hover:bg-black/90 transition-all"
+                  >
+                    Receive COD Paid
+                  </button>
+                )}
+                {!isCod && paymentStatus === 'Paid' && order.status !== 'Refunded' && (
+                  <button
+                    onClick={handleRefund}
+                    disabled={isRefunding}
+                    className="bg-cardinal text-white px-4 py-2.5 text-[9px] font-black uppercase tracking-widest hover:brightness-110 transition-all flex items-center space-x-1.5"
+                  >
+                    {isRefunding ? <Loader size={11} className="animate-spin" /> : <RefreshCcw size={11} />}
+                    <span>Refund Payment</span>
+                  </button>
+                )}
+                <button
+                  onClick={handlePrint}
+                  className="border border-gray-200 text-gray-700 bg-white px-4 py-2.5 text-[9px] font-black uppercase tracking-widest hover:border-gray-900 transition-all"
+                >
+                  Print Invoice
+                </button>
+              </div>
             </div>
           </div>
+
           {/* Detailed Info Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-12">
             {/* Customer Info */}
@@ -130,6 +256,7 @@ const OrderDetails = ({ order, isOpen, onClose, onStatusUpdated }) => {
               <div className="text-sm">
                 <p className="font-black uppercase tracking-tight text-lg text-gray-900">{order.customer.name}</p>
                 <p className="text-gray-500 font-bold mt-1 lowercase">{order.customer.email}</p>
+                <p className="text-gray-500 font-bold mt-1 uppercase tracking-wider font-mono">Phone: {order.customer.phone || 'N/A'}</p>
               </div>
               
               <div className="flex items-center space-x-2 border-b border-gray-150 pb-2 pt-4">
@@ -149,25 +276,53 @@ const OrderDetails = ({ order, isOpen, onClose, onStatusUpdated }) => {
                 <CreditCard size={16} className="text-black" />
                 <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400">Transaction Details</h3>
               </div>
-              <div className="bg-gray-50 p-4 border-l-2 border-black rounded-r-[4px]">
-                <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">Payment Method</p>
-                <p className="text-sm font-black uppercase tracking-tight mt-1">{order.paymentMethod || 'Credit Card (Stripe)'}</p>
+              <div className="bg-gray-50 p-5 border-l-2 border-black space-y-2 uppercase tracking-wide text-[9px] font-bold text-gray-500">
+                <div>
+                  <p className="text-[8px] font-black text-gray-400">Payment Channel</p>
+                  <p className="text-xs font-black text-black mt-0.5">{order.paymentMethod}</p>
+                </div>
+                {order.paymentDetails?.transactionID && (
+                  <div>
+                    <p className="text-[8px] font-black text-gray-400">Gateway Transaction ID</p>
+                    <p className="text-xs font-black text-black font-mono mt-0.5">{order.paymentDetails.transactionID}</p>
+                  </div>
+                )}
+                {order.paymentDetails?.paymentAccount && (
+                  <div>
+                    <p className="text-[8px] font-black text-gray-400">Account details / Masked Card</p>
+                    <p className="text-xs font-black text-black mt-0.5">
+                      {order.paymentDetails.paymentAccount}
+                      {order.paymentDetails.cardBrand ? ` (${order.paymentDetails.cardBrand})` : ''}
+                    </p>
+                  </div>
+                )}
+                <div>
+                  <p className="text-[8px] font-black text-gray-400">Payment Status</p>
+                  <span className={`inline-block px-2 py-0.5 text-[8px] font-black text-white mt-1 ${
+                    paymentStatus === 'Paid' ? 'bg-green-600' :
+                    paymentStatus === 'Refunded' ? 'bg-cardinal' :
+                    paymentStatus === 'Failed' ? 'bg-red-600' : 'bg-amber-500'
+                  }`}>
+                    {paymentStatus}
+                  </span>
+                </div>
               </div>
               
-              <div className="bg-black text-white p-6 rounded-[4px] relative overflow-hidden group">
+              <div className="bg-black text-white p-6 rounded-none relative overflow-hidden group">
                 <div className="absolute top-0 right-0 w-20 h-20 bg-white/10 rounded-full -mr-10 -mt-10 group-hover:scale-150 transition-transform duration-700"></div>
-                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-300 mb-2 relative z-10">Total Amount Paid</p>
+                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-300 mb-2 relative z-10">Total Amount Due</p>
                 <p className="text-4xl font-black relative z-10 font-mono">PKR {order.total.toLocaleString()}</p>
               </div>
             </div>
           </div>
-          {/* Items Table */}
+
+          {/* Itemized list */}
           <div className="mt-12">
             <h3 className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-400 mb-6 flex items-center space-x-2">
               <ShoppingBag size={14} className="text-black" />
               <span>Itemized Consumption</span>
             </h3>
-            <div className="border border-gray-150 rounded-[4px] overflow-hidden">
+            <div className="border border-gray-150 rounded-none overflow-hidden">
               <table className="w-full text-left">
                 <thead>
                   <tr className="bg-gray-50 border-b border-gray-150 text-[10px] font-black uppercase tracking-widest text-gray-400">

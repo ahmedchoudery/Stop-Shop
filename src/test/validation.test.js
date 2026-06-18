@@ -127,7 +127,7 @@ describe('updateProductSchema', () => {
 // CHECKOUT SCHEMA
 // ─────────────────────────────────────────────────────────────────
 
-const validCustomer = { name: 'Ahmed Khan', email: 'ahmed@example.pk', address: '123 Main Street Lahore', city: 'Lahore', zip: '54000' };
+const validCustomer = { name: 'Ahmed Khan', email: 'ahmed@example.pk', phone: '03001234567', address: '123 Main Street Lahore', city: 'Lahore', zip: '54000' };
 const validItem = { id: 'PRD-TEST12345', name: 'Classic Tee', price: 999, quantity: 1, selectedSize: 'M', selectedColor: 'Navy', category: 'Tops', subCategory: 'T-Shirt' };
 
 describe('checkoutSchema', () => {
@@ -190,15 +190,23 @@ describe('checkoutSchema', () => {
 
 describe('updateOrderStatusSchema', () => {
   it('accepts all valid statuses', () => {
-    const statuses = ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'];
+    const statuses = ['Pending', 'Processing', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled', 'Paid', 'Failed', 'Refunded'];
     for (const status of statuses) {
       const result = validate(updateOrderStatusSchema, { status });
       expect(result.success).toBe(true);
     }
   });
 
-  it('rejects invalid status', () => assertInvalid(updateOrderStatusSchema, { status: 'Refunded' }, 'status'));
-  it('rejects missing status', () => assertInvalid(updateOrderStatusSchema, {}, 'status'));
+  it('rejects invalid status', () => assertInvalid(updateOrderStatusSchema, { status: 'ReturnedToSender' }, 'status'));
+  it('accepts empty object (all fields optional)', () => {
+    const result = validate(updateOrderStatusSchema, {});
+    expect(result.success).toBe(true);
+  });
+  it('accepts paymentStatus field', () => {
+    const result = validate(updateOrderStatusSchema, { paymentStatus: 'Paid' });
+    expect(result.success).toBe(true);
+  });
+  it('rejects invalid paymentStatus', () => assertInvalid(updateOrderStatusSchema, { paymentStatus: 'Void' }, 'paymentStatus'));
 });
 
 // ─────────────────────────────────────────────────────────────────

@@ -12,7 +12,7 @@ import RecentlyViewedSection from '../components/RecentlyViewedSection.jsx';
 import Newsletter from '../components/Newsletter.jsx';
 import { useCart } from '../context/CartContext.tsx';
 
-export default function HomePageClient({ products = [] }) {
+export default function HomePageClient({ products = [], dropProducts = [], attitudeProducts = [], piecesProducts = [] }) {
   const { activeBucket, setActiveBucket, activeSub: activeSubCategory, shouldScrollGrid } = useCart();
 
   // Scroll to grid when bucket changes from navbar
@@ -61,13 +61,13 @@ export default function HomePageClient({ products = [] }) {
       />
 
       {/* 4 ─ Featured Drop: "The Drop You've Been Waiting For" */}
-      <FeaturedDrop fallbackProducts={featuredProducts} />
+      <FeaturedDrop products={dropProducts} fallbackProducts={featuredProducts} />
 
       {/* 5 ─ Lookbook Full-Bleed Strip */}
-      <LookbookStrip onShopNow={handleCategorySelect} />
+      <LookbookStrip products={attitudeProducts} onShopNow={handleCategorySelect} />
 
       {/* 6 ─ Pieces That Speak: "Pieces That Speak for Themselves" */}
-      <PiecesThatSpeak fallbackProducts={bestSellers} />
+      <PiecesThatSpeak products={piecesProducts} fallbackProducts={bestSellers} />
 
       {/* 7 ─ Full Product Catalog Grid */}
       <ProductGrid

@@ -18,7 +18,6 @@ const WhatsAppButton = () => {
   const [visible, setVisible] = useState(false);
   const [isInHero, setIsInHero] = useState(true);
   const [tooltip, setTooltip] = useState(false);
-  const [pulse, setPulse] = useState(false);
 
   const isHomePage = location.pathname === '/';
 
@@ -26,8 +25,7 @@ const WhatsAppButton = () => {
   useEffect(() => {
     if (!isHomePage) return;
     const t1 = setTimeout(() => setVisible(true), 500);
-    const t2 = setTimeout(() => setPulse(true), 3000);
-    return () => { clearTimeout(t1); clearTimeout(t2); };
+    return () => { clearTimeout(t1); };
   }, [isHomePage]);
 
   // Track scroll position compared to hero section height
@@ -90,11 +88,6 @@ const WhatsAppButton = () => {
           <div className="absolute bottom-0 right-5 translate-y-full w-0 h-0 border-l-4 border-r-4 border-t-4 border-l-transparent border-r-transparent border-t-gray-900" />
         </div>
 
-        {/* Pulse ring — attention grabber */}
-        {pulse && (
-          <div className="absolute inset-0 rounded-full bg-[#25D366] animate-ping opacity-30 pointer-events-none" />
-        )}
-
         {/* Button */}
         <button
           onClick={handleClick}
@@ -102,20 +95,19 @@ const WhatsAppButton = () => {
           onMouseLeave={() => setTooltip(false)}
           aria-label="Chat on WhatsApp"
           className="
-            relative w-14 h-14 rounded-full
-            bg-[#25D366] hover:bg-[#20ba58]
-            shadow-[0_8px_30px_rgba(37,211,102,0.4)]
-            hover:shadow-[0_12px_40px_rgba(37,211,102,0.6)]
+            relative w-14 h-14 rounded-[4px]
+            bg-white border border-gray-200
             flex items-center justify-center
             transition-all duration-300
-            hover:scale-110 active:scale-95
+            hover:bg-gray-50 hover:scale-105 active:scale-95
+            shadow-[0_4px_12px_rgba(0,0,0,0.03)]
           "
           style={{ willChange: 'transform' }}
         >
           {/* WhatsApp SVG icon */}
           <svg
             viewBox="0 0 24 24"
-            fill="white"
+            fill="#346538"
             className="w-7 h-7"
             xmlns="http://www.w3.org/2000/svg"
           >

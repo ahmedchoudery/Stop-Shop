@@ -13,11 +13,24 @@ const orderItemSchema = new mongoose.Schema({
 
 export const PAYMENT_METHODS = ['COD', 'ATM Card', 'Bank Transfer', 'Easypaisa', 'JazzCash'];
 
+export const ORDER_STATUSES = [
+  'Pending',
+  'Processing',
+  'Confirmed',
+  'Shipped',
+  'Delivered',
+  'Cancelled',
+  'Paid',
+  'Failed',
+  'Refunded',
+];
+
 const orderSchema = new mongoose.Schema({
   orderID: { type: String, unique: true, index: true },
   customer: {
     name:    { type: String, required: true },
     email:   { type: String, required: true },
+    phone:   { type: String, required: true }, // Contact number required for shipping & logistics
     address: String,
     city:    String,
     zip:     String,
@@ -27,9 +40,22 @@ const orderSchema = new mongoose.Schema({
   paymentMethod: { type: String, required: true, enum: PAYMENT_METHODS },
   status: {
     type: String,
-    enum: ['Pending', 'Processing', 'Shipped', 'Delivered', 'Cancelled'],
+    enum: ORDER_STATUSES,
     default: 'Pending',
     index: true,
+  },
+  paymentDetails: {
+    transactionID:  { type: String, index: true },
+    status:         { type: String, enum: ['Pending', 'Paid', 'Failed', 'Refunded'], default: 'Pending' },
+    paymentAccount: { type: String, default: '' }, // e.g. Easypaisa wallet number or masked card number
+    cardBrand:      { type: String, default: '' }, // e.g. Visa, Mastercard
+    refundedAt:     { type: Date },
+    refundReason:   { type: String, default: '' },
+    gatewayLogs:    [{
+      action:    { type: String, required: true },
+      timestamp: { type: Date, default: Date.now },
+      details:   { type: mongoose.Schema.Types.Mixed },
+    }],
   },
   ip:            { type: String, default: '' },
 }, { timestamps: true, versionKey: false });

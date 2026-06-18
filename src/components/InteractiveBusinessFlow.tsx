@@ -82,21 +82,21 @@ const StageNode = memo(({ stageKey, config, isActive, onClick, liveCount }: Stag
   return (
     <button
       onClick={() => onClick(stageKey)}
-      className={`w-full md:w-48 p-5 border text-left rounded-xl transition-all duration-300 relative group outline-none ${
+      className={`w-full md:w-48 p-5 border text-left rounded-[4px] transition-all duration-300 relative group outline-none ${
         isActive
-          ? 'bg-gray-900 border-gray-900 shadow-xl -translate-y-1 text-black'
-          : 'bg-white border-gray-100 shadow-sm hover:shadow-md hover:border-gray-300 text-gray-800'
+          ? 'bg-gray-900 border-gray-900 text-white'
+          : 'bg-white border-gray-100 text-gray-800 hover:border-gray-300'
       }`}
     >
       <div className="flex items-start justify-between mb-4">
-        <div className={`w-9 h-9 rounded-lg flex items-center justify-center border transition-colors ${
+        <div className={`w-9 h-9 rounded-[4px] flex items-center justify-center border transition-colors ${
           isActive
-            ? 'bg-white/10 border-white/20 text-black'
+            ? 'bg-white/10 border-white/20 text-white'
             : `${config.bg} border-current/20`
         }`}>
           <Icon size={16} />
         </div>
-        <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-full ${
+        <span className={`text-[10px] font-black uppercase px-2 py-0.5 rounded-[4px] ${
           isActive
             ? 'bg-cardinal text-white'
             : 'bg-gray-100 text-gray-500'
@@ -111,7 +111,7 @@ const StageNode = memo(({ stageKey, config, isActive, onClick, liveCount }: Stag
       </p>
 
       {/* Dynamic select indicator bar */}
-      <div className={`absolute bottom-0 left-0 right-0 h-[3px] rounded-b-xl transition-all duration-300 ${
+      <div className={`absolute bottom-0 left-0 right-0 h-[3px] rounded-b-[4px] transition-all duration-300 ${
         isActive ? 'bg-cardinal scale-x-100' : 'bg-transparent scale-x-0'
       }`} />
     </button>
@@ -216,12 +216,7 @@ export const InteractiveBusinessFlow = memo(({ ordersByStatus = {} }: Interactiv
       </div>
 
       {/* Selected Node Details Card — custom detail render */}
-      <div className="p-6 bg-gray-50 rounded-xl border border-gray-100 animate-fade-in relative overflow-hidden">
-        {/* Glow indicator decoration */}
-        <div
-          className="absolute -right-16 -top-16 w-32 h-32 rounded-full opacity-10 blur-2xl pointer-events-none"
-          style={{ backgroundColor: activeDetails.color }}
-        />
+      <div className="p-6 bg-gray-50 rounded-[4px] border border-gray-100 animate-fade-in relative overflow-hidden">
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-gray-100 pb-4 mb-4 gap-4">
           <div>

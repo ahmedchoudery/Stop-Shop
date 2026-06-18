@@ -237,7 +237,7 @@ const AdminReviews = () => {
                                                         <p className="text-[9px] font-bold text-gray-400 lowercase">{review.customerEmail}</p>
                                                         {review.productId && (
                                                             <p className="text-[9px] font-black text-black uppercase tracking-widest">
-                                                                SKU: {review.productId}
+                                                                Product: {review.productName ? `${review.productName} (${review.productId})` : review.productId}
                                                             </p>
                                                         )}
                                                         <p className="text-[9px] font-bold text-gray-300">{timeAgo(review.createdAt)}</p>
@@ -246,9 +246,11 @@ const AdminReviews = () => {
                                             </div>
 
                                             {/* Title */}
-                                            <p className="text-sm font-black uppercase tracking-tight text-gray-900 mt-3">
-                                                "{review.title}"
-                                            </p>
+                                            {review.title && (
+                                                <p className="text-sm font-black uppercase tracking-tight text-gray-900 mt-3">
+                                                    "{review.title}"
+                                                </p>
+                                            )}
 
                                             {/* Body — truncated unless expanded */}
                                             <p className={`text-sm text-gray-600 font-medium mt-1 leading-relaxed ${!isExpanded ? 'line-clamp-2' : ''}`}>

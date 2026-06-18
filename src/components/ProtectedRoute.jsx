@@ -43,14 +43,28 @@ const ProtectedRoute = ({ children }) => {
     return () => { cancelled = true; };
   }, []);
 
-  // Loading state — show spinner, not stale content
+  // Loading state — show clean line loader, not stale content
   if (authState === null) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="flex flex-col items-center space-y-4">
-          <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-cardinal" />
-          <p className="text-xs font-black uppercase tracking-widest text-gray-400">
-            Verifying access...
+      <div className="min-h-screen bg-[#F7F6F3] flex items-center justify-center">
+        <div className="flex flex-col items-center space-y-5">
+          <style>{`
+            @keyframes loading-slide {
+              0% { transform: translateX(-100%); }
+              100% { transform: translateX(200%); }
+            }
+          `}</style>
+          <div className="w-48 h-[2px] bg-gray-100 overflow-hidden relative">
+            <div 
+              className="absolute inset-y-0 w-1/2 bg-gray-900" 
+              style={{ 
+                animation: 'loading-slide 1.5s infinite ease-in-out',
+                willChange: 'transform' 
+              }} 
+            />
+          </div>
+          <p className="text-[9px] font-black uppercase tracking-[0.4em] text-gray-400">
+            Verifying access
           </p>
         </div>
       </div>

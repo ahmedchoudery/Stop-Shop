@@ -1,7 +1,21 @@
 import jwt from 'jsonwebtoken';
 
-export const JWT_SECRET = process.env.JWT_SECRET || process.env.ADMIN_JWT_SECRET || 'stopshop-admin-secret-2024';
-export const CUSTOMER_JWT_SECRET = process.env.CUSTOMER_JWT_SECRET || process.env.JWT_SECRET || 'stopshop-customer-secret-2024';
+let JWT_SECRET = process.env.JWT_SECRET || process.env.ADMIN_JWT_SECRET;
+let CUSTOMER_JWT_SECRET = process.env.CUSTOMER_JWT_SECRET || process.env.JWT_SECRET;
+
+if (process.env.NODE_ENV !== 'test') {
+  if (!JWT_SECRET) {
+    throw new Error('Please define the JWT_SECRET environment variable inside .env');
+  }
+  if (!CUSTOMER_JWT_SECRET) {
+    throw new Error('Please define the CUSTOMER_JWT_SECRET environment variable inside .env');
+  }
+} else {
+  JWT_SECRET = JWT_SECRET || 'stopshop-admin-secret-2024';
+  CUSTOMER_JWT_SECRET = CUSTOMER_JWT_SECRET || 'stopshop-customer-secret-2024';
+}
+
+export { JWT_SECRET, CUSTOMER_JWT_SECRET };
 
 export function getAdminFromToken(req) {
   const cookieHeader = req.headers.get('cookie') || '';

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import dbConnect from '../../../../../lib/db';
 import Coupon from '../../../../../models/Coupon';
 import { couponValidationSchema } from '../../../../../schemas/validation';
+import { calculateDiscount } from '../../../../../utils/pricing';
 
 export async function POST(req) {
   try {
@@ -51,14 +52,7 @@ export async function POST(req) {
       }, { status: 400 });
     }
 
-    let discount;
-    if (coupon.type === 'percentage') {
-      discount = Math.round((orderTotal * coupon.value) / 100);
-    } else {
-      discount = Math.min(coupon.value, orderTotal);
-    }
-
-    const finalTotal = Math.max(0, orderTotal - discount);
+    const { discount, finalTotal } = calculateDiscount(orderTotal, coupon);
 
     return NextResponse.json({
       code:       coupon.code,

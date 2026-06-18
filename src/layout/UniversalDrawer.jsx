@@ -13,6 +13,7 @@ import { useCart } from '../context/CartContext.tsx';
 import { useCurrency } from '../context/CurrencyContext.jsx';
 import { useScrollLock } from '../hooks/useUtils.js';
 import CouponInput from '../components/CouponInput.jsx';
+import { calculateDiscount } from '../utils/pricing.js';
 import WishlistDrawer from '../components/WishlistDrawer.jsx';
 import { playPremiumChime } from '../utils/audio.js';
 import MagneticElement from '../components/MagneticElement.jsx';
@@ -127,13 +128,13 @@ const CartItem = ({ item, onRemove, onQtyChange }) => {
 const UniversalDrawer = () => {
   const {
     cartItems, total, isDrawerOpen, drawerMode, selectedProduct,
-    closeDrawer, removeFromCart, updateQuantity, clearCart
+    closeDrawer, removeFromCart, updateQuantity, clearCart,
+    appliedCoupon, setAppliedCoupon
   } = useCart();
   const { formatPrice } = useCurrency();
   const navigate = useNavigate();
 
   const drawerRef = useRef(null);
-  const [appliedCoupon, setAppliedCoupon] = useState(null);
   const [wishlistOpen, setWishlistOpen] = useState(false);
 
   useScrollLock(isDrawerOpen || wishlistOpen);
@@ -176,13 +177,7 @@ const UniversalDrawer = () => {
     updateQuantity(item.id, item.selectedColor, item.selectedSize, delta, item.cartId);
   }, [updateQuantity]);
 
-  const discount = appliedCoupon
-    ? appliedCoupon.type === 'percentage'
-      ? Math.round((total * appliedCoupon.value) / 100)
-      : Math.min(appliedCoupon.value, total)
-    : 0;
-
-  const finalTotal = Math.max(0, total - discount);
+  const { discount, finalTotal } = calculateDiscount(total, appliedCoupon);
 
   if (!isDrawerOpen && !wishlistOpen) return null;
 

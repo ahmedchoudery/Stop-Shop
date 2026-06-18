@@ -31,11 +31,11 @@ export async function GET(req) {
       ordersByStatusArr,
     ] = await Promise.all([
       Order.aggregate([
-        { $match: { status: { $ne: 'Cancelled' } } },
+        { $match: { status: { $nin: ['Cancelled', 'Failed', 'Refunded'] } } },
         { $group: { _id: null, total: { $sum: '$total' }, count: { $sum: 1 } } },
       ]),
       Order.aggregate([
-        { $match: { status: { $ne: 'Cancelled' }, createdAt: { $gte: yesterday } } },
+        { $match: { status: { $nin: ['Cancelled', 'Failed', 'Refunded'] }, createdAt: { $gte: yesterday } } },
         { $group: { _id: null, total: { $sum: '$total' } } },
       ]),
       Order.aggregate([
@@ -45,7 +45,7 @@ export async function GET(req) {
       Product.countDocuments(),
       Product.countDocuments({ quantity: 0 }),
       Order.aggregate([
-        { $match: { status: { $ne: 'Cancelled' }, createdAt: { $gte: thirtyDaysAgo } } },
+        { $match: { status: { $nin: ['Cancelled', 'Failed', 'Refunded'] }, createdAt: { $gte: thirtyDaysAgo } } },
         {
           $group: {
             _id: {
@@ -59,7 +59,7 @@ export async function GET(req) {
         { $project: { date: '$_id', revenue: 1, orders: 1, _id: 0 } },
       ]),
       Order.aggregate([
-        { $match: { status: { $ne: 'Cancelled' } } },
+        { $match: { status: { $nin: ['Cancelled', 'Failed', 'Refunded'] } } },
         { $unwind: '$items' },
         {
           $group: {
@@ -79,7 +79,7 @@ export async function GET(req) {
         { $project: { method: '$_id', count: 1, _id: 0 } },
       ]),
       Order.aggregate([
-        { $match: { status: { $ne: 'Cancelled' } } },
+        { $match: { status: { $nin: ['Cancelled', 'Failed', 'Refunded'] } } },
         { $unwind: '$items' },
         {
           $group: {

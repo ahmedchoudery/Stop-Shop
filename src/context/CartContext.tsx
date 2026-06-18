@@ -5,9 +5,9 @@
  *          javascript-mastery (pure functions, immutability, switch/case)
  */
 
-import React, { createContext, useContext, useReducer, useMemo, useCallback, useEffect, useRef, ReactNode } from 'react';
+import React, { createContext, useContext, useReducer, useMemo, useCallback, useEffect, useRef, useState, ReactNode } from 'react';
 import { useLocalStorage } from '../hooks/useUtils.js';
-import { CartItem, Product } from '../types/index.ts';
+import { CartItem, Product, Coupon } from '../types/index.ts';
 
 // ─────────────────────────────────────────────────────────────────
 // TYPES & CONSTANTS
@@ -26,6 +26,7 @@ export interface CartState {
   sortBy: string;
   scrollGridTick: number;
   shakeCount: number;
+  appliedCoupon: Coupon | null;
 }
 
 export type CartAction =
@@ -40,7 +41,8 @@ export type CartAction =
   | { type: 'CLOSE_DRAWER' }
   | { type: 'SET_BUCKET'; payload: string | { bucket: string; sub: string | null } }
   | { type: 'SET_SUB'; payload: string | null }
-  | { type: 'SET_SORT'; payload: string };
+  | { type: 'SET_SORT'; payload: string }
+  | { type: 'SET_COUPON'; payload: Coupon | null };
 
 // ─────────────────────────────────────────────────────────────────
 // INITIAL STATE
@@ -57,6 +59,7 @@ const initialState: CartState = {
   sortBy: 'featured',
   scrollGridTick: 0,
   shakeCount: 0,
+  appliedCoupon: null,
 };
 
 // ─────────────────────────────────────────────────────────────────
@@ -188,6 +191,9 @@ const cartReducer = (state: CartState, action: CartAction): CartState => {
     case 'SET_SORT':
       return { ...state, sortBy: action.payload };
 
+    case 'SET_COUPON':
+      return { ...state, appliedCoupon: action.payload };
+
     default:
       return state;
   }
@@ -221,6 +227,8 @@ export interface CartContextType {
   setActiveSub: (sub: string | null) => void;
   setLastViewedBucket: (b: string | { bucket: string; sub: string | null }) => void;
   setSortBy: (sort: string) => void;
+  appliedCoupon: Coupon | null;
+  setAppliedCoupon: (coupon: Coupon | null) => void;
 }
 
 const CartContext = createContext<CartContextType | null>(null);
@@ -232,10 +240,12 @@ export interface CartProviderProps {
 export const CartProvider = ({ children }: CartProviderProps) => {
   const [state, dispatch] = useReducer(cartReducer, initialState);
   const [storedCart, setStoredCart] = useLocalStorage<CartItem[]>(CART_STORAGE_KEY, []);
+  const [isHydrated, setIsHydrated] = useState(false);
 
   // Hydrate cart from localStorage on mount
   useEffect(() => {
     dispatch({ type: 'LOAD_FROM_STORAGE', payload: storedCart });
+    setIsHydrated(true);
   }, []);  
 
   const syncAttempted = useRef(false);
@@ -324,10 +334,12 @@ export const CartProvider = ({ children }: CartProviderProps) => {
     };
   }, [state.cartItems.length]);
 
-  // Persist cart to localStorage on changes
+  // Persist cart to localStorage on changes, only after hydration is complete
   useEffect(() => {
-    setStoredCart(state.cartItems);
-  }, [state.cartItems, setStoredCart]);
+    if (isHydrated) {
+      setStoredCart(state.cartItems);
+    }
+  }, [state.cartItems, isHydrated, setStoredCart]);
 
   // ── DERIVED STATE ──────────────────────────────────────────────
 
@@ -409,6 +421,11 @@ export const CartProvider = ({ children }: CartProviderProps) => {
     []
   );
 
+  const setAppliedCoupon = useCallback(
+    (coupon: Coupon | null) => dispatch({ type: 'SET_COUPON', payload: coupon }),
+    []
+  );
+
   // ── CONTEXT VALUE ──────────────────────────────────────────────
 
   const value = useMemo(() => ({
@@ -425,6 +442,7 @@ export const CartProvider = ({ children }: CartProviderProps) => {
     sortBy: state.sortBy,
     shouldScrollGrid: state.scrollGridTick,
     isBouncing: state.shakeCount > 0,
+    appliedCoupon: state.appliedCoupon,
     // Actions
     addToCart,
     removeFromCart,
@@ -437,9 +455,10 @@ export const CartProvider = ({ children }: CartProviderProps) => {
     setActiveSub,
     setLastViewedBucket,
     setSortBy,
+    setAppliedCoupon,
   }), [state, cartCount, total, addToCart, removeFromCart, updateQuantity,
       setCartItemOptions, clearCart, openDrawer, closeDrawer,
-      setActiveBucket, setActiveSub, setLastViewedBucket, setSortBy]);
+      setActiveBucket, setActiveSub, setLastViewedBucket, setSortBy, setAppliedCoupon]);
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 };

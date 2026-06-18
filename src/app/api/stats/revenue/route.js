@@ -19,19 +19,19 @@ export async function GET(req) {
 
       const [[result], [yesterdayResult], [dayBeforeResult], weeklyRaw] = await Promise.all([
         Order.aggregate([
-          { $match: { status: { $ne: 'Cancelled' } } },
+          { $match: { status: { $nin: ['Cancelled', 'Failed', 'Refunded'] } } },
           { $group: { _id: null, totalRevenue: { $sum: '$total' }, totalOrders: { $sum: 1 } } },
         ]),
         Order.aggregate([
-          { $match: { status: { $ne: 'Cancelled' }, createdAt: { $gte: yesterday } } },
+          { $match: { status: { $nin: ['Cancelled', 'Failed', 'Refunded'] }, createdAt: { $gte: yesterday } } },
           { $group: { _id: null, revenue: { $sum: '$total' } } },
         ]),
         Order.aggregate([
-          { $match: { status: { $ne: 'Cancelled' }, createdAt: { $gte: dayBefore, $lt: yesterday } } },
+          { $match: { status: { $nin: ['Cancelled', 'Failed', 'Refunded'] }, createdAt: { $gte: dayBefore, $lt: yesterday } } },
           { $group: { _id: null, revenue: { $sum: '$total' } } },
         ]),
         Order.aggregate([
-          { $match: { status: { $ne: 'Cancelled' }, createdAt: { $gte: sevenDaysAgo } } },
+          { $match: { status: { $nin: ['Cancelled', 'Failed', 'Refunded'] }, createdAt: { $gte: sevenDaysAgo } } },
           {
             $group: {
               _id:     { $dateToString: { format: '%u', date: '$createdAt' } },
