@@ -169,7 +169,7 @@ const PowerOfChoiceHero = () => {
               so that background image characters remain 100% visible and sharp. 
               The existing bottom gradient scrim handles text legibility. */}
           <div 
-            className="w-full max-w-[280px] sm:max-w-[340px] lg:max-w-[480px]"
+            className="w-full max-w-[280px] sm:max-w-[340px] lg:max-w-[480px] mx-auto md:mx-0 text-center md:text-left"
           >
             {/* Season tag — redesigned for a premium, minimal clothing brand aesthetic */}
             <div data-anime style={{ opacity: 0 }} className="mb-4 sm:mb-5">
@@ -206,7 +206,7 @@ const PowerOfChoiceHero = () => {
             {/* CTAs */}
             <div
               data-anime
-              className="flex flex-wrap items-center gap-3 sm:gap-4"
+              className="flex flex-wrap items-center justify-center md:justify-start gap-3 sm:gap-4"
               style={{ opacity: 0 }}
             >
               {/* Primary CTA */}
