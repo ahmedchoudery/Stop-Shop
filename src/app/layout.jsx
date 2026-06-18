@@ -28,6 +28,9 @@ export const metadata = {
     statusBarStyle: 'black-translucent',
     title: 'Stop & Shop',
   },
+  other: {
+    'mobile-web-app-capable': 'yes',
+  },
 };
 
 export const viewport = {
