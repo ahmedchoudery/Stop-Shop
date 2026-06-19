@@ -39,6 +39,7 @@ export default function FeaturedDrop({ products: initialProducts = [], fallbackP
       products={displayProducts}
       headline="The Drop You've Been Waiting For."
       subline="New Arrivals · Limited Stock"
+      theme="dark"
     />
   );
 }

@@ -9,6 +9,7 @@ import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { ArrowRight, ArrowLeft } from 'lucide-react';
 import { playPremiumChime } from '../utils/audio.js';
 import { useNavigate } from '../utils/router-compat.jsx';
+import Image from 'next/image';
 
 const CARD_W_PX = 360; // approximate card width for step navigation
 const GAP_PX    = 48;
@@ -114,7 +115,7 @@ export default function LookbookStrip({ products: initialProducts = [], onShopNo
               Seasonal Looks · SS '26
             </p>
             <h2 className="text-4xl sm:text-5xl font-black uppercase tracking-tighter text-black leading-none">
-              Defined by Attitude.
+              Defined <span className="font-serif italic font-normal text-gray-500 lowercase tracking-normal">by</span> Attitude.
             </h2>
           </div>
 
@@ -185,9 +186,11 @@ export default function LookbookStrip({ products: initialProducts = [], onShopNo
               >
                 {/* Image */}
                 <div className="relative aspect-[3/4] overflow-hidden bg-gray-100 border border-[var(--border)]">
-                  <img
+                  <Image
                     src={look.image}
                     alt={look.title}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 33vw"
                     className="w-full h-full object-cover select-none pointer-events-none group-hover:scale-[1.04] transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)]"
                   />
                   {/* Dark overlay that fades on hover */}
@@ -219,7 +222,7 @@ export default function LookbookStrip({ products: initialProducts = [], onShopNo
             {/* Final CTA Slide */}
             <div 
               style={{ scrollSnapAlign: 'start' }}
-              className="w-[260px] sm:w-[300px] flex-shrink-0 flex flex-col justify-center items-center p-8 border border-dashed border-[var(--border-mid)] bg-white/60 text-center"
+              className="w-[260px] sm:w-[300px] flex-shrink-0 flex flex-col justify-center items-center p-8 bg-[#F5F5F4] text-center rounded-none"
             >
               <p className="text-[8px] font-black uppercase tracking-[0.5em] text-[#a4a4a2] mb-4">SS '26</p>
               <h4 className="text-sm font-black uppercase tracking-[0.15em] text-gray-950 mb-3">
@@ -230,7 +233,7 @@ export default function LookbookStrip({ products: initialProducts = [], onShopNo
               </p>
               <button
                 onClick={handleCtaClick}
-                className="btn-primary flex items-center gap-3 w-full justify-center !py-4"
+                className="btn-primary rounded-none shadow-none flex items-center gap-3 w-full justify-center !py-4"
               >
                 <span>Shop The Looks</span>
                 <ArrowRight size={13} />

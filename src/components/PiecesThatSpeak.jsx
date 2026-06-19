@@ -39,6 +39,7 @@ export default function PiecesThatSpeak({ products: initialProducts = [], fallba
       products={displayProducts}
       headline="Pieces That Speak for Themselves."
       subline="Best Sellers · Fan Favourites"
+      theme="light"
     />
   );
 }

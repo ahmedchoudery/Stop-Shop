@@ -66,7 +66,7 @@ export default function CategoryTiles({ onSelect, activeBucket }) {
   };
 
   return (
-    <section ref={ref} className="bg-white py-16 sm:py-24">
+    <section ref={ref} className="bg-[#FAF9F5] py-16 sm:py-24 border-t border-[var(--border)]">
       <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16">
 
         {/* Section Header */}
@@ -76,7 +76,7 @@ export default function CategoryTiles({ onSelect, activeBucket }) {
               Shop by Category
             </p>
             <h2 className="text-3xl sm:text-4xl font-black uppercase tracking-tighter text-black leading-none">
-              Dress Like<br className="sm:hidden" /> You Mean It.
+              Dress <span className="font-serif italic font-normal text-gray-500 lowercase tracking-normal">like</span> You Mean It.
             </h2>
           </div>
           <button
@@ -120,7 +120,7 @@ export default function CategoryTiles({ onSelect, activeBucket }) {
 
                 {/* Details Row - Pure Minimalism */}
                 <div className="mt-3 w-full px-0.5 text-left">
-                  <h3 className={`text-xs font-bold uppercase tracking-[0.2em] transition-colors duration-300 ${
+                  <h3 className={`text-[10px] font-black uppercase tracking-[0.25em] transition-colors duration-300 ${
                     isActive ? 'text-black' : 'text-gray-400 group-hover:text-black'
                   }`}>
                     {label}
