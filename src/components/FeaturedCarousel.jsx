@@ -15,7 +15,7 @@ import MediaRenderer from './MediaRenderer.jsx';
 
 /* ─── Carousel Card ─────────────────────────────────────────────────────── */
 
-const CarouselCard = ({ product, theme }) => {
+const CarouselCard = ({ product, theme, index = 0 }) => {
   const navigate = useNavigate();
   const { addToCart } = useCart();
   const { toggleWishlist, isWishlisted } = useWishlist();
@@ -47,23 +47,25 @@ const CarouselCard = ({ product, theme }) => {
 
   return (
     <article
-      className="group relative cursor-pointer flex-shrink-0"
+      className="group relative cursor-pointer flex-shrink-0 transition-all duration-500"
       style={{ width: 'clamp(220px, 28vw, 290px)' }}
       onClick={() => navigate(`/product/${product.id}`)}
     >
       {/* Image Wrapper */}
-      <div className="relative aspect-[3/4] overflow-hidden bg-gray-50 mb-3.5">
+      <div className="relative aspect-[3/4] overflow-hidden bg-gray-50 mb-4 transition-all duration-500 group-hover:shadow-[0_20px_40px_rgba(0,0,0,0.3)]">
         <MediaRenderer
           src={product.mediaType === 'embed' ? null : product.image}
           embedCode={product.mediaType === 'embed' ? product.embedCode : undefined}
           mediaType={product.mediaType}
           alt={product.name}
-          className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
+          className="w-full h-full object-cover transition-transform duration-1000 ease-out group-hover:scale-[1.04]"
         />
 
         {/* Clean border outline */}
-        <div className={`absolute inset-0 border transition-colors duration-500 z-10 pointer-events-none ${
-          theme === 'dark' ? 'border-white/5 group-hover:border-white/20' : 'border-gray-100 group-hover:border-black/20'
+        <div className={`absolute inset-0 border transition-all duration-500 z-10 pointer-events-none ${
+          theme === 'dark' 
+            ? 'border-white/5 group-hover:border-white/20 group-hover:shadow-[inset_0_0_24px_rgba(255,255,255,0.03)]' 
+            : 'border-gray-100 group-hover:border-black/20'
         }`} />
 
         {/* Top-Right Wishlist Button - Transparent and Minimalist */}
@@ -72,7 +74,7 @@ const CarouselCard = ({ product, theme }) => {
           className={`absolute top-3 right-3 w-8 h-8 rounded-none border backdrop-blur-sm shadow-sm flex items-center justify-center transition-all duration-300 group/wishlist z-20 ${
             theme === 'dark'
               ? 'bg-[#1a1a1a]/85 border-white/10 text-white hover:bg-white hover:text-black'
-              : 'bg-white/85 border-gray-250/20 text-gray-600 hover:bg-black hover:text-white'
+              : 'bg-white/85 border-gray-200 text-gray-650 hover:bg-black hover:text-white'
           }`}
         >
           <Heart 
@@ -80,7 +82,7 @@ const CarouselCard = ({ product, theme }) => {
             className={`transition-all duration-300 ${
               wishlisted 
                 ? (theme === 'dark' ? 'fill-white text-white group-hover/wishlist:fill-black group-hover/wishlist:text-black' : 'fill-black text-black group-hover/wishlist:fill-white group-hover/wishlist:text-white')
-                : (theme === 'dark' ? 'text-gray-300 group-hover/wishlist:text-black' : 'text-gray-650 group-hover/wishlist:text-white')
+                : (theme === 'dark' ? 'text-gray-300 group-hover/wishlist:text-black' : 'text-gray-500 group-hover/wishlist:text-white')
             }`} 
           />
         </button>
@@ -89,16 +91,26 @@ const CarouselCard = ({ product, theme }) => {
         {!outOfStock && (
           <button
             onClick={handleAddToCart}
-            className={`absolute bottom-3 right-3 w-9 h-9 rounded-none border backdrop-blur-sm shadow-sm flex items-center justify-center transition-all duration-300 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 z-20 ${
+            className={`absolute bottom-3 right-3 w-9 h-9 rounded-none border backdrop-blur-md shadow-sm flex items-center justify-center transition-all duration-300 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 z-20 ${
               cartAdded 
-                ? 'bg-black text-white border-black' 
+                ? 'bg-white text-black border-white' 
                 : theme === 'dark'
-                  ? 'bg-[#1a1a1a]/95 text-white border-white/10 hover:bg-white hover:text-black'
-                  : 'bg-white/90 text-black border-gray-250/20 hover:bg-black hover:text-white'
+                  ? 'bg-[#1a1a1b]/95 text-white border-white/15 hover:bg-white hover:text-black hover:border-white'
+                  : 'bg-white/90 text-black border-gray-200 hover:bg-black hover:text-white hover:border-black'
             }`}
           >
             <ShoppingBag size={13} className="transition-transform duration-200" />
           </button>
+        )}
+
+        {/* Limited Drop Pulse Tag */}
+        {theme === 'dark' && !outOfStock && (
+          <div className="absolute bottom-3 left-3 flex items-center gap-1.5 px-2 py-0.5 z-20 bg-black/70 border border-white/10 backdrop-blur-sm shadow-sm rounded-none">
+            <span className="w-1 h-1 rounded-full bg-white animate-ping" />
+            <span className="text-[7px] font-black uppercase tracking-[0.25em] text-white">
+              LIMITED
+            </span>
+          </div>
         )}
 
         {/* Discount Badge */}
@@ -127,7 +139,14 @@ const CarouselCard = ({ product, theme }) => {
       </div>
 
       {/* Info */}
-      <div className="px-0.5">
+      <div className="px-0.5 relative z-10">
+        {/* Large low-opacity numbered index behind details */}
+        {theme === 'dark' && (
+          <div className="absolute right-0 -top-4 font-mono text-[80px] font-black text-white/[0.02] select-none pointer-events-none transition-colors duration-500 group-hover:text-white/[0.05] leading-none z-0">
+            {String(index + 1).padStart(2, '0')}
+          </div>
+        )}
+
         <p className="text-[9px] font-medium uppercase tracking-[0.25em] text-gray-400 mb-1">{category}</p>
         <h3 className={`text-sm font-bold uppercase tracking-tight leading-snug transition-colors duration-300 line-clamp-1 mb-1 ${
           theme === 'dark' ? 'text-white group-hover:text-white/80' : 'text-gray-900 group-hover:text-black'
@@ -141,7 +160,7 @@ const CarouselCard = ({ product, theme }) => {
                 <span className="text-sm font-black text-cardinal font-mono">
                   {formatPrice(discountedPrice)}
                 </span>
-                <span className="text-xs text-gray-450 line-through font-mono">
+                <span className="text-xs text-gray-400 line-through font-mono">
                   {formatPrice(product.price)}
                 </span>
               </>
@@ -202,7 +221,7 @@ export default function FeaturedCarousel({ products = [], headline, subline, the
     <section
       className={`py-16 sm:py-24 overflow-hidden border-t ${
         theme === 'dark'
-          ? 'bg-[#0D0D0D] text-white border-white/10'
+          ? 'bg-gradient-to-tr from-[#050507] via-[#0E0E12] to-[#08080A] text-white border-white/10'
           : 'bg-white text-black border-[var(--border)]'
       }`}
     >
@@ -215,11 +234,7 @@ export default function FeaturedCarousel({ products = [], headline, subline, the
               {subline}
             </p>
             <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight leading-none sm:whitespace-nowrap">
-              {theme === 'dark' ? (
-                <>The Drop <span className="font-serif italic font-normal text-gray-500 lowercase tracking-normal">you've been</span> Waiting For.</>
-              ) : (
-                <>Pieces <span className="font-serif italic font-normal text-gray-500 lowercase tracking-normal">that speak for</span> Themselves.</>
-              )}
+              {theme === 'dark' ? "The Drop You've Been Waiting For." : "Pieces That Speak for Themselves."}
             </h2>
           </div>
 
@@ -260,9 +275,9 @@ export default function FeaturedCarousel({ products = [], headline, subline, the
             msOverflowStyle: 'none',
           }}
         >
-          {products.map((product) => (
+          {products.map((product, idx) => (
             <div key={product.id} style={{ scrollSnapAlign: 'start' }}>
-              <CarouselCard product={product} theme={theme} />
+              <CarouselCard product={product} theme={theme} index={idx} />
             </div>
           ))}
         </div>

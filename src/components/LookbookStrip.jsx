@@ -104,7 +104,7 @@ export default function LookbookStrip({ products: initialProducts = [], onShopNo
 
   return (
     <section
-      className="bg-[var(--bg-base)] py-20 sm:py-28 border-t border-[var(--border)] overflow-hidden"
+      className="bg-gradient-to-b from-[#FDFDFB] to-[#FAF8F5] py-20 sm:py-28 border-t border-[var(--border)] overflow-hidden"
     >
       <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16">
 
@@ -115,36 +115,27 @@ export default function LookbookStrip({ products: initialProducts = [], onShopNo
               Seasonal Looks · SS '26
             </p>
             <h2 className="text-4xl sm:text-5xl font-black uppercase tracking-tighter text-black leading-none">
-              Defined <span className="font-serif italic font-normal text-gray-500 lowercase tracking-normal">by</span> Attitude.
+              Defined by Attitude.
             </h2>
           </div>
 
           {/* Navigation controls */}
           <div className="flex items-center gap-4">
-            {/* Dots */}
-            <div className="flex items-center gap-2 mr-2">
-              {items.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => stepTo(i)}
-                  className="group"
-                  aria-label={`Go to look ${i + 1}`}
-                >
-                  <span
-                    className={`block rounded-full transition-all duration-300 ${
-                      i === activeIdx
-                        ? 'w-5 h-1.5 bg-black'
-                        : 'w-1.5 h-1.5 bg-gray-300 group-hover:bg-gray-500'
-                    }`}
-                  />
-                </button>
-              ))}
+            {/* Timeline progress line */}
+            <div className="relative w-24 sm:w-32 h-0.5 bg-gray-250/50 mr-2 overflow-hidden">
+              <div 
+                className="absolute top-0 left-0 h-full bg-black transition-all duration-500 ease-out"
+                style={{ 
+                  width: `${((activeIdx + 1) / items.length) * 100}%`
+                }}
+              />
             </div>
+
             {/* Arrows */}
             <button
               onClick={handlePrev}
               disabled={activeIdx === 0}
-              className="w-10 h-10 border border-[var(--border-mid)] flex items-center justify-center text-gray-500 hover:border-black hover:text-black transition-all duration-200 disabled:opacity-25 disabled:cursor-not-allowed active:scale-95"
+              className="w-10 h-10 border border-[var(--border-mid)] flex items-center justify-center text-gray-500 hover:border-black hover:text-black transition-all duration-200 disabled:opacity-25 disabled:cursor-not-allowed active:scale-95 rounded-none"
               aria-label="Previous look"
             >
               <ArrowLeft size={15} strokeWidth={1.8} />
@@ -152,7 +143,7 @@ export default function LookbookStrip({ products: initialProducts = [], onShopNo
             <button
               onClick={handleNext}
               disabled={activeIdx >= items.length - 1}
-              className="w-10 h-10 border border-[var(--border-mid)] flex items-center justify-center text-gray-500 hover:border-black hover:text-black transition-all duration-200 disabled:opacity-25 disabled:cursor-not-allowed active:scale-95"
+              className="w-10 h-10 border border-[var(--border-mid)] flex items-center justify-center text-gray-500 hover:border-black hover:text-black transition-all duration-200 disabled:opacity-25 disabled:cursor-not-allowed active:scale-95 rounded-none"
               aria-label="Next look"
             >
               <ArrowRight size={15} strokeWidth={1.8} />
@@ -172,11 +163,11 @@ export default function LookbookStrip({ products: initialProducts = [], onShopNo
               WebkitOverflowScrolling: 'touch',
             }}
           >
-            {items.map((look) => (
+            {items.map((look, idx) => (
               <div
                 key={look.id}
                 style={{ scrollSnapAlign: 'start' }}
-                className="w-[280px] sm:w-[340px] md:w-[360px] flex-shrink-0 group cursor-pointer text-left"
+                className="w-[280px] sm:w-[340px] md:w-[360px] flex-shrink-0 group cursor-pointer text-left relative"
                 onClick={() => {
                   if (look.product) {
                     playPremiumChime();
@@ -184,8 +175,13 @@ export default function LookbookStrip({ products: initialProducts = [], onShopNo
                   }
                 }}
               >
+                {/* Watermark index behind image */}
+                <div className="absolute -top-10 -left-4 font-mono text-[90px] font-black text-gray-200/20 select-none pointer-events-none transition-colors duration-500 group-hover:text-gray-300/30 leading-none z-0">
+                  {String(idx + 1).padStart(2, '0')}
+                </div>
+
                 {/* Image */}
-                <div className="relative aspect-[3/4] overflow-hidden bg-gray-100 border border-[var(--border)]">
+                <div className="relative aspect-[3/4] overflow-hidden bg-gray-100 border border-[var(--border)] group-hover:shadow-[0_24px_48px_rgba(0,0,0,0.04)] transition-all duration-500 z-10 rounded-none">
                   <Image
                     src={look.image}
                     alt={look.title}
@@ -194,22 +190,24 @@ export default function LookbookStrip({ products: initialProducts = [], onShopNo
                     className="w-full h-full object-cover select-none pointer-events-none group-hover:scale-[1.04] transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)]"
                   />
                   {/* Dark overlay that fades on hover */}
-                  <div className="absolute inset-0 bg-black/10 group-hover:bg-transparent transition-colors duration-500 pointer-events-none" />
+                  <div className="absolute inset-0 bg-black/5 group-hover:bg-transparent transition-colors duration-500 pointer-events-none" />
 
                   {/* Floating Tag */}
-                  <span className="absolute top-4 left-4 font-mono text-[9px] font-bold uppercase tracking-widest bg-white border border-gray-100 px-3 py-1.5">
+                  <span className="absolute top-4 left-4 font-mono text-[8px] font-black uppercase tracking-widest bg-white/90 backdrop-blur-sm border border-gray-100 px-3 py-1.5 shadow-sm z-20 rounded-none">
                     {look.tag}
                   </span>
 
                   {/* Bottom text overlay on hover */}
                   <div className="absolute bottom-0 left-0 right-0 p-5 bg-gradient-to-t from-black/60 to-transparent translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-500 pointer-events-none">
-                    <p className="text-white text-[10px] font-black uppercase tracking-[0.2em]">Shop This Look</p>
+                    <p className="text-white text-[10px] font-black uppercase tracking-[0.2em] flex items-center gap-1.5">
+                      Shop This Look <ArrowRight size={10} />
+                    </p>
                   </div>
                 </div>
 
                 {/* Metadata */}
-                <div className="mt-6">
-                  <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-900 mb-2">
+                <div className="mt-6 relative z-10">
+                  <h4 className="text-[11px] font-black uppercase tracking-[0.2em] text-gray-900 group-hover:text-black transition-colors duration-300 mb-2">
                     {look.title}
                   </h4>
                   <p className="text-[11px] text-gray-500 leading-relaxed font-medium">
@@ -222,7 +220,7 @@ export default function LookbookStrip({ products: initialProducts = [], onShopNo
             {/* Final CTA Slide */}
             <div 
               style={{ scrollSnapAlign: 'start' }}
-              className="w-[260px] sm:w-[300px] flex-shrink-0 flex flex-col justify-center items-center p-8 bg-[#F5F5F4] text-center rounded-none"
+              className="w-[260px] sm:w-[300px] flex-shrink-0 flex flex-col justify-center items-center p-8 bg-[#F5F5F4]/60 border border-gray-200/40 text-center rounded-none"
             >
               <p className="text-[8px] font-black uppercase tracking-[0.5em] text-[#a4a4a2] mb-4">SS '26</p>
               <h4 className="text-sm font-black uppercase tracking-[0.15em] text-gray-950 mb-3">
