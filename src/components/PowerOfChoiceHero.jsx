@@ -194,16 +194,16 @@ const PowerOfChoiceHero = () => {
                 textShadow: '0 2px 20px rgba(0,0,0,0.4)',
               }}
             >
-              Crafting Confidence.
+              Crafting <br className="md:hidden" /> Confidence.
               <br />
-              <span className="text-white/70">Defining Character.</span>
+              Defining <br className="md:hidden" /> Character.
             </h1>
 
 
             {/* CTAs */}
             <div
               data-anime
-              className="flex flex-col md:flex-row items-center justify-center md:justify-start gap-3 w-full max-w-[220px] mx-auto md:max-w-none md:mx-0"
+              className="flex flex-col md:flex-row items-center justify-center md:justify-start gap-3 w-full max-w-[140px] mx-auto md:max-w-none md:mx-0"
               style={{ opacity: 0 }}
             >
               {/* Primary CTA */}
@@ -214,11 +214,6 @@ const PowerOfChoiceHero = () => {
                 <span className="relative z-10 transition-colors duration-300 group-hover:text-white">
                   Shop Collection
                 </span>
-                <ArrowRight
-                  size={12}
-                  strokeWidth={2.5}
-                  className="relative z-10 transition-all duration-300 group-hover:translate-x-0.5 group-hover:text-white"
-                />
                 {/* Hover fill */}
                 <span className="absolute inset-0 bg-[#111] scale-x-0 origin-left group-hover:scale-x-100 transition-transform duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]" />
               </button>
