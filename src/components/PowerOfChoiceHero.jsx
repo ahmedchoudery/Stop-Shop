@@ -184,12 +184,6 @@ const PowerOfChoiceHero = () => {
           <div 
             className="w-full max-w-[280px] sm:max-w-[340px] lg:max-w-[480px] mx-auto md:mx-0 text-center md:text-left"
           >
-            {/* Season tag — redesigned for a premium, minimal clothing brand aesthetic */}
-            <div data-anime style={{ opacity: 0 }} className="mb-4 sm:mb-5">
-              <span className="text-[9px] font-bold uppercase tracking-[0.35em] text-white/60 block">
-                SS '26 Collection <span className="mx-1.5 text-white/20">|</span> Now Live
-              </span>
-            </div>
 
             {/* Headline */}
             <h1
@@ -206,15 +200,6 @@ const PowerOfChoiceHero = () => {
               <span className="text-white/70">Defining Character.</span>
             </h1>
 
-            {/* Sub-copy */}
-            <p
-              data-anime
-              className="text-white/50 font-sans text-xs sm:text-sm leading-relaxed mb-6 sm:mb-8"
-              style={{ opacity: 0, textShadow: '0 1px 8px rgba(0,0,0,0.5)' }}
-            >
-              Premium fabrics meet master-tailored precision.
-              Engineered for the man who commands respect.
-            </p>
 
             {/* CTAs */}
             <div
