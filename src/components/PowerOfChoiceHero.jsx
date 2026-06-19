@@ -173,7 +173,7 @@ const PowerOfChoiceHero = () => {
       />
 
       {/* ── Content ───────────────────────────────────────────────── */}
-      <div className="relative z-10 h-full flex flex-col justify-start md:justify-end pt-28 md:pt-0">
+      <div className="relative z-10 h-full flex flex-col justify-start md:justify-end pt-[150px] md:pt-0">
         <div
           ref={contentRef}
           className="w-full px-6 sm:px-10 lg:px-16 pb-12 sm:pb-16 lg:pb-20 max-w-[1440px] mx-auto"
@@ -182,16 +182,15 @@ const PowerOfChoiceHero = () => {
               so that background image characters remain 100% visible and sharp. 
               The existing bottom gradient scrim handles text legibility. */}
           <div 
-            className="w-full max-w-[280px] sm:max-w-[340px] lg:max-w-[480px] mx-auto md:mx-0 text-center md:text-left"
+            className="w-full max-w-[310px] sm:max-w-[340px] lg:max-w-[480px] mx-auto md:mx-0 text-center md:text-left"
           >
 
             {/* Headline */}
             <h1
               data-anime
-              className="text-white font-heading font-black uppercase leading-[1.05] tracking-[-0.02em] mb-3 sm:mb-4"
+              className="text-white font-heading font-black uppercase leading-[1.05] tracking-[-0.02em] mb-3 sm:mb-4 text-[21px] md:text-[32px] lg:text-[44px]"
               style={{
                 opacity: 0,
-                fontSize: 'clamp(1.65rem, 5vw, 2.75rem)',
                 textShadow: '0 2px 20px rgba(0,0,0,0.4)',
               }}
             >
@@ -204,13 +203,13 @@ const PowerOfChoiceHero = () => {
             {/* CTAs */}
             <div
               data-anime
-              className="flex flex-wrap items-center justify-center md:justify-start gap-3 sm:gap-4"
+              className="flex flex-col md:flex-row items-center justify-center md:justify-start gap-3 w-full max-w-[220px] mx-auto md:max-w-none md:mx-0"
               style={{ opacity: 0 }}
             >
               {/* Primary CTA */}
               <button
                 onClick={handleShopCollection}
-                className="hero-cta-primary group relative flex items-center gap-2.5 bg-white text-black text-[9px] font-black uppercase tracking-[0.2em] px-5 py-3.5 sm:px-7 sm:py-4 overflow-hidden transition-all duration-300 hover:shadow-[0_8px_30px_rgba(255,255,255,0.15)] active:scale-[0.98]"
+                className="hero-cta-primary group relative flex items-center justify-center gap-2 bg-white text-black text-[8.5px] md:text-[9px] font-black uppercase tracking-[0.15em] md:tracking-[0.2em] w-full md:w-auto px-4.5 py-3 md:px-7 md:py-4 overflow-hidden transition-all duration-300 hover:shadow-[0_8px_30px_rgba(255,255,255,0.15)] active:scale-[0.98]"
               >
                 <span className="relative z-10 transition-colors duration-300 group-hover:text-white">
                   Shop Collection
@@ -227,7 +226,7 @@ const PowerOfChoiceHero = () => {
               {/* Secondary CTA */}
               <button
                 onClick={scrollToDrop}
-                className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.2em] text-white/70 hover:text-white pb-0.5 border-b border-white/20 hover:border-white/80 transition-all duration-300"
+                className="flex items-center justify-center gap-1.5 text-[8.5px] md:text-[9px] font-black uppercase tracking-[0.15em] md:tracking-[0.2em] text-white/70 hover:text-white pb-0.5 border-b border-white/20 hover:border-white/80 transition-all duration-300 w-full md:w-auto py-1 md:py-0"
               >
                 Explore the Brand
               </button>
