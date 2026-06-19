@@ -69,11 +69,7 @@ export async function POST(req) {
       // where either the order status or payment status is 'Paid' or 'Delivered'.
       const verifiedPurchase = await Order.exists({
         'customer.email': email.trim().toLowerCase(),
-        $or: [
-          { status: 'Paid' },
-          { status: 'Delivered' },
-          { 'paymentDetails.status': 'Paid' }
-        ],
+        status: { $nin: ['Cancelled', 'Failed'] },
         'items.id': productId
       });
 

@@ -4,14 +4,14 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { MessageCircle, CheckCircle } from 'lucide-react';
+import { MessageCircle, CheckCircle, Star } from 'lucide-react';
 import { apiUrl } from '../config/api.js';
 
 const ProductReviews = ({ productId, productName }) => {
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ name: '', email: '', body: '' });
+  const [form, setForm] = useState({ name: '', email: '', body: '', rating: 5 });
   const [submitting, setSubmitting] = useState(false);
   const [done, setDone] = useState(false);
   const [apiError, setApiError] = useState('');
@@ -50,7 +50,7 @@ const ProductReviews = ({ productId, productName }) => {
       setTimeout(() => {
         setDone(false);
         setShowForm(false);
-        setForm({ name: '', email: '', body: '' });
+        setForm({ name: '', email: '', body: '', rating: 5 });
         fetchReviews();
       }, 3000);
     } catch (err) {
@@ -155,6 +155,24 @@ const ProductReviews = ({ productId, productName }) => {
                         onChange={e => setForm({...form, email: e.target.value})}
                       />
                     </div>
+                    <div>
+                      <span className="text-[9px] font-black uppercase tracking-[0.3em] text-gray-400 block mb-2">Rating *</span>
+                      <div className="flex items-center space-x-1.5">
+                        {[1, 2, 3, 4, 5].map((num) => (
+                          <button
+                            key={num}
+                            type="button"
+                            onClick={() => setForm({ ...form, rating: num })}
+                            className="p-1 focus:outline-none transition-transform active:scale-95"
+                          >
+                            <Star
+                              size={20}
+                              className={num <= form.rating ? 'fill-amber-gold text-amber-gold' : 'text-gray-300'}
+                            />
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                     <textarea 
                       placeholder="YOUR REVIEW (MINIMUM 20 CHARACTERS) *" 
                       required
@@ -190,6 +208,11 @@ const ProductReviews = ({ productId, productName }) => {
               ) : (
                 reviews.map((r, i) => (
                   <div key={r._id || i} className={`${i > 0 ? 'pt-8' : ''} space-y-4`}>
+                    <div className="flex space-x-0.5">
+                      {[1, 2, 3, 4, 5].map(n => (
+                        <Star key={n} size={11} className={n <= (r.rating ?? 5) ? 'fill-amber-gold text-amber-gold' : 'text-gray-200'} />
+                      ))}
+                    </div>
                     <p className="text-sm font-normal text-gray-700 leading-relaxed max-w-2xl">
                       {r.body}
                     </p>

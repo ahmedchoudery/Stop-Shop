@@ -91,7 +91,9 @@ const OrderTable = ({ externalOrders, loading: externalLoading, onStatusUpdated,
                   </td>
                   <td className="p-4">
                     <div className="flex flex-col">
-                      <span className="text-sm font-black uppercase tracking-tight">{order.customer?.firstName} {order.customer?.lastName}</span>
+                      <span className="text-sm font-black uppercase tracking-tight">
+                        {order.customer?.name || `${order.customer?.firstName ?? ''} ${order.customer?.lastName ?? ''}`.trim()}
+                      </span>
                       <span className="text-[10px] text-gray-400 font-medium">{order.customer?.city || 'Urgent Delivery'}</span>
                     </div>
                   </td>

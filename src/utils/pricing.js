@@ -8,7 +8,7 @@
  */
 export function calculateDiscount(total, coupon) {
   const cartTotal = parseFloat(total) || 0;
-  if (!coupon || !coupon.isActive) {
+  if (!coupon || coupon.isActive === false) {
     return { discount: 0, finalTotal: Math.max(0, cartTotal) };
   }
 

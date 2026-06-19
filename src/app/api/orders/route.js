@@ -18,7 +18,7 @@ export async function GET(req) {
 
     const totalCount = await Order.countDocuments({});
     const orders = await Order.find({})
-      .select('orderID customer total status paymentMethod paymentDetails createdAt updatedAt')
+      .select('orderID customer total status paymentMethod paymentDetails items createdAt updatedAt')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)

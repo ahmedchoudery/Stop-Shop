@@ -20,6 +20,7 @@ export async function GET(req) {
       type: coupon.type,
       value: coupon.value,
       minOrderValue: coupon.minOrderValue ?? 0,
+      isActive: coupon.isActive ?? true,
     });
   } catch (error) {
     return NextResponse.json({ error: error.message || 'Server error' }, { status: 500 });

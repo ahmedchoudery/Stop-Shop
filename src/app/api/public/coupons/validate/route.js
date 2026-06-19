@@ -58,6 +58,7 @@ export async function POST(req) {
       code:       coupon.code,
       type:       coupon.type,
       value:      coupon.value,
+      isActive:   true,
       discount,
       finalTotal,
       message:    coupon.type === 'percentage'

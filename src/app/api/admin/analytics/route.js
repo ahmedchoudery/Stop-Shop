@@ -16,12 +16,13 @@ export async function GET(req) {
 
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
     const yesterday     = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const dayBefore     = new Date(Date.now() - 48 * 60 * 60 * 1000);
 
     const [
       revenueResult,
-      revenueYesterday,
+      revenueYesterdayResult,
       ordersResult,
-      ordersYesterday,
+      revenueDayBeforeResult,
       productCount,
       outOfStockCount,
       revenueOverTime,
@@ -36,12 +37,15 @@ export async function GET(req) {
       ]),
       Order.aggregate([
         { $match: { status: { $nin: ['Cancelled', 'Failed', 'Refunded'] }, createdAt: { $gte: yesterday } } },
-        { $group: { _id: null, total: { $sum: '$total' } } },
+        { $group: { _id: null, total: { $sum: '$total' }, count: { $sum: 1 } } },
       ]),
       Order.aggregate([
         { $group: { _id: '$status', count: { $sum: 1 } } },
       ]),
-      Order.countDocuments({ createdAt: { $gte: yesterday } }),
+      Order.aggregate([
+        { $match: { status: { $nin: ['Cancelled', 'Failed', 'Refunded'] }, createdAt: { $gte: dayBefore, $lt: yesterday } } },
+        { $group: { _id: null, total: { $sum: '$total' }, count: { $sum: 1 } } },
+      ]),
       Product.countDocuments(),
       Product.countDocuments({ quantity: 0 }),
       Order.aggregate([
@@ -103,10 +107,14 @@ export async function GET(req) {
     const totalOrders     = revenueResult[0]?.count  ?? 0;
     const avgOrderValue   = totalOrders > 0 ? totalRevenue / totalOrders : 0;
     const pendingOrders   = ordersResult.find(o => o._id === 'Pending')?.count ?? 0;
-    const yesterdayRev    = revenueYesterday[0]?.total ?? 0;
-    const revenueTrend = (yesterdayRev > 0 && isFinite(totalRevenue))
-      ? ((totalRevenue - yesterdayRev) / yesterdayRev) * 100
-      : 0;
+
+    const yesterdayRev    = revenueYesterdayResult[0]?.total ?? 0;
+    const yesterdayOrders = revenueYesterdayResult[0]?.count ?? 0;
+    const dayBeforeRev    = revenueDayBeforeResult[0]?.total ?? 0;
+    const dayBeforeOrders = revenueDayBeforeResult[0]?.count ?? 0;
+
+    const revenueTrend = dayBeforeRev > 0 ? ((yesterdayRev - dayBeforeRev) / dayBeforeRev) * 100 : 0;
+    const ordersTrend  = dayBeforeOrders > 0 ? ((yesterdayOrders - dayBeforeOrders) / dayBeforeOrders) * 100 : 0;
     const ordersByStatus  = ordersByStatusArr.reduce((acc, o) => ({ ...acc, [o._id]: o.count }), {});
 
     return NextResponse.json({

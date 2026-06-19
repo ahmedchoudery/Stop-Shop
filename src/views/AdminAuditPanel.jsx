@@ -133,7 +133,7 @@ const AdminAuditPanel = () => {
                         {log.action ?? 'Unknown action'}
                       </p>
                       <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest flex-shrink-0 ml-4">
-                        {log.createdAt ? new Date(log.createdAt).toLocaleString('en-PK') : '—'}
+                        {(log.createdAt || log.timestamp) ? new Date(log.createdAt || log.timestamp).toLocaleString('en-PK') : '—'}
                       </span>
                     </div>
                     <div className="flex items-center space-x-3">
