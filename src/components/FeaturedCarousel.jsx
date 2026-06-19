@@ -219,6 +219,7 @@ export default function FeaturedCarousel({ products = [], headline, subline, the
 
   return (
     <section
+      id={theme === 'dark' ? 'featured-drop' : 'pieces-speak'}
       className={`py-16 sm:py-24 overflow-hidden border-t ${
         theme === 'dark'
           ? 'bg-gradient-to-tr from-[#050507] via-[#0E0E12] to-[#08080A] text-white border-white/10'

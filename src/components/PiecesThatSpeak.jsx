@@ -209,7 +209,7 @@ export default function PiecesThatSpeak({ products: initialProducts = [], fallba
   }
 
   return (
-    <section className="bg-gradient-to-b from-[#FAF9F6] via-white to-[#FDFCFB] py-20 sm:py-28 border-t border-[var(--border)] overflow-hidden">
+    <section id="pieces-speak" className="bg-gradient-to-b from-[#FAF9F6] via-white to-[#FDFCFB] py-20 sm:py-28 border-t border-[var(--border)] overflow-hidden">
       <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16">
         
         {/* Editorial Header */}

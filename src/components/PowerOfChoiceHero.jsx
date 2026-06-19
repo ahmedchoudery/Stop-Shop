@@ -11,11 +11,13 @@ import React, { useEffect, useRef, useCallback } from 'react';
 import anime from 'animejs';
 import { EASING } from '../hooks/useAnime.js';
 import { ChevronDown, ArrowRight } from 'lucide-react';
+import { useCart } from '../context/CartContext.tsx';
 
 const PowerOfChoiceHero = () => {
   const contentRef = useRef(null);
   const scrollRef = useRef(null);
   const overlayRef = useRef(null);
+  const { setActiveBucket } = useCart();
 
   /* ── Content entrance animation ──────────────────────────────── */
   useEffect(() => {
@@ -75,8 +77,19 @@ const PowerOfChoiceHero = () => {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  const scrollToGrid = useCallback(() => {
+  const handleShopCollection = useCallback(() => {
+    if (setActiveBucket) {
+      setActiveBucket('All');
+    }
     const el = document.getElementById('product-grid');
+    if (el) {
+      const top = el.getBoundingClientRect().top + window.scrollY - 100;
+      window.scrollTo({ top, behavior: 'smooth' });
+    }
+  }, [setActiveBucket]);
+
+  const scrollToDrop = useCallback(() => {
+    const el = document.getElementById('featured-drop');
     if (el) {
       const top = el.getBoundingClientRect().top + window.scrollY - 100;
       window.scrollTo({ top, behavior: 'smooth' });
@@ -211,7 +224,7 @@ const PowerOfChoiceHero = () => {
             >
               {/* Primary CTA */}
               <button
-                onClick={scrollToGrid}
+                onClick={handleShopCollection}
                 className="hero-cta-primary group relative flex items-center gap-2.5 bg-white text-black text-[9px] font-black uppercase tracking-[0.2em] px-5 py-3.5 sm:px-7 sm:py-4 overflow-hidden transition-all duration-300 hover:shadow-[0_8px_30px_rgba(255,255,255,0.15)] active:scale-[0.98]"
               >
                 <span className="relative z-10 transition-colors duration-300 group-hover:text-white">
@@ -228,7 +241,7 @@ const PowerOfChoiceHero = () => {
 
               {/* Secondary CTA */}
               <button
-                onClick={scrollToGrid}
+                onClick={scrollToDrop}
                 className="flex items-center gap-2 text-[9px] font-black uppercase tracking-[0.2em] text-white/70 hover:text-white pb-0.5 border-b border-white/20 hover:border-white/80 transition-all duration-300"
               >
                 Explore the Brand
@@ -241,7 +254,7 @@ const PowerOfChoiceHero = () => {
       {/* ── Scroll indicator ──────────────────────────────────────── */}
       <button
         ref={scrollRef}
-        onClick={scrollToGrid}
+        onClick={handleShopCollection}
         className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-1 text-white/50 hover:text-white/80 transition-colors duration-200"
         aria-label="Scroll to products"
         style={{ opacity: 0 }}
