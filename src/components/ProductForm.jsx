@@ -578,7 +578,7 @@ const PlacementSection = memo(({ form, setForm, allProducts, editingProduct }) =
                   updates.subCategory = 'Outfit';
                 } else if (f.featuredSection === 'attitude') {
                   updates.bucket = 'Tops';
-                  updates.subCategory = 'Polo';
+                  updates.subCategory = 'Polos';
                 }
                 return { ...f, ...updates };
               })}
@@ -640,16 +640,17 @@ const PlacementSection = memo(({ form, setForm, allProducts, editingProduct }) =
 PlacementSection.displayName = 'PlacementSection';
 
 export const EMPTY_FORM = {
-  id: '', name: '', price: '', quantity: '',
+  id: '', name: '', price: '', quantity: 0,
   image: '', lifestyleImage: '', mediaType: 'upload', embedCode: '',
   gallery: [],
-  bucket: 'Tops', subCategory: 'Polo',
-  rating: 5, stock: 10,
+  bucket: 'Tops', subCategory: 'Polos',
+  rating: 5, stock: 0,
   specs: ['', '', ''],
   colors: [],
   variantImages: {},
   sizes: [],
   sizeStock: {},
+  colorStock: {},
   featuredSection: 'collection',
   displayOrder: 0,
   discount: 0,

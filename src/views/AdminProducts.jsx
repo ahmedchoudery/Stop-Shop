@@ -295,15 +295,15 @@ const AdminProducts = () => {
         ...form,
         price:    parseFloat(form.price),
         quantity: parseInt(form.quantity) || 0,
-        stock:    parseInt(form.quantity) || 0,
+        stock:    parseInt(form.quantity) || 0,  // Always mirrors quantity
         discount: parseInt(form.discount) || 0,
-        // Ensure sizeStock values are numbers
+        // Ensure sizeStock values are numbers (0 is valid)
         sizeStock: Object.fromEntries(
-          Object.entries(form.sizeStock ?? {}).map(([k, v]) => [k, parseInt(v) || 0])
+          Object.entries(form.sizeStock ?? {}).map(([k, v]) => [k, Math.max(0, parseInt(v) || 0)])
         ),
-        // Ensure colorStock values are numbers
+        // Ensure colorStock values are numbers (0 is valid)
         colorStock: Object.fromEntries(
-          Object.entries(form.colorStock ?? {}).map(([k, v]) => [k, parseInt(v) || 0])
+          Object.entries(form.colorStock ?? {}).map(([k, v]) => [k, Math.max(0, parseInt(v) || 0)])
         ),
       };
 
@@ -509,18 +509,18 @@ const AdminProducts = () => {
 
       {/* ── Product Form (Create / Edit) ────────────────────────── */}
       {showForm && (
-        <div className="fixed inset-0 z-[100] flex items-start justify-end overflow-hidden">
+        <div className="fixed inset-0 z-[100] flex items-start justify-end">
           {/* Backdrop */}
           <div
             className="absolute inset-0 bg-white/50 backdrop-blur-sm"
             onClick={handleCloseForm}
           />
 
-          {/* Slide-in panel */}
-          <div className="relative h-full w-full max-w-2xl bg-white shadow-2xl overflow-y-auto animate-slide-in flex flex-col">
+          {/* Slide-in panel — outer div is a fixed-height flex column, NO overflow here */}
+          <div className="relative h-full w-full max-w-2xl bg-white shadow-2xl animate-slide-in flex flex-col">
 
-            {/* Panel header */}
-            <div className="sticky top-0 z-10 bg-black text-white px-6 py-5 flex items-center justify-between flex-shrink-0">
+            {/* Panel header — always visible, never scrolls */}
+            <div className="bg-black text-white px-6 py-5 flex items-center justify-between flex-shrink-0">
               <div>
                 <p className="text-[9px] font-black uppercase tracking-[0.4em] text-white/40 mb-1">
                   {editingProduct ? 'Editing Product' : 'New Product'}
@@ -537,8 +537,8 @@ const AdminProducts = () => {
               </button>
             </div>
 
-            {/* Form body */}
-            <div className="flex-grow p-6">
+            {/* Form body — this is the ONLY scrollable area */}
+            <div className="flex-grow overflow-y-auto p-6">
               <ProductForm
                 form={form}
                 setForm={setForm}
@@ -558,8 +558,8 @@ const AdminProducts = () => {
               />
             </div>
 
-            {/* Sticky save bar */}
-            <div className="sticky bottom-0 bg-white border-t border-gray-150 px-6 py-4 flex items-center space-x-3 flex-shrink-0">
+            {/* Save bar — always visible at the bottom, never scrolled away */}
+            <div className="bg-white border-t border-gray-200 px-6 py-4 flex items-center space-x-3 flex-shrink-0">
               <button
                 onClick={handleCloseForm}
                 className="flex-1 px-5 py-3 border border-gray-200 text-gray-700 text-[10px] font-black uppercase tracking-widest rounded-[4px] hover:border-black transition-all bg-white"
