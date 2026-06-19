@@ -31,24 +31,31 @@ if (typeof document !== 'undefined') {
   }
 }
 
-const MarqueeBar = () => {
+const MarqueeBar = ({ announcement }) => {
   const trackRef = useRef(null);
 
-  // Build a rich marquee that cycles policy + promo
-  // We render a JSX version so we can inline the blinking CARDINAL span
-  const segments = [
-    { type: 'text', content: `7-DAYS EASY EXCHANGE POLICY${SEP}` },
-    { type: 'promo' }, // rendered as JSX with blink
-    { type: 'text', content: `${SEP}FREE DELIVERY ON ORDERS OVER RS. 2,000${SEP}` },
-    { type: 'text', content: `NEW ARRIVALS EVERY FRIDAY${SEP}` },
-    { type: 'text', content: `PREMIUM FABRICS · CRAFTED IN PAKISTAN${SEP}` },
-    { type: 'text', content: `7-DAYS EASY EXCHANGE POLICY${SEP}` },
-    { type: 'promo' },
-    { type: 'text', content: `${SEP}FREE DELIVERY ON ORDERS OVER RS. 2,000${SEP}` },
-    { type: 'text', content: `GUJRAT'S FAVOURITE MENSWEAR DESTINATION${SEP}` },
-    { type: 'text', content: `7-DAYS EASY EXCHANGE POLICY${SEP}` },
-    { type: 'promo' },
-  ];
+  const displayAnnouncement = announcement?.trim();
+  const segments = displayAnnouncement 
+    ? [
+        { type: 'text', content: `${displayAnnouncement}${SEP}` },
+        { type: 'text', content: `${displayAnnouncement}${SEP}` },
+        { type: 'text', content: `${displayAnnouncement}${SEP}` },
+        { type: 'text', content: `${displayAnnouncement}${SEP}` },
+        { type: 'text', content: `${displayAnnouncement}${SEP}` },
+      ]
+    : [
+        { type: 'text', content: `7-DAYS EASY EXCHANGE POLICY${SEP}` },
+        { type: 'promo' }, // rendered as JSX with blink
+        { type: 'text', content: `${SEP}FREE DELIVERY ON ORDERS OVER RS. 2,000${SEP}` },
+        { type: 'text', content: `NEW ARRIVALS EVERY FRIDAY${SEP}` },
+        { type: 'text', content: `PREMIUM FABRICS · CRAFTED IN PAKISTAN${SEP}` },
+        { type: 'text', content: `7-DAYS EASY EXCHANGE POLICY${SEP}` },
+        { type: 'promo' },
+        { type: 'text', content: `${SEP}FREE DELIVERY ON ORDERS OVER RS. 2,000${SEP}` },
+        { type: 'text', content: `GUJRAT'S FAVOURITE MENSWEAR DESTINATION${SEP}` },
+        { type: 'text', content: `7-DAYS EASY EXCHANGE POLICY${SEP}` },
+        { type: 'promo' },
+      ];
 
   return (
     <div
@@ -72,17 +79,17 @@ const MarqueeBar = () => {
           seg.type === 'promo' ? (
             <span
               key={`promo-${i}`}
-              className="inline-flex items-center gap-1 text-[9px] font-black uppercase px-2 flex-shrink-0 tracking-[0.35em] text-white/80"
+              className="inline-flex items-center gap-1 text-[9px] font-black uppercase px-2 flex-shrink-0 tracking-[0.35em] text-white"
             >
               BUY 2 ITEMS &amp; ENJOY EXTRA 15% OFF
-              <span className="mx-1 text-white/50">·</span>
+              <span className="mx-1 text-white">·</span>
               PROMO CODE:&nbsp;
               <span className="blink-cardinal" style={{ color: CARDINAL_RED }}>CARDINAL</span>
             </span>
           ) : (
             <span
               key={`text-${i}`}
-              className="inline-flex items-center text-[9px] font-black uppercase px-4 flex-shrink-0 cursor-default text-white/80 tracking-[0.35em] hover:text-white"
+              className="inline-flex items-center text-[9px] font-black uppercase px-4 flex-shrink-0 cursor-default text-white tracking-[0.35em] hover:text-white"
             >
               {seg.content}
             </span>

@@ -103,6 +103,37 @@ const RelatedProducts = ({ currentId, category, subCategory, allProducts = [] })
   );
 };
 
+const getVariantImage = (product, color) => {
+  if (!color || !product.variantImages) return null;
+  const imagesObj = product.variantImages instanceof Map
+    ? Object.fromEntries(product.variantImages)
+    : product.variantImages;
+
+  if (typeof imagesObj !== 'object') return null;
+
+  const searchColor = color.trim().toLowerCase();
+  const searchParts = searchColor.split('|').map(p => p.trim());
+  const searchHex = searchParts[0];
+  const searchName = searchParts[1] || '';
+
+  if (imagesObj[color]) return imagesObj[color];
+
+  for (const [key, val] of Object.entries(imagesObj)) {
+    const keyLower = key.trim().toLowerCase();
+    if (keyLower === searchColor) return val;
+
+    const keyParts = keyLower.split('|').map(p => p.trim());
+    const keyHex = keyParts[0];
+    const keyName = keyParts[1] || '';
+
+    if (searchHex && keyHex === searchHex) return val;
+    if (searchName && keyName && keyName === searchName) return val;
+    if (keyLower === searchHex || keyLower === searchName) return val;
+  }
+
+  return null;
+};
+
 export default function ProductPageClient({ product, allProducts = [] }) {
   const { addToCart, openDrawer } = useCart();
   const { toggleWishlist, isWishlisted } = useWishlist();
@@ -173,16 +204,44 @@ export default function ProductPageClient({ product, allProducts = [] }) {
     );
   }
 
+  const variantImg = selectedColor ? getVariantImage(product, selectedColor) : null;
   const gallery = [
     product.image,
     ...(product.gallery ?? []),
-    ...(selectedColor && product.variantImages?.[selectedColor] ? [product.variantImages[selectedColor]] : []),
+    ...(variantImg ? [variantImg] : []),
   ].filter(Boolean);
 
   const getStock = () => {
-    if (selectedSize && product.sizeStock) {
-      return product.sizeStock[selectedSize] ?? 0;
+    let sizeStockVal = Infinity;
+    let colorStockVal = Infinity;
+
+    const sizeStockMap = product.sizeStock;
+    const colorStockMap = product.colorStock;
+
+    const sizeStockObj = sizeStockMap
+      ? (sizeStockMap instanceof Map ? Object.fromEntries(sizeStockMap) : sizeStockMap)
+      : null;
+    const colorStockObj = colorStockMap
+      ? (colorStockMap instanceof Map ? Object.fromEntries(colorStockMap) : colorStockMap)
+      : null;
+
+    const hasSizeStock = sizeStockObj && Object.keys(sizeStockObj).length > 0;
+    const hasColorStock = colorStockObj && Object.keys(colorStockObj).length > 0;
+
+    if (hasSizeStock && selectedSize) {
+      sizeStockVal = sizeStockObj[selectedSize] ?? 0;
     }
+    if (hasColorStock && selectedColor) {
+      colorStockVal = colorStockObj[selectedColor] ?? 0;
+    }
+
+    if (hasSizeStock || hasColorStock) {
+      return Math.min(
+        hasSizeStock && selectedSize ? sizeStockVal : product.quantity,
+        hasColorStock && selectedColor ? colorStockVal : product.quantity
+      );
+    }
+
     return product.quantity ?? 0;
   };
 

@@ -56,15 +56,36 @@ export async function POST(req) {
 
       const qty = Math.max(1, parseInt(item.quantity) || 1);
       const size = (item.selectedSize ?? '').trim();
-      
+      const color = (item.selectedColor ?? '').trim();
+
+      const sizeStockMap = product.sizeStock;
+      const colorStockMap = product.colorStock;
+
+      const hasSizeStock = sizeStockMap && (sizeStockMap instanceof Map ? sizeStockMap.size > 0 : Object.keys(sizeStockMap).length > 0);
+      const hasColorStock = colorStockMap && (colorStockMap instanceof Map ? colorStockMap.size > 0 : Object.keys(colorStockMap).length > 0);
+
       let available = product.quantity;
-      if (size && product.sizeStock) {
-        available = product.sizeStock.get?.(size) ?? product.sizeStock[size] ?? 0;
+
+      if (hasSizeStock || hasColorStock) {
+        let sizeAvailable = Infinity;
+        let colorAvailable = Infinity;
+
+        if (hasSizeStock && size) {
+          sizeAvailable = sizeStockMap instanceof Map ? (sizeStockMap.get(size) ?? 0) : (sizeStockMap[size] ?? 0);
+        }
+        if (hasColorStock && color) {
+          colorAvailable = colorStockMap instanceof Map ? (colorStockMap.get(color) ?? 0) : (colorStockMap[color] ?? 0);
+        }
+
+        available = Math.min(
+          hasSizeStock && size ? sizeAvailable : product.quantity,
+          hasColorStock && color ? colorAvailable : product.quantity
+        );
       }
 
       if (available < qty) {
         return NextResponse.json({
-          error: `Not enough stock for ${product.name}${size ? ` (size ${size})` : ''}. Available: ${available}`
+          error: `Not enough stock for ${product.name}${size ? ` (size ${size})` : ''}${color ? ` (color ${color})` : ''}. Available: ${available}`
         }, { status: 400 });
       }
     }
@@ -78,16 +99,25 @@ export async function POST(req) {
     for (const item of items) {
       const qty = Math.max(1, parseInt(item.quantity) || 1);
       const size = (item.selectedSize ?? '').trim();
-      const sizeKey = size ? `sizeStock.${size}` : null;
+      const color = (item.selectedColor ?? '').trim();
 
-      const stockUpdate = sizeKey
-        ? { $inc: { quantity: -qty, stock: -qty, [sizeKey]: -qty } }
-        : { $inc: { quantity: -qty, stock: -qty } };
+      const sizeKey = size ? `sizeStock.${size}` : null;
+      const colorKey = color ? `colorStock.${color}` : null;
+
+      const stockUpdate = { $inc: { quantity: -qty, stock: -qty } };
+      if (sizeKey) {
+        stockUpdate.$inc[sizeKey] = -qty;
+      }
+      if (colorKey) {
+        stockUpdate.$inc[colorKey] = -qty;
+      }
 
       const updatedProduct = await Product.findOneAndUpdate(
         {
           id: item.id,
-          ...(sizeKey ? { [sizeKey]: { $gte: qty } } : { stock: { $gte: qty } })
+          ...(sizeKey ? { [sizeKey]: { $gte: qty } } : {}),
+          ...(colorKey ? { [colorKey]: { $gte: qty } } : {}),
+          stock: { $gte: qty }
         },
         stockUpdate,
         { new: true }
@@ -96,16 +126,16 @@ export async function POST(req) {
       if (!updatedProduct) {
         const dbProduct = productMap.get(item.id);
         const name = dbProduct ? dbProduct.name : item.id;
-        stockError = `Not enough stock for ${name}${size ? ` (size ${size})` : ''}. Please adjust your quantity and try again.`;
+        stockError = `Not enough stock for ${name}${size ? ` (size ${size})` : ''}${color ? ` (color ${color})` : ''}. Please adjust your quantity and try again.`;
         break;
       }
 
-      completedDecrements.push({ item, qty, sizeKey });
+      completedDecrements.push({ item, qty, sizeKey, colorKey });
 
       await syncInventory(
         updatedProduct,
         'SALE',
-        `Sold ${qty}x ${updatedProduct.name}${size ? ` (${size})` : ''} via order ${orderID}`,
+        `Sold ${qty}x ${updatedProduct.name}${size ? ` (${size})` : ''}${color ? ` (${color})` : ''} via order ${orderID}`,
         orderID
       );
     }
@@ -113,9 +143,13 @@ export async function POST(req) {
     // Handle rollback function
     const rollbackStock = async () => {
       for (const dec of completedDecrements) {
-        const rollbackUpdate = dec.sizeKey
-          ? { $inc: { quantity: dec.qty, stock: dec.qty, [dec.sizeKey]: dec.qty } }
-          : { $inc: { quantity: dec.qty, stock: dec.qty } };
+        const rollbackUpdate = { $inc: { quantity: dec.qty, stock: dec.qty } };
+        if (dec.sizeKey) {
+          rollbackUpdate.$inc[dec.sizeKey] = dec.qty;
+        }
+        if (dec.colorKey) {
+          rollbackUpdate.$inc[dec.colorKey] = dec.qty;
+        }
 
         await Product.findOneAndUpdate(
           { id: dec.item.id },

@@ -34,6 +34,7 @@ const inventorySchema = new mongoose.Schema({
   discount:            { type: Number, default: 0, min: 0, max: 100 },
   totalStock:          { type: Number, default: 0, min: 0 },     // aggregate across all sizes
   sizeStock:           { type: Map, of: Number, default: {} },   // per-size breakdown
+  colorStock:          { type: Map, of: Number, default: {} },   // per-color breakdown
   lowStockThreshold:   { type: Number, default: 5 },
   sectionName:         { type: String, default: 'Collection' },
   description:         { type: String, default: '' },

@@ -277,11 +277,33 @@ export const CartProvider = ({ children }: CartProviderProps) => {
           // Calculate available stock
           let availableStock = dbProd.quantity ?? 0;
           const size = (item.selectedSize ?? '').trim();
-          if (size && dbProd.sizeStock) {
-            const sizeStockObj = dbProd.sizeStock instanceof Map
-              ? Object.fromEntries(dbProd.sizeStock)
-              : dbProd.sizeStock;
-            availableStock = sizeStockObj[size] ?? 0;
+          const color = (item.selectedColor ?? item.activeColor ?? '').trim();
+
+          const sizeStockObj = dbProd.sizeStock
+            ? (dbProd.sizeStock instanceof Map ? Object.fromEntries(dbProd.sizeStock) : dbProd.sizeStock)
+            : null;
+          const colorStockObj = (dbProd as any).colorStock
+            ? ((dbProd as any).colorStock instanceof Map ? Object.fromEntries((dbProd as any).colorStock) : (dbProd as any).colorStock)
+            : null;
+
+          const hasSizeStock = sizeStockObj && Object.keys(sizeStockObj).length > 0;
+          const hasColorStock = colorStockObj && Object.keys(colorStockObj).length > 0;
+
+          if (hasSizeStock || hasColorStock) {
+            let sizeAvailable = Infinity;
+            let colorAvailable = Infinity;
+
+            if (hasSizeStock && size) {
+              sizeAvailable = sizeStockObj[size] ?? 0;
+            }
+            if (hasColorStock && color) {
+              colorAvailable = colorStockObj[color] ?? 0;
+            }
+
+            availableStock = Math.min(
+              hasSizeStock && size ? sizeAvailable : dbProd.quantity,
+              hasColorStock && color ? colorAvailable : dbProd.quantity
+            );
           }
 
           if (availableStock <= 0) {

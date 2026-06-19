@@ -50,6 +50,7 @@ const productSchema = new mongoose.Schema({
   colors:        [{ type: String }],
   sizes:         [{ type: String }],
   sizeStock:     { type: Map, of: Number, default: {} },  // { S: 10, M: 5, L: 3 }
+  colorStock:    { type: Map, of: Number, default: {} },  // { White: 30, Black: 15 }
   lifestyleImage: { type: String, default: '' },
   variantImages: { type: Map, of: String, default: {} },  // { 'Red': 'url', 'Blue': 'url' }
   gallery:       [{ type: String }],
@@ -67,9 +68,20 @@ productSchema.index({ featuredSection: 1, displayOrder: 1 });
 
 // Keep quantity + stock always in sync
 productSchema.pre('save', function syncStock() {
+  const colorValues = this.colorStock instanceof Map
+    ? [...this.colorStock.values()]
+    : Object.values(this.colorStock ?? {});
+
   const sizeValues = this.sizeStock instanceof Map
     ? [...this.sizeStock.values()]
     : Object.values(this.sizeStock ?? {});
+
+  if (colorValues.length > 0) {
+    const total = colorValues.reduce((sum, n) => sum + Math.max(0, parseInt(n) || 0), 0);
+    this.quantity = total;
+    this.stock = total;
+    return;
+  }
 
   if (sizeValues.length > 0) {
     const total = sizeValues.reduce((sum, n) => sum + Math.max(0, parseInt(n) || 0), 0);

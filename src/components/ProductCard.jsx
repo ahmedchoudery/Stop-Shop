@@ -52,16 +52,37 @@ const getColorName = (color) => {
 
 const getVariantImage = (product, color) => {
   if (!color || !product.variantImages) return null;
-  const colorName = getColorName(color);
-  
-  const getFromSource = (key) => {
-    if (typeof product.variantImages.get === 'function') {
-      return product.variantImages.get(key);
-    }
-    return product.variantImages[key];
-  };
 
-  return getFromSource(color) || getFromSource(colorName) || null;
+  // Resolve Map or plain object to a plain object
+  const imagesObj = product.variantImages instanceof Map
+    ? Object.fromEntries(product.variantImages)
+    : product.variantImages;
+
+  if (typeof imagesObj !== 'object') return null;
+
+  const searchColor = color.trim().toLowerCase();
+  const searchParts = searchColor.split('|').map(p => p.trim());
+  const searchHex = searchParts[0];
+  const searchName = searchParts[1] || '';
+
+  // 1. Exact match
+  if (imagesObj[color]) return imagesObj[color];
+
+  // 2. Flexible scan
+  for (const [key, val] of Object.entries(imagesObj)) {
+    const keyLower = key.trim().toLowerCase();
+    if (keyLower === searchColor) return val;
+
+    const keyParts = keyLower.split('|').map(p => p.trim());
+    const keyHex = keyParts[0];
+    const keyName = keyParts[1] || '';
+
+    if (searchHex && keyHex === searchHex) return val;
+    if (searchName && keyName && keyName === searchName) return val;
+    if (keyLower === searchHex || keyLower === searchName) return val;
+  }
+
+  return null;
 };
 
 const ProductCard = ({ product, onImageLoad }) => {

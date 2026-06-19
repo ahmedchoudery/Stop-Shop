@@ -58,6 +58,7 @@ export async function DELETE(req, { params }) {
         colors: entry.colorVariants,
         sizes: entry.sizes,
         sizeStock: entry.sizeStock,
+        colorStock: entry.colorStock,
       },
       'ADMIN_DELETE',
       'Admin deleted inventory and product'

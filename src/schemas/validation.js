@@ -59,6 +59,7 @@ export const createProductSchema = z.object({
   colors:        z.array(z.string().max(100)).optional().default([]),
   sizes:         z.array(z.string().max(20)).optional().default([]),
   sizeStock:     z.record(z.string(), z.number().nonnegative()).optional().default({}),
+  colorStock:    z.record(z.string(), z.number().nonnegative()).optional().default({}),
   lifestyleImage: z.string().max(2000).optional().default(''),
   variantImages: z.record(z.string(), z.string()).optional().default({}),
   gallery:       z.array(z.string().max(2000)).optional().default([]),

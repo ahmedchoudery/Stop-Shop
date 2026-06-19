@@ -79,14 +79,23 @@ const checkOutValidation = (items, dbProducts) => {
 
     const qty       = Math.max(1, parseInt(item.quantity) || 1);
     const size      = (item.selectedSize ?? '').trim();
-    const available = (size && product.sizeStock)
-      ? (product.sizeStock[size] ?? 0)
-      : product.quantity;
+    const color     = (item.selectedColor ?? '').trim();
+
+    const hasSizeStock = product.sizeStock && Object.keys(product.sizeStock).length > 0;
+    const hasColorStock = product.colorStock && Object.keys(product.colorStock).length > 0;
+
+    let available = product.quantity;
+
+    if (hasSizeStock || hasColorStock) {
+      const sizeAvailable = hasSizeStock && size ? (product.sizeStock[size] ?? 0) : product.quantity;
+      const colorAvailable = hasColorStock && color ? (product.colorStock[color] ?? 0) : product.quantity;
+      available = Math.min(sizeAvailable, colorAvailable);
+    }
 
     if (available < qty) {
       return {
         ok: false,
-        error: `Not enough stock for ${product.name}${size ? ` (size ${size})` : ''}. Available: ${available}`,
+        error: `Not enough stock for ${product.name}${size ? ` (size ${size})` : ''}${color ? ` (color ${color})` : ''}. Available: ${available}`,
       };
     }
   }
@@ -140,6 +149,7 @@ describe('Checkout flow — end-to-end logic', () => {
         bucket: p.bucket || 'General',
         subCategory: p.subCategory || 'General',
         sizeStock: p.sizeStock || {},
+        colorStock: p.colorStock || {},
       });
     }
   };
@@ -214,6 +224,26 @@ describe('Checkout flow — end-to-end logic', () => {
       setupProducts([{ id: 'P1', name: 'Tee', price: 1000, quantity: 10, sizeStock: { S: 0, M: 0 } }]);
       const result = checkOutValidation([{ id: 'P1', quantity: 5, selectedSize: '' }], mockProducts);
       expect(result.ok).toBe(true); // falls back to total quantity (10)
+    });
+
+    it('fails when color-specific stock is insufficient', () => {
+      setupProducts([{ id: 'P1', name: 'Tee', price: 1000, quantity: 100, colorStock: { Red: 2, Blue: 5 } }]);
+      const result = checkOutValidation([{ id: 'P1', quantity: 3, selectedColor: 'Red' }], mockProducts);
+      expect(result.ok).toBe(false);
+      expect(result.error).toContain('Available: 2');
+    });
+
+    it('passes when color-specific stock is sufficient', () => {
+      setupProducts([{ id: 'P1', name: 'Tee', price: 1000, quantity: 100, colorStock: { Red: 2, Blue: 5 } }]);
+      const result = checkOutValidation([{ id: 'P1', quantity: 2, selectedColor: 'Blue' }], mockProducts);
+      expect(result.ok).toBe(true);
+    });
+
+    it('fails when color is sufficient but size is insufficient (checking both)', () => {
+      setupProducts([{ id: 'P1', name: 'Tee', price: 1000, quantity: 100, sizeStock: { S: 2, M: 10 }, colorStock: { Red: 10 } }]);
+      const result = checkOutValidation([{ id: 'P1', quantity: 5, selectedSize: 'S', selectedColor: 'Red' }], mockProducts);
+      expect(result.ok).toBe(false);
+      expect(result.error).toContain('Available: 2');
     });
   });
 
@@ -367,6 +397,12 @@ describe('Admin CRUD — logic layer', () => {
       const sizeStock = { S: 10, M: 20, L: 15, XL: 5 };
       const total = Object.values(sizeStock).reduce((sum, n) => sum + Math.max(0, parseInt(n) || 0), 0);
       expect(total).toBe(50);
+    });
+
+    it('computes quantity from colorStock correctly', () => {
+      const colorStock = { Red: 10, Blue: 20, Black: 15 };
+      const total = Object.values(colorStock).reduce((sum, n) => sum + Math.max(0, parseInt(n) || 0), 0);
+      expect(total).toBe(45);
     });
 
     it('sets quantity to 0 when sizeStock is empty', () => {

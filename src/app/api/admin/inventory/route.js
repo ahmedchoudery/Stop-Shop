@@ -18,7 +18,7 @@ export async function GET(req) {
 
     const totalCount = await Inventory.countDocuments({});
     const inventory = await Inventory.find({})
-      .select('productId sku name category totalStock sizeStock status updatedAt')
+      .select('productId sku name category totalStock sizeStock colorStock status updatedAt')
       .sort({ updatedAt: -1 })
       .skip(skip)
       .limit(limit)

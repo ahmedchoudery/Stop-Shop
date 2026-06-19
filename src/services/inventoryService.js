@@ -22,11 +22,16 @@ export const syncInventory = async (product, moveType = 'ADMIN_UPDATE', note = '
         ? 'Low Stock'
         : 'In Stock';
 
-    // Resolve sizeStock to a plain object (handles both Map and plain objects)
+    // Resolve sizeStock & colorStock to plain objects (handles both Map and plain objects)
     const sizeStockPlain =
       product.sizeStock instanceof Map
         ? Object.fromEntries(product.sizeStock)
         : (product.sizeStock ?? {});
+
+    const colorStockPlain =
+      product.colorStock instanceof Map
+        ? Object.fromEntries(product.colorStock)
+        : (product.colorStock ?? {});
 
     // Fetch previous state for delta calculation
     const existing = await Inventory.findOne({ productId: product.id }).lean();
@@ -75,6 +80,7 @@ export const syncInventory = async (product, moveType = 'ADMIN_UPDATE', note = '
           discount:     product.discount ?? 0,
           totalStock,
           sizeStock:    sizeStockPlain,
+          colorStock:   colorStockPlain,
           status,
           sectionName:  product.sectionName || 'Collection',
           description:  product.description || '',

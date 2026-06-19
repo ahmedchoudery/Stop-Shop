@@ -16,7 +16,7 @@ export async function POST(req, { params }) {
 
     const { productId } = params;
     const body = await req.json();
-    const { quantity, sizeStock, note } = body;
+    const { quantity, sizeStock, colorStock, note } = body;
 
     const product = await Product.findOne({ id: productId });
     if (!product) {
@@ -25,7 +25,26 @@ export async function POST(req, { params }) {
 
     const prevStock = product.quantity ?? 0;
 
-    if (sizeStock && typeof sizeStock === 'object') {
+    if (colorStock && typeof colorStock === 'object') {
+      const updated = {};
+      
+      const currentColorStock = product.colorStock instanceof Map 
+        ? Object.fromEntries(product.colorStock) 
+        : (product.colorStock || {});
+        
+      for (const [color, qty] of Object.entries(currentColorStock)) {
+        updated[color] = parseInt(qty) || 0;
+      }
+      
+      for (const [color, qty] of Object.entries(colorStock)) {
+        const n = Math.max(0, parseInt(qty) || 0);
+        updated[color] = (updated[color] || 0) + n;
+      }
+      
+      product.colorStock = updated;
+      product.quantity = Object.values(updated).reduce((s, v) => s + Math.max(0, parseInt(v) || 0), 0);
+      product.stock = product.quantity;
+    } else if (sizeStock && typeof sizeStock === 'object') {
       const updated = {};
       
       // Copy current size stock map/object values
@@ -50,7 +69,7 @@ export async function POST(req, { params }) {
       product.quantity = prevStock + quantity;
       product.stock = product.quantity;
     } else {
-      return NextResponse.json({ error: 'Provide either quantity (number) or sizeStock (object)' }, { status: 400 });
+      return NextResponse.json({ error: 'Provide either quantity (number), sizeStock (object), or colorStock (object)' }, { status: 400 });
     }
 
     await product.save();

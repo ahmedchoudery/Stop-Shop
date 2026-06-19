@@ -107,7 +107,8 @@ const ProductForm = memo(({
       setForm(f => ({
         ...f,
         colors: [...f.colors, color],
-        variantImages: { ...(f.variantImages || {}), [color]: f.variantImages?.[color] || '' }
+        variantImages: { ...(f.variantImages || {}), [color]: f.variantImages?.[color] || '' },
+        colorStock: { ...(f.colorStock || {}), [color]: f.colorStock?.[color] ?? 0 }
       }));
     }
   };
@@ -115,8 +116,15 @@ const ProductForm = memo(({
   const removeColor = (c) => setForm(f => {
     const nextImages = { ...(f.variantImages || {}) };
     delete nextImages[c];
-    return { ...f, colors: f.colors.filter(x => x !== c), variantImages: nextImages };
+    const nextStock = { ...(f.colorStock || {}) };
+    delete nextStock[c];
+    return { ...f, colors: f.colors.filter(x => x !== c), variantImages: nextImages, colorStock: nextStock };
   });
+
+  const setColorStock = (color, qty) => {
+    const parsed = Math.max(0, parseInt(qty) || 0);
+    setForm(f => ({ ...f, colorStock: { ...(f.colorStock || {}), [color]: parsed } }));
+  };
 
   const setVariantImageForColor = (color, value) => {
     setForm(f => ({ ...f, variantImages: { ...(f.variantImages || {}), [color]: value } }));
@@ -183,6 +191,7 @@ const ProductForm = memo(({
         onAddColor={addColor}
         onRemoveColor={removeColor}
         onVariantImageUpload={handleVariantImageUpload}
+        onSetColorStock={setColorStock}
         uploading={uploading}
       />
 
@@ -330,19 +339,23 @@ DescriptionSection.displayName = 'DescriptionSection';
 
 const StockCategorySection = memo(({ form, setForm }) => {
   const hasSizes = form.sizes?.length > 0;
+  const hasColors = form.colors?.length > 0;
   const isAttitude = form.featuredSection === 'attitude';
   
-  // Calculate total stock from sizes if active
-  const calculatedQty = hasSizes
-    ? Object.values(form.sizeStock || {}).reduce((sum, q) => sum + (parseInt(q) || 0), 0)
-    : form.quantity;
+  // Calculate total stock from colors if active, otherwise sizes if active, otherwise quantity
+  let calculatedQty = form.quantity;
+  if (hasColors) {
+    calculatedQty = Object.values(form.colorStock || {}).reduce((sum, q) => sum + (parseInt(q) || 0), 0);
+  } else if (hasSizes) {
+    calculatedQty = Object.values(form.sizeStock || {}).reduce((sum, q) => sum + (parseInt(q) || 0), 0);
+  }
 
   // Sync calculated quantity back to form state if it differs
   useEffect(() => {
-    if (hasSizes && form.quantity !== calculatedQty) {
+    if ((hasSizes || hasColors) && form.quantity !== calculatedQty) {
       setForm(f => ({ ...f, quantity: calculatedQty }));
     }
-  }, [hasSizes, calculatedQty, form.quantity, setForm]);
+  }, [hasSizes, hasColors, calculatedQty, form.quantity, setForm]);
 
   // Automatically sync bucket and subCategory to 'Outfit' when featuredSection is 'attitude'
   useEffect(() => {
@@ -360,11 +373,11 @@ const StockCategorySection = memo(({ form, setForm }) => {
         <input 
           type="number" 
           value={calculatedQty} 
-          onChange={e => !hasSizes && setForm(f => ({ ...f, quantity: e.target.value }))}
-          disabled={hasSizes}
+          onChange={e => !(hasSizes || hasColors) && setForm(f => ({ ...f, quantity: e.target.value }))}
+          disabled={hasSizes || hasColors}
           placeholder="0"
           className={`w-full border border-gray-200 rounded-[4px] px-4 py-3 text-sm font-bold focus:border-black outline-none transition-colors ${
-            hasSizes ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
+            (hasSizes || hasColors) ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
           }`} 
         />
       </div>
@@ -413,7 +426,7 @@ const SpecsSection = memo(({ form, setForm }) => (
 
 SpecsSection.displayName = 'SpecsSection';
 
-const ColorsSection = memo(({ form, colorInput, setColorInput, onAddColor, onRemoveColor, onVariantImageUpload, uploading }) => (
+const ColorsSection = memo(({ form, colorInput, setColorInput, onAddColor, onRemoveColor, onVariantImageUpload, onSetColorStock, uploading }) => (
   <div>
     <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Color Variants</label>
     <div className="flex items-center space-x-3 mb-3">
@@ -427,16 +440,23 @@ const ColorsSection = memo(({ form, colorInput, setColorInput, onAddColor, onRem
     {form.colors.length > 0 && (
       <div className="space-y-3">
         {form.colors.map(c => (
-          <div key={c} className="grid grid-cols-[auto_1fr_auto] items-center gap-3 bg-gray-50 border border-gray-200 rounded-[4px] p-2">
+          <div key={c} className="grid grid-cols-1 sm:grid-cols-[auto_130px_1fr_auto] items-center gap-3 bg-gray-50 border border-gray-200 rounded-[4px] p-2">
             <div className="flex items-center space-x-2">
-              <div className="w-6 h-6 rounded-full border border-gray-300"
+              <div className="w-6 h-6 rounded-full border border-gray-300 flex-shrink-0"
                 style={c.includes('|') ? { background: `linear-gradient(to right, ${c.split('|')[0]} 50%, ${c.split('|')[1]} 50%)` } : { backgroundColor: c }} />
               <span className="text-[11px] font-mono font-bold text-gray-600 w-16 truncate">{c}</span>
             </div>
             
+            <div className="flex items-center space-x-2 bg-white px-2 py-1 rounded-[4px] border border-gray-150">
+              <span className="text-[9px] font-black uppercase tracking-wider text-gray-400">Qty:</span>
+              <input type="number" min="0" value={form.colorStock?.[c] ?? 0}
+                onChange={e => onSetColorStock(c, e.target.value)}
+                className="w-full border-0 focus:ring-0 p-0 text-[11px] font-black text-center outline-none" />
+            </div>
+
             <div className="flex items-center space-x-2">
               {form.variantImages?.[c] && (
-                <img src={form.variantImages[c]} alt="Variant" className="w-8 h-8 rounded object-cover border border-gray-200" />
+                <img src={form.variantImages[c]} alt="Variant" className="w-8 h-8 rounded object-cover border border-gray-200 flex-shrink-0" />
               )}
               <label className={`flex-grow flex items-center justify-center py-2 px-3 border border-dashed border-gray-300 rounded-[4px] cursor-pointer hover:bg-white transition-colors ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
                 <Upload size={12} className="text-gray-400 mr-2" />
@@ -447,7 +467,7 @@ const ColorsSection = memo(({ form, colorInput, setColorInput, onAddColor, onRem
               </label>
             </div>
             
-            <button onClick={() => onRemoveColor(c)} className="text-gray-400 hover:text-red-500 p-1"><X size={16} /></button>
+            <button onClick={() => onRemoveColor(c)} className="text-gray-400 hover:text-red-500 p-1 self-center sm:justify-self-end"><X size={16} /></button>
           </div>
         ))}
       </div>

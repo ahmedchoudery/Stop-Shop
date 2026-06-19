@@ -45,6 +45,7 @@ const DEFAULT_FORM = {
   colors:         [],
   sizes:          [],
   sizeStock:      {},
+  colorStock:     {},
   lifestyleImage: '',
   variantImages:  {},
   gallery:        [],
@@ -250,6 +251,9 @@ const AdminProducts = () => {
       sizeStock:      product.sizeStock instanceof Map
                         ? Object.fromEntries(product.sizeStock)
                         : (product.sizeStock ?? {}),
+      colorStock:     product.colorStock instanceof Map
+                        ? Object.fromEntries(product.colorStock)
+                        : (product.colorStock ?? {}),
       lifestyleImage: product.lifestyleImage ?? '',
       variantImages:  product.variantImages instanceof Map
                         ? Object.fromEntries(product.variantImages)
@@ -296,6 +300,10 @@ const AdminProducts = () => {
         // Ensure sizeStock values are numbers
         sizeStock: Object.fromEntries(
           Object.entries(form.sizeStock ?? {}).map(([k, v]) => [k, parseInt(v) || 0])
+        ),
+        // Ensure colorStock values are numbers
+        colorStock: Object.fromEntries(
+          Object.entries(form.colorStock ?? {}).map(([k, v]) => [k, parseInt(v) || 0])
         ),
       };
 

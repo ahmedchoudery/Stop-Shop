@@ -49,11 +49,18 @@ export async function PATCH(req, { params }) {
       }
     }
 
-    if (updateData.sizeStock && typeof updateData.sizeStock === 'object') {
-      const total = Object.values(updateData.sizeStock)
+    let computedQuantity = null;
+    if (updateData.colorStock && typeof updateData.colorStock === 'object' && Object.keys(updateData.colorStock).length > 0) {
+      computedQuantity = Object.values(updateData.colorStock)
         .reduce((sum, n) => sum + Math.max(0, parseInt(n) || 0), 0);
-      updateData.quantity = total;
-      updateData.stock    = total;
+    } else if (updateData.sizeStock && typeof updateData.sizeStock === 'object' && Object.keys(updateData.sizeStock).length > 0) {
+      computedQuantity = Object.values(updateData.sizeStock)
+        .reduce((sum, n) => sum + Math.max(0, parseInt(n) || 0), 0);
+    }
+
+    if (computedQuantity !== null) {
+      updateData.quantity = computedQuantity;
+      updateData.stock    = computedQuantity;
     }
 
     const product = await Product.findOneAndUpdate(

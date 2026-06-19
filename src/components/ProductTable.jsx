@@ -188,6 +188,31 @@ const ProductTable = memo(({ products = [], onEdit, onDelete }) => {
                       })}
                     </div>
                   )}
+                  {/* Per-color breakdown if available */}
+                  {product.colors?.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {product.colors.map(color => {
+                        const colorQty =
+                          product.colorStock instanceof Map
+                            ? (product.colorStock.get(color) ?? 0)
+                            : (product.colorStock?.[color] ?? 0);
+                        return (
+                          <span
+                            key={color}
+                            className={`text-[7px] font-black px-1.5 py-0.5 rounded-[2px] uppercase tracking-wider flex items-center ${
+                              colorQty === 0 ? 'bg-red-50 border border-red-100 text-red-600' : 'bg-gray-100 border border-gray-200 text-gray-700'
+                            }`}
+                          >
+                            <span
+                              className="w-1.5 h-1.5 rounded-full mr-1 border border-white"
+                              style={getBackgroundStyle(color)}
+                            />
+                            {getColorName(color)}: {colorQty}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               </td>
 
