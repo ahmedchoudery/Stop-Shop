@@ -31,31 +31,22 @@ if (typeof document !== 'undefined') {
   }
 }
 
-const MarqueeBar = ({ announcement }) => {
+const MarqueeBar = () => {
   const trackRef = useRef(null);
 
-  const displayAnnouncement = announcement?.trim();
-  const segments = displayAnnouncement 
-    ? [
-        { type: 'text', content: `${displayAnnouncement}${SEP}` },
-        { type: 'text', content: `${displayAnnouncement}${SEP}` },
-        { type: 'text', content: `${displayAnnouncement}${SEP}` },
-        { type: 'text', content: `${displayAnnouncement}${SEP}` },
-        { type: 'text', content: `${displayAnnouncement}${SEP}` },
-      ]
-    : [
-        { type: 'text', content: `7-DAYS EASY EXCHANGE POLICY${SEP}` },
-        { type: 'promo' }, // rendered as JSX with blink
-        { type: 'text', content: `${SEP}FREE DELIVERY ON ORDERS OVER RS. 2,000${SEP}` },
-        { type: 'text', content: `NEW ARRIVALS EVERY FRIDAY${SEP}` },
-        { type: 'text', content: `PREMIUM FABRICS · CRAFTED IN PAKISTAN${SEP}` },
-        { type: 'text', content: `7-DAYS EASY EXCHANGE POLICY${SEP}` },
-        { type: 'promo' },
-        { type: 'text', content: `${SEP}FREE DELIVERY ON ORDERS OVER RS. 2,000${SEP}` },
-        { type: 'text', content: `GUJRAT'S FAVOURITE MENSWEAR DESTINATION${SEP}` },
-        { type: 'text', content: `7-DAYS EASY EXCHANGE POLICY${SEP}` },
-        { type: 'promo' },
-      ];
+  const segments = [
+    { type: 'text', content: `7-DAYS EASY EXCHANGE POLICY${SEP}` },
+    { type: 'promo' }, // rendered as JSX with blink
+    { type: 'text', content: `${SEP}FREE DELIVERY ON ORDERS OVER RS. 2,000${SEP}` },
+    { type: 'text', content: `NEW ARRIVALS EVERY FRIDAY${SEP}` },
+    { type: 'text', content: `PREMIUM FABRICS · CRAFTED IN PAKISTAN${SEP}` },
+    { type: 'text', content: `7-DAYS EASY EXCHANGE POLICY${SEP}` },
+    { type: 'promo' },
+    { type: 'text', content: `${SEP}FREE DELIVERY ON ORDERS OVER RS. 2,000${SEP}` },
+    { type: 'text', content: `GUJRAT'S FAVOURITE MENSWEAR DESTINATION${SEP}` },
+    { type: 'text', content: `7-DAYS EASY EXCHANGE POLICY${SEP}` },
+    { type: 'promo' },
+  ];
 
   return (
     <div

@@ -6,7 +6,7 @@ export async function GET() {
   try {
     await dbConnect();
     const settings = await Settings.findOne().lean();
-    const data = settings ?? { announcement: 'Welcome to Stop & Shop', logo: '' };
+    const data = settings ?? { announcement: 'Welcome to Stop & Shop - E2E Test Store', logo: '' };
 
     if (data._id) {
       data._id = data._id.toString();
@@ -14,6 +14,6 @@ export async function GET() {
 
     return NextResponse.json(data);
   } catch (error) {
-    return NextResponse.json({ announcement: 'Welcome to Stop & Shop', logo: '' });
+    return NextResponse.json({ announcement: 'Welcome to Stop & Shop - E2E Test Store', logo: '' });
   }
 }

@@ -155,7 +155,6 @@ const Layout = ({ children, products = [] }) => {
 
       {/* ── Marquee announcement bar (34px) ─────────────────── */}
       <MarqueeBar
-        announcement={settings?.announcement}
         scrolled={scrolled}
         isHome={isHome}
       />

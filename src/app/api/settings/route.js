@@ -15,7 +15,7 @@ export async function GET(req) {
     }
 
     const s = await Settings.findOne().lean();
-    const data = s ?? { announcement: 'Welcome to Stop & Shop', logo: '' };
+    const data = s ?? { announcement: 'Welcome to Stop & Shop - E2E Test Store', logo: '' };
     if (data._id) {
       data._id = data._id.toString();
     }
