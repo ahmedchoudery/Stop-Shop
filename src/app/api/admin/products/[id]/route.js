@@ -66,7 +66,7 @@ export async function PATCH(req, { params }) {
     const product = await Product.findOneAndUpdate(
       buildIdQuery(id),
       updateData,
-      { new: true }
+      { new: true, runValidators: true, context: 'query' }
     );
     if (!product) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });

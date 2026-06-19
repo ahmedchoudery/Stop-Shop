@@ -40,7 +40,7 @@ const DEFAULT_FORM = {
   embedCode:      '',
   rating:         5,
   bucket:         'Tops',
-  subCategory:    'Polo',
+  subCategory:    'Polos',
   specs:          [],
   colors:         [],
   sizes:          [],

@@ -20,20 +20,13 @@ const productSchema = new mongoose.Schema({
     type: String,
     validate: {
       validator: function(v) {
+        // Canonical plural-only list — matches categories.js frontend exactly
         const CATEGORY_MAP = {
-          Tops: [
-            'Shirt', 'Shirts',
-            'T-Shirt', 'T-Shirts', 'Tshirt', 'Tshirts',
-            'Polo', 'Polos',
-            'Sweatshirt', 'Sweatshirts',
-            'Hoodie', 'Hoodies',
-            'Jacket', 'Jackets',
-            'Tank-Top', 'Tank-Tops', 'Tank Top', 'Tank Tops'
-          ],
-          Bottoms: ['Jeans', 'Trousers', 'Shorts'],
-          Footwear: ['Shoes', 'Slippers', 'Socks'],
-          Accessories: ['Glasses', 'Watches', 'Rings', 'Bracelet', 'Chains', 'Caps', 'Belts', 'Bags'],
-          Outfit: ['Outfit'],
+          Tops:        ['Shirts', 'T-Shirts', 'Polos', 'Sweatshirts', 'Hoodies', 'Jackets', 'Tank-Tops'],
+          Bottoms:     ['Jeans', 'Trousers', 'Shorts'],
+          Footwear:    ['Shoes', 'Slippers', 'Socks'],
+          Accessories: ['Watches', 'Chains', 'Bags', 'Caps'],
+          Outfit:      ['Outfit'],
         };
         // If there's a bucket defined, validate against that bucket's options, otherwise allow any from all buckets
         if (this.bucket && CATEGORY_MAP[this.bucket]) {
@@ -41,7 +34,7 @@ const productSchema = new mongoose.Schema({
         }
         return Object.values(CATEGORY_MAP).flat().includes(v);
       },
-      message: props => `${props.value} is not a valid subCategory for the selected category!`
+      message: props => `"${props.value}" is not a valid subCategory for the selected category!`
     },
     default: 'Shirts',
     trim: true

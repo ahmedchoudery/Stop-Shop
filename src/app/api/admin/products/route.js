@@ -82,7 +82,7 @@ export async function POST(req) {
       ...validation.data,
       sectionName: getSectionName(validation.data.featuredSection),
       bucket: isAttitude ? 'Outfit' : (validation.data.bucket || 'Tops'),
-      subCategory: isAttitude ? 'Outfit' : (validation.data.subCategory || 'Tshirt'),
+      subCategory: isAttitude ? 'Outfit' : (validation.data.subCategory || 'Shirts'),
       id: validation.data.id || buildId()
     };
 

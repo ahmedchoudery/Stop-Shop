@@ -340,6 +340,7 @@ DescriptionSection.displayName = 'DescriptionSection';
 const StockCategorySection = memo(({ form, setForm }) => {
   const hasSizes = form.sizes?.length > 0;
   const hasColors = form.colors?.length > 0;
+  const hasVariants = hasSizes || hasColors;
   const isAttitude = form.featuredSection === 'attitude';
   
   // Calculate total stock from colors if active, otherwise sizes if active, otherwise quantity
@@ -352,10 +353,10 @@ const StockCategorySection = memo(({ form, setForm }) => {
 
   // Sync calculated quantity back to form state if it differs
   useEffect(() => {
-    if ((hasSizes || hasColors) && form.quantity !== calculatedQty) {
-      setForm(f => ({ ...f, quantity: calculatedQty }));
+    if (hasVariants && form.quantity !== calculatedQty) {
+      setForm(f => ({ ...f, quantity: calculatedQty, stock: calculatedQty }));
     }
-  }, [hasSizes, hasColors, calculatedQty, form.quantity, setForm]);
+  }, [hasVariants, calculatedQty, form.quantity, setForm]);
 
   // Automatically sync bucket and subCategory to 'Outfit' when featuredSection is 'attitude'
   useEffect(() => {
@@ -367,43 +368,52 @@ const StockCategorySection = memo(({ form, setForm }) => {
   }, [isAttitude, form.bucket, form.subCategory, setForm]);
 
   return (
-    <div className="grid grid-cols-3 gap-4">
-      <div>
-        <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Stock Qty</label>
-        <input 
-          type="number" 
-          value={calculatedQty} 
-          onChange={e => !(hasSizes || hasColors) && setForm(f => ({ ...f, quantity: e.target.value }))}
-          disabled={hasSizes || hasColors}
-          placeholder="0"
-          className={`w-full border border-gray-200 rounded-[4px] px-4 py-3 text-sm font-bold focus:border-black outline-none transition-colors ${
-            (hasSizes || hasColors) ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''
-          }`} 
-        />
-      </div>
-      {isAttitude ? (
-        <div className="col-span-2 bg-gray-50 border border-gray-200 rounded-[4px] px-4 py-3 flex flex-col justify-center">
-          <span className="block text-[9px] font-black uppercase tracking-widest text-gray-400 mb-0.5">Category & Sub-Category</span>
-          <p className="text-xs font-black uppercase tracking-wider text-black">Outfit</p>
+    <div className="space-y-3">
+      <div className="grid grid-cols-3 gap-4">
+        <div>
+          <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1">
+            {hasVariants ? 'Total Stock (auto-synced)' : 'Base Stock Qty'}
+          </label>
+          <input 
+            type="number" 
+            value={calculatedQty} 
+            onChange={e => !hasVariants && setForm(f => ({ ...f, quantity: parseInt(e.target.value) || 0, stock: parseInt(e.target.value) || 0 }))}
+            disabled={hasVariants}
+            placeholder="0"
+            className={`w-full border border-gray-200 rounded-[4px] px-4 py-3 text-sm font-bold focus:border-black outline-none transition-colors ${
+              hasVariants ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : ''
+            }`} 
+          />
+          {hasVariants && (
+            <p className="text-[9px] font-bold text-gray-400 mt-1 uppercase tracking-wide">
+              ↑ Sum of all variant quantities below
+            </p>
+          )}
         </div>
-      ) : (
-        <>
-          <div>
-            <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Category</label>
-            <select value={form.bucket} onChange={e => setForm(f => ({ ...f, bucket: e.target.value, subCategory: getDefaultSubCategory(e.target.value) }))}
-              className="w-full border border-gray-200 rounded-[4px] px-4 py-3 text-sm font-bold focus:border-black outline-none bg-white">
-              {CATEGORIES.map(b => <option key={b} value={b}>{b}</option>)}
-            </select>
+        {isAttitude ? (
+          <div className="col-span-2 bg-gray-50 border border-gray-200 rounded-[4px] px-4 py-3 flex flex-col justify-center">
+            <span className="block text-[9px] font-black uppercase tracking-widest text-gray-400 mb-0.5">Category &amp; Sub-Category</span>
+            <p className="text-xs font-black uppercase tracking-wider text-black">Outfit</p>
           </div>
-          <div>
-            <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Sub-Category</label>
-            <select value={form.subCategory} onChange={e => setForm(f => ({ ...f, subCategory: e.target.value }))}
-              className="w-full border border-gray-200 rounded-[4px] px-4 py-3 text-sm font-bold focus:border-black outline-none bg-white">
-              {(CATEGORY_MAP[form.bucket] || []).map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
-          </div>
-        </>
-      )}
+        ) : (
+          <>
+            <div>
+              <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Category</label>
+              <select value={form.bucket} onChange={e => setForm(f => ({ ...f, bucket: e.target.value, subCategory: getDefaultSubCategory(e.target.value) }))}
+                className="w-full border border-gray-200 rounded-[4px] px-4 py-3 text-sm font-bold focus:border-black outline-none bg-white">
+                {CATEGORIES.map(b => <option key={b} value={b}>{b}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Sub-Category</label>
+              <select value={form.subCategory} onChange={e => setForm(f => ({ ...f, subCategory: e.target.value }))}
+                className="w-full border border-gray-200 rounded-[4px] px-4 py-3 text-sm font-bold focus:border-black outline-none bg-white">
+                {(CATEGORY_MAP[form.bucket] || []).map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 });

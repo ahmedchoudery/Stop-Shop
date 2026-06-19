@@ -1,7 +1,7 @@
 export const CATEGORY_MAP = {
-  Tops: ['Shirts', 'T-Shirts', 'Polos', 'Sweatshirts', 'Hoodies', 'Jackets', 'Tank-Tops'],
-  Bottoms: ['Jeans', 'Trousers', 'Shorts'],
-  Footwear: ['Shoes', 'Slippers', 'Socks'],
+  Tops:        ['Shirts', 'T-Shirts', 'Polos', 'Sweatshirts', 'Hoodies', 'Jackets', 'Tank-Tops'],
+  Bottoms:     ['Jeans', 'Trousers', 'Shorts'],
+  Footwear:    ['Shoes', 'Slippers', 'Socks'],
   Accessories: ['Watches', 'Chains', 'Bags', 'Caps'],
 };
 
