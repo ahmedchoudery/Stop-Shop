@@ -5,7 +5,7 @@ import { requireAdmin } from '../../../../lib/adminAuth';
 import { updateOrderStatusSchema } from '../../../../schemas/validation';
 import { logAudit } from '../../../../lib/audit';
 import { cacheService, CACHE_KEYS } from '../../../../services/cacheService';
-import { sendOrderStatusEmail } from '../../../../services/emailService';
+import { sendOrderStatusEmail, sendAdminOrderStatusNotification } from '../../../../services/emailService';
 import paymentFactory from '../../../../lib/payments/PaymentFactory';
 
 export async function PATCH(req, { params }) {
@@ -26,13 +26,17 @@ export async function PATCH(req, { params }) {
       }, { status: 400 });
     }
 
-    const { status, paymentStatus } = validation.data;
+    const { status, paymentStatus, courier, trackingNumber } = validation.data;
 
     // Fetch order first to check business rules and gateway capabilities
     const orderDoc = await Order.findById(id);
     if (!orderDoc) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
+
+    const statusChanged = status && status !== orderDoc.status;
+    const trackingUpdated = (courier !== undefined && courier !== orderDoc.courier) ||
+                            (trackingNumber !== undefined && trackingNumber !== orderDoc.trackingNumber);
 
     // Process refund logic if transitioning to 'Refunded' status
     if (status === 'Refunded' && orderDoc.status !== 'Refunded') {
@@ -67,16 +71,34 @@ export async function PATCH(req, { params }) {
       }
     }
 
+    if (courier !== undefined) {
+      orderDoc.courier = courier;
+    }
+    if (trackingNumber !== undefined) {
+      orderDoc.trackingNumber = trackingNumber;
+    }
+
     const updatedOrder = await orderDoc.save();
     const order = updatedOrder.toObject();
 
-    await logAudit('ORDER_STATUS_UPDATE', { id, status, paymentStatus }, adminPayload.email, req);
+    await logAudit('ORDER_STATUS_UPDATE', { id, status, paymentStatus, courier, trackingNumber }, adminPayload.email, req);
     await cacheService.invalidateMany([CACHE_KEYS.STATS_REVENUE, CACHE_KEYS.STATS_ORDERS]);
 
-    if (status === 'Shipped' || status === 'Delivered' || status === 'Refunded' || status === 'Failed') {
-      sendOrderStatusEmail(order, status).catch(err => {
-        console.error('[OrderStatusEmail] Failed:', err.message);
-      });
+    const triggerStatuses = ['Confirmed', 'Shipped', 'Delivered', 'Cancelled', 'Failed', 'Refunded', 'Paid'];
+    const activeStatus = status || orderDoc.status;
+
+    if (triggerStatuses.includes(activeStatus)) {
+      if (statusChanged || (trackingUpdated && activeStatus === 'Shipped')) {
+        // Send email to customer
+        sendOrderStatusEmail(order, activeStatus).catch(err => {
+          console.error('[OrderStatusEmail] Failed to notify customer:', err.message);
+        });
+
+        // Send email to admin
+        sendAdminOrderStatusNotification(order, activeStatus).catch(err => {
+          console.error('[AdminOrderStatusNotification] Failed to notify admin:', err.message);
+        });
+      }
     }
 
     const formattedOrder = {

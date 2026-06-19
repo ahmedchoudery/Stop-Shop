@@ -1,14 +1,20 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 // Use vi.hoisted to declare the mock function so it is available inside the hoisted vi.mock factory.
-const { mockSendMail } = vi.hoisted(() => ({
+const { mockSendMail, mockFind } = vi.hoisted(() => ({
   mockSendMail: vi.fn().mockResolvedValue(true),
+  mockFind: vi.fn().mockReturnValue({
+    lean: vi.fn().mockResolvedValue([
+      { id: 'P1', name: 'Item 1', image: '/uploads/main.jpg', variantImages: { 'Red': '/uploads/red.jpg' } }
+    ]),
+  }),
 }));
 
 // Mock mongoose models used by emailService
 vi.mock('../models/Product.js', () => ({
   default: {
     findOne: vi.fn(),
+    find: mockFind,
   },
 }));
 
@@ -33,6 +39,7 @@ import {
   sendAdminNewOrderNotification,
   sendOrderFailedEmail,
   sendOrderStatusEmail,
+  sendAdminOrderStatusNotification,
 } from '../services/emailService.js';
 
 describe('Email Service Integration Tests', () => {
@@ -196,10 +203,60 @@ describe('Email Service Integration Tests', () => {
     });
 
     it('should send "Order failed" email when status is Failed', async () => {
-      await sendOrderStatusEmail(mockOrder, 'Failed');
+      await sendOrderStatusEmail({
+        ...mockOrder,
+        items: [{ id: 'P1', name: 'Item 1', price: 1000, quantity: 1 }]
+      }, 'Failed');
       expect(mockFetch).toHaveBeenCalled();
       const body = JSON.parse(mockFetch.mock.calls[0][1].body);
       expect(body.subject).toContain('fulfillment failed');
+    });
+
+    it('should send confirmation email when status is Confirmed', async () => {
+      await sendOrderStatusEmail({
+        ...mockOrder,
+        items: [{ id: 'P1', name: 'Item 1', price: 1000, quantity: 1, selectedColor: 'Red', selectedSize: 'M' }]
+      }, 'Confirmed');
+      expect(mockFetch).toHaveBeenCalled();
+      const body = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(body.subject).toContain('Order Confirmed');
+    });
+
+    it('should send cancelled email when status is Cancelled', async () => {
+      await sendOrderStatusEmail({
+        ...mockOrder,
+        items: [{ id: 'P1', name: 'Item 1', price: 1000, quantity: 1, selectedColor: 'Red', selectedSize: 'M' }]
+      }, 'Cancelled');
+      expect(mockFetch).toHaveBeenCalled();
+      const body = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(body.subject).toContain('Order Cancelled');
+    });
+  });
+
+  describe('sendAdminOrderStatusNotification', () => {
+    it('should send order status update email to admin', async () => {
+      process.env.RESEND_API_KEY = 're_test_key_123';
+      process.env.ADMIN_EMAIL = 'admin@stop-shop.com';
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ id: 'admin_status_notif' }),
+      });
+
+      const mockOrder = {
+        orderID: 'ORD-SUCCESS123',
+        customer: { name: 'Alice Customer', phone: '03001122334', email: 'alice@customer.com' },
+        total: 4500,
+        paymentMethod: 'Easypaisa',
+        paymentDetails: { status: 'Paid' },
+        items: [{ id: 'P1', name: 'Item 1', price: 1000, quantity: 1 }]
+      };
+
+      await sendAdminOrderStatusNotification(mockOrder, 'Shipped');
+
+      expect(mockFetch).toHaveBeenCalled();
+      const body = JSON.parse(mockFetch.mock.calls[0][1].body);
+      expect(body.to).toEqual(['admin@stop-shop.com']);
+      expect(body.subject).toContain('Status Updated to SHIPPED');
     });
   });
 });

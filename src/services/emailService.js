@@ -15,6 +15,113 @@ const escapeHtml = (unsafe) => {
     .replace(/'/g, "&#039;");
 };
 
+const makeAbsoluteUrl = (url) => {
+  if (!url) return '';
+  if (url.startsWith('http://') || url.startsWith('https://')) return url;
+  const host = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || 'https://stop-shop-gamma.vercel.app';
+  return `${host.replace(/\/$/, '')}${url.startsWith('/') ? '' : '/'}${url}`;
+};
+
+const getVariantImage = (product, color) => {
+  if (!color || !product.variantImages) return null;
+
+  const imagesObj = product.variantImages instanceof Map
+    ? Object.fromEntries(product.variantImages)
+    : product.variantImages;
+
+  if (typeof imagesObj !== 'object') return null;
+
+  const searchColor = color.trim().toLowerCase();
+  const searchParts = searchColor.split('|').map(p => p.trim());
+  const searchHex = searchParts[0];
+  const searchName = searchParts[1] || '';
+
+  if (imagesObj[color]) return imagesObj[color];
+
+  for (const [key, val] of Object.entries(imagesObj)) {
+    const keyLower = key.trim().toLowerCase();
+    if (keyLower === searchColor) return val;
+
+    const keyParts = keyLower.split('|').map(p => p.trim());
+    const keyHex = keyParts[0];
+    const keyName = keyParts[1] || '';
+
+    if (searchHex && keyHex === searchHex) return val;
+    if (searchName && keyName && keyName === searchName) return val;
+    if (keyLower === searchHex || keyLower === searchName) return val;
+  }
+
+  return null;
+};
+
+const getTrackingUrl = (courier, trackingNumber) => {
+  if (!trackingNumber) return '';
+  const c = (courier || '').toLowerCase();
+  if (c.includes('tcs')) {
+    return `https://www.tcsexpress.com/tracking?tracking-number=${encodeURIComponent(trackingNumber)}`;
+  }
+  if (c.includes('leopard')) {
+    return `https://www.leopardscourier.com/tracking?track-number=${encodeURIComponent(trackingNumber)}`;
+  }
+  return `https://www.google.com/search?q=${encodeURIComponent((courier || '') + ' tracking ' + trackingNumber)}`;
+};
+
+const generateItemRowsHtml = async (items) => {
+  try {
+    const productIds = items.map(item => item.id);
+    const products = await Product.find({ id: { $in: productIds } }).lean();
+    const productMap = new Map(products.map(p => [p.id, p]));
+
+    return items.map(item => {
+      const product = productMap.get(item.id);
+      const rawImg = product ? (getVariantImage(product, item.selectedColor) || product.image) : '';
+      const imageUrl = makeAbsoluteUrl(rawImg);
+
+      const details = [];
+      if (item.selectedSize) details.push(`Size: ${item.selectedSize}`);
+      if (item.selectedColor) details.push(`Color: ${item.selectedColor.split('|').pop().trim()}`);
+      const detailText = details.length > 0
+        ? `<p style="margin: 2px 0 0; font-size: 9px; color: #737373; font-weight: bold; text-transform: uppercase;">${details.join(' · ')}</p>`
+        : '';
+
+      const imageCol = imageUrl
+        ? `<td style="padding: 12px 0; vertical-align: top; width: 80px;">
+             <img src="${imageUrl}" alt="${escapeHtml(item.name)}" style="width: 64px; height: 64px; object-fit: cover; border: 1px solid #e5e7eb; border-radius: 4px;" />
+           </td>`
+        : `<td style="padding: 12px 0; vertical-align: top; width: 80px;">
+             <div style="width: 64px; height: 64px; background: #f3f4f6; border: 1px solid #e5e7eb; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 8px; color: #9ca3af; font-weight: bold; text-transform: uppercase;">S&S</div>
+           </td>`;
+
+      return `
+        <tr style="border-bottom: 1px solid #f3f4f6;">
+          ${imageCol}
+          <td style="padding: 12px 12px; vertical-align: top;">
+            <p style="margin: 0; font-size: 12px; font-weight: 900; text-transform: uppercase; color: #171717;">${escapeHtml(item.name)}</p>
+            ${detailText}
+            <p style="margin: 4px 0 0; font-size: 10px; color: #737373; font-weight: 500;">Qty: ${item.quantity}</p>
+          </td>
+          <td style="padding: 12px 0; text-align: right; vertical-align: top; font-size: 12px; font-weight: 900; color: #171717; white-space: nowrap;">
+            Rs. ${(item.price * item.quantity).toLocaleString('en-PK')}
+          </td>
+        </tr>
+      `;
+    }).join('');
+  } catch (err) {
+    console.error('[generateItemRowsHtml] Error generating rows:', err.message);
+    return items.map(item => `
+      <tr style="border-bottom: 1px solid #f3f4f6;">
+        <td style="padding: 12px 0; vertical-align: top;">
+          <p style="margin: 0; font-size: 12px; font-weight: 900; text-transform: uppercase; color: #171717;">${escapeHtml(item.name)}</p>
+          <p style="margin: 4px 0 0; font-size: 10px; color: #737373; font-weight: 500;">Qty: ${item.quantity}</p>
+        </td>
+        <td style="padding: 12px 0; text-align: right; vertical-align: top; font-size: 12px; font-weight: 900; color: #171717;">
+          Rs. ${(item.price * item.quantity).toLocaleString('en-PK')}
+        </td>
+      </tr>
+    `).join('');
+  }
+};
+
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
@@ -134,7 +241,7 @@ export const checkAndAlertLowStock = async (purchasedItems) => {
 
     await Promise.all(purchasedItems.map(async (item) => {
       const product = await Product.findOne(buildIdQuery(item.id))
-        .select('name quantity id sizes sizeStock colors')
+        .select('name quantity id sizes sizeStock colors colorStock')
         .lean();
       if (!product) return;
 
@@ -163,6 +270,25 @@ export const checkAndAlertLowStock = async (purchasedItems) => {
               id: product.id || item.id,
               variant: `Size ${size}`,
               remaining: sizeQty,
+            });
+          }
+        }
+      }
+
+      // 3. Check individual colorStock maps
+      if (product.colors && product.colors.length > 0 && product.colorStock) {
+        const colorStockObj = product.colorStock instanceof Map
+          ? Object.fromEntries(product.colorStock)
+          : product.colorStock;
+
+        for (const color of product.colors) {
+          const colorQty = parseInt(colorStockObj[color]) ?? 0;
+          if (colorQty <= LOW_STOCK_THRESHOLD) {
+            lowStockAlerts.push({
+              name: product.name,
+              id: product.id || item.id,
+              variant: `Color ${color.split('|').pop().trim()}`,
+              remaining: colorQty,
             });
           }
         }
@@ -272,31 +398,11 @@ export const sendOrderConfirmationEmail = async (order) => {
   const customerEmail = order?.customer?.email;
   if (!customerEmail) return;
 
-  const trackUrl = `https://stop-shop-gamma.vercel.app/track?orderID=${order.orderID}`;
+  const trackUrl = makeAbsoluteUrl(`/track?orderID=${order.orderID}&email=${encodeURIComponent(customerEmail)}`);
   const subject = `Order Confirmed — ${order.orderID}`;
 
-  // Formulate items table rows
-  const itemRows = order.items.map(item => {
-    const details = [];
-    if (item.selectedSize) details.push(`Size: ${item.selectedSize}`);
-    if (item.selectedColor) details.push(`Color: ${item.selectedColor.split('|').pop().trim()}`);
-    const detailText = details.length > 0
-      ? `<p style="margin: 2px 0 0; font-size: 9px; color: #737373; font-weight: bold; text-transform: uppercase;">${details.join(' · ')}</p>`
-      : '';
-
-    return `
-      <tr style="border-bottom: 1px solid #f3f4f6;">
-        <td style="padding: 12px 0; vertical-align: top;">
-          <p style="margin: 0; font-size: 12px; font-weight: 900; text-transform: uppercase; color: #171717;">${escapeHtml(item.name)}</p>
-          ${detailText}
-          <p style="margin: 4px 0 0; font-size: 10px; color: #737373; font-weight: 500;">Qty: ${item.quantity}</p>
-        </td>
-        <td style="padding: 12px 0; text-align: right; vertical-align: top; font-size: 12px; font-weight: 900; color: #171717;">
-          Rs. ${(item.price * item.quantity).toLocaleString('en-PK')}
-        </td>
-      </tr>
-    `;
-  }).join('');
+  // Formulate items table rows with images
+  const itemRows = await generateItemRowsHtml(order.items);
 
   // Calculate order subtotal
   const subtotal = order.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -494,13 +600,27 @@ const STATUS_ICONS = {
  * Sends a branded order status notification email to the customer.
  */
 export const sendOrderStatusEmail = async (order, status) => {
-  if (!['Paid', 'Shipped', 'Delivered', 'Failed'].includes(status)) return;
+  if (!['Paid', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled', 'Failed', 'Refunded'].includes(status)) return;
+
+  if (status === 'Confirmed') {
+    return sendOrderConfirmationEmail(order);
+  }
 
   const customerEmail = order?.customer?.email;
   if (!customerEmail) return;
 
+  const STATUS_ICONS = {
+    Paid:      '💳',
+    Confirmed: '📋',
+    Shipped:   '📦',
+    Delivered: '✅',
+    Cancelled: '❌',
+    Failed:    '❌',
+    Refunded:  '💵',
+  };
+
   const icon = STATUS_ICONS[status] ?? '📋';
-  const trackUrl = `https://stop-shop-gamma.vercel.app/track?orderID=${order.orderID}`;
+  const trackUrl = makeAbsoluteUrl(`/track?orderID=${order.orderID}&email=${encodeURIComponent(customerEmail)}`);
 
   let subject = `${icon} Your order ${order.orderID} has been ${status.toLowerCase()}`;
   if (status === 'Paid') {
@@ -509,8 +629,12 @@ export const sendOrderStatusEmail = async (order, status) => {
     subject = `${icon} Your order ${order.orderID} has been dispatched`;
   } else if (status === 'Delivered') {
     subject = `${icon} Your order ${order.orderID} has arrived`;
+  } else if (status === 'Cancelled') {
+    subject = `${icon} Order Cancelled — ${order.orderID}`;
   } else if (status === 'Failed') {
     subject = `${icon} Order payment/fulfillment failed — ${order.orderID}`;
+  } else if (status === 'Refunded') {
+    subject = `${icon} Order Refunded — ${order.orderID}`;
   }
 
   let deliveryNote = '';
@@ -528,8 +652,89 @@ export const sendOrderStatusEmail = async (order, status) => {
        </p>`;
   } else if (status === 'Failed') {
     deliveryNote = `<p style="margin: 0 0 20px; font-size: 13px; color: #525252; line-height: 1.6; font-weight: 500;">
-         Unfortunately, we encountered an issue processing or fulfilling your order. The transaction has been updated to Failed. Please contact support if you need assistance.
+         Unfortunately, we encountered an issue processing or fulfilling your order. The transaction status has been updated to Failed. Please contact support if you need assistance.
        </p>`;
+  } else if (status === 'Cancelled') {
+    deliveryNote = `<p style="margin: 0 0 20px; font-size: 13px; color: #525252; line-height: 1.6; font-weight: 500;">
+         We regret to inform you that your order has been cancelled. If you did not request this or have questions, please reach out to us.
+       </p>`;
+  } else if (status === 'Refunded') {
+    deliveryNote = `<p style="margin: 0 0 20px; font-size: 13px; color: #525252; line-height: 1.6; font-weight: 500;">
+         A refund has been successfully initiated for your order. The funds will be credited back to your original payment method.
+       </p>`;
+  }
+
+  // 1. Shipped Details Card
+  let shippingInfoBlock = '';
+  if (status === 'Shipped') {
+    const courierName = order.courier || 'TCS Express';
+    const trackingNo = order.trackingNumber || 'N/A';
+    const trackingUrl = getTrackingUrl(courierName, trackingNo);
+    
+    shippingInfoBlock = `
+      <div style="background-color: #fcfcfc; border: 1px solid #e5e7eb; padding: 20px; margin-bottom: 30px;">
+        <p style="margin: 0 0 12px; font-size: 10px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; color: #737373;">
+          Courier &amp; Tracking Details
+        </p>
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 12px;">
+          <tbody>
+            <tr>
+              <td style="padding: 6px 0; font-size: 12px; color: #737373;">Courier Service</td>
+              <td style="padding: 6px 0; font-size: 12px; font-weight: 900; text-align: right; color: #171717; text-transform: uppercase;">${escapeHtml(courierName)}</td>
+            </tr>
+            <tr>
+              <td style="padding: 6px 0; font-size: 12px; color: #737373;">Tracking Number</td>
+              <td style="padding: 6px 0; font-size: 12px; font-weight: 900; text-align: right; color: #ba1f3d; font-family: monospace;">${escapeHtml(trackingNo)}</td>
+            </tr>
+          </tbody>
+        </table>
+        ${trackingNo !== 'N/A' ? `
+        <div style="text-align: center; margin-top: 10px;">
+          <a href="${trackingUrl}" target="_blank"
+             style="display: inline-block; background-color: #0d0d0d; color: #ffffff; padding: 12px 24px; font-size: 9px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; text-decoration: none; border-radius: 2px;">
+            Track shipment with ${escapeHtml(courierName)} &rarr;
+          </a>
+        </div>` : ''}
+      </div>
+    `;
+  }
+
+  // 2. Review Links Card for Delivered
+  let reviewPromptBlock = '';
+  if (status === 'Delivered') {
+    reviewPromptBlock = `
+      <div style="background-color: #fcfcfc; border: 1px solid #e5e7eb; padding: 20px; margin-bottom: 30px; text-align: center;">
+        <p style="margin: 0 0 8px; font-size: 12px; font-weight: 900; text-transform: uppercase; color: #0d0d0d; letter-spacing: 1px;">
+          Loved your style upgrade?
+        </p>
+        <p style="margin: 0 0 16px; font-size: 12px; color: #525252; line-height: 1.5;">
+          Share your thoughts on the products to help others choose. Leave a review for your items below:
+        </p>
+        <div style="display: flex; flex-direction: column; gap: 8px; align-items: center;">
+          ${(order.items || []).map(item => `
+            <a href="${makeAbsoluteUrl(`/product/${item.id}?write-review=true`)}" 
+               style="display: inline-block; font-size: 11px; font-weight: bold; color: #ba1f3d; text-decoration: none; border-bottom: 1px solid rgba(186, 31, 61, 0.3); padding-bottom: 2px;">
+               Review ${escapeHtml(item.name)} &rarr;
+            </a>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  }
+
+  // 3. Item rows with images
+  const itemRows = await generateItemRowsHtml(order.items || []);
+  const subtotal = (order.items || []).reduce((sum, item) => sum + (item.price * item.quantity), 0);
+  const discountAmount = Math.max(0, subtotal - order.total);
+  
+  let discountRow = '';
+  if (discountAmount > 0) {
+    discountRow = `
+      <tr>
+        <td style="padding: 6px 0; font-size: 11px; color: #ba1f3d; font-weight: bold;">DISCOUNT</td>
+        <td style="padding: 6px 0; text-align: right; font-size: 11px; color: #ba1f3d; font-weight: bold;">- Rs. ${discountAmount.toLocaleString('en-PK')}</td>
+      </tr>
+    `;
   }
 
   const schemaJson = JSON.stringify({
@@ -549,7 +754,7 @@ export const sendOrderStatusEmail = async (order, status) => {
         : "http://schema.org/OrderCancelled",
     "customer": {
       "@type": "Person",
-      "name": order.customer.name
+      "name": order.customer?.name ?? 'Valued Customer'
     },
     "potentialAction": {
       "@type": "TrackAction",
@@ -565,28 +770,34 @@ export const sendOrderStatusEmail = async (order, status) => {
       Your order <strong>${order.orderID}</strong> has been updated to <strong>${status.toUpperCase()}</strong>.
     </p>
     ${deliveryNote}
+    
+    ${shippingInfoBlock}
+    ${reviewPromptBlock}
 
     <div style="background-color: #fcfcfc; border: 1px solid #e5e7eb; padding: 20px; margin-bottom: 30px;">
-      <p style="margin: 0 0 8px; font-size: 10px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; color: #737373;">
-        Order Tracking
+      <p style="margin: 0 0 12px; font-size: 10px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; color: #737373;">
+        Order Items
       </p>
-      <table style="width: 100%; border-collapse: collapse;">
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 16px;">
+        <tbody>
+          ${itemRows}
+        </tbody>
+      </table>
+      
+      <table style="width: 100%; border-collapse: collapse; border-top: 1px solid #e5e7eb; padding-top: 12px;">
         <tbody>
           <tr>
-            <td style="padding: 6px 0; font-size: 12px; color: #737373;">Order ID</td>
-            <td style="padding: 6px 0; font-size: 12px; font-weight: 700; text-align: right; font-family: monospace;">${order.orderID}</td>
+            <td style="padding: 6px 0; font-size: 11px; color: #737373;">SUBTOTAL</td>
+            <td style="padding: 6px 0; text-align: right; font-size: 11px; color: #171717; font-weight: 700;">Rs. ${subtotal.toLocaleString('en-PK')}</td>
           </tr>
           <tr>
-            <td style="padding: 6px 0; font-size: 12px; color: #737373;">Current Status</td>
-            <td style="padding: 6px 0; font-size: 12px; font-weight: 700; text-align: right; color: ${
-              status === 'Delivered' ? '#16a34a' : status === 'Failed' ? '#dc2626' : '#2563eb'
-            };">
-              ${icon} ${status.toUpperCase()}
-            </td>
+            <td style="padding: 6px 0; font-size: 11px; color: #737373;">SHIPPING</td>
+            <td style="padding: 6px 0; text-align: right; font-size: 11px; color: #16a34a; font-weight: bold;">FREE</td>
           </tr>
-          <tr>
-            <td style="padding: 6px 0; font-size: 12px; color: #737373;">Total Paid</td>
-            <td style="padding: 6px 0; font-size: 12px; font-weight: 900; text-align: right;">Rs. ${(order.total ?? 0).toLocaleString('en-PK')}</td>
+          ${discountRow}
+          <tr style="border-top: 1px dotted #e5e7eb;">
+            <td style="padding: 12px 0 0; font-size: 13px; font-weight: 900; color: #0d0d0d; text-transform: uppercase;">TOTAL</td>
+            <td style="padding: 12px 0 0; text-align: right; font-size: 18px; font-weight: 900; color: #ba1f3d;">Rs. ${order.total.toLocaleString('en-PK')}</td>
           </tr>
         </tbody>
       </table>
@@ -612,6 +823,69 @@ export const sendOrderStatusEmail = async (order, status) => {
     console.log(`📧 [OrderStatus] ${status} email sent to ${customerEmail}`);
   } catch (err) {
     console.error('[OrderStatus] Email failed:', err.message);
+  }
+};
+
+/**
+ * Sends a branded status update notification email to the Admin.
+ */
+export const sendAdminOrderStatusNotification = async (order, status) => {
+  try {
+    const adminEmail = process.env.ADMIN_EMAIL || getEnv('EMAIL_USER');
+    if (!adminEmail) return;
+
+    const subject = `🔔 Order ${order.orderID} Status Updated to ${status.toUpperCase()}`;
+    
+    // Generate items rows with images
+    const itemRows = await generateItemRowsHtml(order.items || []);
+
+    const content = `
+      <p style="margin: 0 0 16px; font-size: 14px; line-height: 1.6; color: #404040;">
+        Admin Alert: Order <strong>${order.orderID}</strong> status has been updated to <strong>${status.toUpperCase()}</strong>.
+      </p>
+      <div style="background-color: #fcfcfc; border: 1px solid #e5e7eb; padding: 20px; margin-bottom: 24px;">
+        <p style="margin: 0 0 8px; font-size: 10px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; color: #737373;">
+          Order Details
+        </p>
+        <p style="margin: 0; font-size: 12px; color: #171717; line-height: 1.5;">
+          <strong>Order ID:</strong> ${order.orderID}<br>
+          <strong>Status:</strong> ${status.toUpperCase()}<br>
+          <strong>Customer Name:</strong> ${escapeHtml(order.customer?.name)}<br>
+          <strong>Customer Email:</strong> ${escapeHtml(order.customer?.email)}<br>
+          <strong>Customer Phone:</strong> ${escapeHtml(order.customer?.phone)}<br>
+          ${order.courier ? `<strong>Courier:</strong> ${escapeHtml(order.courier)}<br>` : ''}
+          ${order.trackingNumber ? `<strong>Tracking Number:</strong> ${escapeHtml(order.trackingNumber)}<br>` : ''}
+          <strong>Total Amount:</strong> Rs. ${order.total.toLocaleString('en-PK')}<br>
+          <strong>Payment Method:</strong> ${order.paymentMethod} (${order.paymentDetails?.status || 'Pending'})
+        </p>
+      </div>
+
+      <p style="margin: 20px 0 10px; font-size: 10px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; color: #737373;">
+        Items in this Order
+      </p>
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 24px;">
+        <tbody>
+          ${itemRows}
+        </tbody>
+      </table>
+
+      <div style="text-align: center;">
+        <a href="https://stop-shop-gamma.vercel.app/admin/orders"
+           style="display: inline-block; background-color: #ba1f3d; color: #ffffff; padding: 12px 28px; font-size: 10px; font-weight: 900; letter-spacing: 2px; text-transform: uppercase; text-decoration: none; border-radius: 2px;">
+          View in Admin Dashboard &rarr;
+        </a>
+      </div>
+    `;
+
+    const html = emailLayout(`Admin Alert: Order Updated`, content);
+    await sendEmail({
+      to: adminEmail,
+      subject,
+      html,
+    });
+    console.log(`📧 [AdminOrderStatus] Status email sent to admin: ${adminEmail}`);
+  } catch (err) {
+    console.error('[AdminOrderStatus] Email failed:', err.message);
   }
 };
 

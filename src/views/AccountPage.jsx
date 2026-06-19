@@ -150,6 +150,17 @@ const OrdersTab = () => {
                           {item.selectedSize && item.selectedColor && ' · '}
                           {item.selectedColor && `Color: ${item.selectedColor.split('|').pop()}`}
                           {' · Qty: '}{item.quantity ?? 1}
+                          {order.status === 'Delivered' && (
+                            <>
+                              {' · '}
+                              <Link
+                                to={`/product/${item.id}?write-review=true`}
+                                className="text-cardinal hover:underline font-black"
+                              >
+                                Write a Review
+                              </Link>
+                            </>
+                          )}
                         </p>
                       </div>
                       <p className="text-xs font-black text-gray-900 flex-shrink-0">

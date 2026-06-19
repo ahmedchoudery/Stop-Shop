@@ -79,6 +79,8 @@ export const updateProductSchema = createProductSchema.partial();
 export const updateOrderStatusSchema = z.object({
   status: z.enum(['Pending', 'Processing', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled', 'Paid', 'Failed', 'Refunded']).optional(),
   paymentStatus: z.enum(['Pending', 'Paid', 'Failed', 'Refunded']).optional(),
+  courier: z.string().trim().max(100).optional(),
+  trackingNumber: z.string().trim().max(100).optional(),
 });
 
 /** @typedef {z.infer<typeof updateOrderStatusSchema>} UpdateOrderStatusInput */

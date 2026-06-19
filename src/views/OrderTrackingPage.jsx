@@ -311,6 +311,55 @@ const OrderResult = ({ order, onReset }) => {
 
           {/* Status Tracker */}
           <StatusTracker status={order.status} />
+
+          {/* Courier Shipment Details Card */}
+          {order.status === 'Shipped' && order.courier && order.trackingNumber && (
+            <div className="mt-8 p-4 bg-gray-50 border border-gray-150 rounded-[4px] flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+              <div>
+                <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest">Shipment Courier</p>
+                <p className="text-xs font-black text-gray-900 uppercase tracking-tight mt-0.5">{order.courier}</p>
+                <p className="text-[10px] font-bold text-gray-500 mt-1">Tracking ID: <span className="font-mono text-black font-black">{order.trackingNumber}</span></p>
+              </div>
+              <a
+                href={
+                  order.courier.toLowerCase().includes('tcs')
+                    ? `https://www.tcsexpress.com/tracking?tracking-number=${encodeURIComponent(order.trackingNumber)}`
+                    : order.courier.toLowerCase().includes('leopard')
+                    ? `https://www.leopardscourier.com/tracking?track-number=${encodeURIComponent(order.trackingNumber)}`
+                    : `https://www.google.com/search?q=${encodeURIComponent(order.courier + ' tracking ' + order.trackingNumber)}`
+                }
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-black text-white px-4 py-2.5 text-[9px] font-black uppercase tracking-widest hover:bg-black/90 transition-all flex items-center space-x-1.5"
+              >
+                <span>Track on Courier Site &rarr;</span>
+              </a>
+            </div>
+          )}
+
+          {/* Review Prompt Details Card for Delivered orders */}
+          {order.status === 'Delivered' && order.items && order.items.length > 0 && (
+            <div className="mt-8 p-6 bg-[#FAFAF9] border border-gray-250 rounded-[4px] text-center space-y-4">
+              <p className="text-[9px] font-black uppercase tracking-[0.3em] text-cardinal">
+                Loved your style upgrade?
+              </p>
+              <p className="text-xs text-gray-500 font-bold max-w-md mx-auto uppercase tracking-wider">
+                Share your thoughts and help others make the perfect choice. Write a review for your items:
+              </p>
+              <div className="flex flex-col gap-2 max-w-xs mx-auto">
+                {order.items.map((item, i) => (
+                  <Link
+                    key={`${item.id}-${i}`}
+                    to={`/product/${item.id}?write-review=true`}
+                    className="bg-gray-900 hover:bg-black text-white text-[9px] font-black uppercase tracking-widest py-3 px-4 transition-all rounded-none flex items-center justify-center space-x-2"
+                  >
+                    <span>Review {item.name}</span>
+                    <ArrowRight size={10} />
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 

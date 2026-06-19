@@ -58,6 +58,8 @@ const orderSchema = new mongoose.Schema({
     }],
   },
   ip:            { type: String, default: '' },
+  courier:       { type: String, default: '' },
+  trackingNumber:{ type: String, default: '' },
 }, { timestamps: true, versionKey: false });
 
 orderSchema.index({ status: 1, createdAt: -1 });

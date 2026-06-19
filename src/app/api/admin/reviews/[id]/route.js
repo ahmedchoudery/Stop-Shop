@@ -4,6 +4,7 @@ import Review from '../../../../../models/Review';
 import { requireAdmin } from '../../../../../lib/adminAuth';
 import { logAudit } from '../../../../../lib/audit';
 import { cacheService, CACHE_KEYS } from '../../../../../services/cacheService';
+import { updateProductAverageRating } from '../../../../../services/reviewService';
 
 export async function PATCH(req, { params }) {
   try {
@@ -24,6 +25,10 @@ export async function PATCH(req, { params }) {
     const review = await Review.findByIdAndUpdate(id, { status }, { new: true }).lean();
     if (!review) {
       return NextResponse.json({ error: 'Review not found' }, { status: 404 });
+    }
+
+    if (review.productId) {
+      await updateProductAverageRating(review.productId);
     }
 
     await logAudit(`REVIEW_${status.toUpperCase()}`, { reviewId: id, status }, adminPayload.email, req);
@@ -55,6 +60,10 @@ export async function DELETE(req, { params }) {
     const review = await Review.findByIdAndDelete(id).lean();
     if (!review) {
       return NextResponse.json({ error: 'Review not found' }, { status: 404 });
+    }
+
+    if (review.productId) {
+      await updateProductAverageRating(review.productId);
     }
 
     await logAudit('REVIEW_DELETE', { reviewId: id }, adminPayload.email, req);

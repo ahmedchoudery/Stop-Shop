@@ -34,6 +34,10 @@ const OrderTable = ({ externalOrders, loading: externalLoading, onStatusUpdated,
   }, [externalOrders]);
 
   const handleStatusChange = async (orderId, newStatus) => {
+    if (newStatus === 'Shipped') {
+      alert('To mark an order as Shipped, please open the "View Details" (document icon) modal to enter Courier and Tracking information.');
+      return;
+    }
     try {
       const response = await authFetch(apiUrl(`/api/orders/${orderId}`), {
         method: 'PATCH',

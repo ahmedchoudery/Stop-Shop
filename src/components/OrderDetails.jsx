@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Printer, Package, Truck, User, MapPin, CreditCard, Calendar } from 'lucide-react';
 import { ShoppingBag, Clock, ShieldCheck, RefreshCcw, Loader } from 'lucide-react';
 import { apiUrl } from '../config/api';
@@ -7,6 +7,20 @@ const OrderDetails = ({ order, isOpen, onClose, onStatusUpdated }) => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [isRefunding, setIsRefunding] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
+  const [showCourierForm, setShowCourierForm] = useState(false);
+  const [courier, setCourier] = useState('TCS Express');
+  const [trackingNumber, setTrackingNumber] = useState('');
+  const [customCourier, setCustomCourier] = useState('');
+
+  // Reset courier states when order changes
+  useEffect(() => {
+    if (order) {
+      setCourier(order.courier && ['TCS Express', 'Leopards Courier', 'PostEx', 'Trax'].includes(order.courier) ? order.courier : (order.courier ? 'Custom' : 'TCS Express'));
+      setCustomCourier(order.courier && !['TCS Express', 'Leopards Courier', 'PostEx', 'Trax'].includes(order.courier) ? order.courier : '');
+      setTrackingNumber(order.trackingNumber || '');
+      setShowCourierForm(false);
+    }
+  }, [order]);
 
   if (!isOpen || !order) return null;
 
@@ -199,7 +213,14 @@ const OrderDetails = ({ order, isOpen, onClose, onStatusUpdated }) => {
                 <select
                   value={order.status}
                   disabled={isUpdating}
-                  onChange={(e) => handleStatusChange(e.target.value)}
+                  onChange={(e) => {
+                    const nextVal = e.target.value;
+                    if (nextVal === 'Shipped') {
+                      setShowCourierForm(true);
+                    } else {
+                      handleStatusChange(nextVal);
+                    }
+                  }}
                   className="bg-white border border-gray-200 px-3 py-2 text-[10px] font-black uppercase tracking-widest focus:border-black outline-none cursor-pointer"
                 >
                   {validStatuses.map(st => (
@@ -244,6 +265,142 @@ const OrderDetails = ({ order, isOpen, onClose, onStatusUpdated }) => {
               </div>
             </div>
           </div>
+
+          {/* Courier Form */}
+          {showCourierForm && (
+            <div className="mb-10 p-6 bg-gray-50 border border-gray-150 rounded-none print:hidden">
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-black mb-4">Shipment Courier Details</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
+                <div>
+                  <label className="block text-[8px] font-black uppercase tracking-[0.2em] text-gray-400 mb-1.5">Select Courier</label>
+                  <select
+                    value={courier}
+                    onChange={(e) => setCourier(e.target.value)}
+                    className="w-full bg-white border border-gray-200 px-3 py-2 text-xs font-bold focus:border-black outline-none outline-0 cursor-pointer"
+                  >
+                    <option value="TCS Express">TCS Express</option>
+                    <option value="Leopards Courier">Leopards Courier</option>
+                    <option value="PostEx">PostEx</option>
+                    <option value="Trax">Trax</option>
+                    <option value="Custom">Custom Courier</option>
+                  </select>
+                </div>
+                {courier === 'Custom' && (
+                  <div>
+                    <label className="block text-[8px] font-black uppercase tracking-[0.2em] text-gray-400 mb-1.5">Custom Courier Name</label>
+                    <input
+                      type="text"
+                      placeholder="Enter courier name"
+                      value={customCourier}
+                      onChange={(e) => setCustomCourier(e.target.value)}
+                      className="w-full bg-white border border-gray-200 px-3 py-2 text-xs font-bold focus:border-black outline-none outline-0"
+                    />
+                  </div>
+                )}
+                <div>
+                  <label className="block text-[8px] font-black uppercase tracking-[0.2em] text-gray-400 mb-1.5">Tracking Number</label>
+                  <div className="flex space-x-2">
+                    <input
+                      type="text"
+                      placeholder="Tracking reference number"
+                      value={trackingNumber}
+                      onChange={(e) => setTrackingNumber(e.target.value)}
+                      className="w-full bg-white border border-gray-200 px-3 py-2 text-xs font-bold focus:border-black outline-none outline-0 font-mono"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const rand = Math.floor(100000000000 + Math.random() * 900000000000);
+                        setTrackingNumber(rand.toString());
+                      }}
+                      className="px-4 py-2 border border-gray-200 bg-white hover:border-black hover:text-black transition-all text-[8px] font-black uppercase tracking-widest text-gray-400 whitespace-nowrap"
+                    >
+                      Generate Mock
+                    </button>
+                  </div>
+                </div>
+              </div>
+              <div className="flex justify-end space-x-2 border-t border-gray-150 pt-4">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCourierForm(false);
+                    // Reset to current order details
+                    setCourier(order.courier && ['TCS Express', 'Leopards Courier', 'PostEx', 'Trax'].includes(order.courier) ? order.courier : (order.courier ? 'Custom' : 'TCS Express'));
+                    setCustomCourier(order.courier && !['TCS Express', 'Leopards Courier', 'PostEx', 'Trax'].includes(order.courier) ? order.courier : '');
+                    setTrackingNumber(order.trackingNumber || '');
+                  }}
+                  className="px-4 py-2.5 border border-gray-200 text-gray-500 bg-white hover:border-black hover:text-black transition-all text-[9px] font-black uppercase tracking-widest"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const finalCourier = courier === 'Custom' ? customCourier : courier;
+                    if (!finalCourier.trim()) {
+                      alert('Please specify a courier service.');
+                      return;
+                    }
+                    if (!trackingNumber.trim()) {
+                      alert('Please enter a tracking number.');
+                      return;
+                    }
+                    setIsUpdating(true);
+                    try {
+                      const response = await fetch(apiUrl(`/api/orders/${order._id}`), {
+                        method: 'PATCH',
+                        credentials: 'include',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                          status: 'Shipped',
+                          courier: finalCourier.trim(),
+                          trackingNumber: trackingNumber.trim()
+                        }),
+                      });
+                      if (!response.ok) {
+                        const data = await response.json().catch(() => ({}));
+                        throw new Error(data.error ?? 'Failed to update status');
+                      }
+                      setShowCourierForm(false);
+                      if (onStatusUpdated) onStatusUpdated();
+                    } catch (err) {
+                      alert('Error: ' + err.message);
+                    } finally {
+                      setIsUpdating(false);
+                    }
+                  }}
+                  disabled={isUpdating}
+                  className="px-4 py-2.5 bg-black text-white hover:bg-black/95 transition-all text-[9px] font-black uppercase tracking-widest disabled:opacity-50"
+                >
+                  Save &amp; Ship
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Shipment Info Display */}
+          {order.status === 'Shipped' && order.courier && order.trackingNumber && !showCourierForm && (
+            <div className="mb-10 p-6 bg-[#FAF9F5] border border-gray-150 flex flex-col sm:flex-row items-center justify-between gap-4 print:hidden">
+              <div>
+                <p className="text-[9px] font-black uppercase tracking-[0.25em] text-gray-400 mb-1">Shipment Dispatch Details</p>
+                <p className="text-xs font-bold text-gray-700">Courier: <span className="font-black text-black uppercase tracking-wide">{order.courier}</span></p>
+                <p className="text-xs font-bold text-gray-700 mt-1">Tracking Number: <span className="font-mono text-black font-black">{order.trackingNumber}</span></p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setCourier(order.courier && ['TCS Express', 'Leopards Courier', 'PostEx', 'Trax'].includes(order.courier) ? order.courier : 'Custom');
+                  setCustomCourier(order.courier && !['TCS Express', 'Leopards Courier', 'PostEx', 'Trax'].includes(order.courier) ? order.courier : '');
+                  setTrackingNumber(order.trackingNumber);
+                  setShowCourierForm(true);
+                }}
+                className="flex items-center space-x-2 border border-gray-200 bg-white px-5 py-3 text-[9px] font-black uppercase tracking-widest hover:border-black hover:text-black transition-all"
+              >
+                <span>Edit Tracking Info</span>
+              </button>
+            </div>
+          )}
 
           {/* Detailed Info Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mb-12">

@@ -28,6 +28,8 @@ export async function GET(req, { params }) {
       status: order.status,
       paymentMethod: order.paymentMethod,
       total: order.total,
+      courier: order.courier ?? '',
+      trackingNumber: order.trackingNumber ?? '',
       createdAt: order.createdAt ? new Date(order.createdAt).toISOString() : null,
       updatedAt: order.updatedAt ? new Date(order.updatedAt).toISOString() : null,
       customer: {

@@ -30,6 +30,11 @@ const ProductReviews = ({ productId, productName }) => {
 
   useEffect(() => {
     if (productId) fetchReviews();
+
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('write-review') === 'true') {
+      setShowForm(true);
+    }
   }, [productId, fetchReviews]);
 
   const handleSubmit = async (e) => {
