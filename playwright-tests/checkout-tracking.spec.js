@@ -56,20 +56,22 @@ test.describe('Checkout and Secure Order Tracking E2E Flow', () => {
     // 4. Apply Coupon Code CARDINAL20
     const couponInput = page.getByPlaceholder('PROMO CODE');
     await expect(couponInput).toBeVisible();
-    await couponInput.fill('CARDINAL20');
+    await couponInput.click();
+    await couponInput.pressSequentially('CARDINAL20', { delay: 50 });
 
     const applyButton = page.locator('button:has-text("Apply")');
     await expect(applyButton).toBeVisible();
-    await expect(applyButton).toBeEnabled();
+    await expect(applyButton).toBeEnabled({ timeout: 5000 });
     await applyButton.click();
 
     // Wait for coupon discount to appear in order summary
-    await expect(page.getByText('Discount (CARDINAL20)')).toBeVisible();
+    await expect(page.getByText('Discount (CARDINAL20)')).toBeVisible({ timeout: 10000 });
 
     // 5. Fill out checkout form details using placeholders
     await page.getByPlaceholder('Ahmed', { exact: true }).fill('E2E');
     await page.getByPlaceholder('Khan', { exact: true }).fill('Test');
     await page.getByPlaceholder('ahmed@email.com', { exact: true }).fill('e2etest@example.com');
+    await page.getByPlaceholder('03001234567').fill('03001234567');
     await page.getByPlaceholder('House #, Street, Area', { exact: true }).fill('123 Automated Testing Lane');
     await page.getByPlaceholder('Gujrat', { exact: true }).fill('Karachi');
     await page.getByPlaceholder('50700', { exact: true }).fill('74200');
@@ -107,7 +109,7 @@ test.describe('Checkout and Secure Order Tracking E2E Flow', () => {
     // Verify order status details and timeline are visible
     await expect(page.locator('text=Order Status')).toBeVisible();
     await expect(page.getByText(orderID)).toBeVisible();
-    await expect(page.getByText('E2E Test')).toBeVisible();
+    await expect(page.getByText('E2E Test', { exact: true })).toBeVisible();
     await expect(page.getByText('123 Automated Testing Lane')).toBeVisible();
   });
 

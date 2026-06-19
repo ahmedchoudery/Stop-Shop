@@ -123,7 +123,7 @@ export async function GET(req) {
       avgOrderValue,
       pendingOrders,
       revenueTrend,
-      ordersTrend: ordersYesterday,
+      ordersTrend,
       totalProducts: productCount,
       outOfStock:    outOfStockCount,
       revenueOverTime,
