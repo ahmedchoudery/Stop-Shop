@@ -196,7 +196,9 @@ const PowerOfChoiceHero = () => {
             >
               Crafting <br className="md:hidden" /> Confidence.
               <br />
-              Defining <br className="md:hidden" /> Character.
+              <span className="text-white/70">
+                Defining <br className="md:hidden" /> Character.
+              </span>
             </h1>
 
 
