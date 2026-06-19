@@ -50,6 +50,20 @@ const getColorName = (color) => {
   return color;
 };
 
+const getVariantImage = (product, color) => {
+  if (!color || !product.variantImages) return null;
+  const colorName = getColorName(color);
+  
+  const getFromSource = (key) => {
+    if (typeof product.variantImages.get === 'function') {
+      return product.variantImages.get(key);
+    }
+    return product.variantImages[key];
+  };
+
+  return getFromSource(color) || getFromSource(colorName) || null;
+};
+
 const ProductCard = ({ product, onImageLoad }) => {
   const navigate      = useNavigate();
   const { addToCart } = useCart();
@@ -88,7 +102,7 @@ const ProductCard = ({ product, onImageLoad }) => {
       playPremiumChime();
       addToCart({
         ...product,
-        image: product.image,
+        image: getVariantImage(product, activeColor) || product.image,
         selectedSize: product.sizes?.[0] ?? '',
         selectedColor: activeColor ?? '',
         quantity: 1,
@@ -141,7 +155,7 @@ const ProductCard = ({ product, onImageLoad }) => {
         {/* Main Image */}
         <div className="w-full h-full">
           <MediaRenderer
-            src={product.mediaType === 'embed' ? null : product.image}
+            src={product.mediaType === 'embed' ? null : (getVariantImage(product, activeColor) || product.image)}
             embedCode={product.mediaType === 'embed' ? product.embedCode : undefined}
             mediaType={product.mediaType}
             alt={product.name}
