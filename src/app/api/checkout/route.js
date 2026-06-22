@@ -12,16 +12,6 @@ import { calculateDiscount } from '../../../utils/pricing';
 
 const getEnv = (...keys) => keys.map(k => process.env[k]).find(Boolean);
 
-const escapeHtml = (unsafe) => {
-  if (!unsafe) return '';
-  return unsafe
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-};
-
 export async function POST(req) {
   try {
     await dbConnect();
@@ -101,36 +91,51 @@ export async function POST(req) {
       const size = (item.selectedSize ?? '').trim();
       const color = (item.selectedColor ?? '').trim();
 
-      const sizeKey = size ? `sizeStock.${size}` : null;
-      const colorKey = color ? `colorStock.${color}` : null;
+      // Determine which stock mode this product uses
+      const dbProduct = productMap.get(item.id);
+      const hasMatrix = dbProduct && dbProduct.variantMatrix instanceof Map
+        ? dbProduct.variantMatrix.size > 0
+        : Object.keys(dbProduct?.variantMatrix ?? {}).length > 0;
+
+      const matrixKey = (hasMatrix && color && size) ? `variantMatrix.${color}|${size}` : null;
+      const sizeKey   = (!matrixKey && size)  ? `sizeStock.${size}`  : null;
+      const colorKey  = (!matrixKey && color) ? `colorStock.${color}` : null;
 
       const stockUpdate = { $inc: { quantity: -qty, stock: -qty } };
-      if (sizeKey) {
-        stockUpdate.$inc[sizeKey] = -qty;
+      if (matrixKey) {
+        stockUpdate.$inc[matrixKey] = -qty;
+        stockUpdate.$inc[`colorStock.${color}`] = -qty;
+        stockUpdate.$inc[`sizeStock.${size}`] = -qty;
       }
-      if (colorKey) {
-        stockUpdate.$inc[colorKey] = -qty;
+      if (sizeKey)   stockUpdate.$inc[sizeKey]   = -qty;
+      if (colorKey)  stockUpdate.$inc[colorKey]  = -qty;
+
+      // Build availability check — use the correct stock map
+      const availabilityCheck = {
+        id: item.id,
+        stock: { $gte: qty },
+      };
+      if (matrixKey) {
+        availabilityCheck[matrixKey] = { $gte: qty };
+        availabilityCheck[`colorStock.${color}`] = { $gte: qty };
+        availabilityCheck[`sizeStock.${size}`] = { $gte: qty };
       }
+      else if (sizeKey)  availabilityCheck[sizeKey]  = { $gte: qty };
+      else if (colorKey) availabilityCheck[colorKey] = { $gte: qty };
 
       const updatedProduct = await Product.findOneAndUpdate(
-        {
-          id: item.id,
-          ...(sizeKey ? { [sizeKey]: { $gte: qty } } : {}),
-          ...(colorKey ? { [colorKey]: { $gte: qty } } : {}),
-          stock: { $gte: qty }
-        },
+        availabilityCheck,
         stockUpdate,
         { new: true }
       );
 
       if (!updatedProduct) {
-        const dbProduct = productMap.get(item.id);
         const name = dbProduct ? dbProduct.name : item.id;
         stockError = `Not enough stock for ${name}${size ? ` (size ${size})` : ''}${color ? ` (color ${color})` : ''}. Please adjust your quantity and try again.`;
         break;
       }
 
-      completedDecrements.push({ item, qty, sizeKey, colorKey });
+      completedDecrements.push({ item, qty, matrixKey, sizeKey, colorKey });
 
       await syncInventory(
         updatedProduct,
@@ -144,12 +149,15 @@ export async function POST(req) {
     const rollbackStock = async () => {
       for (const dec of completedDecrements) {
         const rollbackUpdate = { $inc: { quantity: dec.qty, stock: dec.qty } };
-        if (dec.sizeKey) {
-          rollbackUpdate.$inc[dec.sizeKey] = dec.qty;
+        if (dec.matrixKey) {
+          rollbackUpdate.$inc[dec.matrixKey] = dec.qty;
+          const color = (dec.item.selectedColor ?? '').trim();
+          const size = (dec.item.selectedSize ?? '').trim();
+          if (color) rollbackUpdate.$inc[`colorStock.${color}`] = dec.qty;
+          if (size) rollbackUpdate.$inc[`sizeStock.${size}`] = dec.qty;
         }
-        if (dec.colorKey) {
-          rollbackUpdate.$inc[dec.colorKey] = dec.qty;
-        }
+        if (dec.sizeKey)   rollbackUpdate.$inc[dec.sizeKey]   = dec.qty;
+        if (dec.colorKey)  rollbackUpdate.$inc[dec.colorKey]  = dec.qty;
 
         await Product.findOneAndUpdate(
           { id: dec.item.id },
@@ -179,6 +187,7 @@ export async function POST(req) {
         selectedColor: (item.selectedColor ?? '').trim(),
         category:      product?.bucket || item.category || '',
         subCategory:   product?.subCategory || item.subCategory || '',
+        image:         product?.image || '',
       };
     });
 
@@ -245,27 +254,34 @@ export async function POST(req) {
       }
     }
 
-    const orderDoc = await Order.create({
-      orderID,
-      customer,
-      items: enrichedItems,
-      total: finalTotal,
-      paymentMethod,
-      status: initialOrderStatus,
-      paymentDetails: {
-        transactionID:  authResult.transactionID,
-        status:         authResult.status || 'Pending',
-        paymentAccount: authResult.account || '',
-        cardBrand:      authResult.brand || '',
-        gatewayLogs:    [
-          {
-            action: authResult.logs?.action || 'PAYMENT_INITIALIZED',
-            details: authResult.logs?.details || {},
-          }
-        ]
-      },
-      ip: clientIp
-    });
+    let orderDoc;
+    try {
+      orderDoc = await Order.create({
+        orderID,
+        customer,
+        items: enrichedItems,
+        total: finalTotal,
+        paymentMethod,
+        status: initialOrderStatus,
+        paymentDetails: {
+          transactionID:  authResult.transactionID,
+          status:         authResult.status || 'Pending',
+          paymentAccount: authResult.account || '',
+          cardBrand:      authResult.brand || '',
+          gatewayLogs:    [
+            {
+              action: authResult.logs?.action || 'PAYMENT_INITIALIZED',
+              details: authResult.logs?.details || {},
+            }
+          ]
+        },
+        ip: clientIp
+      });
+    } catch (dbError) {
+      console.error(`[Checkout] Order.create failed for ${orderID}:`, dbError.message);
+      await rollbackStock();
+      throw dbError;
+    }
 
     if (appliedCoupon) {
       await Coupon.findByIdAndUpdate(
