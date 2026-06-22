@@ -28,7 +28,6 @@ const OrderTable = ({ externalOrders, loading: externalLoading, onStatusUpdated,
     }
   };
 
-
   useEffect(() => {
     fetchOrders();
   }, [externalOrders]);
@@ -58,101 +57,203 @@ const OrderTable = ({ externalOrders, loading: externalLoading, onStatusUpdated,
     }
   };
 
-
   const statusIcons = {
-    'Pending': <Clock className="text-yellow-500" size={16} />,
-    'Processing': <Package className="text-blue-500" size={16} />,
-    'Shipped': <Truck className="text-purple-500" size={16} />,
-    'Delivered': <CheckCircle className="text-green-500" size={16} />,
-    'Cancelled': <AlertCircle className="text-red-500" size={16} />,
+    'Pending': <Clock size={10} className="stroke-[2.5]" />,
+    'Processing': <Package size={10} className="stroke-[2.5]" />,
+    'Confirmed': <CheckCircle size={10} className="stroke-[2.5]" />,
+    'Shipped': <Truck size={10} className="stroke-[2.5]" />,
+    'Delivered': <CheckCircle size={10} className="stroke-[2.5]" />,
+    'Cancelled': <AlertCircle size={10} className="stroke-[2.5]" />,
+    'Paid': <CheckCircle size={10} className="stroke-[2.5]" />,
+    'Failed': <AlertCircle size={10} className="stroke-[2.5]" />,
+    'Refunded': <AlertCircle size={10} className="stroke-[2.5]" />,
   };
 
-  if (isLoading) return <div className="p-10 text-center font-black uppercase tracking-widest text-gray-400 bg-white">Loading Business Intelligence...</div>;
-  if (error) return <div className="p-10 text-center text-red-600 font-bold">Error: {error}</div>;
+  const statusColors = {
+    'Pending': 'bg-[#FBF3DB] border-[#ECD5A5] text-[#956400]',
+    'Processing': 'bg-[#EDF3EC] border-[#D0E2CE] text-[#346538]',
+    'Confirmed': 'bg-[#EDF3EC] border-[#D0E2CE] text-[#346538]',
+    'Shipped': 'bg-purple-50 border-purple-200 text-purple-700',
+    'Delivered': 'bg-[#E2EFE0] border-[#C2DEC0] text-[#2D5A30]',
+    'Cancelled': 'bg-[#FDEBEC] border-[#F9CFCF] text-[#9F2F2D]',
+    'Paid': 'bg-[#EDF3EC] border-[#D0E2CE] text-[#346538]',
+    'Failed': 'bg-black border-black text-white',
+    'Refunded': 'bg-gray-100 border-gray-300 text-gray-600',
+  };
+
+  const formatDate = (dateStr) => {
+    try {
+      const d = new Date(dateStr);
+      const months = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+      return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+    } catch {
+      return dateStr;
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="p-20 text-center bg-white border border-gray-150 rounded-[4px]">
+        <div className="w-10 h-10 border-2 border-black/10 border-t-black rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400">Loading Business Intelligence...</p>
+      </div>
+    );
+  }
+  if (error) return <div className="p-10 text-center text-red-600 font-bold bg-white border border-red-200 rounded-[4px]">Error: {error}</div>;
 
   return (
     <div className="w-full">
-
-      <div className="bg-white border border-gray-150 overflow-hidden rounded-[4px]">
+      <div className="bg-white overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-gray-50 border-b border-gray-150">
-                <th className="p-4 text-[10px] font-black uppercase tracking-widest text-gray-400">Order ID</th>
-                <th className="p-4 text-[10px] font-black uppercase tracking-widest text-gray-400">Customer</th>
-                <th className="p-4 text-[10px] font-black uppercase tracking-widest text-gray-400">Items</th>
-                <th className="p-4 text-[10px] font-black uppercase tracking-widest text-gray-400">Total</th>
-                <th className="p-4 text-[10px] font-black uppercase tracking-widest text-gray-400">Status</th>
-                <th className="p-4 text-[10px] font-black uppercase tracking-widest text-gray-400">Date</th>
-                <th className="p-4 text-[10px] font-black uppercase tracking-widest text-gray-400 text-center">Actions</th>
+                <th className="p-4 text-[9px] font-black uppercase tracking-[0.3em] text-gray-400">Order ID</th>
+                <th className="p-4 text-[9px] font-black uppercase tracking-[0.3em] text-gray-400">Customer</th>
+                <th className="p-4 text-[9px] font-black uppercase tracking-[0.3em] text-gray-400">Items</th>
+                <th className="p-4 text-[9px] font-black uppercase tracking-[0.3em] text-gray-400">Total</th>
+                <th className="p-4 text-[9px] font-black uppercase tracking-[0.3em] text-gray-400">Status</th>
+                <th className="p-4 text-[9px] font-black uppercase tracking-[0.3em] text-gray-400">Date</th>
+                <th className="p-4 text-[9px] font-black uppercase tracking-[0.3em] text-gray-400 text-center">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
-              {orders.map((order) => (
-                <tr key={order._id} className="hover:bg-gray-50/80 transition-colors group">
-                  <td className="p-4 font-mono text-xs font-bold text-black">
-                    {order.orderId || order.orderID || order._id}
-                  </td>
-                  <td className="p-4">
-                    <div className="flex flex-col">
-                      <span className="text-sm font-black uppercase tracking-tight">
-                        {order.customer?.name || `${order.customer?.firstName ?? ''} ${order.customer?.lastName ?? ''}`.trim()}
-                      </span>
-                      <span className="text-[10px] text-gray-400 font-medium">{order.customer?.city || 'Urgent Delivery'}</span>
-                    </div>
-                  </td>
-                  <td className="p-4">
-                    <span className="text-xs font-bold text-gray-600">
-                      {order.items.length} {order.items.length === 1 ? 'item' : 'items'}
-                    </span>
-                  </td>
-                  <td className="p-4">
-                    <span className="text-sm font-black text-gray-900">{order.currency || 'PKR'} {order.total?.toFixed(2)}</span>
-                  </td>
-                  <td className="p-4">
-                    <div className="flex items-center space-x-3">
-                      <div className="flex items-center space-x-1 min-w-[80px]">
-                        {statusIcons[order.status]}
-                        <span className="text-[10px] font-black uppercase tracking-widest ml-1">{order.status}</span>
+              {orders.map((order) => {
+                const totalQuantity = (order.items || []).reduce((sum, item) => sum + (item.quantity || 1), 0);
+                return (
+                  <tr key={order._id} className="hover:bg-gray-50/60 transition-colors group">
+                    {/* Order ID */}
+                    <td className="p-4 font-mono text-[10px] font-bold text-gray-500">
+                      #{order.orderID || order.orderId || order._id?.toString()?.slice(-8).toUpperCase()}
+                    </td>
+
+                    {/* Customer */}
+                    <td className="p-4">
+                      <div className="flex flex-col">
+                        <span className="text-xs font-black uppercase tracking-tight text-gray-900">
+                          {order.customer?.name || `${order.customer?.firstName ?? ''} ${order.customer?.lastName ?? ''}`.trim() || 'Guest Customer'}
+                        </span>
+                        <span className="text-[8px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">
+                          {order.customer?.city || 'Urgent Delivery'}
+                        </span>
                       </div>
-                      <select 
-                        value={order.status}
-                        onChange={(e) => handleStatusChange(order._id, e.target.value)}
-                        className="bg-white border border-gray-200 text-[10px] font-black uppercase tracking-widest rounded-[4px] px-2.5 py-1.5 outline-none cursor-pointer hover:border-black transition-colors"
-                      >
-                        <option value="Pending">Pending</option>
-                        <option value="Processing">Processing</option>
-                        <option value="Shipped">Shipped</option>
-                        <option value="Delivered">Delivered</option>
-                        <option value="Cancelled">Cancelled</option>
-                      </select>
-                    </div>
-                  </td>
-                  <td className="p-4 text-[10px] font-bold text-gray-400 uppercase">
-                    {new Date(order.createdAt).toLocaleDateString()}
-                  </td>
-                  <td className="p-4 text-center">
-                    <div className="flex items-center justify-center space-x-1">
-                      {onViewDetail && (
-                        <button 
-                          onClick={() => onViewDetail(order)}
-                          className="p-2 text-gray-400 hover:text-black hover:bg-black/5 rounded-[4px] transition-all"
-                          title="View Details"
+                    </td>
+
+                    {/* Items — overlapping stacked image gallery */}
+                    <td className="p-4">
+                      <div className="flex items-center space-x-3">
+                        <div className="flex -space-x-3.5 hover:-space-x-1.5 transition-all duration-300">
+                          {(order.items || []).slice(0, 3).map((item, idx) => {
+                            const firstLetter = item.name ? item.name.charAt(0).toUpperCase() : '?';
+                            return (
+                              <div
+                                key={idx}
+                                className="relative group/img w-9 h-9 rounded-[4px] overflow-hidden border border-white bg-gray-50 flex items-center justify-center shadow-sm cursor-pointer transition-all duration-250 hover:z-30 hover:scale-120 hover:border-black"
+                                style={{ zIndex: 10 - idx }}
+                              >
+                                {item.image ? (
+                                  <img
+                                    src={item.image}
+                                    alt={item.name}
+                                    className="w-full h-full object-cover"
+                                    loading="lazy"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full bg-gray-100 flex items-center justify-center text-[10px] font-black text-gray-400 font-mono">
+                                    {firstLetter}
+                                  </div>
+                                )}
+                                {/* Editorial Hover Tooltip */}
+                                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover/img:block z-[100] bg-black text-white text-[8px] font-black uppercase tracking-widest px-2.5 py-1.5 rounded-[4px] shadow-lg whitespace-nowrap pointer-events-none">
+                                  {item.name}
+                                  {item.selectedColor && ` · ${item.selectedColor.includes('|') ? item.selectedColor.split('|')[1] : item.selectedColor}`}
+                                  {item.selectedSize && ` · ${item.selectedSize}`}
+                                  {` · Qty: ${item.quantity}`}
+                                </div>
+                              </div>
+                            );
+                          })}
+
+                          {(order.items || []).length > 3 && (
+                            <div
+                              className="relative w-9 h-9 rounded-[4px] border border-white bg-black text-white flex items-center justify-center shadow-sm text-[8px] font-black tracking-tighter cursor-help"
+                              style={{ zIndex: 0 }}
+                              title={(order.items || []).slice(3).map(i => i.name).join(', ')}
+                            >
+                              +{(order.items || []).length - 3}
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Order Summary Text */}
+                        <div className="flex flex-col">
+                          <span className="text-[10px] font-black text-gray-900 uppercase tracking-widest leading-none">
+                            {totalQuantity} {totalQuantity === 1 ? 'PC' : 'PCS'}
+                          </span>
+                          <span className="text-[7px] font-bold text-gray-400 uppercase tracking-widest mt-1">
+                            {(order.items || []).length} {(order.items || []).length === 1 ? 'Product' : 'Products'}
+                          </span>
+                        </div>
+                      </div>
+                    </td>
+
+                    {/* Total Price */}
+                    <td className="p-4">
+                      <span className="text-xs font-black text-gray-900 font-mono">
+                        {order.currency || 'PKR'} {Number(order.total ?? 0).toLocaleString('en-PK', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      </span>
+                    </td>
+
+                    {/* Status Badge + Change Dropdown */}
+                    <td className="p-4">
+                      <div className="flex items-center space-x-2">
+                        <span className={`inline-flex items-center space-x-1.5 px-2 py-0.5 rounded-[4px] border text-[8px] font-black uppercase tracking-widest ${statusColors[order.status] || 'bg-gray-50 border-gray-200 text-gray-600'}`}>
+                          {statusIcons[order.status] || <Clock size={10} />}
+                          <span>{order.status}</span>
+                        </span>
+                        <select
+                          value={order.status}
+                          onChange={(e) => handleStatusChange(order._id, e.target.value)}
+                          className="bg-transparent border border-gray-200 text-[8px] font-black uppercase tracking-widest rounded-[4px] px-1.5 py-0.5 outline-none cursor-pointer hover:border-black hover:bg-gray-50 transition-all font-mono"
                         >
-                          <FileText size={16} />
+                          <option value="Pending">Pending</option>
+                          <option value="Processing">Processing</option>
+                          <option value="Shipped">Shipped</option>
+                          <option value="Delivered">Delivered</option>
+                          <option value="Cancelled">Cancelled</option>
+                        </select>
+                      </div>
+                    </td>
+
+                    {/* Date */}
+                    <td className="p-4 text-[9px] font-bold text-gray-400 uppercase tracking-wider font-mono">
+                      {formatDate(order.createdAt)}
+                    </td>
+
+                    {/* Actions */}
+                    <td className="p-4 text-center">
+                      <div className="flex items-center justify-center space-x-1 opacity-60 group-hover:opacity-100 transition-opacity">
+                        {onViewDetail && (
+                          <button
+                            onClick={() => onViewDetail(order)}
+                            className="p-2 text-gray-400 hover:text-black hover:bg-gray-150 rounded-[4px] transition-all"
+                            title="View Details"
+                          >
+                            <FileText size={13} />
+                          </button>
+                        )}
+                        <button
+                          onClick={() => generateInvoice(order)}
+                          className="p-2 text-gray-400 hover:text-black hover:bg-gray-150 rounded-[4px] transition-all"
+                          title="Download Invoice (PDF)"
+                        >
+                          <Download size={13} />
                         </button>
-                      )}
-                      <button 
-                        onClick={() => generateInvoice(order)}
-                        className="p-2 text-gray-500 hover:text-black hover:bg-black/5 rounded-[4px] transition-all"
-                        title="Download Invoice (PDF)"
-                      >
-                        <Download size={16} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

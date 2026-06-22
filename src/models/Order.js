@@ -9,6 +9,7 @@ const orderItemSchema = new mongoose.Schema({
   selectedColor: { type: String, default: '' },      // ← Color variant chosen by customer
   category:      { type: String, default: '' },      // ← Product bucket (Tops, Bottoms…)
   subCategory:   { type: String, default: '' },      // ← e.g. T-Shirt, Jeans
+  image:         { type: String, default: '' },      // Product image URL stored at purchase time
 }, { _id: false });
 
 export const PAYMENT_METHODS = ['COD', 'ATM Card', 'Bank Transfer', 'Easypaisa', 'JazzCash'];

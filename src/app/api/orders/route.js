@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '../../../lib/db';
 import Order from '../../../models/Order';
+import Product from '../../../models/Product';
 import { requireAdmin } from '../../../lib/adminAuth';
 
 export async function GET(req) {
@@ -24,11 +25,22 @@ export async function GET(req) {
       .limit(limit)
       .lean();
 
+    // Fetch product images for all items in the orders list
+    const allProductIds = [...new Set(orders.flatMap(o => (o.items || []).map(i => i.id)))];
+    const dbProducts = await Product.find({ id: { $in: allProductIds } })
+      .select('id image')
+      .lean();
+    const productImageMap = new Map(dbProducts.map(p => [p.id, p.image]));
+
     const formatted = orders.map(order => ({
       ...order,
       _id: order._id?.toString() || null,
       createdAt: order.createdAt ? new Date(order.createdAt).toISOString() : null,
       updatedAt: order.updatedAt ? new Date(order.updatedAt).toISOString() : null,
+      items: (order.items || []).map(item => ({
+        ...item,
+        image: item.image || productImageMap.get(item.id) || '',
+      })),
     }));
 
     return NextResponse.json(formatted, {
