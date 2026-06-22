@@ -84,183 +84,228 @@ const ProductTable = memo(({ products = [], onEdit, onDelete }) => {
         </thead>
 
         <tbody className="divide-y divide-gray-50">
-          {products.map(product => (
-            <tr
-              key={product.id ?? product._id}
-              className="group hover:bg-gray-50/60 transition-colors duration-150"
-            >
-              {/* Product image + name */}
-              <td className="px-5 py-4">
-                <div className="flex items-center space-x-3">
-                  <div className="w-11 h-11 rounded-[4px] overflow-hidden bg-gray-50 border border-gray-150 flex-shrink-0">
-                    {product.image ? (
-                      <MediaRenderer
-                        src={product.mediaType === 'embed' ? null : product.image}
-                        embedCode={product.mediaType === 'embed' ? product.embedCode : undefined}
-                        mediaType={product.mediaType}
-                        alt={product.name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-full flex items-center justify-center">
-                        <span className="text-gray-300 text-[10px] font-black uppercase">No img</span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-black uppercase tracking-tight text-gray-900 truncate max-w-[200px]">
-                      {product.name}
-                    </p>
-                    {product.colors?.length > 0 && (
-                      <div className="flex items-center space-x-1 mt-1">
-                        {product.colors.slice(0, 4).map(color => (
-                          <span
-                            key={color}
-                            className="w-2.5 h-2.5 rounded-full border border-white shadow-sm"
-                            style={getBackgroundStyle(color)}
-                            title={getColorName(color)}
-                          />
-                        ))}
-                        {product.colors.length > 4 && (
-                          <span className="text-[8px] text-gray-400 font-bold">
-                            +{product.colors.length - 4}
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </td>
+          {products.map(product => {
+            const hasMatrix = product.variantMatrix && (
+              product.variantMatrix instanceof Map 
+                ? product.variantMatrix.size > 0 
+                : Object.keys(product.variantMatrix).length > 0
+            );
+            const hasColors = product.colors && product.colors.length > 0;
+            const hasSizes = product.sizes && product.sizes.length > 0;
 
-              {/* SKU */}
-              <td className="px-5 py-4">
-                <span className="font-mono text-[10px] font-bold text-gray-400">
-                  #{product.id ?? product._id?.toString()?.slice(-8)}
-                </span>
-              </td>
-
-              {/* Category */}
-              <td className="px-5 py-4">
-                <div>
-                  <p className="text-[10px] font-black text-black uppercase tracking-widest">
-                    {product.bucket || '—'}
-                  </p>
-                  <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">
-                    {product.subCategory || '—'}
-                  </p>
-                  {product.sectionName && (
-                    <span className="inline-block mt-1 text-[8px] font-black tracking-widest bg-gray-100 text-gray-600 px-2 py-0.5 rounded-[2px] uppercase">
-                      {product.sectionName}
-                    </span>
-                  )}
-                </div>
-              </td>
-
-              {/* Price */}
-              <td className="px-5 py-4">
-                <span className="text-sm font-black text-gray-900 tabular-nums">
-                  Rs. {Number(product.price ?? 0).toLocaleString('en-PK')}
-                </span>
-              </td>
-
-              {/* Stock */}
-              <td className="px-5 py-4">
-                <div className="space-y-1.5">
-                  <StockBadge qty={product.quantity ?? 0} />
-                  {/* Per-size breakdown if available */}
-                  {product.sizes?.length > 0 && (
-                    <div className="flex flex-wrap gap-1">
-                      {product.sizes.map(size => {
-                        const sizeQty =
-                          product.sizeStock instanceof Map
-                            ? (product.sizeStock.get(size) ?? 0)
-                            : (product.sizeStock?.[size] ?? 0);
-                        return (
-                          <span
-                            key={size}
-                            className={`text-[7px] font-black px-1.5 py-0.5 rounded-[2px] uppercase tracking-wider ${
-                              sizeQty === 0 ? 'bg-red-50 border border-red-100 text-red-600' : 'bg-gray-150 text-gray-600'
-                            }`}
-                          >
-                            {size}: {sizeQty}
-                          </span>
-                        );
-                      })}
+            return (
+              <tr
+                key={product.id ?? product._id}
+                className="group hover:bg-gray-50/60 transition-colors duration-150"
+              >
+                {/* Product image + name + description snippet */}
+                <td className="px-5 py-4">
+                  <div className="flex items-start space-x-3">
+                    <div className="w-12 h-12 rounded-[4px] overflow-hidden bg-gray-50 border border-gray-150 flex-shrink-0 mt-0.5">
+                      {product.image ? (
+                        <MediaRenderer
+                          src={product.mediaType === 'embed' ? null : product.image}
+                          embedCode={product.mediaType === 'embed' ? product.embedCode : undefined}
+                          mediaType={product.mediaType}
+                          alt={product.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center">
+                          <span className="text-gray-300 text-[8px] font-black uppercase">No img</span>
+                        </div>
+                      )}
                     </div>
-                  )}
-                  {/* Per-color breakdown if available */}
-                  {product.colors?.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {product.colors.map(color => {
-                        const colorQty =
-                          product.colorStock instanceof Map
-                            ? (product.colorStock.get(color) ?? 0)
-                            : (product.colorStock?.[color] ?? 0);
-                        return (
-                          <span
-                            key={color}
-                            className={`text-[7px] font-black px-1.5 py-0.5 rounded-[2px] uppercase tracking-wider flex items-center ${
-                              colorQty === 0 ? 'bg-red-50 border border-red-100 text-red-600' : 'bg-gray-100 border border-gray-200 text-gray-700'
-                            }`}
-                          >
+                    <div className="min-w-0">
+                      <p className="text-xs font-black uppercase tracking-tight text-gray-900 group-hover:text-black transition-colors">
+                        {product.name}
+                      </p>
+                      <p className="text-[10px] text-gray-400 font-bold tracking-widest uppercase mt-0.5 font-mono">
+                        {product.bucket || 'General'}
+                      </p>
+                      <p className="text-[9px] text-gray-400 font-medium line-clamp-2 max-w-[220px] mt-1 normal-case leading-normal">
+                        {product.description || 'No description provided.'}
+                      </p>
+                    </div>
+                  </div>
+                </td>
+
+                {/* SKU */}
+                <td className="px-5 py-4 align-top">
+                  <span className="font-mono text-[9px] font-bold text-gray-400">
+                    #{product.id ?? product._id?.toString()?.slice(-8).toUpperCase()}
+                  </span>
+                </td>
+
+                {/* Category Breadcrumbs */}
+                <td className="px-5 py-4 align-top">
+                  <div>
+                    <div className="flex items-center space-x-1.5 text-[9px] font-black text-gray-900 uppercase tracking-widest">
+                      <span>{product.bucket || 'Tops'}</span>
+                      <span className="text-gray-300 font-normal">/</span>
+                      <span className="text-gray-500">{product.subCategory || 'Shirts'}</span>
+                    </div>
+                    {product.sectionName && (
+                      <div className="mt-2">
+                        <span className="inline-block text-[7px] font-black tracking-widest bg-gray-100 border border-gray-150 text-gray-500 px-1.5 py-0.5 rounded-[2px] uppercase">
+                          {product.sectionName}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </td>
+
+                {/* Price (Standard or Discounted) */}
+                <td className="px-5 py-4 align-top">
+                  <div className="flex flex-col">
+                    {product.discount > 0 ? (
+                      <>
+                        <div className="flex items-center space-x-1.5">
+                          <span className="text-xs font-black text-gray-900 font-mono">
+                            Rs. {Number(product.price * (1 - product.discount / 100)).toLocaleString('en-PK')}
+                          </span>
+                          <span className="text-[7px] font-black bg-[#FDEBEC] border border-[#F9CFCF] text-[#9F2F2D] px-1 py-0.5 rounded-[2px] tracking-wider uppercase">
+                            -{product.discount}%
+                          </span>
+                        </div>
+                        <span className="text-[9px] font-bold text-gray-400 line-through font-mono mt-0.5">
+                          Rs. {Number(product.price ?? 0).toLocaleString('en-PK')}
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-xs font-black text-gray-900 font-mono">
+                        Rs. {Number(product.price ?? 0).toLocaleString('en-PK')}
+                      </span>
+                    )}
+                  </div>
+                </td>
+
+                {/* Stock Breakdown (S, M, L, XL of each color) */}
+                <td className="px-5 py-4 align-top">
+                  <div className="space-y-2">
+                    <StockBadge qty={product.quantity ?? 0} />
+                    
+                    {/* Matrix View: Both colors AND sizes exist */}
+                    {hasMatrix && hasColors && hasSizes && (
+                      <div className="space-y-1.5">
+                        {product.colors.map(color => (
+                          <div key={color} className="flex items-center space-x-2 text-[8px] uppercase tracking-widest">
                             <span
-                              className="w-1.5 h-1.5 rounded-full mr-1 border border-white"
+                              className="w-2.5 h-2.5 rounded-full border border-gray-250 shadow-sm flex-shrink-0"
                               style={getBackgroundStyle(color)}
                             />
-                            {getColorName(color)}: {colorQty}
-                          </span>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              </td>
+                            <span className="font-black text-gray-800 min-w-[55px] truncate" title={getColorName(color)}>
+                              {getColorName(color)}:
+                            </span>
+                            <span className="text-gray-400 font-bold font-mono">
+                              {product.sizes.map(size => {
+                                const key = `${color}|${size}`;
+                                const qty = product.variantMatrix instanceof Map
+                                  ? (product.variantMatrix.get(key) ?? 0)
+                                  : (product.variantMatrix?.[key] ?? 0);
+                                return (
+                                  <span key={size} className={qty === 0 ? 'text-red-400 font-black' : 'text-gray-600'}>
+                                    {size}:{qty}&nbsp;&nbsp;
+                                  </span>
+                                );
+                              })}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
 
-              {/* Rating */}
-              <td className="px-5 py-4">
-                <div className="flex items-center space-x-1">
-                  {[...Array(5)].map((_, i) => (
-                    <span
-                      key={i}
-                      className={`text-[10px] ${i < (product.rating ?? 5) ? 'text-amber-gold' : 'text-gray-200'}`}
-                    >
-                      ★
+                    {/* Size Only View */}
+                    {!hasMatrix && hasSizes && (
+                      <div className="flex flex-wrap gap-1">
+                        {product.sizes.map(size => {
+                          const sizeQty = product.sizeStock instanceof Map
+                            ? (product.sizeStock.get(size) ?? 0)
+                            : (product.sizeStock?.[size] ?? 0);
+                          return (
+                            <span
+                              key={size}
+                              className={`text-[7px] font-black px-1.5 py-0.5 rounded-[2px] uppercase tracking-wider ${
+                                sizeQty === 0 ? 'bg-red-50 border border-red-100 text-red-600' : 'bg-gray-100 border border-gray-200 text-gray-700'
+                              }`}
+                            >
+                              {size}: {sizeQty}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    )}
+
+                    {/* Color Only View */}
+                    {!hasMatrix && hasColors && (
+                      <div className="space-y-1">
+                        {product.colors.map(color => {
+                          const colorQty = product.colorStock instanceof Map
+                            ? (product.colorStock.get(color) ?? 0)
+                            : (product.colorStock?.[color] ?? 0);
+                          return (
+                            <span
+                              key={color}
+                              className={`inline-flex items-center text-[7px] font-black px-1.5 py-0.5 rounded-[2px] uppercase tracking-wider border mr-1 mb-1 ${
+                                colorQty === 0 
+                                  ? 'bg-red-50 border-red-150 text-red-650' 
+                                  : 'bg-gray-50 border-gray-150 text-gray-700'
+                              }`}
+                            >
+                              <span
+                                className="w-1.5 h-1.5 rounded-full mr-1 border border-white flex-shrink-0"
+                                style={getBackgroundStyle(color)}
+                              />
+                              {getColorName(color)}: {colorQty}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </td>
+
+                {/* Rating */}
+                <td className="px-5 py-4 align-top">
+                  <div className="flex items-center space-x-1 mt-0.5">
+                    {[...Array(5)].map((_, i) => (
+                      <span
+                        key={i}
+                        className={`text-[10px] ${i < (product.rating ?? 5) ? 'text-amber-gold' : 'text-gray-200'}`}
+                      >
+                        ★
+                      </span>
+                    ))}
+                    <span className="text-[9px] font-bold text-gray-400 ml-1">
+                      {product.rating ?? 5}.0
                     </span>
-                  ))}
-                  <span className="text-[9px] font-bold text-gray-400 ml-1">
-                    {product.rating ?? 5}.0
-                  </span>
-                </div>
-              </td>
+                  </div>
+                </td>
 
-              {/* Actions */}
-              <td className="px-5 py-4">
-                <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-
-                  {/* Edit → opens form pre-filled → PATCH /api/admin/products/:id */}
-                  <button
-                    onClick={() => onEdit(product)}
-                    title="Edit product — updates MongoDB"
-                    className="flex items-center space-x-1.5 px-3 py-2 bg-white border border-gray-200 text-gray-600 text-[9px] font-black uppercase tracking-widest rounded-[4px] hover:bg-black hover:text-white hover:border-black transition-all duration-200"
-                  >
-                    <Edit3 size={11} />
-                    <span>Edit</span>
-                  </button>
-
-                  {/* Delete → confirmation modal → DELETE /api/admin/products/:id */}
-                  <button
-                    onClick={() => onDelete(product)}
-                    title="Delete product — removes from MongoDB"
-                    className="flex items-center space-x-1.5 px-3 py-2 bg-red-50 border border-red-100 text-red-600 text-[9px] font-black uppercase tracking-widest rounded-[4px] hover:bg-red-600 hover:text-white hover:border-red-600 transition-all duration-200"
-                  >
-                    <Trash2 size={11} />
-                    <span>Delete</span>
-                  </button>
-
-                </div>
-              </td>
-            </tr>
-          ))}
+                {/* Actions */}
+                <td className="px-5 py-4 align-top">
+                  <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <button
+                      onClick={() => onEdit(product)}
+                      title="Edit product — updates MongoDB"
+                      className="flex items-center space-x-1.5 px-3 py-2 bg-white border border-gray-200 text-gray-600 text-[9px] font-black uppercase tracking-widest rounded-[4px] hover:bg-black hover:text-white hover:border-black transition-all duration-200"
+                    >
+                      <Edit3 size={11} />
+                      <span>Edit</span>
+                    </button>
+                    <button
+                      onClick={() => onDelete(product)}
+                      title="Delete product — removes from MongoDB"
+                      className="flex items-center space-x-1.5 px-3 py-2 bg-red-50 border border-red-100 text-red-600 text-[9px] font-black uppercase tracking-widest rounded-[4px] hover:bg-red-600 hover:text-white hover:border-red-600 transition-all duration-200"
+                    >
+                      <Trash2 size={11} />
+                      <span>Delete</span>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

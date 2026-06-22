@@ -108,7 +108,11 @@ const ProductForm = memo(({
         ...f,
         colors: [...f.colors, color],
         variantImages: { ...(f.variantImages || {}), [color]: f.variantImages?.[color] || '' },
-        colorStock: { ...(f.colorStock || {}), [color]: f.colorStock?.[color] ?? 0 }
+        colorStock: { ...(f.colorStock || {}), [color]: f.colorStock?.[color] ?? 0 },
+        // If sizes exist, add matrix entries for this color × all sizes
+        variantMatrix: f.sizes?.length > 0
+          ? f.sizes.reduce((m, size) => ({ ...m, [`${color}|${size}`]: f.variantMatrix?.[`${color}|${size}`] ?? 0 }), { ...(f.variantMatrix || {}) })
+          : (f.variantMatrix || {}),
       }));
     }
   };
@@ -116,14 +120,18 @@ const ProductForm = memo(({
   const removeColor = (c) => setForm(f => {
     const nextImages = { ...(f.variantImages || {}) };
     delete nextImages[c];
-    const nextStock = { ...(f.colorStock || {}) };
-    delete nextStock[c];
-    return { ...f, colors: f.colors.filter(x => x !== c), variantImages: nextImages, colorStock: nextStock };
+    const nextColorStock = { ...(f.colorStock || {}) };
+    delete nextColorStock[c];
+    // Remove all matrix entries for this color
+    const nextMatrix = Object.fromEntries(
+      Object.entries(f.variantMatrix || {}).filter(([k]) => !k.startsWith(`${c}|`))
+    );
+    return { ...f, colors: f.colors.filter(x => x !== c), variantImages: nextImages, colorStock: nextColorStock, variantMatrix: nextMatrix };
   });
 
   const setColorStock = (color, qty) => {
-    const parsed = Math.max(0, parseInt(qty) || 0);
-    setForm(f => ({ ...f, colorStock: { ...(f.colorStock || {}), [color]: parsed } }));
+    const val = qty === '' ? '' : Math.max(0, parseInt(qty) || 0);
+    setForm(f => ({ ...f, colorStock: { ...(f.colorStock || {}), [color]: val } }));
   };
 
   const setVariantImageForColor = (color, value) => {
@@ -137,21 +145,36 @@ const ProductForm = memo(({
       setForm(f => ({
         ...f,
         sizes: [...f.sizes, normalized],
-        sizeStock: { ...f.sizeStock, [normalized]: f.sizeStock?.[normalized] ?? 0 }
+        sizeStock: { ...f.sizeStock, [normalized]: f.sizeStock?.[normalized] ?? 0 },
+        // If colors exist, add matrix entries for all colors × this size
+        variantMatrix: f.colors?.length > 0
+          ? f.colors.reduce((m, color) => ({ ...m, [`${color}|${normalized}`]: f.variantMatrix?.[`${color}|${normalized}`] ?? 0 }), { ...(f.variantMatrix || {}) })
+          : (f.variantMatrix || {}),
       }));
     }
     setSizeInput('');
   };
 
   const removeSize = (size) => setForm(f => {
-    const nextStock = { ...(f.sizeStock || {}) };
-    delete nextStock[size];
-    return { ...f, sizes: f.sizes.filter(s => s !== size), sizeStock: nextStock };
+    const nextSizeStock = { ...(f.sizeStock || {}) };
+    delete nextSizeStock[size];
+    // Remove all matrix entries for this size
+    const nextMatrix = Object.fromEntries(
+      Object.entries(f.variantMatrix || {}).filter(([k]) => !k.endsWith(`|${size}`))
+    );
+    return { ...f, sizes: f.sizes.filter(s => s !== size), sizeStock: nextSizeStock, variantMatrix: nextMatrix };
   });
 
   const setSizeStock = (size, qty) => {
-    const parsed = Math.max(0, parseInt(qty) || 0);
-    setForm(f => ({ ...f, sizeStock: { ...(f.sizeStock || {}), [size]: parsed } }));
+    const val = qty === '' ? '' : Math.max(0, parseInt(qty) || 0);
+    setForm(f => ({ ...f, sizeStock: { ...(f.sizeStock || {}), [size]: val } }));
+  };
+
+  // Matrix mode: set quantity for a specific color+size combination
+  const setMatrixStock = (color, size, qty) => {
+    const val = qty === '' ? '' : Math.max(0, parseInt(qty) || 0);
+    const key = `${color}|${size}`;
+    setForm(f => ({ ...f, variantMatrix: { ...(f.variantMatrix || {}), [key]: val } }));
   };
 
   return (
@@ -193,6 +216,7 @@ const ProductForm = memo(({
         onVariantImageUpload={handleVariantImageUpload}
         onSetColorStock={setColorStock}
         uploading={uploading}
+        hasSizes={form.sizes?.length > 0}
       />
 
       <SizesSection
@@ -202,7 +226,16 @@ const ProductForm = memo(({
         onAddSize={addSize}
         onRemoveSize={removeSize}
         onSetSizeStock={setSizeStock}
+        hasColors={form.colors?.length > 0}
       />
+
+      {/* Color × Size stock matrix — shown when BOTH colors AND sizes are defined */}
+      {form.colors?.length > 0 && form.sizes?.length > 0 && (
+        <VariantMatrixSection
+          form={form}
+          onSetMatrixStock={setMatrixStock}
+        />
+      )}
 
       <RatingSection form={form} setForm={setForm} />
     </div>
@@ -340,25 +373,29 @@ DescriptionSection.displayName = 'DescriptionSection';
 const StockCategorySection = memo(({ form, setForm }) => {
   const hasSizes = form.sizes?.length > 0;
   const hasColors = form.colors?.length > 0;
+  const hasMatrix = hasSizes && hasColors;   // both = matrix mode
   const hasVariants = hasSizes || hasColors;
   const isAttitude = form.featuredSection === 'attitude';
   
-  // Calculate total stock from colors if active, otherwise sizes if active, otherwise quantity
-  let calculatedQty = form.quantity;
-  if (hasColors) {
+  // Compute total stock from the correct source
+  let calculatedQty = parseInt(form.quantity) || 0;
+  if (hasMatrix) {
+    // Matrix mode: sum all color|size cells
+    calculatedQty = Object.values(form.variantMatrix || {}).reduce((sum, q) => sum + (parseInt(q) || 0), 0);
+  } else if (hasColors) {
     calculatedQty = Object.values(form.colorStock || {}).reduce((sum, q) => sum + (parseInt(q) || 0), 0);
   } else if (hasSizes) {
     calculatedQty = Object.values(form.sizeStock || {}).reduce((sum, q) => sum + (parseInt(q) || 0), 0);
   }
 
-  // Sync calculated quantity back to form state if it differs
+  // Sync total back to form
   useEffect(() => {
     if (hasVariants && form.quantity !== calculatedQty) {
       setForm(f => ({ ...f, quantity: calculatedQty, stock: calculatedQty }));
     }
   }, [hasVariants, calculatedQty, form.quantity, setForm]);
 
-  // Automatically sync bucket and subCategory to 'Outfit' when featuredSection is 'attitude'
+  // Attitude mode: force Outfit category
   useEffect(() => {
     if (isAttitude) {
       if (form.bucket !== 'Outfit' || form.subCategory !== 'Outfit') {
@@ -367,26 +404,52 @@ const StockCategorySection = memo(({ form, setForm }) => {
     }
   }, [isAttitude, form.bucket, form.subCategory, setForm]);
 
+  const stockLabel = hasMatrix
+    ? 'Total Stock (color × size matrix)'
+    : hasColors
+      ? 'Total Stock (from colors)'
+      : hasSizes
+        ? 'Total Stock (from sizes)'
+        : 'Base Stock Qty';
+
+  const stockHint = hasMatrix
+    ? '↓ Enter quantities in the Color × Size grid below'
+    : hasColors
+      ? '↑ Sum of all color quantities'
+      : hasSizes
+        ? '↑ Sum of all size quantities'
+        : null;
+
   return (
     <div className="space-y-3">
       <div className="grid grid-cols-3 gap-4">
         <div>
-          <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1">
-            {hasVariants ? 'Total Stock (auto-synced)' : 'Base Stock Qty'}
-          </label>
-          <input 
-            type="number" 
-            value={calculatedQty} 
-            onChange={e => !hasVariants && setForm(f => ({ ...f, quantity: parseInt(e.target.value) || 0, stock: parseInt(e.target.value) || 0 }))}
-            disabled={hasVariants}
-            placeholder="0"
-            className={`w-full border border-gray-200 rounded-[4px] px-4 py-3 text-sm font-bold focus:border-black outline-none transition-colors ${
-              hasVariants ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : ''
-            }`} 
-          />
-          {hasVariants && (
+          {hasVariants ? (
+            <div className="w-full bg-gray-50 border border-gray-200 rounded-[4px] px-4 py-3 flex flex-col justify-center min-h-[46px]">
+              <span className="block text-[9px] font-black uppercase tracking-[0.2em] text-gray-400 mb-0.5">Total Quantity</span>
+              <p className="text-sm font-black text-black">{calculatedQty}</p>
+            </div>
+          ) : (
+            <>
+              <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1">
+                {stockLabel}
+              </label>
+              <input 
+                type="number" 
+                value={form.quantity ?? ''} 
+                onChange={e => setForm(f => ({
+                  ...f,
+                  quantity: e.target.value === '' ? '' : Math.max(0, parseInt(e.target.value) || 0),
+                  stock: e.target.value === '' ? '' : Math.max(0, parseInt(e.target.value) || 0)
+                }))}
+                placeholder="0"
+                className="w-full border border-gray-200 rounded-[4px] px-4 py-3 text-sm font-bold focus:border-black outline-none transition-colors" 
+              />
+            </>
+          )}
+          {!hasVariants && stockHint && (
             <p className="text-[9px] font-bold text-gray-400 mt-1 uppercase tracking-wide">
-              ↑ Sum of all variant quantities below
+              {stockHint}
             </p>
           )}
         </div>
@@ -436,7 +499,7 @@ const SpecsSection = memo(({ form, setForm }) => (
 
 SpecsSection.displayName = 'SpecsSection';
 
-const ColorsSection = memo(({ form, colorInput, setColorInput, onAddColor, onRemoveColor, onVariantImageUpload, onSetColorStock, uploading }) => (
+const ColorsSection = memo(({ form, colorInput, setColorInput, onAddColor, onRemoveColor, onVariantImageUpload, onSetColorStock, uploading, hasSizes }) => (
   <div>
     <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Color Variants</label>
     <div className="flex items-center space-x-3 mb-3">
@@ -450,19 +513,23 @@ const ColorsSection = memo(({ form, colorInput, setColorInput, onAddColor, onRem
     {form.colors.length > 0 && (
       <div className="space-y-3">
         {form.colors.map(c => (
-          <div key={c} className="grid grid-cols-1 sm:grid-cols-[auto_130px_1fr_auto] items-center gap-3 bg-gray-50 border border-gray-200 rounded-[4px] p-2">
+          <div key={c} className={`grid grid-cols-1 items-center gap-3 bg-gray-50 border border-gray-200 rounded-[4px] p-2 ${
+            hasSizes ? 'sm:grid-cols-[auto_1fr_auto]' : 'sm:grid-cols-[auto_130px_1fr_auto]'
+          }`}>
             <div className="flex items-center space-x-2">
               <div className="w-6 h-6 rounded-full border border-gray-300 flex-shrink-0"
                 style={c.includes('|') ? { background: `linear-gradient(to right, ${c.split('|')[0]} 50%, ${c.split('|')[1]} 50%)` } : { backgroundColor: c }} />
               <span className="text-[11px] font-mono font-bold text-gray-600 w-16 truncate">{c}</span>
             </div>
             
-            <div className="flex items-center space-x-2 bg-white px-2 py-1 rounded-[4px] border border-gray-150">
-              <span className="text-[9px] font-black uppercase tracking-wider text-gray-400">Qty:</span>
-              <input type="number" min="0" value={form.colorStock?.[c] ?? 0}
-                onChange={e => onSetColorStock(c, e.target.value)}
-                className="w-full border-0 focus:ring-0 p-0 text-[11px] font-black text-center outline-none" />
-            </div>
+            {!hasSizes && (
+              <div className="flex items-center space-x-2 bg-white px-2 py-1 rounded-[4px] border border-gray-150">
+                <span className="text-[9px] font-black uppercase tracking-wider text-gray-400">Qty:</span>
+                <input type="number" min="0" value={form.colorStock?.[c] ?? ''}
+                  onChange={e => onSetColorStock(c, e.target.value)}
+                  className="w-full border-0 focus:ring-0 p-0 text-[11px] font-black text-center outline-none" />
+              </div>
+            )}
 
             <div className="flex items-center space-x-2">
               {form.variantImages?.[c] && (
@@ -487,7 +554,7 @@ const ColorsSection = memo(({ form, colorInput, setColorInput, onAddColor, onRem
 
 ColorsSection.displayName = 'ColorsSection';
 
-const SizesSection = memo(({ form, sizeInput, setSizeInput, onAddSize, onRemoveSize, onSetSizeStock }) => (
+const SizesSection = memo(({ form, sizeInput, setSizeInput, onAddSize, onRemoveSize, onSetSizeStock, hasColors }) => (
   <div>
     <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Size Variants</label>
     <div className="flex items-center space-x-3 mb-3">
@@ -501,9 +568,11 @@ const SizesSection = memo(({ form, sizeInput, setSizeInput, onAddSize, onRemoveS
         {form.sizes.map(size => (
           <div key={size} className="flex items-center space-x-2 bg-gray-50 border border-gray-200 rounded-[4px] px-3 py-1.5">
             <span className="text-[11px] font-black uppercase tracking-widest text-gray-700">{size}</span>
-            <input type="number" min="0" value={form.sizeStock?.[size] ?? 0}
-              onChange={e => onSetSizeStock(size, e.target.value)}
-              className="w-16 border border-gray-200 rounded-[4px] px-2 py-1 text-[11px] font-black text-center" />
+            {!hasColors && (
+              <input type="number" min="0" value={form.sizeStock?.[size] ?? ''}
+                onChange={e => onSetSizeStock(size, e.target.value)}
+                className="w-16 border border-gray-200 rounded-[4px] px-2 py-1 text-[11px] font-black text-center" />
+            )}
             <button onClick={() => onRemoveSize(size)} className="text-gray-400 hover:text-red-500"><X size={12} /></button>
           </div>
         ))}
@@ -513,6 +582,154 @@ const SizesSection = memo(({ form, sizeInput, setSizeInput, onAddSize, onRemoveS
 ));
 
 SizesSection.displayName = 'SizesSection';
+
+/**
+ * VariantMatrixSection — Color × Size Stock Matrix
+ * Shown when a product has BOTH colors AND sizes.
+ * Each cell = qty for that exact (color, size) pair.
+ */
+const VariantMatrixSection = memo(({ form, onSetMatrixStock }) => {
+  const { colors = [], sizes = [], variantMatrix = {}, variantImages = {} } = form;
+
+  const getColorName = (color) => {
+    if (color.includes('|')) {
+      const parts = color.split('|');
+      const isHex = (s) => /^#([0-9A-F]{3,6})$/i.test(s);
+      return isHex(parts[0]) && !isHex(parts[1]) ? parts[1] : parts.join('/');
+    }
+    return color;
+  };
+
+  const getColorStyle = (color) => {
+    if (color.includes('|')) {
+      const [a, b] = color.split('|');
+      const isHex = (s) => /^#([0-9A-F]{3,6})$/i.test(s);
+      if (isHex(a) && isHex(b)) return { background: `linear-gradient(135deg, ${a} 50%, ${b} 50%)` };
+      if (isHex(a)) return { backgroundColor: a };
+    }
+    return { backgroundColor: color };
+  };
+
+  // Row totals per color
+  const colorTotals = colors.reduce((acc, color) => {
+    acc[color] = sizes.reduce((s, size) => s + (parseInt(variantMatrix[`${color}|${size}`]) || 0), 0);
+    return acc;
+  }, {});
+
+  // Column totals per size
+  const sizeTotals = sizes.reduce((acc, size) => {
+    acc[size] = colors.reduce((s, color) => s + (parseInt(variantMatrix[`${color}|${size}`]) || 0), 0);
+    return acc;
+  }, {});
+
+  const grandTotal = Object.values(colorTotals).reduce((s, n) => s + n, 0);
+
+  return (
+    <div className="border border-black/10 rounded-[4px] overflow-hidden">
+      {/* Header */}
+      <div className="bg-black px-4 py-3 flex items-center justify-between">
+        <div>
+          <p className="text-[9px] font-black uppercase tracking-[0.4em] text-white/50 mb-0.5">Stock Matrix</p>
+          <p className="text-sm font-black uppercase tracking-tight text-white">Color × Size Quantities</p>
+        </div>
+        <div className="text-right">
+          <p className="text-[8px] font-black uppercase tracking-widest text-white/40">Grand Total</p>
+          <p className="text-lg font-black text-white tabular-nums">{grandTotal}</p>
+        </div>
+      </div>
+
+      {/* Matrix Grid */}
+      <div className="overflow-x-auto">
+        <table className="w-full text-left border-collapse">
+          <thead>
+            <tr className="bg-gray-50 border-b border-gray-200">
+              {/* Color label column */}
+              <th className="px-3 py-2.5 text-[8px] font-black uppercase tracking-widest text-gray-400 w-32">
+                Color ↓ / Size →
+              </th>
+              {/* Size columns */}
+              {sizes.map(size => (
+                <th key={size} className="px-3 py-2.5 text-center">
+                  <span className="text-[10px] font-black uppercase tracking-widest text-gray-700">{size}</span>
+                  <div className="text-[8px] font-bold text-gray-400 mt-0.5 tabular-nums">∑{sizeTotals[size]}</div>
+                </th>
+              ))}
+              {/* Row total column */}
+              <th className="px-3 py-2.5 text-center">
+                <span className="text-[8px] font-black uppercase tracking-widest text-gray-400">Total</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100">
+            {colors.map((color, rowIdx) => (
+              <tr key={color} className={rowIdx % 2 === 0 ? 'bg-white' : 'bg-gray-50/40'}>
+                {/* Color label */}
+                <td className="px-3 py-2.5">
+                  <div className="flex items-center space-x-2">
+                    <span
+                      className="w-4 h-4 rounded-full border border-gray-200 flex-shrink-0"
+                      style={getColorStyle(color)}
+                    />
+                    <span className="text-[10px] font-black uppercase tracking-wider text-gray-700 truncate max-w-[80px]">
+                      {getColorName(color)}
+                    </span>
+                  </div>
+                </td>
+                {/* Qty cells */}
+                {sizes.map(size => {
+                  const key = `${color}|${size}`;
+                  const val = variantMatrix[key] ?? '';
+                  return (
+                    <td key={size} className="px-2 py-1.5 text-center">
+                      <input
+                        type="number"
+                        min="0"
+                        value={val}
+                        onChange={e => onSetMatrixStock(color, size, e.target.value)}
+                        className={`w-14 border rounded-[4px] px-2 py-1.5 text-[11px] font-black text-center outline-none focus:border-black transition-colors tabular-nums ${
+                          (parseInt(val) || 0) === 0 ? 'border-red-200 bg-red-50 text-red-600' : 'border-gray-200 bg-white text-gray-900'
+                        }`}
+                      />
+                    </td>
+                  );
+                })}
+                {/* Row total */}
+                <td className="px-3 py-1.5 text-center">
+                  <span className={`text-[11px] font-black tabular-nums ${colorTotals[color] === 0 ? 'text-red-500' : 'text-gray-700'}`}>
+                    {colorTotals[color]}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+          {/* Footer totals row */}
+          <tfoot>
+            <tr className="bg-gray-100 border-t-2 border-gray-200">
+              <td className="px-3 py-2 text-[9px] font-black uppercase tracking-widest text-gray-500">Size Total</td>
+              {sizes.map(size => (
+                <td key={size} className="px-2 py-2 text-center">
+                  <span className={`text-[11px] font-black tabular-nums ${sizeTotals[size] === 0 ? 'text-red-500' : 'text-gray-700'}`}>
+                    {sizeTotals[size]}
+                  </span>
+                </td>
+              ))}
+              <td className="px-3 py-2 text-center">
+                <span className="text-[12px] font-black text-black tabular-nums">{grandTotal}</span>
+              </td>
+            </tr>
+          </tfoot>
+        </table>
+      </div>
+      <div className="px-4 py-2.5 bg-gray-50 border-t border-gray-100">
+        <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wide">
+          ↑ Enter the exact number of units available for each color + size combination. Red cells = 0 stock.
+        </p>
+      </div>
+    </div>
+  );
+});
+
+VariantMatrixSection.displayName = 'VariantMatrixSection';
 
 const RatingSection = memo(({ form, setForm }) => (
   <div>
@@ -578,7 +795,7 @@ const PlacementSection = memo(({ form, setForm, allProducts, editingProduct }) =
                   updates.subCategory = 'Outfit';
                 } else if (f.featuredSection === 'attitude') {
                   updates.bucket = 'Tops';
-                  updates.subCategory = 'Polos';
+                  updates.subCategory = 'Shirts';
                 }
                 return { ...f, ...updates };
               })}
@@ -643,7 +860,7 @@ export const EMPTY_FORM = {
   id: '', name: '', price: '', quantity: 0,
   image: '', lifestyleImage: '', mediaType: 'upload', embedCode: '',
   gallery: [],
-  bucket: 'Tops', subCategory: 'Polos',
+  bucket: 'Tops', subCategory: 'Shirts',
   rating: 5, stock: 0,
   specs: ['', '', ''],
   colors: [],

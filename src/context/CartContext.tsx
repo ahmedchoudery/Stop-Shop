@@ -282,14 +282,26 @@ export const CartProvider = ({ children }: CartProviderProps) => {
           const sizeStockObj = dbProd.sizeStock
             ? (dbProd.sizeStock instanceof Map ? Object.fromEntries(dbProd.sizeStock) : dbProd.sizeStock)
             : null;
-          const colorStockObj = (dbProd as any).colorStock
-            ? ((dbProd as any).colorStock instanceof Map ? Object.fromEntries((dbProd as any).colorStock) : (dbProd as any).colorStock)
+          const colorStockObj = dbProd.colorStock
+            ? (dbProd.colorStock instanceof Map ? Object.fromEntries(dbProd.colorStock) : dbProd.colorStock)
+            : null;
+          const variantMatrixObj = dbProd.variantMatrix
+            ? (dbProd.variantMatrix instanceof Map ? Object.fromEntries(dbProd.variantMatrix) : dbProd.variantMatrix)
             : null;
 
           const hasSizeStock = sizeStockObj && Object.keys(sizeStockObj).length > 0;
           const hasColorStock = colorStockObj && Object.keys(colorStockObj).length > 0;
+          const hasMatrix = variantMatrixObj && Object.keys(variantMatrixObj).length > 0;
 
-          if (hasSizeStock || hasColorStock) {
+          if (hasMatrix) {
+            if (color && size) {
+              availableStock = variantMatrixObj[`${color}|${size}`] ?? 0;
+            } else if (color) {
+              availableStock = colorStockObj?.[color] ?? 0;
+            } else if (size) {
+              availableStock = sizeStockObj?.[size] ?? 0;
+            }
+          } else if (hasSizeStock || hasColorStock) {
             let sizeAvailable = Infinity;
             let colorAvailable = Infinity;
 

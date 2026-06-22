@@ -149,7 +149,7 @@ const ProductSkeleton = () => (
 
 const HomePage = ({ onProductsLoaded }) => {
   const { products, loading, error } = usePublicProducts();
-  const { activeBucket, activeSubCategory, setActiveBucket, shouldScrollGrid } = useCart();
+  const { activeBucket, activeSub: activeSubCategory, setActiveBucket, shouldScrollGrid } = useCart();
 
   // Notify parent of loaded products (for search overlay)
   useEffect(() => {

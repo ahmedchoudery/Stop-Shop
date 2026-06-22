@@ -50,12 +50,33 @@ export async function PATCH(req, { params }) {
     }
 
     let computedQuantity = null;
-    if (updateData.colorStock && typeof updateData.colorStock === 'object' && Object.keys(updateData.colorStock).length > 0) {
+
+    // Mode 1: variantMatrix — both colors AND sizes (highest priority)
+    if (updateData.variantMatrix && typeof updateData.variantMatrix === 'object' && Object.keys(updateData.variantMatrix).length > 0) {
+      computedQuantity = Object.values(updateData.variantMatrix)
+        .reduce((sum, n) => sum + Math.max(0, parseInt(n) || 0), 0);
+      // Derive per-axis sums from the matrix
+      const colorSums = {};
+      const sizeSums  = {};
+      for (const [key, qty] of Object.entries(updateData.variantMatrix)) {
+        const [color, size] = key.split('|');
+        if (color) colorSums[color] = (colorSums[color] || 0) + Math.max(0, parseInt(qty) || 0);
+        if (size)  sizeSums[size]   = (sizeSums[size]   || 0) + Math.max(0, parseInt(qty) || 0);
+      }
+      updateData.colorStock = colorSums;
+      updateData.sizeStock  = sizeSums;
+
+    // Mode 2: colorStock only
+    } else if (updateData.colorStock && typeof updateData.colorStock === 'object' && Object.keys(updateData.colorStock).length > 0) {
       computedQuantity = Object.values(updateData.colorStock)
         .reduce((sum, n) => sum + Math.max(0, parseInt(n) || 0), 0);
+      updateData.variantMatrix = {};  // clear matrix if present
+
+    // Mode 3: sizeStock only
     } else if (updateData.sizeStock && typeof updateData.sizeStock === 'object' && Object.keys(updateData.sizeStock).length > 0) {
       computedQuantity = Object.values(updateData.sizeStock)
         .reduce((sum, n) => sum + Math.max(0, parseInt(n) || 0), 0);
+      updateData.variantMatrix = {};  // clear matrix if present
     }
 
     if (computedQuantity !== null) {

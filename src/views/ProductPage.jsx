@@ -260,6 +260,7 @@ const ProductPage = () => {
 
     const sizeStockMap = product.sizeStock;
     const colorStockMap = product.colorStock;
+    const variantMatrixMap = product.variantMatrix;
 
     const sizeStockObj = sizeStockMap
       ? (sizeStockMap instanceof Map ? Object.fromEntries(sizeStockMap) : sizeStockMap)
@@ -267,9 +268,23 @@ const ProductPage = () => {
     const colorStockObj = colorStockMap
       ? (colorStockMap instanceof Map ? Object.fromEntries(colorStockMap) : colorStockMap)
       : null;
+    const variantMatrixObj = variantMatrixMap
+      ? (variantMatrixMap instanceof Map ? Object.fromEntries(variantMatrixMap) : variantMatrixMap)
+      : null;
 
     const hasSizeStock = sizeStockObj && Object.keys(sizeStockObj).length > 0;
     const hasColorStock = colorStockObj && Object.keys(colorStockObj).length > 0;
+    const hasMatrix = variantMatrixObj && Object.keys(variantMatrixObj).length > 0;
+
+    if (hasMatrix) {
+      if (selectedColor && selectedSize) {
+        return variantMatrixObj[`${selectedColor}|${selectedSize}`] ?? 0;
+      } else if (selectedColor) {
+        return colorStockObj?.[selectedColor] ?? 0;
+      } else if (selectedSize) {
+        return sizeStockObj?.[selectedSize] ?? 0;
+      }
+    }
 
     if (hasSizeStock && selectedSize) {
       sizeStockVal = sizeStockObj[selectedSize] ?? 0;
@@ -561,10 +576,17 @@ const ProductPage = () => {
                   {sizeError ? '⚠ Select a size to continue' : 'Size'}
                 </p>
                 <div className="flex flex-wrap gap-2">
-                  {product.sizes.map(size => {
-                    const sizeQty = product.sizeStock instanceof Map
-                      ? (product.sizeStock.get(size) ?? 0)
-                      : (product.sizeStock?.[size] ?? 0);
+                   {product.sizes.map(size => {
+                    const sizeStockObj = product.sizeStock
+                      ? (product.sizeStock instanceof Map ? Object.fromEntries(product.sizeStock) : product.sizeStock)
+                      : null;
+                    const variantMatrixObj = product.variantMatrix
+                      ? (product.variantMatrix instanceof Map ? Object.fromEntries(product.variantMatrix) : product.variantMatrix)
+                      : null;
+                    const hasMatrix = variantMatrixObj && Object.keys(variantMatrixObj).length > 0;
+                    const sizeQty = (hasMatrix && selectedColor)
+                      ? (variantMatrixObj[`${selectedColor}|${size}`] ?? 0)
+                      : (sizeStockObj?.[size] ?? 0);
                     const unavail = sizeQty === 0;
                     return (
                       <button

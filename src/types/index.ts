@@ -19,6 +19,8 @@ export interface Product {
   colors?: string[];
   sizes?: string[];
   sizeStock?: Record<string, number>;
+  colorStock?: Record<string, number>;
+  variantMatrix?: Record<string, number>;
   lifestyleImage?: string;
   variantImages?: Record<string, string>;
   gallery?: string[];

@@ -22,7 +22,7 @@ export async function GET(req) {
 
     const totalCount = await Product.countDocuments({});
     const products = await Product.find({})
-      .select('id name price discount image colors sizes bucket subCategory quantity isNew createdAt updatedAt')
+      .select('id name price discount image colors sizes bucket subCategory quantity isNew createdAt updatedAt specs sizeStock colorStock variantMatrix lifestyleImage variantImages gallery featuredSection displayOrder description careInstructions')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)

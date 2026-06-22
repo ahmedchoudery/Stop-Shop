@@ -10,6 +10,7 @@
  */
 
 import React, { useState, useCallback, useMemo } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Plus, Trash2, Edit3, Search, Package,
   RefreshCw, AlertTriangle, CheckCircle, X,
@@ -40,12 +41,13 @@ const DEFAULT_FORM = {
   embedCode:      '',
   rating:         5,
   bucket:         'Tops',
-  subCategory:    'Polos',
+  subCategory:    'Shirts',
   specs:          [],
   colors:         [],
   sizes:          [],
   sizeStock:      {},
   colorStock:     {},
+  variantMatrix:  {},
   lifestyleImage: '',
   variantImages:  {},
   gallery:        [],
@@ -187,6 +189,18 @@ const AdminProducts = () => {
 
   React.useEffect(() => { refetch(); }, [refetch]);
 
+  // Lock body scroll when Add/Edit Product drawer is open
+  React.useEffect(() => {
+    if (showForm) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [showForm]);
+
   // ── Derived: categories + filtered products ───────────────────────
 
   const categories = useMemo(() => {
@@ -258,6 +272,9 @@ const AdminProducts = () => {
       variantImages:  product.variantImages instanceof Map
                         ? Object.fromEntries(product.variantImages)
                         : (product.variantImages ?? {}),
+      variantMatrix:  product.variantMatrix instanceof Map
+                        ? Object.fromEntries(product.variantMatrix)
+                        : (product.variantMatrix ?? {}),
       gallery:        product.gallery        ?? [],
       featuredSection: product.featuredSection ?? 'collection',
       displayOrder:    product.displayOrder    ?? 0,
@@ -304,6 +321,10 @@ const AdminProducts = () => {
         // Ensure colorStock values are numbers (0 is valid)
         colorStock: Object.fromEntries(
           Object.entries(form.colorStock ?? {}).map(([k, v]) => [k, Math.max(0, parseInt(v) || 0)])
+        ),
+        // Ensure variantMatrix values are numbers (0 is valid)
+        variantMatrix: Object.fromEntries(
+          Object.entries(form.variantMatrix ?? {}).map(([k, v]) => [k, Math.max(0, parseInt(v) || 0)])
         ),
       };
 
@@ -508,7 +529,7 @@ const AdminProducts = () => {
       </div>
 
       {/* ── Product Form (Create / Edit) ────────────────────────── */}
-      {showForm && (
+      {showForm && typeof document !== 'undefined' && createPortal(
         <div className="fixed inset-0 z-[100] flex items-start justify-end">
           {/* Backdrop */}
           <div
@@ -582,16 +603,20 @@ const AdminProducts = () => {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* ── Delete Confirmation Modal ────────────────────────────── */}
-      <DeleteConfirmModal
-        product={deleteTarget}
-        onConfirm={handleDeleteConfirm}
-        onCancel={() => setDeleteTarget(null)}
-        deleting={deleting}
-      />
+      {deleteTarget && typeof document !== 'undefined' && createPortal(
+        <DeleteConfirmModal
+          product={deleteTarget}
+          onConfirm={handleDeleteConfirm}
+          onCancel={() => setDeleteTarget(null)}
+          deleting={deleting}
+        />,
+        document.body
+      )}
     </div>
   );
 };

@@ -61,7 +61,7 @@ async function run() {
     process.exit(1);
   }
 
-  await mongoose.connect(uri);
+  await mongoose.connect(uri, { dbName: 'stopshop' });
   console.log('✅  Connected to MongoDB\n');
 
   const db = mongoose.connection.db;

@@ -42,8 +42,9 @@ const productSchema = new mongoose.Schema({
   specs:         [{ type: String }],
   colors:        [{ type: String }],
   sizes:         [{ type: String }],
-  sizeStock:     { type: Map, of: Number, default: {} },  // { S: 10, M: 5, L: 3 }
-  colorStock:    { type: Map, of: Number, default: {} },  // { White: 30, Black: 15 }
+  sizeStock:     { type: Map, of: Number, default: {} },      // { S: 10, M: 5 }  — used when sizes only
+  colorStock:    { type: Map, of: Number, default: {} },      // { White: 30 }     — used when colors only
+  variantMatrix: { type: Map, of: Number, default: {} },      // { 'Red|S': 5, 'Red|M': 3, 'Blue|S': 4 } — used when both colors AND sizes
   lifestyleImage: { type: String, default: '' },
   variantImages: { type: Map, of: String, default: {} },  // { 'Red': 'url', 'Blue': 'url' }
   gallery:       [{ type: String }],
@@ -59,30 +60,57 @@ productSchema.index({ bucket: 1, createdAt: -1 });
 productSchema.index({ createdAt: -1 });
 productSchema.index({ featuredSection: 1, displayOrder: 1 });
 
-// Keep quantity + stock always in sync
+/**
+ * Compute total stock from the appropriate source (priority: matrix > colorStock > sizeStock > manual).
+ * This hook runs on .save() — PATCH route manually mirrors this logic.
+ */
 productSchema.pre('save', function syncStock() {
+  const matrixValues = this.variantMatrix instanceof Map
+    ? [...this.variantMatrix.values()]
+    : Object.values(this.variantMatrix ?? {});
+
+  // Mode 1: color × size matrix — highest priority
+  if (matrixValues.length > 0) {
+    const total = matrixValues.reduce((sum, n) => sum + Math.max(0, parseInt(n) || 0), 0);
+    this.quantity = total;
+    this.stock    = total;
+    // Derive colorStock and sizeStock from the matrix (sum per axis)
+    const colorSums = {};
+    const sizeSums  = {};
+    const matrix    = this.variantMatrix instanceof Map ? this.variantMatrix : new Map(Object.entries(this.variantMatrix ?? {}));
+    for (const [key, qty] of matrix) {
+      const [color, size] = key.split('|');
+      if (color) colorSums[color] = (colorSums[color] || 0) + Math.max(0, parseInt(qty) || 0);
+      if (size)  sizeSums[size]  = (sizeSums[size]  || 0) + Math.max(0, parseInt(qty) || 0);
+    }
+    this.colorStock = new Map(Object.entries(colorSums));
+    this.sizeStock  = new Map(Object.entries(sizeSums));
+    return;
+  }
+
+  // Mode 2: colorStock only
   const colorValues = this.colorStock instanceof Map
     ? [...this.colorStock.values()]
     : Object.values(this.colorStock ?? {});
-
-  const sizeValues = this.sizeStock instanceof Map
-    ? [...this.sizeStock.values()]
-    : Object.values(this.sizeStock ?? {});
-
   if (colorValues.length > 0) {
     const total = colorValues.reduce((sum, n) => sum + Math.max(0, parseInt(n) || 0), 0);
     this.quantity = total;
-    this.stock = total;
+    this.stock    = total;
     return;
   }
 
+  // Mode 3: sizeStock only
+  const sizeValues = this.sizeStock instanceof Map
+    ? [...this.sizeStock.values()]
+    : Object.values(this.sizeStock ?? {});
   if (sizeValues.length > 0) {
     const total = sizeValues.reduce((sum, n) => sum + Math.max(0, parseInt(n) || 0), 0);
     this.quantity = total;
-    this.stock = total;
+    this.stock    = total;
     return;
   }
 
+  // Mode 4: manual quantity
   if (this.isModified('quantity')) {
     this.stock = this.quantity;
   } else if (this.isModified('stock')) {
