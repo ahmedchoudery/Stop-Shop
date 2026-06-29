@@ -3,15 +3,21 @@ import mongoose from 'mongoose';
 const inventoryMovementSchema = new mongoose.Schema({
   type: {
     type: String,
-    enum: ['RESTOCK', 'SALE', 'ADMIN_UPDATE', 'ADMIN_DELETE', 'INITIAL'],
+    enum: [
+      'RESTOCK', 'SALE', 'ADMIN_UPDATE', 'ADMIN_DELETE', 'INITIAL',
+      'POS_SALE', 'MANUAL_ADJUST', 'SUPPLIER_RECEIVE', 'RETURN_RESTOCK', 'EXCHANGE_OUT'
+    ],
     required: true,
   },
   quantityDelta:   { type: Number, required: true },  // +10 = restock, -2 = sale
   previousStock:   { type: Number, default: 0 },
   newStock:        { type: Number, default: 0 },
   note:            { type: String, default: '' },
-  triggeredBy:     { type: String, default: 'system' }, // 'admin' | 'customer' | 'system'
+  triggeredBy:     { type: String, default: 'system' }, // 'admin' | 'customer' | 'system' | 'pos'
   orderId:         { type: String, default: null },
+  adjustmentReason:{ type: String, default: '' },        // Reason for manual adjustments
+  supplierName:    { type: String, default: '' },        // Supplier info for receiving
+  invoiceRef:      { type: String, default: '' },        // Supplier invoice reference
   timestamp:       { type: Date, default: Date.now },
 }, { _id: false });
 

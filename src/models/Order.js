@@ -14,6 +14,8 @@ const orderItemSchema = new mongoose.Schema({
 
 export const PAYMENT_METHODS = ['COD', 'ATM Card', 'Bank Transfer', 'Easypaisa', 'JazzCash'];
 
+export const SALES_CHANNELS = ['Web', 'POS'];
+
 export const ORDER_STATUSES = [
   'Pending',
   'Processing',
@@ -24,6 +26,8 @@ export const ORDER_STATUSES = [
   'Paid',
   'Failed',
   'Refunded',
+  'Partially Returned',
+  'Returned',
 ];
 
 const orderSchema = new mongoose.Schema({
@@ -61,12 +65,42 @@ const orderSchema = new mongoose.Schema({
   ip:            { type: String, default: '' },
   courier:       { type: String, default: '' },
   trackingNumber:{ type: String, default: '' },
+
+  // ── Sales Channel ──────────────────────────────────────────────
+  salesChannel: {
+    type: String,
+    enum: SALES_CHANNELS,
+    default: 'Web',
+    index: true,
+  },
+
+  // ── POS-specific metadata ──────────────────────────────────────
+  posDetails: {
+    cashierName:  { type: String, default: '' },
+    paymentType:  { type: String, enum: ['Cash', 'Card', 'Mobile', ''], default: '' },
+    receiptNumber:{ type: String, default: '' },
+  },
+
+  // ── Returns & Exchanges tracking ───────────────────────────────
+  returnedItems: [{
+    itemId:        { type: String, required: true },     // Product ID
+    itemName:      { type: String, default: '' },
+    quantity:      { type: Number, required: true, min: 1 },
+    reason:        { type: String, required: true },
+    type:          { type: String, enum: ['Return', 'Exchange'], required: true },
+    exchangeForId: { type: String, default: '' },        // Product ID if exchanged
+    exchangeForName: { type: String, default: '' },
+    refundAmount:  { type: Number, default: 0, min: 0 },
+    processedBy:   { type: String, default: '' },        // Admin email
+    processedAt:   { type: Date, default: Date.now },
+  }],
 }, { timestamps: true, versionKey: false });
 
 orderSchema.index({ status: 1, createdAt: -1 });
 orderSchema.index({ 'customer.email': 1 });
 orderSchema.index({ orderID: 1, createdAt: -1 });
 orderSchema.index({ createdAt: -1 });
+orderSchema.index({ salesChannel: 1, createdAt: -1 });
 
 const Order = mongoose.models.Order || mongoose.model('Order', orderSchema);
 

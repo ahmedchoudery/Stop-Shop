@@ -7,11 +7,12 @@ const LOW_STOCK_THRESHOLD = 3;
  * Calculates status, appends movement log entry.
  *
  * @param {Object} product    - Mongoose Product document or plain object
- * @param {string} moveType   - Movement type: RESTOCK | SALE | ADMIN_UPDATE | INITIAL
+ * @param {string} moveType   - Movement type: RESTOCK | SALE | ADMIN_UPDATE | INITIAL | POS_SALE | MANUAL_ADJUST | SUPPLIER_RECEIVE | RETURN_RESTOCK | EXCHANGE_OUT
  * @param {string} [note]     - Human-readable note for this movement
  * @param {string} [orderId]  - Order ID if triggered by a sale
+ * @param {Object} [meta]     - Optional metadata: { adjustmentReason, supplierName, invoiceRef }
  */
-export const syncInventory = async (product, moveType = 'ADMIN_UPDATE', note = '', orderId = null) => {
+export const syncInventory = async (product, moveType = 'ADMIN_UPDATE', note = '', orderId = null, meta = {}) => {
   try {
     const totalStock = product.quantity ?? 0;
 
@@ -38,27 +39,40 @@ export const syncInventory = async (product, moveType = 'ADMIN_UPDATE', note = '
     const previousStock = existing?.totalStock ?? 0;
     const quantityDelta = totalStock - previousStock;
 
+    // Determine who triggered this
+    const triggeredByMap = {
+      SALE: 'customer',
+      POS_SALE: 'pos',
+      MANUAL_ADJUST: 'admin',
+      SUPPLIER_RECEIVE: 'admin',
+      RETURN_RESTOCK: 'admin',
+      EXCHANGE_OUT: 'admin',
+    };
+
     // Build movement entry
     const movement = {
-      type:          moveType,
+      type:             moveType,
       quantityDelta,
       previousStock,
-      newStock:      totalStock,
-      note:          note || `${moveType} — stock changed by ${quantityDelta > 0 ? '+' : ''}${quantityDelta}`,
-      triggeredBy:   moveType === 'SALE' ? 'customer' : 'admin',
-      orderId:       orderId ?? null,
-      timestamp:     new Date(),
+      newStock:         totalStock,
+      note:             note || `${moveType} — stock changed by ${quantityDelta > 0 ? '+' : ''}${quantityDelta}`,
+      triggeredBy:      triggeredByMap[moveType] || 'admin',
+      orderId:          orderId ?? null,
+      adjustmentReason: meta.adjustmentReason || '',
+      supplierName:     meta.supplierName || '',
+      invoiceRef:       meta.invoiceRef || '',
+      timestamp:        new Date(),
     };
 
     // Timestamp fields for last event
     const timeFields = {};
-    if (moveType === 'RESTOCK' || (moveType === 'ADMIN_UPDATE' && quantityDelta > 0)) {
+    if (['RESTOCK', 'SUPPLIER_RECEIVE'].includes(moveType) || (moveType === 'ADMIN_UPDATE' && quantityDelta > 0)) {
       timeFields.lastRestocked = new Date();
     }
-    if (moveType === 'SALE') {
+    if (['SALE', 'POS_SALE'].includes(moveType)) {
       timeFields.lastSold = new Date();
     }
-    if (['ADMIN_UPDATE', 'RESTOCK'].includes(moveType)) {
+    if (['ADMIN_UPDATE', 'RESTOCK', 'MANUAL_ADJUST', 'SUPPLIER_RECEIVE', 'RETURN_RESTOCK', 'EXCHANGE_OUT'].includes(moveType)) {
       timeFields.lastAdminEdit = new Date();
     }
 
@@ -104,3 +118,4 @@ export const syncInventory = async (product, moveType = 'ADMIN_UPDATE', note = '
     console.error('[Inventory] Sync failed for product', product.id, ':', err.message);
   }
 };
+
