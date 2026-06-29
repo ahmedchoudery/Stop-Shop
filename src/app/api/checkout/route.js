@@ -263,6 +263,7 @@ export async function POST(req) {
         total: finalTotal,
         paymentMethod,
         status: initialOrderStatus,
+        salesChannel: 'Web',
         paymentDetails: {
           transactionID:  authResult.transactionID,
           status:         authResult.status || 'Pending',

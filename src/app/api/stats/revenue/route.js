@@ -61,7 +61,21 @@ export async function GET(req) {
         };
       });
 
-      return { totalRevenue, trend, weeklyData };
+      // Channel-segmented revenue (Web vs POS)
+      const channelRaw = await Order.aggregate([
+        { $match: { status: { $nin: ['Cancelled', 'Failed', 'Refunded'] } } },
+        { $group: {
+          _id: { $ifNull: ['$salesChannel', 'Web'] },
+          revenue: { $sum: '$total' },
+          orders: { $sum: 1 },
+        }},
+      ]);
+      const channelData = {};
+      for (const ch of channelRaw) {
+        channelData[ch._id] = { revenue: ch.revenue, orders: ch.orders };
+      }
+
+      return { totalRevenue, trend, weeklyData, channelData };
     });
 
     return NextResponse.json(data);
