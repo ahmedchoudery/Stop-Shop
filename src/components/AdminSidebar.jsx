@@ -21,12 +21,14 @@ import {
   LogOut,
   Shield,
   X,
+  ScanBarcode,
 } from 'lucide-react';
 import { clearToken } from '../lib/auth.js';
 
 const NAV_ITEMS = [
   { to: '/admin/dashboard',  icon: LayoutDashboard, label: 'Dashboard' },
   { to: '/admin/orders',     icon: ShoppingCart,    label: 'Orders' },
+  { to: '/admin/pos',        icon: ScanBarcode,     label: 'POS Terminal' },
   { to: '/admin/products',   icon: Package,         label: 'Products' },
   { to: '/admin/inventory',  icon: Boxes,           label: 'Inventory' },
   { to: '/admin/analytics',  icon: BarChart3,       label: 'Analytics' },

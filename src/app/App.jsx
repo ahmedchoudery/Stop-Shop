@@ -31,6 +31,7 @@ const AdminAuditPanel = lazy(() => import('../views/AdminAuditPanel.jsx'));
 const AdminCoupons   = lazy(() => import('../views/AdminCoupons.jsx'));
 const AdminAnalytics = lazy(() => import('../views/AdminAnalytics.jsx'));
 const AdminReviews   = lazy(() => import('../views/AdminReviews.jsx'));
+const AdminPOS       = lazy(() => import('../views/AdminPOS.jsx'));
 
 // ── Public pages (lazy) ────────────────────────────────────────────
 const ProductPage        = lazy(() => import('../views/ProductPage.jsx'));
@@ -180,6 +181,7 @@ const PageContent = () => {
           <Route path="coupons"    element={<PageSuspense><AdminCoupons /></PageSuspense>} />
           <Route path="analytics"  element={<PageSuspense><AdminAnalytics /></PageSuspense>} />
           <Route path="reviews"    element={<PageSuspense><AdminReviews /></PageSuspense>} />
+          <Route path="pos"        element={<PageSuspense><AdminPOS /></PageSuspense>} />
         </Route>
 
         {/* ── 404 ─────────────────────────────────────── */}
