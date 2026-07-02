@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import { withRetry } from '../utils/retry.js';
 
 const MONGODB_URI = process.env.MONGODB_URI || process.env.MONGO_URI;
 
@@ -31,7 +32,12 @@ async function dbConnect() {
       bufferCommands: false,
     };
 
-    cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongooseInstance) => {
+    cached.promise = withRetry(
+      async () => {
+        return mongoose.connect(MONGODB_URI, opts);
+      },
+      { name: 'MongoDB Connection', retries: 5, minTimeout: 1000, maxTimeout: 10000 }
+    ).then((mongooseInstance) => {
       return mongooseInstance;
     });
   }

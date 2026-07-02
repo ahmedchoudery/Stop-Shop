@@ -73,6 +73,7 @@ function verifyCsrf(request: NextRequest): boolean {
 // ── Middleware ────────────────────────────────────────────────────
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  const requestId = request.headers.get('x-request-id') || crypto.randomUUID();
 
   // 1. Rate Limiting on critical endpoints
   const RATE_LIMITED_PATHS = ['/api/checkout', '/api/admin/login', '/api/customer/login', '/api/customer/register'];
@@ -82,7 +83,7 @@ export async function middleware(request: NextRequest) {
     if (!allowed) {
       return new NextResponse(
         JSON.stringify({ error: 'Too many requests. Please try again later.' }),
-        { status: 429, headers: { 'Content-Type': 'application/json' } }
+        { status: 429, headers: { 'Content-Type': 'application/json', 'x-request-id': requestId } }
       );
     }
   }
@@ -98,14 +99,23 @@ export async function middleware(request: NextRequest) {
     if (!verifyCsrf(request)) {
       return new NextResponse(
         JSON.stringify({ error: 'Invalid or missing CSRF token' }),
-        { status: 403, headers: { 'Content-Type': 'application/json' } }
+        { status: 403, headers: { 'Content-Type': 'application/json', 'x-request-id': requestId } }
       );
     }
   }
 
-  const response = NextResponse.next();
+  // Clone headers and inject x-request-id for downstream Next.js Route Handlers
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.set('x-request-id', requestId);
 
-  // 3. Robust Security Headers
+  const response = NextResponse.next({
+    request: {
+      headers: requestHeaders,
+    },
+  });
+
+  // 3. Robust Security Headers & request tracing ID
+  response.headers.set('x-request-id', requestId);
   response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
   response.headers.set('X-Frame-Options', 'DENY');
   response.headers.set('X-Content-Type-Options', 'nosniff');

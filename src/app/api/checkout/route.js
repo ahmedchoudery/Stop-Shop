@@ -3,6 +3,7 @@ import dbConnect from '../../../lib/db';
 import Product from '../../../models/Product';
 import Order from '../../../models/Order';
 import Coupon from '../../../models/Coupon';
+import { withIdempotency } from '../../../utils/idempotency.js';
 import { checkoutSchema } from '../../../schemas/validation';
 import { syncInventory } from '../../../services/inventoryService';
 import { sendOrderConfirmationEmail, checkAndAlertLowStock, sendOrderFailedEmail, sendAdminNewOrderNotification } from '../../../services/emailService';
@@ -12,7 +13,7 @@ import { calculateDiscount } from '../../../utils/pricing';
 
 const getEnv = (...keys) => keys.map(k => process.env[k]).find(Boolean);
 
-export async function POST(req) {
+async function checkoutHandler(req) {
   try {
     await dbConnect();
     const body = await req.json();
@@ -311,3 +312,5 @@ export async function POST(req) {
     return NextResponse.json({ error: error.message || 'Server error' }, { status: 500 });
   }
 }
+
+export const POST = withIdempotency(checkoutHandler);

@@ -2,6 +2,7 @@ import nodemailer from 'nodemailer';
 import mongoose from 'mongoose';
 import Product from '../models/Product.js';
 import Coupon from '../models/Coupon.js';
+import { withRetry } from '../utils/retry.js';
 
 const getEnv = (...keys) => keys.map(k => process.env[k]).find(Boolean);
 
@@ -154,21 +155,24 @@ export const sendEmail = async (options) => {
         payload.text = options.text;
       }
 
-      const response = await fetch('https://api.resend.com/emails', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${resendApiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
+      const resData = await withRetry(async () => {
+        const response = await fetch('https://api.resend.com/emails', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${resendApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
 
-      if (!response.ok) {
-        const errText = await response.text();
-        throw new Error(`Resend API error: ${response.status} - ${errText}`);
-      }
+        if (!response.ok) {
+          const errText = await response.text();
+          throw new Error(`Resend API error: ${response.status} - ${errText}`);
+        }
 
-      const resData = await response.json();
+        return await response.json();
+      }, { name: 'Resend Email Dispatch', retries: 3 });
+
       console.log(`📧 [Resend] Email dispatched successfully to ${options.to}. ID: ${resData.id}`);
       return resData;
     }
