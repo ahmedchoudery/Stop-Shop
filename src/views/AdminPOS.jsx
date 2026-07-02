@@ -3,8 +3,9 @@
  * Route: /admin/pos
  * 
  * Touch-friendly, barcode-scanner-compatible POS terminal for physical store sales.
- * Features: SKU/barcode search, variant selection, cart management, payment processing,
- * receipt generation, and real-time inventory sync.
+ * Highly dense, clean layout optimized to fit perfectly inside the admin dashboard wrapper.
+ * Features: SKU/barcode search, category tabs, compact product cards, keyboard shortcuts,
+ * custom variant selector, and pinned checkout panel.
  */
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
@@ -17,58 +18,33 @@ import { authFetch, handleAuthError } from '../lib/auth.js';
 import { apiUrl } from '../config/api.js';
 
 /* ═══════════════════════════════════════════════════════════
-   STYLES
+   STYLES (Clean, Premium, High-Density Editorial Design)
    ═══════════════════════════════════════════════════════════ */
 
 const S = {
-  // Container
-  page: {
-    minHeight: '100vh',
-    background: '#0A0A0A',
-    color: '#F5F5F5',
+  // Container that fits perfectly within the main admin panel content area
+  container: {
     display: 'flex',
     flexDirection: 'column',
+    height: 'calc(100vh - 120px)', // dynamic offset to fit content below header without scrollbars
+    background: '#0B0B0B',
+    borderRadius: '8px',
+    border: '1px solid rgba(255,255,255,0.06)',
+    color: '#F5F5F5',
     fontFamily: "'Inter', system-ui, -apple-system, sans-serif",
+    overflow: 'hidden',
   },
 
-  // Header
-  header: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: '16px 24px',
-    borderBottom: '1px solid rgba(255,255,255,0.06)',
-    background: 'rgba(10,10,10,0.95)',
-    backdropFilter: 'blur(12px)',
-    position: 'sticky',
-    top: 0,
-    zIndex: 20,
-  },
-  headerTitle: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '12px',
-  },
-  headerBadge: {
-    background: 'linear-gradient(135deg, #22C55E 0%, #16A34A 100%)',
-    color: '#000',
-    fontSize: '9px',
-    fontWeight: 800,
-    letterSpacing: '0.15em',
-    textTransform: 'uppercase',
-    padding: '3px 10px',
-    borderRadius: '2px',
-  },
-
-  // Main layout
+  // Main columns
   main: {
     display: 'flex',
     flex: 1,
     overflow: 'hidden',
+    height: '100%',
   },
 
-  // Products panel (left)
-  productsPanel: {
+  // Left column: Search, Categories, Products
+  leftColumn: {
     flex: 1,
     display: 'flex',
     flexDirection: 'column',
@@ -76,28 +52,33 @@ const S = {
     overflow: 'hidden',
   },
 
-  // Cart panel (right)
-  cartPanel: {
-    width: '420px',
-    minWidth: '420px',
+  // Right column: Cart, customer, checkout
+  rightColumn: {
+    width: '380px',
+    minWidth: '380px',
     display: 'flex',
     flexDirection: 'column',
     background: '#111111',
+    overflow: 'hidden',
   },
 
-  // Search bar
-  searchContainer: {
-    padding: '16px 20px',
+  // Top control bar (Search + Scan status)
+  controlBar: {
+    padding: '12px 16px',
     borderBottom: '1px solid rgba(255,255,255,0.06)',
-  },
-  searchWrapper: {
     display: 'flex',
     alignItems: 'center',
-    background: 'rgba(255,255,255,0.05)',
+    gap: '12px',
+    background: '#0F0F0F',
+  },
+  searchWrapper: {
+    flex: 1,
+    display: 'flex',
+    alignItems: 'center',
+    background: 'rgba(255,255,255,0.04)',
     borderRadius: '4px',
     border: '1px solid rgba(255,255,255,0.08)',
-    padding: '0 14px',
-    transition: 'border-color 0.2s, box-shadow 0.2s',
+    padding: '0 10px',
   },
   searchInput: {
     flex: 1,
@@ -105,111 +86,193 @@ const S = {
     border: 'none',
     outline: 'none',
     color: '#F5F5F5',
-    fontSize: '14px',
-    fontWeight: 500,
-    padding: '12px 10px',
-    fontFamily: "'JetBrains Mono', 'SF Mono', monospace",
-    letterSpacing: '0.02em',
+    fontSize: '13px',
+    padding: '8px',
+    fontFamily: "'JetBrains Mono', monospace",
+  },
+  scanIndicator: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    fontSize: '10px',
+    fontWeight: 700,
+    textTransform: 'uppercase',
+    letterSpacing: '0.1em',
+    color: '#22C55E',
+    background: 'rgba(34,197,94,0.1)',
+    padding: '4px 8px',
+    borderRadius: '3px',
+    border: '1px solid rgba(34,197,94,0.2)',
   },
 
-  // Products grid
+  // Horizontal category tabs
+  categoryBar: {
+    display: 'flex',
+    gap: '8px',
+    padding: '10px 16px',
+    borderBottom: '1px solid rgba(255,255,255,0.04)',
+    overflowX: 'auto',
+    background: '#0D0D0D',
+    whiteSpace: 'nowrap',
+  },
+  categoryTab: (active) => ({
+    padding: '6px 12px',
+    borderRadius: '3px',
+    border: active ? '1px solid #22C55E' : '1px solid rgba(255,255,255,0.06)',
+    background: active ? 'rgba(34,197,94,0.1)' : 'rgba(255,255,255,0.02)',
+    color: active ? '#22C55E' : '#AAA',
+    fontSize: '11px',
+    fontWeight: active ? 700 : 500,
+    textTransform: 'uppercase',
+    letterSpacing: '0.05em',
+    cursor: 'pointer',
+    transition: 'all 0.15s ease',
+  }),
+
+  // Products grid (High Density layout)
   productsGrid: {
     flex: 1,
-    overflow: 'auto',
-    padding: '16px 20px',
+    overflowY: 'auto',
+    padding: '12px 16px',
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
-    gap: '12px',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+    gap: '8px',
     alignContent: 'start',
   },
 
-  // Product card
+  // Horizontal compact product cards
   productCard: {
-    background: 'rgba(255,255,255,0.03)',
-    border: '1px solid rgba(255,255,255,0.06)',
-    borderRadius: '6px',
-    padding: '12px',
-    cursor: 'pointer',
-    transition: 'all 0.2s ease',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '8px',
-  },
-  productImage: {
-    width: '100%',
-    aspectRatio: '1',
-    objectFit: 'cover',
+    background: 'rgba(255,255,255,0.02)',
+    border: '1px solid rgba(255,255,255,0.05)',
     borderRadius: '4px',
-    background: '#1A1A1A',
-  },
-  productName: {
-    fontSize: '12px',
-    fontWeight: 700,
-    textTransform: 'uppercase',
-    letterSpacing: '0.04em',
-    lineHeight: 1.3,
-    color: '#E5E5E5',
-  },
-  productPrice: {
-    fontSize: '14px',
-    fontWeight: 800,
-    fontFamily: "'JetBrains Mono', monospace",
-    color: '#22C55E',
-  },
-  productStock: {
-    fontSize: '10px',
-    fontWeight: 600,
-    textTransform: 'uppercase',
-    letterSpacing: '0.1em',
-    color: '#888',
-  },
-
-  // Cart header
-  cartHeader: {
-    padding: '20px',
-    borderBottom: '1px solid rgba(255,255,255,0.06)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  cartTitle: {
-    fontSize: '11px',
-    fontWeight: 800,
-    textTransform: 'uppercase',
-    letterSpacing: '0.15em',
-    color: '#999',
-  },
-  cartCount: {
-    background: '#22C55E',
-    color: '#000',
-    fontSize: '11px',
-    fontWeight: 800,
-    padding: '2px 8px',
-    borderRadius: '2px',
-  },
-
-  // Cart items
-  cartItems: {
-    flex: 1,
-    overflow: 'auto',
-    padding: '12px 20px',
-  },
-  cartItem: {
+    padding: '8px 10px',
     display: 'flex',
     alignItems: 'center',
     gap: '12px',
-    padding: '12px 0',
-    borderBottom: '1px solid rgba(255,255,255,0.04)',
+    cursor: 'pointer',
+    position: 'relative',
+    transition: 'all 0.15s ease-in-out',
   },
-  cartItemImage: {
+  productCardImage: {
     width: '48px',
     height: '48px',
     objectFit: 'cover',
-    borderRadius: '4px',
-    background: '#1A1A1A',
+    borderRadius: '3px',
+    background: '#151515',
     flexShrink: 0,
   },
-  cartItemInfo: {
+  productInfo: {
+    flex: 1,
+    minWidth: 0,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '2px',
+  },
+  productName: {
+    fontSize: '11px',
+    fontWeight: 700,
+    textTransform: 'uppercase',
+    color: '#E5E5E5',
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+  },
+  productSku: {
+    fontSize: '9px',
+    color: '#666',
+    fontFamily: "'JetBrains Mono', monospace",
+  },
+  productFooter: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: '2px',
+  },
+  productPrice: {
+    fontSize: '12px',
+    fontWeight: 800,
+    color: '#22C55E',
+    fontFamily: "'JetBrains Mono', monospace",
+  },
+  productStock: {
+    fontSize: '9px',
+    fontWeight: 600,
+    color: '#888',
+  },
+
+  // Right Cart Section
+  cartHeader: {
+    padding: '12px 16px',
+    borderBottom: '1px solid rgba(255,255,255,0.06)',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    background: '#151515',
+  },
+  cartTitle: {
+    fontSize: '10px',
+    fontWeight: 800,
+    textTransform: 'uppercase',
+    letterSpacing: '0.15em',
+    color: '#888',
+  },
+  cartBadge: {
+    background: '#22C55E',
+    color: '#000',
+    fontSize: '10px',
+    fontWeight: 800,
+    padding: '1px 6px',
+    borderRadius: '2px',
+  },
+
+  // Collapsible customer section
+  customerHeader: {
+    padding: '8px 16px',
+    borderBottom: '1px solid rgba(255,255,255,0.04)',
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    cursor: 'pointer',
+    fontSize: '10px',
+    fontWeight: 700,
+    textTransform: 'uppercase',
+    letterSpacing: '0.08em',
+    color: '#888',
+    background: '#131313',
+  },
+  customerContent: {
+    padding: '12px 16px',
+    background: '#121212',
+    borderBottom: '1px solid rgba(255,255,255,0.06)',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '6px',
+  },
+  customerInput: {
+    width: '100%',
+    background: 'rgba(255,255,255,0.03)',
+    border: '1px solid rgba(255,255,255,0.06)',
+    borderRadius: '3px',
+    padding: '6px 10px',
+    color: '#E5E5E5',
+    fontSize: '11px',
+    outline: 'none',
+  },
+
+  // Cart items list (Scrollable)
+  cartItemsList: {
+    flex: 1,
+    overflowY: 'auto',
+    padding: '8px 16px',
+  },
+  cartItemRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    padding: '10px 0',
+    borderBottom: '1px solid rgba(255,255,255,0.03)',
+  },
+  cartItemDetails: {
     flex: 1,
     minWidth: 0,
   },
@@ -217,407 +280,131 @@ const S = {
     fontSize: '11px',
     fontWeight: 700,
     textTransform: 'uppercase',
-    letterSpacing: '0.03em',
     color: '#E5E5E5',
     whiteSpace: 'nowrap',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
   },
-  cartItemVariant: {
-    fontSize: '10px',
+  cartItemMeta: {
+    fontSize: '9px',
     color: '#666',
-    marginTop: '2px',
+    marginTop: '1px',
   },
   cartItemPrice: {
-    fontSize: '12px',
-    fontFamily: "'JetBrains Mono', monospace",
+    fontSize: '11px',
     fontWeight: 700,
     color: '#22C55E',
-    marginTop: '4px',
-  },
-  qtyControl: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0px',
-    borderRadius: '3px',
-    overflow: 'hidden',
-    border: '1px solid rgba(255,255,255,0.08)',
-  },
-  qtyBtn: {
-    background: 'rgba(255,255,255,0.05)',
-    border: 'none',
-    color: '#CCC',
-    padding: '6px 8px',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    transition: 'background 0.15s',
-  },
-  qtyValue: {
-    padding: '4px 10px',
-    fontSize: '13px',
-    fontWeight: 700,
     fontFamily: "'JetBrains Mono', monospace",
-    color: '#F5F5F5',
-    background: 'transparent',
-    minWidth: '32px',
-    textAlign: 'center',
   },
 
-  // Cart footer / payment
-  cartFooter: {
+  // Pinned Footer panel
+  footerPanel: {
     borderTop: '1px solid rgba(255,255,255,0.08)',
-    padding: '20px',
+    background: '#141414',
+    padding: '16px',
+    marginTop: 'auto',
   },
-  totalRow: {
+  priceSummary: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: '16px',
-  },
-  totalLabel: {
-    fontSize: '11px',
-    fontWeight: 800,
-    textTransform: 'uppercase',
-    letterSpacing: '0.15em',
-    color: '#999',
-  },
-  totalValue: {
-    fontSize: '24px',
-    fontWeight: 900,
-    fontFamily: "'JetBrains Mono', monospace",
-    color: '#F5F5F5',
-  },
-
-  // Payment buttons
-  paymentRow: {
-    display: 'flex',
-    gap: '8px',
     marginBottom: '12px',
   },
-  paymentBtn: (selected) => ({
-    flex: 1,
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    gap: '4px',
-    padding: '12px 8px',
-    borderRadius: '4px',
-    border: selected ? '2px solid #22C55E' : '1px solid rgba(255,255,255,0.08)',
-    background: selected ? 'rgba(34,197,94,0.1)' : 'rgba(255,255,255,0.03)',
-    color: selected ? '#22C55E' : '#999',
-    cursor: 'pointer',
-    transition: 'all 0.2s',
-    fontSize: '9px',
-    fontWeight: 700,
-    textTransform: 'uppercase',
-    letterSpacing: '0.1em',
-  }),
-
-  // Checkout button
+  priceValue: {
+    fontSize: '22px',
+    fontWeight: 900,
+    color: '#F5F5F5',
+    fontFamily: "'JetBrains Mono', monospace",
+  },
   checkoutBtn: (disabled) => ({
     width: '100%',
-    padding: '14px',
-    borderRadius: '4px',
-    border: 'none',
-    background: disabled
-      ? 'rgba(255,255,255,0.05)'
-      : 'linear-gradient(135deg, #22C55E 0%, #16A34A 100%)',
+    padding: '12px',
+    background: disabled ? 'rgba(255,255,255,0.05)' : 'linear-gradient(135deg, #22C55E 0%, #16A34A 100%)',
     color: disabled ? '#555' : '#000',
+    border: 'none',
+    borderRadius: '4px',
     fontSize: '12px',
     fontWeight: 900,
     textTransform: 'uppercase',
-    letterSpacing: '0.15em',
+    letterSpacing: '0.1em',
     cursor: disabled ? 'not-allowed' : 'pointer',
-    transition: 'all 0.2s',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     gap: '8px',
+    transition: 'all 0.2s',
   }),
 
-  // Variant modal
+  // Modals / Overlay
   modalOverlay: {
     position: 'fixed',
     inset: 0,
-    background: 'rgba(0,0,0,0.8)',
-    backdropFilter: 'blur(8px)',
+    background: 'rgba(0,0,0,0.85)',
+    backdropFilter: 'blur(6px)',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 100,
+    zIndex: 9999,
     padding: '20px',
   },
-  modalContent: {
-    background: '#141414',
+  modalBox: {
+    background: '#121212',
     border: '1px solid rgba(255,255,255,0.08)',
-    borderRadius: '8px',
+    borderRadius: '6px',
     width: '100%',
-    maxWidth: '480px',
-    maxHeight: '80vh',
-    overflow: 'auto',
-    padding: '24px',
+    maxWidth: '440px',
+    padding: '20px',
   },
   modalTitle: {
-    fontSize: '13px',
+    fontSize: '12px',
     fontWeight: 800,
     textTransform: 'uppercase',
-    letterSpacing: '0.1em',
-    color: '#E5E5E5',
-    marginBottom: '20px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-
-  // Variant chips
-  variantLabel: {
-    fontSize: '10px',
-    fontWeight: 700,
-    textTransform: 'uppercase',
-    letterSpacing: '0.12em',
-    color: '#888',
-    marginBottom: '8px',
-    marginTop: '16px',
-  },
-  variantChips: {
-    display: 'flex',
-    flexWrap: 'wrap',
-    gap: '8px',
-  },
-  variantChip: (selected) => ({
-    padding: '8px 16px',
-    borderRadius: '3px',
-    border: selected ? '2px solid #22C55E' : '1px solid rgba(255,255,255,0.1)',
-    background: selected ? 'rgba(34,197,94,0.1)' : 'rgba(255,255,255,0.03)',
-    color: selected ? '#22C55E' : '#CCC',
-    fontSize: '11px',
-    fontWeight: 700,
-    cursor: 'pointer',
-    transition: 'all 0.15s',
-    textTransform: 'uppercase',
-    letterSpacing: '0.05em',
-  }),
-
-  // Customer section
-  customerSection: {
-    padding: '12px 20px',
-    borderBottom: '1px solid rgba(255,255,255,0.06)',
-  },
-  customerToggle: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    fontSize: '10px',
-    fontWeight: 700,
-    textTransform: 'uppercase',
-    letterSpacing: '0.1em',
-    color: '#888',
-    cursor: 'pointer',
-    padding: '8px 0',
-  },
-  customerInput: {
-    width: '100%',
-    background: 'rgba(255,255,255,0.04)',
-    border: '1px solid rgba(255,255,255,0.08)',
-    borderRadius: '3px',
-    padding: '8px 12px',
-    color: '#E5E5E5',
-    fontSize: '12px',
-    outline: 'none',
-    fontFamily: "'Inter', system-ui, sans-serif",
-    marginBottom: '6px',
-  },
-
-  // Receipt
-  receiptOverlay: {
-    position: 'fixed',
-    inset: 0,
-    background: 'rgba(0,0,0,0.85)',
-    backdropFilter: 'blur(12px)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 200,
-    padding: '20px',
-  },
-  receiptCard: {
-    background: '#FAFAFA',
-    color: '#111',
-    borderRadius: '8px',
-    width: '100%',
-    maxWidth: '360px',
-    padding: '32px 28px',
-    fontFamily: "'JetBrains Mono', 'SF Mono', monospace",
-  },
-  receiptHeader: {
-    textAlign: 'center',
-    marginBottom: '20px',
-    paddingBottom: '16px',
-    borderBottom: '2px dashed #DDD',
-  },
-  receiptStoreName: {
-    fontSize: '18px',
-    fontWeight: 900,
-    textTransform: 'uppercase',
-    letterSpacing: '0.15em',
-    color: '#111',
-  },
-  receiptLabel: {
-    fontSize: '9px',
-    fontWeight: 700,
-    textTransform: 'uppercase',
-    letterSpacing: '0.15em',
-    color: '#999',
-    marginTop: '4px',
-  },
-  receiptRow: {
+    letterSpacing: '0.08em',
+    marginBottom: '16px',
     display: 'flex',
     justifyContent: 'space-between',
-    padding: '4px 0',
-    fontSize: '11px',
-    color: '#333',
-  },
-  receiptDivider: {
-    borderTop: '1px dashed #DDD',
-    margin: '12px 0',
-  },
-  receiptTotal: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    fontSize: '16px',
-    fontWeight: 900,
-    color: '#111',
-    padding: '8px 0',
-    borderTop: '2px solid #111',
-    marginTop: '8px',
-  },
-  receiptFooter: {
-    textAlign: 'center',
-    marginTop: '20px',
-    paddingTop: '16px',
-    borderTop: '2px dashed #DDD',
-  },
-  receiptActions: {
-    display: 'flex',
-    gap: '10px',
-    marginTop: '20px',
-  },
-  receiptBtn: (primary) => ({
-    flex: 1,
-    padding: '12px',
-    borderRadius: '4px',
-    border: primary ? 'none' : '1px solid #DDD',
-    background: primary ? '#111' : '#FFF',
-    color: primary ? '#FFF' : '#333',
-    fontSize: '10px',
-    fontWeight: 800,
-    textTransform: 'uppercase',
-    letterSpacing: '0.12em',
-    cursor: 'pointer',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '6px',
-  }),
-
-  // Empty state
-  emptyState: {
-    display: 'flex',
-    flexDirection: 'column',
-    alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    color: '#444',
-    gap: '12px',
-    padding: '40px',
   },
 
-  // Error toast
-  errorToast: {
-    position: 'fixed',
-    bottom: '24px',
-    left: '50%',
-    transform: 'translateX(-50%)',
-    background: '#DC2626',
-    color: '#FFF',
-    padding: '12px 24px',
-    borderRadius: '4px',
-    fontSize: '12px',
-    fontWeight: 700,
-    zIndex: 300,
-    display: 'flex',
-    alignItems: 'center',
-    gap: '8px',
-    boxShadow: '0 8px 32px rgba(220,38,38,0.3)',
+  // Color Swatch helper
+  colorDot: (colorVal) => {
+    let style = {
+      display: 'inline-block',
+      width: '10px',
+      height: '10px',
+      borderRadius: '50%',
+      border: '1px solid rgba(255,255,255,0.2)',
+      verticalAlign: 'middle',
+      marginRight: '6px',
+    };
+    if (colorVal.includes('|')) {
+      const parts = colorVal.split('|');
+      const hex = parts[0].trim();
+      style.background = hex;
+    } else {
+      style.background = colorVal;
+    }
+    return style;
   },
 
-  // Success overlay
-  successOverlay: {
-    position: 'fixed',
-    inset: 0,
-    background: 'rgba(0,0,0,0.7)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 150,
-  },
-  successCard: {
-    background: '#111',
-    border: '2px solid #22C55E',
-    borderRadius: '8px',
-    padding: '40px',
-    textAlign: 'center',
-  },
-  successIcon: {
-    width: '64px',
-    height: '64px',
-    borderRadius: '50%',
-    background: 'rgba(34,197,94,0.15)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    margin: '0 auto 16px',
-  },
-
-  // Loading
-  spinner: {
-    display: 'inline-block',
-    width: '16px',
-    height: '16px',
-    border: '2px solid rgba(255,255,255,0.1)',
-    borderTopColor: '#22C55E',
-    borderRadius: '50%',
-    animation: 'pos-spin 0.6s linear infinite',
-  },
-
-  // Out of stock badge
-  outOfStockBadge: {
+  // General badges
+  badge: {
     position: 'absolute',
-    top: '8px',
-    right: '8px',
-    background: 'rgba(220,38,38,0.9)',
-    color: '#FFF',
+    top: '4px',
+    right: '4px',
+    padding: '2px 4px',
     fontSize: '8px',
     fontWeight: 800,
-    padding: '2px 6px',
     borderRadius: '2px',
     textTransform: 'uppercase',
-    letterSpacing: '0.1em',
   },
-  lowStockBadge: {
-    position: 'absolute',
-    top: '8px',
-    right: '8px',
-    background: 'rgba(245,158,11,0.9)',
-    color: '#000',
-    fontSize: '8px',
-    fontWeight: 800,
-    padding: '2px 6px',
-    borderRadius: '2px',
-    textTransform: 'uppercase',
-    letterSpacing: '0.1em',
-  },
+};
+
+const getCleanColorName = (colorStr) => {
+  if (!colorStr) return '';
+  if (colorStr.includes('|')) {
+    return colorStr.split('|')[1].trim();
+  }
+  return colorStr;
 };
 
 /* ═══════════════════════════════════════════════════════════
@@ -629,6 +416,7 @@ const AdminPOS = () => {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeCategory, setActiveCategory] = useState('All');
   const [cart, setCart] = useState([]);
   const [paymentType, setPaymentType] = useState('Cash');
   const [processing, setProcessing] = useState(false);
@@ -636,14 +424,15 @@ const AdminPOS = () => {
   const [receipt, setReceipt] = useState(null);
   const [showCustomer, setShowCustomer] = useState(false);
   const [customer, setCustomer] = useState({ name: '', phone: '', email: '' });
-  const [variantModal, setVariantModal] = useState(null); // product requiring variant selection
+  const [variantModal, setVariantModal] = useState(null);
   const [selectedVariants, setSelectedVariants] = useState({ size: '', color: '' });
+  const [flashItemKey, setFlashItemKey] = useState(null);
 
   const searchRef = useRef(null);
   const barcodeBuffer = useRef('');
   const barcodeTimer = useRef(null);
 
-  // ── Fetch products ─────────────────────────────────────────
+  // Fetch catalogue
   const fetchProducts = useCallback(async () => {
     try {
       setLoading(true);
@@ -663,29 +452,43 @@ const AdminPOS = () => {
     fetchProducts();
   }, [fetchProducts]);
 
-  // ── Barcode scanner support ────────────────────────────────
-  // Barcode scanners emulate keyboard input ending with Enter
+  // Extract unique categories (buckets)
+  const categories = ['All', ...new Set(products.map(p => p.bucket).filter(Boolean))];
+
+  // Barcode scanner integration (keyboard simulation lookup)
   useEffect(() => {
     const handleKeyDown = (e) => {
-      // Ignore if user is typing in a regular input
+      // Ignore when focused in regular inputs (unless it's the search input)
       if (e.target.tagName === 'INPUT' && e.target !== searchRef.current) return;
 
-      if (e.key === 'Enter' && barcodeBuffer.current.length >= 3) {
+      // Handle F2 shortcut to complete checkout
+      if (e.key === 'F2') {
         e.preventDefault();
-        const scannedCode = barcodeBuffer.current.trim();
-        barcodeBuffer.current = '';
+        if (cart.length > 0 && !processing) {
+          handleCheckout();
+        }
+        return;
+      }
 
-        // Look up product by ID/SKU
-        const found = products.find(p =>
-          p.id === scannedCode ||
-          p.id?.toLowerCase() === scannedCode.toLowerCase()
-        );
+      // Handle Escape to close variant modal or receipt
+      if (e.key === 'Escape') {
+        setVariantModal(null);
+        setReceipt(null);
+        return;
+      }
 
-        if (found) {
-          handleAddToCart(found);
-        } else {
-          setSearchQuery(scannedCode);
-          if (searchRef.current) searchRef.current.focus();
+      if (e.key === 'Enter') {
+        if (barcodeBuffer.current.length >= 3) {
+          e.preventDefault();
+          const scanned = barcodeBuffer.current.trim();
+          barcodeBuffer.current = '';
+
+          const found = products.find(p => p.id?.toLowerCase() === scanned.toLowerCase());
+          if (found) {
+            handleAddToCart(found);
+          } else {
+            setSearchQuery(scanned);
+          }
         }
         return;
       }
@@ -695,44 +498,37 @@ const AdminPOS = () => {
         clearTimeout(barcodeTimer.current);
         barcodeTimer.current = setTimeout(() => {
           barcodeBuffer.current = '';
-        }, 100); // scanners type faster than 100ms per char
+        }, 120);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [products, cart]);
+  }, [products, cart, processing]);
 
-  // ── Auto-focus search on mount ─────────────────────────────
+  // Auto focus search box on page load
   useEffect(() => {
     if (searchRef.current) searchRef.current.focus();
   }, []);
 
-  // ── Clear error after 4s ───────────────────────────────────
-  useEffect(() => {
-    if (!error) return;
-    const t = setTimeout(() => setError(''), 4000);
-    return () => clearTimeout(t);
-  }, [error]);
-
-  // ── Product filtering ─────────────────────────────────────
+  // Filter products by category + search query
   const filtered = products.filter(p => {
+    const matchCategory = activeCategory === 'All' || p.bucket === activeCategory;
+    if (!matchCategory) return false;
+
     if (!searchQuery.trim()) return true;
     const q = searchQuery.toLowerCase();
     return (
-      (p.name || '').toLowerCase().includes(q) ||
-      (p.id || '').toLowerCase().includes(q) ||
-      (p.bucket || '').toLowerCase().includes(q) ||
-      (p.subCategory || '').toLowerCase().includes(q)
+      p.name?.toLowerCase().includes(q) ||
+      p.id?.toLowerCase().includes(q) ||
+      p.subCategory?.toLowerCase().includes(q)
     );
   });
 
-  // ── Cart helpers ───────────────────────────────────────────
   const handleAddToCart = (product) => {
     const hasSizes = product.sizes && product.sizes.length > 0;
     const hasColors = product.colors && product.colors.length > 0;
 
-    // If product has variants, show selector
     if (hasSizes || hasColors) {
       setVariantModal(product);
       setSelectedVariants({
@@ -742,7 +538,6 @@ const AdminPOS = () => {
       return;
     }
 
-    // Simple product — add directly
     addItemToCart(product, '', '');
   };
 
@@ -752,9 +547,7 @@ const AdminPOS = () => {
 
     if (existing) {
       setCart(prev => prev.map(c =>
-        c.cartKey === cartKey
-          ? { ...c, quantity: c.quantity + 1 }
-          : c
+        c.cartKey === cartKey ? { ...c, quantity: c.quantity + 1 } : c
       ));
     } else {
       const discount = product.discount ?? 0;
@@ -774,14 +567,18 @@ const AdminPOS = () => {
       }]);
     }
 
+    // Trigger visual flash feedback
+    setFlashItemKey(cartKey);
+    setTimeout(() => setFlashItemKey(null), 800);
+
     setVariantModal(null);
   };
 
   const updateQty = (cartKey, delta) => {
     setCart(prev => prev.map(c => {
       if (c.cartKey !== cartKey) return c;
-      const newQty = c.quantity + delta;
-      return newQty <= 0 ? null : { ...c, quantity: newQty };
+      const nq = c.quantity + delta;
+      return nq <= 0 ? null : { ...c, quantity: nq };
     }).filter(Boolean));
   };
 
@@ -795,13 +592,8 @@ const AdminPOS = () => {
     setShowCustomer(false);
   };
 
-  const cartTotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
-
-  // ── Checkout ───────────────────────────────────────────────
   const handleCheckout = async () => {
     if (cart.length === 0 || processing) return;
-
     setProcessing(true);
     setError('');
 
@@ -826,12 +618,8 @@ const AdminPOS = () => {
       });
 
       const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Checkout failed');
 
-      if (!res.ok) {
-        throw new Error(data.error || 'Checkout failed');
-      }
-
-      // Show receipt
       setReceipt({
         orderID: data.orderID,
         receiptNumber: data.receiptNumber,
@@ -839,17 +627,13 @@ const AdminPOS = () => {
         total: data.total,
         paymentType,
         cashier: data.cashier,
-        customer: customer.name || 'Walk-in',
+        customer: customer.name || 'Walk-in Customer',
         timestamp: data.timestamp,
       });
 
-      // Clear cart
       setCart([]);
       setCustomer({ name: '', phone: '', email: '' });
-
-      // Refresh products (stock updated)
       fetchProducts();
-
     } catch (err) {
       setError(err.message);
     } finally {
@@ -857,78 +641,76 @@ const AdminPOS = () => {
     }
   };
 
-  // ── Format currency ────────────────────────────────────────
+  const cartTotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+
   const fmt = (n) => `Rs. ${Math.round(n).toLocaleString()}`;
 
-  // ── Render ─────────────────────────────────────────────────
   return (
-    <div style={S.page}>
-      {/* CSS animation */}
-      <style>{`@keyframes pos-spin { to { transform: rotate(360deg) } }`}</style>
+    <div style={S.container}>
+      <style>{`
+        @keyframes pos-spin { to { transform: rotate(360deg) } }
+        @keyframes add-flash {
+          0% { border-color: rgba(34,197,94,1); box-shadow: 0 0 12px rgba(34,197,94,0.4); }
+          100% { border-color: rgba(255,255,255,0.05); box-shadow: none; }
+        }
+      `}</style>
 
-      {/* Header */}
-      <header style={S.header}>
-        <div style={S.headerTitle}>
-          <ScanBarcode size={20} color="#22C55E" />
-          <span style={{ fontSize: '14px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-            Point of Sale
-          </span>
-          <span style={S.headerBadge}>Live</span>
+      {/* Control bar */}
+      <div style={S.controlBar}>
+        <div style={S.searchWrapper}>
+          <Search size={14} color="#666" />
+          <input
+            ref={searchRef}
+            type="text"
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            placeholder="Scan barcode or type name..."
+            style={S.searchInput}
+            autoComplete="off"
+          />
+          {searchQuery && (
+            <X size={14} color="#666" style={{ cursor: 'pointer' }} onClick={() => setSearchQuery('')} />
+          )}
         </div>
-        <div style={{ fontSize: '11px', color: '#666', fontFamily: "'JetBrains Mono', monospace" }}>
-          {new Date().toLocaleDateString('en-PK', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}
+        <div style={S.scanIndicator}>
+          <ScanBarcode size={13} />
+          <span>Scanner Ready</span>
         </div>
-      </header>
+      </div>
 
-      {/* Main layout */}
+      {/* Category Tabs */}
+      <div style={S.categoryBar}>
+        {categories.map(cat => (
+          <button
+            key={cat}
+            style={S.categoryTab(activeCategory === cat)}
+            onClick={() => setActiveCategory(cat)}
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
+
       <div style={S.main}>
-        {/* ── Left: Products ────────────────────────────── */}
-        <div style={S.productsPanel}>
-          {/* Search */}
-          <div style={S.searchContainer}>
-            <div style={S.searchWrapper}>
-              <Search size={16} color="#666" />
-              <input
-                ref={searchRef}
-                type="text"
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                placeholder="Scan barcode or search by name, SKU..."
-                style={S.searchInput}
-                autoComplete="off"
-                id="pos-search-input"
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  style={{ background: 'none', border: 'none', color: '#666', cursor: 'pointer', padding: '4px' }}
-                >
-                  <X size={14} />
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Product Grid */}
+        {/* Left Column: Products Grid */}
+        <div style={S.leftColumn}>
           {loading ? (
             <div style={S.emptyState}>
               <div style={S.spinner} />
-              <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                Loading catalogue...
-              </span>
+              <span style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Loading catalogue...</span>
             </div>
           ) : filtered.length === 0 ? (
             <div style={S.emptyState}>
-              <Package size={32} />
-              <span style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                {searchQuery ? 'No products match your search' : 'No products available'}
-              </span>
+              <Package size={24} color="#444" />
+              <span style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>No products found</span>
             </div>
           ) : (
             <div style={S.productsGrid}>
               {filtered.map(product => {
-                const outOfStock = (product.quantity ?? product.stock ?? 0) <= 0;
-                const lowStock = !outOfStock && (product.quantity ?? product.stock ?? 0) <= 3;
+                const stock = product.quantity ?? product.stock ?? 0;
+                const outOfStock = stock <= 0;
+                const lowStock = !outOfStock && stock <= 3;
 
                 return (
                   <div
@@ -937,32 +719,28 @@ const AdminPOS = () => {
                       ...S.productCard,
                       opacity: outOfStock ? 0.4 : 1,
                       cursor: outOfStock ? 'not-allowed' : 'pointer',
-                      position: 'relative',
                     }}
                     onClick={() => !outOfStock && handleAddToCart(product)}
-                    title={outOfStock ? 'Out of stock' : `Add ${product.name} to cart`}
                   >
                     {product.image ? (
-                      <img src={product.image} alt={product.name} style={S.productImage} loading="lazy" />
+                      <img src={product.image} alt="" style={S.productCardImage} />
                     ) : (
-                      <div style={{ ...S.productImage, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', color: '#333' }}>
+                      <div style={{ ...S.productCardImage, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', color: '#444' }}>
                         {(product.name || '?')[0]}
                       </div>
                     )}
-                    {outOfStock && <span style={S.outOfStockBadge}>Sold Out</span>}
-                    {lowStock && <span style={S.lowStockBadge}>Low</span>}
-                    <div style={S.productName}>{product.name}</div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={S.productPrice}>{fmt(product.price)}</span>
-                      <span style={S.productStock}>
-                        {product.quantity ?? product.stock ?? 0} pcs
-                      </span>
+
+                    {outOfStock && <span style={{ ...S.badge, background: '#DC2626', color: '#FFF' }}>Out of stock</span>}
+                    {lowStock && <span style={{ ...S.badge, background: '#F59E0B', color: '#000' }}>Low Stock</span>}
+
+                    <div style={S.productInfo}>
+                      <span style={S.productName}>{product.name}</span>
+                      <span style={S.productSku}>{product.id}</span>
+                      <div style={S.productFooter}>
+                        <span style={S.productPrice}>{fmt(product.price)}</span>
+                        <span style={S.productStock}>{stock} left</span>
+                      </div>
                     </div>
-                    {product.discount > 0 && (
-                      <span style={{ fontSize: '9px', color: '#F59E0B', fontWeight: 700 }}>
-                        -{product.discount}% OFF
-                      </span>
-                    )}
                   </div>
                 );
               })}
@@ -970,154 +748,140 @@ const AdminPOS = () => {
           )}
         </div>
 
-        {/* ── Right: Cart ───────────────────────────────── */}
-        <div style={S.cartPanel}>
-          {/* Cart header */}
+        {/* Right Column: Cart, Customer Form, Pinned Checkout */}
+        <div style={S.rightColumn}>
+          {/* Header */}
           <div style={S.cartHeader}>
-            <span style={S.cartTitle}>Current Sale</span>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              {cart.length > 0 && (
-                <>
-                  <span style={S.cartCount}>{cartItemCount}</span>
-                  <button
-                    onClick={clearCart}
-                    style={{ background: 'none', border: 'none', color: '#666', cursor: 'pointer', padding: '4px' }}
-                    title="Clear cart"
-                  >
-                    <Trash2 size={14} />
-                  </button>
-                </>
-              )}
-            </div>
+            <span style={S.cartTitle}>Sale cart</span>
+            {cart.length > 0 && <span style={S.cartBadge}>{cartItemCount} items</span>}
           </div>
 
-          {/* Customer info (collapsible) */}
-          <div style={S.customerSection}>
-            <div style={S.customerToggle} onClick={() => setShowCustomer(!showCustomer)}>
+          {/* Customer Selection Form */}
+          <div style={S.customerHeader} onClick={() => setShowCustomer(!showCustomer)}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <User size={12} />
               <span>{customer.name || 'Walk-in Customer'}</span>
-              <ChevronDown size={12} style={{ transform: showCustomer ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s' }} />
             </div>
-            {showCustomer && (
-              <div style={{ marginTop: '8px' }}>
-                <input
-                  style={S.customerInput}
-                  placeholder="Customer name"
-                  value={customer.name}
-                  onChange={e => setCustomer(c => ({ ...c, name: e.target.value }))}
-                />
-                <input
-                  style={S.customerInput}
-                  placeholder="Phone number"
-                  value={customer.phone}
-                  onChange={e => setCustomer(c => ({ ...c, phone: e.target.value }))}
-                />
-                <input
-                  style={S.customerInput}
-                  placeholder="Email (optional)"
-                  value={customer.email}
-                  onChange={e => setCustomer(c => ({ ...c, email: e.target.value }))}
-                />
-              </div>
-            )}
+            <ChevronDown size={12} style={{ transform: showCustomer ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
           </div>
 
-          {/* Cart items */}
-          <div style={S.cartItems}>
+          {showCustomer && (
+            <div style={S.customerContent}>
+              <input
+                style={S.customerInput}
+                placeholder="Name"
+                value={customer.name}
+                onChange={e => setCustomer(c => ({ ...c, name: e.target.value }))}
+              />
+              <input
+                style={S.customerInput}
+                placeholder="Phone number"
+                value={customer.phone}
+                onChange={e => setCustomer(c => ({ ...c, phone: e.target.value }))}
+              />
+              <input
+                style={S.customerInput}
+                placeholder="Email (optional)"
+                value={customer.email}
+                onChange={e => setCustomer(c => ({ ...c, email: e.target.value }))}
+              />
+            </div>
+          )}
+
+          {/* Cart list scroll area */}
+          <div style={S.cartItemsList}>
             {cart.length === 0 ? (
-              <div style={{ ...S.emptyState, padding: '60px 20px' }}>
-                <ShoppingCart size={28} />
-                <span style={{ fontSize: '10px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-                  Cart is empty
-                </span>
-                <span style={{ fontSize: '10px', color: '#555' }}>
-                  Scan a barcode or click a product
-                </span>
+              <div style={S.emptyState}>
+                <ShoppingCart size={24} color="#444" />
+                <span style={{ fontSize: '10px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Cart is empty</span>
               </div>
             ) : (
-              cart.map(item => (
-                <div key={item.cartKey} style={S.cartItem}>
-                  {item.image ? (
-                    <img src={item.image} alt={item.name} style={S.cartItemImage} />
-                  ) : (
-                    <div style={{ ...S.cartItemImage, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#444', fontSize: '16px' }}>
-                      {(item.name || '?')[0]}
-                    </div>
-                  )}
-                  <div style={S.cartItemInfo}>
-                    <div style={S.cartItemName}>{item.name}</div>
-                    {(item.selectedSize || item.selectedColor) && (
-                      <div style={S.cartItemVariant}>
-                        {item.selectedColor && <span>{item.selectedColor}</span>}
-                        {item.selectedColor && item.selectedSize && <span> · </span>}
-                        {item.selectedSize && <span>{item.selectedSize}</span>}
+              cart.map(item => {
+                const flash = flashItemKey === item.cartKey;
+                return (
+                  <div
+                    key={item.cartKey}
+                    style={{
+                      ...S.cartItemRow,
+                      animation: flash ? 'add-flash 0.8s ease' : 'none',
+                    }}
+                  >
+                    <div style={S.cartItemDetails}>
+                      <div style={S.cartItemName}>{item.name}</div>
+                      {(item.selectedSize || item.selectedColor) && (
+                        <div style={S.cartItemMeta}>
+                          {item.selectedColor && (
+                            <>
+                              <span style={S.colorDot(item.selectedColor)} />
+                              <span>{getCleanColorName(item.selectedColor)}</span>
+                            </>
+                          )}
+                          {item.selectedColor && item.selectedSize && <span> · </span>}
+                          {item.selectedSize && <span>Size {item.selectedSize}</span>}
+                        </div>
+                      )}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
+                        <span style={S.cartItemPrice}>{fmt(item.price)}</span>
+                        <div style={{ display: 'flex', alignItems: 'center', border: '1px solid rgba(255,255,255,0.08)', borderRadius: '3px', background: 'rgba(255,255,255,0.02)' }}>
+                          <button style={{ border: 'none', background: 'none', color: '#AAA', padding: '4px 6px', cursor: 'pointer' }} onClick={() => updateQty(item.cartKey, -1)}>
+                            <Minus size={10} />
+                          </button>
+                          <span style={{ fontSize: '11px', fontWeight: 700, minWidth: '20px', textAlign: 'center', fontFamily: "'JetBrains Mono', monospace" }}>{item.quantity}</span>
+                          <button style={{ border: 'none', background: 'none', color: '#AAA', padding: '4px 6px', cursor: 'pointer' }} onClick={() => updateQty(item.cartKey, 1)}>
+                            <Plus size={10} />
+                          </button>
+                        </div>
                       </div>
-                    )}
-                    <div style={S.cartItemPrice}>{fmt(item.price * item.quantity)}</div>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <div style={S.qtyControl}>
-                      <button style={S.qtyBtn} onClick={() => updateQty(item.cartKey, -1)}>
-                        <Minus size={12} />
-                      </button>
-                      <span style={S.qtyValue}>{item.quantity}</span>
-                      <button style={S.qtyBtn} onClick={() => updateQty(item.cartKey, 1)}>
-                        <Plus size={12} />
-                      </button>
                     </div>
-                    <button
-                      onClick={() => removeItem(item.cartKey)}
-                      style={{ background: 'none', border: 'none', color: '#555', cursor: 'pointer', padding: '4px' }}
-                    >
-                      <X size={14} />
+                    <button style={{ border: 'none', background: 'none', color: '#555', cursor: 'pointer', padding: '4px' }} onClick={() => removeItem(item.cartKey)}>
+                      <Trash2 size={12} />
                     </button>
                   </div>
-                </div>
-              ))
+                );
+              })
             )}
           </div>
 
-          {/* Footer: Payment + Checkout */}
-          <div style={S.cartFooter}>
-            <div style={S.totalRow}>
-              <span style={S.totalLabel}>Total</span>
-              <span style={S.totalValue}>{fmt(cartTotal)}</span>
+          {/* Pinned checkout panel */}
+          <div style={S.footerPanel}>
+            <div style={S.priceSummary}>
+              <span style={{ fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', color: '#888' }}>Total</span>
+              <span style={S.priceValue}>{fmt(cartTotal)}</span>
             </div>
 
-            {/* Payment type */}
-            <div style={S.paymentRow}>
+            {/* Payment buttons */}
+            <div style={{ display: 'flex', gap: '6px', marginBottom: '10px' }}>
               {[
                 { type: 'Cash', icon: Banknote },
                 { type: 'Card', icon: CreditCard },
                 { type: 'Mobile', icon: Smartphone },
-              ].map(({ type, icon: Icon }) => (
-                <button
-                  key={type}
-                  style={S.paymentBtn(paymentType === type)}
-                  onClick={() => setPaymentType(type)}
-                >
-                  <Icon size={18} />
-                  {type}
-                </button>
-              ))}
+              ].map(opt => {
+                const Icon = opt.icon;
+                const active = paymentType === opt.type;
+                return (
+                  <button
+                    key={opt.type}
+                    style={S.paymentBtn(active)}
+                    onClick={() => setPaymentType(opt.type)}
+                  >
+                    <Icon size={14} />
+                    <span>{opt.type}</span>
+                  </button>
+                );
+              })}
             </div>
 
-            {/* Checkout */}
             <button
               style={S.checkoutBtn(cart.length === 0 || processing)}
               onClick={handleCheckout}
               disabled={cart.length === 0 || processing}
-              id="pos-checkout-btn"
             >
               {processing ? (
-                <>
-                  <div style={S.spinner} />
-                  Processing...
-                </>
+                <div style={S.spinner} />
               ) : (
                 <>
-                  <Check size={16} />
-                  Complete Sale — {fmt(cartTotal)}
+                  <Check size={14} />
+                  <span>Complete (F2)</span>
                 </>
               )}
             </button>
@@ -1125,170 +889,163 @@ const AdminPOS = () => {
         </div>
       </div>
 
-      {/* ── Variant Selector Modal ──────────────────── */}
+      {/* Variant Selector Modal */}
       {variantModal && (
         <div style={S.modalOverlay} onClick={() => setVariantModal(null)}>
-          <div style={S.modalContent} onClick={e => e.stopPropagation()}>
+          <div style={S.modalBox} onClick={e => e.stopPropagation()}>
             <div style={S.modalTitle}>
               <span>Select Variant</span>
-              <button
-                onClick={() => setVariantModal(null)}
-                style={{ background: 'none', border: 'none', color: '#999', cursor: 'pointer' }}
-              >
-                <X size={16} />
-              </button>
+              <X size={14} color="#666" style={{ cursor: 'pointer' }} onClick={() => setVariantModal(null)} />
             </div>
 
-            {/* Product preview */}
             <div style={{ display: 'flex', gap: '12px', marginBottom: '16px' }}>
-              {variantModal.image && (
-                <img src={variantModal.image} alt="" style={{ width: '64px', height: '64px', objectFit: 'cover', borderRadius: '4px' }} />
-              )}
+              {variantModal.image && <img src={variantModal.image} alt="" style={{ width: '48px', height: '48px', objectFit: 'cover', borderRadius: '3px' }} />}
               <div>
-                <div style={{ fontSize: '13px', fontWeight: 700, color: '#E5E5E5' }}>{variantModal.name}</div>
-                <div style={{ fontSize: '14px', fontWeight: 800, fontFamily: "'JetBrains Mono', monospace", color: '#22C55E', marginTop: '4px' }}>
-                  {fmt(variantModal.price)}
-                </div>
+                <div style={{ fontSize: '11px', fontWeight: 700, textTransform: 'uppercase' }}>{variantModal.name}</div>
+                <div style={{ fontSize: '12px', fontWeight: 800, color: '#22C55E', marginTop: '4px', fontFamily: "'JetBrains Mono', monospace" }}>{fmt(variantModal.price)}</div>
               </div>
             </div>
 
-            {/* Colors */}
+            {/* Color Swatches */}
             {variantModal.colors?.length > 0 && (
-              <>
-                <div style={S.variantLabel}>Color</div>
-                <div style={S.variantChips}>
-                  {variantModal.colors.map(c => {
-                    const name = c.includes('|') ? c.split('|').pop().trim() : c;
-                    return (
-                      <button
-                        key={c}
-                        style={S.variantChip(selectedVariants.color === c)}
-                        onClick={() => setSelectedVariants(v => ({ ...v, color: c }))}
-                      >
-                        {name}
-                      </button>
-                    );
-                  })}
+              <div style={{ marginBottom: '12px' }}>
+                <div style={{ fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', color: '#888', marginBottom: '6px' }}>Color</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                  {variantModal.colors.map(col => (
+                    <button
+                      key={col}
+                      style={{
+                        padding: '6px 10px',
+                        background: selectedVariants.color === col ? 'rgba(34,197,94,0.1)' : 'rgba(255,255,255,0.02)',
+                        border: selectedVariants.color === col ? '1px solid #22C55E' : '1px solid rgba(255,255,255,0.08)',
+                        borderRadius: '3px',
+                        color: selectedVariants.color === col ? '#22C55E' : '#AAA',
+                        fontSize: '10px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                      }}
+                      onClick={() => setSelectedVariants(v => ({ ...v, color: col }))}
+                    >
+                      <span style={S.colorDot(col)} />
+                      {getCleanColorName(col)}
+                    </button>
+                  ))}
                 </div>
-              </>
+              </div>
             )}
 
             {/* Sizes */}
             {variantModal.sizes?.length > 0 && (
-              <>
-                <div style={S.variantLabel}>Size</div>
-                <div style={S.variantChips}>
-                  {variantModal.sizes.map(s => (
+              <div style={{ marginBottom: '16px' }}>
+                <div style={{ fontSize: '9px', fontWeight: 700, textTransform: 'uppercase', color: '#888', marginBottom: '6px' }}>Size</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+                  {variantModal.sizes.map(sz => (
                     <button
-                      key={s}
-                      style={S.variantChip(selectedVariants.size === s)}
-                      onClick={() => setSelectedVariants(v => ({ ...v, size: s }))}
+                      key={sz}
+                      style={{
+                        padding: '6px 10px',
+                        background: selectedVariants.size === sz ? 'rgba(34,197,94,0.1)' : 'rgba(255,255,255,0.02)',
+                        border: selectedVariants.size === sz ? '1px solid #22C55E' : '1px solid rgba(255,255,255,0.08)',
+                        borderRadius: '3px',
+                        color: selectedVariants.size === sz ? '#22C55E' : '#AAA',
+                        fontSize: '10px',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                      }}
+                      onClick={() => setSelectedVariants(v => ({ ...v, size: sz }))}
                     >
-                      {s}
+                      {sz}
                     </button>
                   ))}
                 </div>
-              </>
+              </div>
             )}
 
-            {/* Add button */}
             <button
-              style={{
-                ...S.checkoutBtn(false),
-                marginTop: '24px',
-              }}
+              style={{ ...S.checkoutBtn(false), marginTop: '10px' }}
               onClick={() => addItemToCart(variantModal, selectedVariants.size, selectedVariants.color)}
             >
-              <Plus size={16} />
-              Add to Cart
+              Add to cart
             </button>
           </div>
         </div>
       )}
 
-      {/* ── Receipt Modal ───────────────────────────── */}
+      {/* Receipt Modal */}
       {receipt && (
-        <div style={S.receiptOverlay}>
-          <div style={S.receiptCard}>
+        <div style={S.receiptOverlay} onClick={() => setReceipt(null)}>
+          <div style={S.receiptCard} onClick={e => e.stopPropagation()}>
             <div style={S.receiptHeader}>
               <div style={S.receiptStoreName}>Stop & Shop</div>
               <div style={S.receiptLabel}>Sales Receipt</div>
-              <div style={{ fontSize: '10px', color: '#999', marginTop: '8px' }}>
+              <div style={{ fontSize: '9px', color: '#999', marginTop: '6px' }}>
                 {new Date(receipt.timestamp).toLocaleString('en-PK')}
               </div>
             </div>
 
             <div style={S.receiptRow}>
-              <span style={{ color: '#999', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase' }}>Order ID</span>
+              <span style={{ color: '#999', fontSize: '9px', fontWeight: 700 }}>Order ID</span>
               <span style={{ fontWeight: 700 }}>{receipt.orderID}</span>
             </div>
             <div style={S.receiptRow}>
-              <span style={{ color: '#999', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase' }}>Receipt #</span>
+              <span style={{ color: '#999', fontSize: '9px', fontWeight: 700 }}>Receipt #</span>
               <span style={{ fontWeight: 700 }}>{receipt.receiptNumber}</span>
             </div>
             <div style={S.receiptRow}>
-              <span style={{ color: '#999', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase' }}>Cashier</span>
+              <span style={{ color: '#999', fontSize: '9px', fontWeight: 700 }}>Cashier</span>
               <span>{receipt.cashier}</span>
             </div>
             <div style={S.receiptRow}>
-              <span style={{ color: '#999', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase' }}>Customer</span>
+              <span style={{ color: '#999', fontSize: '9px', fontWeight: 700 }}>Customer</span>
               <span>{receipt.customer}</span>
-            </div>
-            <div style={S.receiptRow}>
-              <span style={{ color: '#999', fontSize: '9px', fontWeight: 700, textTransform: 'uppercase' }}>Payment</span>
-              <span>{receipt.paymentType}</span>
             </div>
 
             <div style={S.receiptDivider} />
 
-            {/* Items */}
             {receipt.items.map((item, i) => (
-              <div key={i}>
+              <div key={i} style={{ marginBottom: '6px' }}>
                 <div style={{ ...S.receiptRow, fontWeight: 700 }}>
                   <span>{item.name}</span>
+                  <span>{fmt(item.price * item.quantity)}</span>
                 </div>
-                <div style={{ ...S.receiptRow, paddingLeft: '12px', fontSize: '10px', color: '#666' }}>
+                <div style={{ ...S.receiptRow, fontSize: '9px', color: '#666', paddingLeft: '8px' }}>
                   <span>
                     {item.quantity} × {fmt(item.price)}
-                    {item.selectedSize && ` · ${item.selectedSize}`}
-                    {item.selectedColor && ` · ${item.selectedColor.includes('|') ? item.selectedColor.split('|').pop().trim() : item.selectedColor}`}
+                    {item.selectedSize && ` · Sz ${item.selectedSize}`}
+                    {item.selectedColor && ` · ${getCleanColorName(item.selectedColor)}`}
                   </span>
-                  <span>{fmt(item.price * item.quantity)}</span>
                 </div>
               </div>
             ))}
 
             <div style={S.receiptTotal}>
-              <span>TOTAL</span>
+              <span>TOTAL PAID</span>
               <span>{fmt(receipt.total)}</span>
             </div>
 
             <div style={S.receiptFooter}>
-              <div style={{ fontSize: '10px', color: '#999' }}>Thank you for shopping with us!</div>
-              <div style={{ fontSize: '9px', color: '#BBB', marginTop: '4px' }}>
-                Returns accepted within 7 days with receipt
-              </div>
+              <div style={{ fontSize: '9px', color: '#999' }}>Thank you for shopping with us!</div>
             </div>
 
             <div style={S.receiptActions}>
               <button style={S.receiptBtn(false)} onClick={() => window.print()}>
                 <Printer size={12} />
-                Print
+                <span>Print</span>
               </button>
               <button style={S.receiptBtn(true)} onClick={() => setReceipt(null)}>
                 <ArrowLeft size={12} />
-                New Sale
+                <span>Done</span>
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ── Error Toast ─────────────────────────────── */}
+      {/* Error Toast */}
       {error && (
         <div style={S.errorToast}>
           <AlertTriangle size={14} />
-          {error}
+          <span>{error}</span>
         </div>
       )}
     </div>

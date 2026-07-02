@@ -198,34 +198,62 @@ export async function POST(req) {
 
     const verifiedTotal = enrichedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-    // Create order document
-    const orderDoc = await Order.create({
-      orderID,
-      customer: {
-        name:  customerName || 'Walk-in Customer',
-        email: customerEmail || 'pos@stopandshop.pk',
-        phone: customerPhone || '',
-      },
-      items: enrichedItems,
-      total: verifiedTotal,
-      paymentMethod: paymentType === 'Cash' ? 'COD' : paymentType === 'Card' ? 'ATM Card' : 'Easypaisa',
-      status: 'Delivered',   // POS sales are instantly fulfilled
-      salesChannel: 'POS',
-      posDetails: {
-        cashierName:   adminPayload.name || adminPayload.email || '',
-        paymentType,
-        receiptNumber,
-      },
-      paymentDetails: {
-        transactionID: `POS-TXN-${Date.now().toString(36).toUpperCase()}`,
-        status: 'Paid',
-        gatewayLogs: [{
-          action: 'POS_PAYMENT_RECEIVED',
-          details: { paymentType, cashier: adminPayload.email, note: note || '' },
-        }],
-      },
-      ip: clientIp,
-    });
+    // ── Rollback helper ──────────────────────────────────────
+    const rollbackAll = async () => {
+      for (const dec of completedDecrements) {
+        const rollbackUpdate = { $inc: { quantity: dec.qty, stock: dec.qty } };
+        if (dec.matrixKey) {
+          rollbackUpdate.$inc[dec.matrixKey] = dec.qty;
+          const color = (dec.item.selectedColor ?? '').trim();
+          const size = (dec.item.selectedSize ?? '').trim();
+          if (color) rollbackUpdate.$inc[`colorStock.${color}`] = dec.qty;
+          if (size)  rollbackUpdate.$inc[`sizeStock.${size}`] = dec.qty;
+        }
+        if (dec.sizeKey)  rollbackUpdate.$inc[dec.sizeKey]  = dec.qty;
+        if (dec.colorKey) rollbackUpdate.$inc[dec.colorKey] = dec.qty;
+
+        await Product.findOneAndUpdate({ id: dec.item.id }, rollbackUpdate);
+      }
+    };
+
+    // Create order document — wrapped in try/catch to rollback stock on failure
+    let orderDoc;
+    try {
+      orderDoc = await Order.create({
+        orderID,
+        customer: {
+          name:  customerName || 'Walk-in Customer',
+          email: customerEmail || 'pos@stopandshop.pk',
+          phone: customerPhone || '0000000000',
+        },
+        items: enrichedItems,
+        total: verifiedTotal,
+        paymentMethod: paymentType === 'Cash' ? 'COD' : paymentType === 'Card' ? 'ATM Card' : 'Easypaisa',
+        status: 'Delivered',   // POS sales are instantly fulfilled
+        salesChannel: 'POS',
+        posDetails: {
+          cashierName:   adminPayload.name || adminPayload.email || '',
+          paymentType,
+          receiptNumber,
+        },
+        paymentDetails: {
+          transactionID: `POS-TXN-${Date.now().toString(36).toUpperCase()}`,
+          status: 'Paid',
+          gatewayLogs: [{
+            action: 'POS_PAYMENT_RECEIVED',
+            details: { paymentType, cashier: adminPayload.email, note: note || '' },
+          }],
+        },
+        ip: clientIp,
+      });
+    } catch (orderErr) {
+      // Order creation failed — rollback all stock decrements
+      console.error('[POS Checkout] Order creation failed, rolling back stock:', orderErr.message);
+      await rollbackAll();
+      return NextResponse.json({
+        error: `Order creation failed: ${orderErr.message}`
+      }, { status: 400 });
+    }
 
     // Audit log
     await logAudit('POS_SALE', {
