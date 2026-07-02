@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import crypto from 'crypto';
 import dbConnect from '../../../../lib/db';
 import Order from '../../../../models/Order';
 import { cacheService, CACHE_KEYS } from '../../../../services/cacheService';
@@ -7,13 +8,28 @@ import { sendOrderStatusEmail } from '../../../../services/emailService';
 // Basic security token verification for the webhook
 const WEBHOOK_SECRET = process.env.PAYMENT_WEBHOOK_SECRET || 'stop_shop_payment_secret_2026';
 
+function safeCompare(a, b) {
+  if (typeof a !== 'string' || typeof b !== 'string') return false;
+  const aBuf = Buffer.from(a);
+  const bBuf = Buffer.from(b);
+  if (aBuf.length !== bBuf.length) {
+    crypto.timingSafeEqual(aBuf, aBuf);
+    return false;
+  }
+  return crypto.timingSafeEqual(aBuf, bBuf);
+}
+
 export async function POST(req) {
   try {
     await dbConnect();
     const body = await req.json();
 
     const signature = req.headers.get('x-payment-signature') || req.headers.get('x-signature');
-    if (signature && signature !== WEBHOOK_SECRET) {
+    if (!signature) {
+      return NextResponse.json({ error: 'Webhook signature is required' }, { status: 401 });
+    }
+
+    if (!safeCompare(signature, WEBHOOK_SECRET)) {
       return NextResponse.json({ error: 'Unauthorized signature validation failed' }, { status: 401 });
     }
 

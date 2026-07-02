@@ -1,85 +1,111 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-// In-memory rate limiting map for sliding window
-const rateLimitMap = new Map<string, number[]>();
+// ── Rate Limit Settings ───────────────────────────────────────────
+const WINDOW_MS = 60000;
+const LIMIT = 20;
 
-const WINDOW_MS = 60000; // 1 minute
-const LIMIT = 20; // 20 requests per window
+// Simple memory-based fallback for local dev when Redis is not configured
+const localRateLimitMap = new Map<string, number[]>();
 
-// Paths that require rate limiting
-const RATE_LIMITED_PATHS = [
-  '/api/checkout',
-  '/api/admin/login',
-  '/api/customer/login',
-  '/api/customer/register',
-];
+async function checkRateLimit(ip: string): Promise<boolean> {
+  const upstashUrl = process.env.UPSTASH_REDIS_REST_URL;
+  const upstashToken = process.env.UPSTASH_REDIS_REST_TOKEN;
 
-export function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-
-  // 1. Sliding Window Rate Limiting (Critical Endpoints)
-  if (RATE_LIMITED_PATHS.some((path) => pathname.startsWith(path))) {
-    const ip = request.ip || request.headers.get('x-forwarded-for')?.split(',')[0].trim() || '127.0.0.1';
-    const now = Date.now();
-
-    // Clean up expired entries randomly to prevent memory leaks (5% chance per request)
-    if (Math.random() < 0.05) {
-      for (const [key, timestamps] of rateLimitMap.entries()) {
-        const activeTimestamps = timestamps.filter((t) => now - t < WINDOW_MS);
-        if (activeTimestamps.length === 0) {
-          rateLimitMap.delete(key);
-        } else {
-          rateLimitMap.set(key, activeTimestamps);
-        }
-      }
-    }
-
-    const timestamps = rateLimitMap.get(ip) || [];
-    // Filter timestamps within the current window
-    const activeTimestamps = timestamps.filter((t) => now - t < WINDOW_MS);
-
-    if (activeTimestamps.length >= LIMIT) {
-      return new NextResponse(
-        JSON.stringify({
-          error: 'Too many requests. Please try again after some time.',
+  if (upstashUrl && upstashToken) {
+    try {
+      const key = `ratelimit:${ip}`;
+      const res = await fetch(`${upstashUrl}/eval`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${upstashToken}` },
+        body: JSON.stringify({
+          script: `
+            local current = redis.call('get', KEYS[1])
+            if current and tonumber(current) >= tonumber(ARGV[1]) then
+              return 0
+            else
+              redis.call('incr', KEYS[1])
+              if not current then
+                redis.call('expire', KEYS[1], ARGV[2])
+              end
+              return 1
+            end
+          `,
+          keys: [key],
+          args: [LIMIT.toString(), Math.ceil(WINDOW_MS / 1000).toString()],
         }),
-        {
-          status: 429,
-          headers: {
-            'Content-Type': 'application/json',
-            'Retry-After': Math.ceil(WINDOW_MS / 1000).toString(),
-          },
-        }
-      );
+      });
+      const data = await res.json();
+      return data.result === 1;
+    } catch (e) {
+      console.warn('[RateLimit] Upstash call failed, falling back to local memory limit');
     }
-
-    // Record the current request timestamp
-    activeTimestamps.push(now);
-    rateLimitMap.set(ip, activeTimestamps);
   }
 
-  // 2. Security Headers
+  // Fallback to local memory limiter
+  const now = Date.now();
+  const timestamps = localRateLimitMap.get(ip) || [];
+  const activeTimestamps = timestamps.filter(t => now - t < WINDOW_MS);
+  
+  if (activeTimestamps.length >= LIMIT) return false;
+  
+  activeTimestamps.push(now);
+  localRateLimitMap.set(ip, activeTimestamps);
+  return true;
+}
+
+// ── CSRF Check Helper ─────────────────────────────────────────────
+function verifyCsrf(request: NextRequest): boolean {
+  const method = request.method;
+  if (['GET', 'HEAD', 'OPTIONS'].includes(method)) return true;
+
+  const csrfCookie = request.cookies.get('csrf_token')?.value;
+  const csrfHeader = request.headers.get('x-csrf-token');
+
+  if (!csrfCookie || !csrfHeader) return false;
+  return csrfCookie === csrfHeader;
+}
+
+// ── Middleware ────────────────────────────────────────────────────
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // 1. Rate Limiting on critical endpoints
+  const RATE_LIMITED_PATHS = ['/api/checkout', '/api/admin/login', '/api/customer/login', '/api/customer/register'];
+  if (RATE_LIMITED_PATHS.some(path => pathname.startsWith(path))) {
+    const ip = request.ip || request.headers.get('x-forwarded-for')?.split(',')[0].trim() || '127.0.0.1';
+    const allowed = await checkRateLimit(ip);
+    if (!allowed) {
+      return new NextResponse(
+        JSON.stringify({ error: 'Too many requests. Please try again later.' }),
+        { status: 429, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+  }
+
+  // 2. CSRF Verification for state-changing public/admin API routes
+  if (pathname.startsWith('/api/') && !pathname.startsWith('/api/webhooks/')) {
+    if (!verifyCsrf(request)) {
+      return new NextResponse(
+        JSON.stringify({ error: 'Invalid or missing CSRF token' }),
+        { status: 403, headers: { 'Content-Type': 'application/json' } }
+      );
+    }
+  }
+
   const response = NextResponse.next();
-  
-  // HSTS (Strict-Transport-Security)
+
+  // 3. Robust Security Headers
   response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
-  
-  // X-Frame-Options to prevent clickjacking
   response.headers.set('X-Frame-Options', 'DENY');
-  
-  // X-Content-Type-Options to prevent MIME-sniffing
   response.headers.set('X-Content-Type-Options', 'nosniff');
-  
-  // Referrer Policy
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
   
-  // Content Security Policy
   const cspHeader = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://connect.facebook.net",
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com",
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    "img-src 'self' data: https: blob:",
+    "img-src 'self' data: https: blob: cloudinary.com *.cloudinary.com",
     "font-src 'self' https://fonts.gstatic.com",
     "connect-src 'self' https:",
     "frame-src 'self'",
@@ -87,22 +113,11 @@ export function middleware(request: NextRequest) {
     "base-uri 'self'",
     "form-action 'self'",
   ].join('; ');
-  
   response.headers.set('Content-Security-Policy', cspHeader);
 
   return response;
 }
 
-// Config to specify the matching paths
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - images/ (public images folder)
-     */
-    '/((?!_next/static|_next/image|favicon.ico|images).*)',
-  ],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico|images).*)'],
 };
