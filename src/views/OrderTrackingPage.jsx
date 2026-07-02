@@ -542,7 +542,8 @@ const OrderTrackingPage = () => {
     setOrder(null);
 
     try {
-      const res = await fetch(apiUrl(`/api/public/track/${encodeURIComponent(id)}?email=${encodeURIComponent(mail)}`));
+      const targetUrl = apiUrl(`/api/public/track/${encodeURIComponent(id)}?email=${encodeURIComponent(mail)}`);
+      const res = await fetch(targetUrl);
       const data = await res.json().catch(() => ({}));
 
       if (res.status === 404) {
@@ -562,7 +563,7 @@ const OrderTrackingPage = () => {
       // Sync URL params
       setSearchParams({ orderID: id, email: mail }, { replace: true });
 
-    } catch {
+    } catch (e) {
       setError('Could not connect to the server. Please check your connection.');
     } finally {
       setLoading(false);

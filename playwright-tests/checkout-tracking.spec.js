@@ -94,23 +94,30 @@ test.describe('Checkout and Secure Order Tracking E2E Flow', () => {
     await page.goto('/track');
     await expect(page).toHaveURL(/\/track/);
 
+    // Pre-warm the API route — first hit compiles the route handler in dev mode
+    // and establishes the DB connection. We don't care about the response.
+    await page.evaluate(async () => {
+      try { await fetch('/api/public/track/WARMUP?email=warmup@test.com'); } catch {}
+    });
+
     // 8. Attempt tracking with an INCORRECT email (should fail)
     await page.getByPlaceholder('ORD-XXXXXXXX').fill(orderID);
     await page.getByPlaceholder('your-email@example.com').fill('wrong@example.com');
     await page.locator('button:has-text("Track Order")').click();
 
     // Assert that the verification error message is displayed
-    await expect(page.getByText('No order found matching those details. Please check and try again.')).toBeVisible();
+    // Timeout extended — first API hit may include route compilation + DB cold start
+    await expect(page.getByText('No order found matching those details. Please check and try again.')).toBeVisible({ timeout: 30000 });
 
     // 9. Track with the CORRECT email (should succeed)
     await page.getByPlaceholder('your-email@example.com').fill('e2etest@example.com');
     await page.locator('button:has-text("Track Order")').click();
 
     // Verify order status details and timeline are visible
-    await expect(page.locator('text=Order Status')).toBeVisible();
-    await expect(page.getByText(orderID)).toBeVisible();
-    await expect(page.getByText('E2E Test', { exact: true })).toBeVisible();
-    await expect(page.getByText('123 Automated Testing Lane')).toBeVisible();
+    await expect(page.locator('text=Order Status')).toBeVisible({ timeout: 30000 });
+    await expect(page.getByText(orderID)).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('E2E Test', { exact: true })).toBeVisible({ timeout: 10000 });
+    await expect(page.getByText('123 Automated Testing Lane')).toBeVisible({ timeout: 10000 });
   });
 
 });
