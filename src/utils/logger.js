@@ -1,4 +1,5 @@
 import pino from 'pino';
+import pretty from 'pino-pretty';
 import { AsyncLocalStorage } from 'async_hooks';
 
 // AsyncLocalStorage to hold request-level context (like requestId)
@@ -30,20 +31,13 @@ const pinoOptions = {
 let logger;
 
 if (!isProduction) {
-  // Use pino-pretty for clean development console outputs
-  logger = pino(
-    {
-      ...pinoOptions,
-      transport: {
-        target: 'pino-pretty',
-        options: {
-          colorize: true,
-          translateTime: 'SYS:yyyy-mm-dd HH:MM:ss',
-          ignore: 'pid,hostname',
-        },
-      },
-    }
-  );
+  // Use pino-pretty synchronously as a stream to avoid thread-stream worker thread crashes in Next.js
+  const prettyStream = pretty({
+    colorize: true,
+    translateTime: 'SYS:yyyy-mm-dd HH:MM:ss',
+    ignore: 'pid,hostname',
+  });
+  logger = pino(pinoOptions, prettyStream);
 } else {
   // Use native fast JSON logs in production
   logger = pino(pinoOptions);
