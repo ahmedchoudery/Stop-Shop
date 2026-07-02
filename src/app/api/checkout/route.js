@@ -119,9 +119,10 @@ export async function POST(req) {
         availabilityCheck[matrixKey] = { $gte: qty };
         availabilityCheck[`colorStock.${color}`] = { $gte: qty };
         availabilityCheck[`sizeStock.${size}`] = { $gte: qty };
+      } else {
+        if (sizeKey)  availabilityCheck[sizeKey]  = { $gte: qty };
+        if (colorKey) availabilityCheck[colorKey] = { $gte: qty };
       }
-      else if (sizeKey)  availabilityCheck[sizeKey]  = { $gte: qty };
-      else if (colorKey) availabilityCheck[colorKey] = { $gte: qty };
 
       const updatedProduct = await Product.findOneAndUpdate(
         availabilityCheck,

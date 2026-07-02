@@ -121,7 +121,6 @@ export async function POST(req) {
       if (sizeKey)  stockUpdate.$inc[sizeKey]  = -qty;
       if (colorKey) stockUpdate.$inc[colorKey] = -qty;
 
-      // Availability guard — atomic check-and-decrement
       const availabilityCheck = {
         id: item.id,
         stock: { $gte: qty },
@@ -130,9 +129,10 @@ export async function POST(req) {
         availabilityCheck[matrixKey] = { $gte: qty };
         availabilityCheck[`colorStock.${color}`] = { $gte: qty };
         availabilityCheck[`sizeStock.${size}`] = { $gte: qty };
+      } else {
+        if (sizeKey)  availabilityCheck[sizeKey]  = { $gte: qty };
+        if (colorKey) availabilityCheck[colorKey] = { $gte: qty };
       }
-      else if (sizeKey)  availabilityCheck[sizeKey]  = { $gte: qty };
-      else if (colorKey) availabilityCheck[colorKey] = { $gte: qty };
 
       const updatedProduct = await Product.findOneAndUpdate(
         availabilityCheck,
