@@ -108,9 +108,14 @@ export async function POST(req) {
         ? dbProduct.variantMatrix.size > 0
         : Object.keys(dbProduct?.variantMatrix ?? {}).length > 0;
 
+      const sizeStockMap = dbProduct?.sizeStock;
+      const colorStockMap = dbProduct?.colorStock;
+      const hasSizeStock = sizeStockMap && (sizeStockMap instanceof Map ? sizeStockMap.size > 0 : Object.keys(sizeStockMap).length > 0);
+      const hasColorStock = colorStockMap && (colorStockMap instanceof Map ? colorStockMap.size > 0 : Object.keys(colorStockMap).length > 0);
+
       const matrixKey = (hasMatrix && color && size) ? `variantMatrix.${color}|${size}` : null;
-      const sizeKey   = (!matrixKey && size)  ? `sizeStock.${size}`  : null;
-      const colorKey  = (!matrixKey && color) ? `colorStock.${color}` : null;
+      const sizeKey   = (!matrixKey && size && hasSizeStock)  ? `sizeStock.${size}`  : null;
+      const colorKey  = (!matrixKey && color && hasColorStock) ? `colorStock.${color}` : null;
 
       const stockUpdate = { $inc: { quantity: -qty, stock: -qty } };
       if (matrixKey) {
