@@ -76,6 +76,14 @@ export const authFetch = async (url, options = {}) => {
     headers.set('Content-Type', 'application/json');
   }
 
+  // Attach CSRF Token if present in cookies
+  if (typeof document !== 'undefined') {
+    const match = document.cookie.match(/csrf_token=([^;]+)/);
+    if (match) {
+      headers.set('x-csrf-token', decodeURIComponent(match[1]));
+    }
+  }
+
   // Attach Bearer token if available (dev/fallback)
   if (token) {
     headers.set('Authorization', `Bearer ${token}`);

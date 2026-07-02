@@ -83,8 +83,14 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // 2. CSRF Verification for state-changing public/admin API routes
-  if (pathname.startsWith('/api/') && !pathname.startsWith('/api/webhooks/')) {
+  // 2. CSRF Verification for state-changing protected API routes
+  const CSRF_PROTECTED_PATHS = ['/api/admin/', '/api/pos/', '/api/customer/profile'];
+  const CSRF_BYPASS_PATHS = ['/api/admin/login'];
+
+  if (
+    CSRF_PROTECTED_PATHS.some(path => pathname.startsWith(path)) &&
+    !CSRF_BYPASS_PATHS.some(path => pathname.startsWith(path))
+  ) {
     if (!verifyCsrf(request)) {
       return new NextResponse(
         JSON.stringify({ error: 'Invalid or missing CSRF token' }),

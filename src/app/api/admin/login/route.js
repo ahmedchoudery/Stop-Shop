@@ -70,7 +70,7 @@ export async function POST(req) {
     };
 
     response.cookies.set('auth_token', token, { ...cookieOptions, maxAge: 8 * 60 * 60 });
-    response.cookies.set('csrf_token', csrfToken, { ...cookieOptions, maxAge: 60 * 60 });
+    response.cookies.set('csrf_token', csrfToken, { ...cookieOptions, httpOnly: false, maxAge: 60 * 60 });
 
     return response;
   } catch (error) {
