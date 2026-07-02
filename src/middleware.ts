@@ -59,6 +59,10 @@ function verifyCsrf(request: NextRequest): boolean {
   const method = request.method;
   if (['GET', 'HEAD', 'OPTIONS'].includes(method)) return true;
 
+  // Authorization Bearer token header authentication is inherently immune to CSRF
+  const authHeader = request.headers.get('authorization');
+  if (authHeader?.startsWith('Bearer ')) return true;
+
   const csrfCookie = request.cookies.get('csrf_token')?.value;
   const csrfHeader = request.headers.get('x-csrf-token');
 
