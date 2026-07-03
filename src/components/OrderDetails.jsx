@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Printer, Package, Truck, User, MapPin, CreditCard, Calendar, ShoppingBag, Clock, ShieldCheck, RefreshCcw, Loader, ArrowRight, Ban } from 'lucide-react';
 import { apiUrl } from '../config/api';
 
 const OrderDetails = ({ order, isOpen, onClose, onStatusUpdated, isStatic }) => {
+  const [mounted, setMounted] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isRefunding, setIsRefunding] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
@@ -10,6 +12,10 @@ const OrderDetails = ({ order, isOpen, onClose, onStatusUpdated, isStatic }) => 
   const [courier, setCourier] = useState('TCS Express');
   const [trackingNumber, setTrackingNumber] = useState('');
   const [customCourier, setCustomCourier] = useState('');
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Reset courier states when order changes
   useEffect(() => {
@@ -21,20 +27,22 @@ const OrderDetails = ({ order, isOpen, onClose, onStatusUpdated, isStatic }) => 
     }
   }, [order]);
 
-  // Lock parent page body scroll when modal is open (modal only, not static)
+  // Lock parent page body scroll when modal is open
   useEffect(() => {
-    if (isStatic) return;
     if (isOpen) {
       document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
     }
     return () => {
       document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
     };
-  }, [isOpen, isStatic]);
+  }, [isOpen]);
 
-  if (!isOpen || !order) return null;
+  if (!mounted || !isOpen || !order) return null;
 
   const handleStatusChange = async (newStatus) => {
     setIsUpdating(true);
@@ -187,38 +195,44 @@ const OrderDetails = ({ order, isOpen, onClose, onStatusUpdated, isStatic }) => 
     'Refunded': 'bg-gray-100 border-gray-300 text-gray-600',
   };
 
-  return (
+  return createPortal(
     <>
       {/* Frosted Glass Backdrop — blurs/hides orders page behind sidebar, blocks actions/scrolling */}
       <div 
         onClick={onClose}
-        className="fixed inset-0 lg:left-64 z-30 bg-white/80 backdrop-blur-md print:hidden animate-fade-in cursor-pointer"
+        className="fixed inset-0 z-40 bg-black/60 backdrop-blur-md print:hidden animate-fade-in cursor-pointer"
         style={{ willChange: 'opacity, backdrop-filter' }}
       />
 
-      {/* Side-Panel Drawer Container — does not scroll background page */}
-      <div 
-        className="fixed top-0 bottom-0 right-0 w-full lg:w-[60%] xl:w-[50%] z-40 bg-white border-l border-gray-150 shadow-2xl flex flex-col h-screen print:static print:border-none print:w-full print:shadow-none animate-slide-in"
-        style={{ willChange: 'transform, opacity' }}
-      >
-        {/* Sticky Header - Hidden on Print */}
-        <div className="flex-shrink-0 flex justify-between items-center p-5 border-b border-gray-100 bg-white z-10 print:hidden">
-          <div className="flex items-center space-x-2.5">
-            <Package className="text-black" size={20} />
-            <h2 className="text-base font-black uppercase tracking-tight text-gray-900">Order Management</h2>
+      {/* Spacious Order Details Center Panel Wrapper */}
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 lg:p-10 pointer-events-none print:static print:bg-white print:p-0">
+        <div 
+          className="w-full max-w-7xl h-[88vh] bg-white border border-gray-150 rounded-[8px] shadow-2xl flex flex-col pointer-events-auto print:static print:border-none print:w-full print:shadow-none animate-scale-in"
+          style={{ willChange: 'transform, opacity' }}
+        >
+          {/* Sticky Header - Hidden on Print */}
+          <div className="flex-shrink-0 flex justify-between items-center px-6 py-5 border-b border-gray-100 bg-white z-10 print:hidden">
+            <div className="flex items-center space-x-3">
+              <div className="w-8 h-8 rounded-[4px] bg-black text-white flex items-center justify-center">
+                <Package size={16} />
+              </div>
+              <div>
+                <h2 className="text-base font-black uppercase tracking-tight text-gray-900">Order Management & Fulfillment</h2>
+                <p className="text-[9px] font-bold text-gray-400 uppercase tracking-widest mt-0.5">Control console & invoice details center</p>
+              </div>
+            </div>
+            <button 
+              onClick={onClose}
+              className="p-2 hover:bg-gray-100 rounded-[4px] transition-all text-gray-450 hover:text-black active:scale-95 border border-gray-100"
+            >
+              <X size={20} />
+            </button>
           </div>
-          <button 
-            onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-[4px] transition-all text-gray-400 hover:text-black active:scale-95"
-          >
-            <X size={20} />
-          </button>
-        </div>
 
-        {/* Scrollable Body Content Section */}
-        <div className="flex-1 overflow-y-auto p-6 sm:p-10 print:p-0">
+          {/* Scrollable Body Content Section */}
+          <div className="flex-1 overflow-y-auto p-6 sm:p-10 print:p-0 bg-gray-50/20">
         
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
           
           {/* LEFT COLUMN: Order Management Form (print:hidden) */}
           <div className="lg:col-span-5 space-y-6 print:hidden">
@@ -704,9 +718,10 @@ const OrderDetails = ({ order, isOpen, onClose, onStatusUpdated, isStatic }) => 
           }
         }
       `}</style>
+        </div>
       </div>
     </>
-  );
+  , document.body);
 };
 
 
