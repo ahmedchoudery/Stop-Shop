@@ -97,7 +97,7 @@ test.describe('Checkout and Secure Order Tracking E2E Flow', () => {
     // Pre-warm the API route — first hit compiles the route handler in dev mode
     // and establishes the DB connection. We don't care about the response.
     await page.evaluate(async () => {
-      try { await fetch('/api/public/track/WARMUP?email=warmup@test.com'); } catch {}
+      try { await fetch('/api/public/track/WARMUP?email=warmup@test.com'); } catch { /* warm-up errors are expected */ }
     });
 
     // 8. Attempt tracking with an INCORRECT email (should fail)
