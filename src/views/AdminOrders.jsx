@@ -140,45 +140,60 @@ const AdminOrders = () => {
         />
       </div>
 
-      {/* Orders Table */}
-      <div className="bg-white border border-gray-200 rounded-[4px] overflow-hidden">
-        <AsyncContent
-          loading={loading}
-          error={error}
-          data={filteredOrders}
-          onRetry={refetch}
-          empty={
-            <div className="p-16 text-center">
-              <Package size={32} className="mx-auto text-gray-200 mb-4" />
-              <p className="text-xs font-black uppercase tracking-[0.4em] text-gray-300">
-                {searchTerm || statusFilter !== 'All' ? 'No orders match filters' : 'No orders yet'}
+      {/* Table & Details Split Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        {/* Left pane: Orders Table list */}
+        <div className={`transition-all duration-350 ${selectedOrder ? 'lg:col-span-5 xl:col-span-4' : 'lg:col-span-12'}`}>
+          <div className="bg-white border border-gray-200 rounded-[4px] overflow-hidden flex flex-col">
+            <div className={`overflow-y-auto ${selectedOrder ? 'max-h-[calc(100vh-260px)]' : ''}`}>
+              <AsyncContent
+                loading={loading}
+                error={error}
+                data={filteredOrders}
+                onRetry={refetch}
+                empty={
+                  <div className="p-16 text-center">
+                    <Package size={32} className="mx-auto text-gray-200 mb-4" />
+                    <p className="text-xs font-black uppercase tracking-[0.4em] text-gray-300">
+                      {searchTerm || statusFilter !== 'All' ? 'No orders match filters' : 'No orders yet'}
+                    </p>
+                  </div>
+                }
+              >
+                <OrderTable
+                  externalOrders={filteredOrders}
+                  loading={false}
+                  onStatusUpdated={refetch}
+                  onViewDetail={setSelectedOrder}
+                  isCompact={!!selectedOrder}
+                />
+              </AsyncContent>
+            </div>
+
+            <div className="px-6 py-4 border-t border-gray-150 bg-gray-50/50">
+              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 italic">
+                {filteredOrders.length} of {orders.length} orders
+                {updating && ' · Updating...'}
               </p>
             </div>
-          }
-        >
-          <OrderTable
-            externalOrders={filteredOrders}
-            loading={false}
-            onStatusUpdated={refetch}
-            onViewDetail={setSelectedOrder}
-          />
-        </AsyncContent>
-
-        <div className="px-6 py-4 border-t border-gray-150">
-          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400 italic">
-            {filteredOrders.length} of {orders.length} orders
-            {updating && ' · Updating...'}
-          </p>
+          </div>
         </div>
-      </div>
 
-      {/* Order Details Modal */}
-      <OrderDetails
-        order={selectedOrder}
-        isOpen={!!selectedOrder}
-        onClose={() => setSelectedOrder(null)}
-        onStatusUpdated={refetch}
-      />
+        {/* Right pane: Static Order Management Form Panel */}
+        {selectedOrder && (
+          <div className="lg:col-span-7 xl:col-span-8 animate-scale-in max-h-[calc(100vh-180px)] overflow-y-auto">
+            <OrderDetails
+              order={selectedOrder}
+              isOpen={true}
+              isStatic={true}
+              onClose={() => setSelectedOrder(null)}
+              onStatusUpdated={refetch}
+            />
+          </div>
+        )}
+
+      </div>
     </div>
   );
 };
