@@ -260,9 +260,9 @@ const OrderTable = ({ externalOrders, loading: externalLoading, onStatusUpdated,
                             </button>
                           )}
                           <button
-                            onClick={(e) => {
+                            onClick={async (e) => {
                               e.stopPropagation();
-                              generateInvoice(order);
+                              await generateInvoice(order);
                             }}
                             className="p-2 text-gray-400 hover:text-black hover:bg-gray-150 rounded-[4px] transition-all"
                             title="Download Invoice (PDF)"

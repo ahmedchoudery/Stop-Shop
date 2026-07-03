@@ -8,6 +8,7 @@
  */
 
 import React, { useEffect, useRef, useCallback } from 'react';
+import Image from 'next/image';
 import anime from 'animejs';
 import { EASING } from '../hooks/useAnime.js';
 import { ChevronDown, ArrowRight } from 'lucide-react';
@@ -105,35 +106,41 @@ const PowerOfChoiceHero = () => {
       {/* ── Background Images ─────────────────────────────────────── */}
       <div className="absolute inset-0 w-full h-full">
         {/* Mobile */}
-        <img
-          data-hero-img
-          src="/Hero-Mobile.jpeg"
-          alt="SS'26 Collection"
-          className="block md:hidden w-full h-full object-cover object-bottom"
-          loading="eager"
-          fetchPriority="high"
-          style={{ willChange: 'transform' }}
-        />
+        <div className="block md:hidden absolute inset-0 w-full h-full">
+          <Image
+            src="/Hero-Mobile.jpeg"
+            alt="SS'26 Collection"
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover object-bottom"
+            style={{ willChange: 'transform' }}
+          />
+        </div>
         {/* Tablet */}
-        <img
-          data-hero-img
-          src="/Hero-Tablet.jpeg"
-          alt="SS'26 Collection"
-          className="hidden md:block lg:hidden w-full h-full object-cover object-bottom"
-          loading="eager"
-          fetchPriority="high"
-          style={{ willChange: 'transform' }}
-        />
+        <div className="hidden md:block lg:hidden absolute inset-0 w-full h-full">
+          <Image
+            src="/Hero-Tablet.jpeg"
+            alt="SS'26 Collection"
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover object-bottom"
+            style={{ willChange: 'transform' }}
+          />
+        </div>
         {/* Desktop */}
-        <img
-          data-hero-img
-          src="/Hero-Desktop.jpeg"
-          alt="SS'26 Collection"
-          className="hidden lg:block w-full h-full object-cover object-center"
-          loading="eager"
-          fetchPriority="high"
-          style={{ willChange: 'transform' }}
-        />
+        <div className="hidden lg:block absolute inset-0 w-full h-full">
+          <Image
+            src="/Hero-Desktop.jpeg"
+            alt="SS'26 Collection"
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover object-center"
+            style={{ willChange: 'transform' }}
+          />
+        </div>
       </div>
 
       {/* ── Gradient overlays ─────────────────────────────────────── */}

@@ -1,6 +1,18 @@
 import React, { useEffect } from 'react';
 import Image from 'next/image';
 
+const getOptimizedImageUrl = (src, width = 600) => {
+  if (!src || typeof src !== 'string') return src;
+  if (src.includes('res.cloudinary.com')) {
+    if (src.includes('/upload/')) {
+      if (!src.includes('/f_auto')) {
+        return src.replace('/upload/', `/upload/f_auto,q_auto,w_${width}/`);
+      }
+    }
+  }
+  return src;
+};
+
 function parseEmbed(raw) {
   if (!raw?.trim()) return null;
   if (/^https?:\/\//.test(raw.trim()) && !raw.includes('<')) {
@@ -45,7 +57,7 @@ function parseEmbed(raw) {
   return { type: 'raw', html: raw };
 }
 
-const MediaRenderer = ({ src, embedCode, mediaType, alt, className, onLoad }) => {
+const MediaRenderer = ({ src, embedCode, mediaType, alt, className, onLoad, width = 600, priority = false }) => {
   const parsed = mediaType === 'embed' && embedCode?.trim() ? parseEmbed(embedCode) : null;
 
   useEffect(() => {
@@ -154,10 +166,11 @@ const MediaRenderer = ({ src, embedCode, mediaType, alt, className, onLoad }) =>
       );
     }
     if (parsed.type === 'image') {
+      const optimizedEmbedSrc = getOptimizedImageUrl(parsed.src, width);
       return (
         <div className="relative w-full h-full">
           <Image
-            src={parsed.src}
+            src={optimizedEmbedSrc}
             alt={alt || 'Embedded image'}
             fill
             sizes="(max-width: 768px) 100vw, 33vw"
@@ -197,16 +210,19 @@ const MediaRenderer = ({ src, embedCode, mediaType, alt, className, onLoad }) =>
     );
   }
 
+  const optimizedSrc = getOptimizedImageUrl(src, width);
+
   return (
     <div className="relative w-full h-full">
       <Image
-        src={src}
+        src={optimizedSrc}
         alt={alt || "Product media"}
         fill
         sizes="(max-width: 768px) 100vw, 33vw"
         className={className}
         onLoad={onLoad}
-        loading="lazy"
+        priority={priority}
+        loading={priority ? undefined : "lazy"}
       />
     </div>
   );

@@ -12,12 +12,14 @@ const playfair = Playfair_Display({
   subsets: ['latin'],
   style: ['normal', 'italic'],
   variable: '--font-playfair',
+  display: 'swap',
 });
 
 const dmSans = DM_Sans({
   weight: ['400', '700'],
   subsets: ['latin'],
   variable: '--font-dm-sans',
+  display: 'swap',
 });
 
 export const metadata = {
@@ -47,12 +49,12 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" className={`${dmSans.variable} ${playfair.variable}`}>
       <body className="font-sans antialiased selection:bg-white/10 selection:text-black">
-        {/* Analytics & Pixel Tracking */}
+        {/* Analytics & Pixel Tracking (Deferred for better TBT/INP) */}
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
-          strategy="afterInteractive"
+          strategy="lazyOnload"
         />
-        <Script id="google-analytics" strategy="afterInteractive">
+        <Script id="google-analytics" strategy="lazyOnload">
           {`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
@@ -60,7 +62,7 @@ export default function RootLayout({ children }) {
             gtag('config', '${gaId}');
           `}
         </Script>
-        <Script id="meta-pixel" strategy="afterInteractive">
+        <Script id="meta-pixel" strategy="lazyOnload">
           {`
             !function(f,b,e,v,n,t,s)
             {if(f.fbq)return;n=f.fbq=function(){n.callMethod?

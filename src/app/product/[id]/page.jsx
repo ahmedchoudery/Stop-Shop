@@ -55,11 +55,19 @@ export default async function Page({ params }) {
     ? { $or: [{ id }, { _id: new mongoose.Types.ObjectId(id) }] }
     : { id };
 
-  // Fetch target product + catalog parallelly on the server
-  const [rawProduct, rawAllProducts] = await Promise.all([
-    Product.findOne(query).lean(),
-    Product.find().lean(),
-  ]);
+  const rawProduct = await Product.findOne(query).lean();
+  let rawAllProducts = [];
+  
+  if (rawProduct) {
+    rawAllProducts = await Product.find({
+      bucket: rawProduct.bucket,
+      quantity: { $gt: 0 },
+      _id: { $ne: rawProduct._id }
+    })
+    .select('id name price discount image bucket subCategory quantity')
+    .limit(12)
+    .lean();
+  }
 
   if (!rawProduct) {
     return <ProductPageClient product={null} />;

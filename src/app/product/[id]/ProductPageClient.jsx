@@ -317,6 +317,8 @@ export default function ProductPageClient({ product, allProducts = [] }) {
                   <MediaRenderer
                     src={img}
                     alt={`${product.name} view ${i + 1}`}
+                    width={1000}
+                    priority={i === 0}
                     className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
                   />
                 </div>

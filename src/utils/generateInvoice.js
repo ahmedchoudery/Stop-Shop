@@ -4,8 +4,6 @@
  *          typescript-expert (JSDoc typed)
  */
 
-import { jsPDF } from 'jspdf';
-import autoTable from 'jspdf-autotable';
 
 const BRAND_RED = [186, 31, 61];   // #ba1f3d
 const BRAND_DARK = [17, 24, 39];   // gray-900
@@ -22,10 +20,13 @@ const BRAND_LIGHT = [249, 250, 251]; // gray-50
  * @param {string} order.status - Current order status
  * @param {string} order.paymentMethod - Payment method used
  * @param {string} order.createdAt - ISO date string
- * @returns {void}
+ * @returns {Promise<void>}
  */
-export const generateInvoice = (order) => {
+export const generateInvoice = async (order) => {
   try {
+    const { jsPDF } = await import('jspdf');
+    const { default: autoTable } = await import('jspdf-autotable');
+    
     const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
 
     const pageW = doc.internal.pageSize.getWidth();
