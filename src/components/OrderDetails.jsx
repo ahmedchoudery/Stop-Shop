@@ -168,11 +168,9 @@ const OrderDetails = ({ order, isOpen, onClose, onStatusUpdated, isStatic }) => 
     }
   };
 
-  // Determine valid statuses based on payment method
+  // Determine valid statuses
   const isCod = order.paymentMethod === 'COD';
-  const validStatuses = isCod
-    ? ['Pending', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled']
-    : ['Pending', 'Paid', 'Failed', 'Refunded'];
+  const validStatuses = ['Pending', 'Processing', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled', 'Paid', 'Failed', 'Refunded'];
 
   const paymentStatus = order.paymentDetails?.status || 'Pending';
   const hasManualTid = !isCod && order.paymentDetails?.transactionID && !order.paymentDetails.transactionID.startsWith('EP-DIR') && !order.paymentDetails.transactionID.startsWith('TXN-CARD');
@@ -189,29 +187,36 @@ const OrderDetails = ({ order, isOpen, onClose, onStatusUpdated, isStatic }) => 
     'Refunded': 'bg-gray-100 border-gray-300 text-gray-600',
   };
 
-  const container = (
-    <div className={`bg-white w-full rounded-[4px] border border-gray-150 relative ${
-      isStatic 
-        ? 'print:border-none print:w-full' 
-        : 'max-w-5xl max-h-[90vh] overflow-y-auto print:border-none print:max-h-none print:overflow-visible print:w-full'
-    }`}>
-      
-      {/* Header - Hidden on Print */}
-      <div className="sticky top-0 bg-white border-b border-gray-100 p-5 flex justify-between items-center z-10 print:hidden">
-        <div className="flex items-center space-x-2.5">
-          <Package className="text-black" size={20} />
-          <h2 className="text-base font-black uppercase tracking-tight text-gray-900">Order Management</h2>
+  return (
+    <>
+      {/* Frosted Glass Backdrop — blurs/hides orders page behind sidebar, blocks actions/scrolling */}
+      <div 
+        onClick={onClose}
+        className="fixed inset-0 lg:left-64 z-30 bg-white/80 backdrop-blur-md print:hidden animate-fade-in cursor-pointer"
+        style={{ willChange: 'opacity, backdrop-filter' }}
+      />
+
+      {/* Side-Panel Drawer Container — does not scroll background page */}
+      <div 
+        className="fixed top-0 bottom-0 right-0 w-full lg:w-[60%] xl:w-[50%] z-40 bg-white border-l border-gray-150 shadow-2xl flex flex-col h-screen print:static print:border-none print:w-full print:shadow-none animate-slide-in"
+        style={{ willChange: 'transform, opacity' }}
+      >
+        {/* Sticky Header - Hidden on Print */}
+        <div className="flex-shrink-0 flex justify-between items-center p-5 border-b border-gray-100 bg-white z-10 print:hidden">
+          <div className="flex items-center space-x-2.5">
+            <Package className="text-black" size={20} />
+            <h2 className="text-base font-black uppercase tracking-tight text-gray-900">Order Management</h2>
+          </div>
+          <button 
+            onClick={onClose}
+            className="p-2 hover:bg-gray-100 rounded-[4px] transition-all text-gray-400 hover:text-black active:scale-95"
+          >
+            <X size={20} />
+          </button>
         </div>
-        <button 
-          onClick={onClose}
-          className="p-2 hover:bg-gray-100 rounded-[4px] transition-all text-gray-400 hover:text-black"
-        >
-          <X size={20} />
-        </button>
-      </div>
- 
-      {/* Content Section */}
-      <div className="p-6 sm:p-10 print:p-0">
+
+        {/* Scrollable Body Content Section */}
+        <div className="flex-1 overflow-y-auto p-6 sm:p-10 print:p-0">
         
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           
@@ -540,8 +545,8 @@ const OrderDetails = ({ order, isOpen, onClose, onStatusUpdated, isStatic }) => 
                 <h1 className="text-3xl font-black italic uppercase tracking-tighter text-black font-serif">Stop & Shop</h1>
                 <p className="text-[9px] font-black uppercase tracking-[0.3em] text-gray-400 mt-1">International Logistics • Pakistan Edition</p>
                 <div className="mt-4 space-y-0.5 text-[9px] font-bold text-gray-500 uppercase tracking-widest leading-normal">
-                  <p>Building 42C, DHA Phase 6</p>
-                  <p>Karachi, Pakistan 75500</p>
+                  <p>Glorious Shopping Mall, GT Rd</p>
+                  <p>Gujrat, Pakistan 50700</p>
                   <p>order@stopshop.pk</p>
                 </div>
               </div>
@@ -699,18 +704,10 @@ const OrderDetails = ({ order, isOpen, onClose, onStatusUpdated, isStatic }) => 
           }
         }
       `}</style>
-    </div>
-  );
-
-  if (isStatic) {
-    return container;
-  }
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 lg:p-8 bg-black/50 backdrop-blur-md print:static print:bg-white print:p-0">
-      {container}
-    </div>
+      </div>
+    </>
   );
 };
+
 
 export default OrderDetails;
