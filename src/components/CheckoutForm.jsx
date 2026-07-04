@@ -9,7 +9,7 @@ import React, { useState, useCallback, useEffect } from 'react';
 import {
   User, Mail, Phone, MapPin, CreditCard, Tag,
   AlertTriangle, Lock, CheckCircle, Loader,
-  UserCheck, X
+  UserCheck, X, Copy
 } from 'lucide-react';
 import { Link } from '../utils/router-compat.jsx';
 import { useCart } from '../context/CartContext.tsx';
@@ -69,6 +69,30 @@ const Field = ({ label, error, children }) => (
     )}
   </div>
 );
+
+const CopyButton = ({ text }) => {
+  const [copied, setCopied] = React.useState(false);
+  const handleCopy = async (e) => {
+    e.preventDefault();
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy text: ', err);
+    }
+  };
+  return (
+    <button
+      type="button"
+      onClick={handleCopy}
+      className="ml-1.5 inline-flex items-center justify-center gap-1 text-[8px] font-black uppercase tracking-widest px-2 py-0.5 border border-gray-300 hover:border-black rounded transition-all select-none text-gray-400 hover:text-black bg-white"
+    >
+      <Copy size={7} />
+      {copied ? 'Copied' : 'Copy'}
+    </button>
+  );
+};
 
 const inputCls = (err) =>
   `w-full border-b-2 py-3 text-sm font-bold bg-transparent outline-none transition-all placeholder:text-gray-200 placeholder:font-normal ${
@@ -286,15 +310,15 @@ const CheckoutForm = ({ onComplete, stockWarnings = [], isSubmitting = false }) 
       } else {
         if (!paymentDetails.easypaisaTid.trim()) {
           e.pay_easypaisaTid = 'Transaction ID is required';
-        } else if (paymentDetails.easypaisaTid.length !== 11) {
-          e.pay_easypaisaTid = 'Transaction ID must be exactly 11 characters';
+        } else if (!/^[a-zA-Z0-9]{8,18}$/.test(paymentDetails.easypaisaTid.trim())) {
+          e.pay_easypaisaTid = 'Transaction ID must be 8 to 18 alphanumeric characters (no spaces)';
         }
       }
     } else if (form.paymentMethod === 'Bank Transfer') {
       if (!paymentDetails.easypaisaTid.trim()) {
         e.pay_easypaisaTid = 'Payment Reference / Transaction ID is required';
-      } else if (paymentDetails.easypaisaTid.length !== 11) {
-        e.pay_easypaisaTid = 'Reference ID must be exactly 11 characters';
+      } else if (!/^[a-zA-Z0-9]{8,24}$/.test(paymentDetails.easypaisaTid.trim())) {
+        e.pay_easypaisaTid = 'Reference ID must be 8 to 24 alphanumeric characters (no spaces)';
       }
     } else if (form.paymentMethod === 'ATM Card') {
       if (!paymentDetails.cardholderName.trim()) {
@@ -533,11 +557,37 @@ const CheckoutForm = ({ onComplete, stockWarnings = [], isSubmitting = false }) 
                       </div>
                     ) : (
                       <div className="space-y-4">
-                        <div className="p-4 bg-gray-50 border border-gray-200/80 leading-relaxed uppercase tracking-wider text-[9px] font-bold text-gray-500 space-y-1">
-                          <p className="font-black text-black">Payment Details:</p>
-                          <p>Account Name: Stop & Shop E-Commerce</p>
-                          <p>{form.paymentMethod} No: {form.paymentMethod === 'Easypaisa' ? '0300-1234567' : '0303-7654321'}</p>
-                          <p className="text-cardinal font-black mt-2">Please transfer PKR {finalTotal.toLocaleString()} first, then paste the 11-digit Transaction ID below.</p>
+                        <div className="p-4 bg-gray-50 border border-gray-200/80 text-[10px] text-gray-600 font-bold uppercase tracking-wider space-y-3">
+                          <div className="border-b border-gray-200 pb-2">
+                            <span className="font-black text-black text-xs block">Manual Mobile Wallet Transfer</span>
+                            <span className="text-[8px] text-gray-400 font-medium">Send payments directly to our mobile account</span>
+                          </div>
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 leading-normal">
+                            <div>
+                              <span className="text-gray-400 block text-[8px]">Account Title</span>
+                              <span className="text-black font-black">Stop & Shop E-Commerce</span>
+                            </div>
+                            <div>
+                              <span className="text-gray-400 block text-[8px]">{form.paymentMethod} Account No.</span>
+                              <span className="text-black font-black flex items-center">
+                                {form.paymentMethod === 'Easypaisa' ? '03001234567' : '03037654321'}
+                                <CopyButton text={form.paymentMethod === 'Easypaisa' ? '03001234567' : '03037654321'} />
+                              </span>
+                            </div>
+                            <div className="md:col-span-2 pt-1 border-t border-gray-200/60">
+                              <span className="text-gray-400 block text-[8px]">Exact Amount to Transfer</span>
+                              <span className="text-cardinal font-black text-xs flex items-center">
+                                PKR {finalTotal.toLocaleString()}
+                                <CopyButton text={finalTotal.toString()} />
+                              </span>
+                            </div>
+                          </div>
+                          <p className="text-[8px] font-medium leading-relaxed normal-case text-gray-400 border-t border-gray-200/60 pt-2">
+                            <span className="font-black text-black block uppercase tracking-widest text-[7px] mb-0.5">Instructions:</span>
+                            1. Open your {form.paymentMethod} App on your phone.<br/>
+                            2. Transfer the exact amount to the mobile account listed above.<br/>
+                            3. Copy the transaction receipt ID (TID) and paste it below.
+                          </p>
                         </div>
                         <Field label="Transaction ID *" error={errors.pay_easypaisaTid}>
                           <input
@@ -556,13 +606,48 @@ const CheckoutForm = ({ onComplete, stockWarnings = [], isSubmitting = false }) 
                 {/* ── Direct Bank Transfer ── */}
                 {form.paymentMethod === 'Bank Transfer' && (
                   <div className="space-y-6">
-                    <div className="p-4 bg-gray-50 border border-gray-200/80 leading-relaxed uppercase tracking-wider text-[9px] font-bold text-gray-500 space-y-1">
-                      <p className="font-black text-black">Bank Transfer Details:</p>
-                      <p>Bank: Meezan Bank Ltd (DHA Phase 6)</p>
-                      <p>Account Title: Stop & Shop E-Commerce</p>
-                      <p>Account Number: 0293-84729183749</p>
-                      <p>IBAN: PK12MEZN000102938472918</p>
-                      <p className="text-cardinal font-black mt-2">Please transfer PKR {finalTotal.toLocaleString()} and enter the 11-digit Transaction ID/Reference Code below.</p>
+                    <div className="p-4 bg-gray-50 border border-gray-200/80 text-[10px] text-gray-600 font-bold uppercase tracking-wider space-y-3">
+                      <div className="border-b border-gray-200 pb-2">
+                        <span className="font-black text-black text-xs block">Direct Bank Transfer (IBAN)</span>
+                        <span className="text-[8px] text-gray-400 font-medium">Transfer funds directly from any banking app</span>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 leading-normal">
+                        <div>
+                          <span className="text-gray-400 block text-[8px]">Bank Name</span>
+                          <span className="text-black font-black">Meezan Bank Ltd (DHA Phase 6)</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-400 block text-[8px]">Account Title</span>
+                          <span className="text-black font-black">Stop & Shop E-Commerce</span>
+                        </div>
+                        <div>
+                          <span className="text-gray-400 block text-[8px]">Account Number</span>
+                          <span className="text-black font-black flex items-center">
+                            029384729183749
+                            <CopyButton text="029384729183749" />
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-gray-400 block text-[8px]">IBAN Number</span>
+                          <span className="text-black font-black flex items-center">
+                            PK12MEZN000102938472918
+                            <CopyButton text="PK12MEZN000102938472918" />
+                          </span>
+                        </div>
+                        <div className="md:col-span-2 pt-1 border-t border-gray-200/60">
+                          <span className="text-gray-400 block text-[8px]">Exact Amount to Transfer</span>
+                          <span className="text-cardinal font-black text-xs flex items-center">
+                            PKR {finalTotal.toLocaleString()}
+                            <CopyButton text={finalTotal.toString()} />
+                          </span>
+                        </div>
+                      </div>
+                      <p className="text-[8px] font-medium leading-relaxed normal-case text-gray-400 border-t border-gray-200/60 pt-2">
+                        <span className="font-black text-black block uppercase tracking-widest text-[7px] mb-0.5">Instructions:</span>
+                        1. Log into your bank's mobile app or portal.<br/>
+                        2. Initiate a funds transfer using the IBAN listed above.<br/>
+                        3. Copy the transaction reference ID and enter it below.
+                      </p>
                     </div>
                     <Field label="Payment Reference / Transaction ID *" error={errors.pay_easypaisaTid}>
                       <input
