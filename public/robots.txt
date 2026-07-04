@@ -1,5 +1,8 @@
 User-agent: *
 Allow: /
+Disallow: /admin/
+Disallow: /checkout/
+Disallow: /account/
 
 # AI Crawlers
 User-agent: GPTBot
@@ -30,4 +33,4 @@ Allow: /
 Crawl-delay: 1
 
 # Sitemap
-Sitemap: https://stop-shop-gamma.vercel.app/sitemap.xml
+Sitemap: https://stop-shop-ecommerce.vercel.app/sitemap.xml
