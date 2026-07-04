@@ -1,0 +1,46 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+
+      - name: Install Dependencies
+        run: npm ci --legacy-peer-deps
+
+      - name: Typecheck
+        run: npm run type-check
+
+      - name: Lint Rules Check
+        run: npm run lint
+
+      - name: Vitest Unit Tests
+        run: npm run test
+
+      - name: Next.js Production Build
+        run: npm run build
+        env:
+          MONGO_URI: mongodb://localhost:27017/testdb
+          JWT_SECRET: "mock_jwt_secret_for_ci_build"
+          ADMIN_EMAIL: admin@test.com
+          ADMIN_PASSWORD: "mock_admin_pass"
+          Stitch_API_Key: "mock_stitch_api_key"
+          CLOUDINARY_CLOUD_NAME: mock_cloud
+          CLOUDINARY_API_KEY: mock_key
+          CLOUDINARY_API_SECRET: mock_secret
+          RESEND_API_KEY: mock_resend_key
