@@ -7,6 +7,15 @@ updates:
     open-pull-requests-limit: 5
     allow:
       - dependency-type: "direct"
+    ignore:
+      - dependency-name: "eslint"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-dom"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "next"
+        update-types: ["version-update:semver-major"]
     groups:
       dependencies:
         patterns:
