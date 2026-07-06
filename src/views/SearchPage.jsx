@@ -18,92 +18,10 @@ import { Search, X, Filter, Package, ArrowLeft, SlidersHorizontal } from 'lucide
 import { useCart } from '../context/CartContext.tsx';
 import { useCurrency } from '../context/CurrencyContext.jsx';
 import { apiUrl } from '../config/api.js';
+import ProductCard from '../components/ProductCard.jsx';
 
 // ─────────────────────────────────────────────────────────────────
-// PRODUCT CARD (Simplified for search results)
-// ─────────────────────────────────────────────────────────────────
-
-const SearchProductCard = ({ product }) => {
-  const { formatPrice } = useCurrency();
-  const { addToCart, openDrawer } = useCart();
-  const outOfStock = (product.quantity ?? 0) === 0;
-  const hasDiscount = product.discount > 0;
-  const discountedPrice = hasDiscount ? product.price * (1 - product.discount / 100) : product.price;
-
-  const handleAdd = (e) => {
-    e.preventDefault();
-    if (outOfStock) return;
-    addToCart({ ...product, quantity: 1 });
-    setTimeout(() => openDrawer('cart'), 300);
-  };
-
-  return (
-    <Link to={`/product/${product.id}`} className="group block">
-      <div className="relative aspect-[4/5] bg-gray-50 overflow-hidden mb-3">
-        {product.image ? (
-          <img
-            src={product.image}
-            alt={product.name}
-            loading="lazy"
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <Package size={32} className="text-gray-200" />
-          </div>
-        )}
-
-        {outOfStock && (
-          <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] flex items-center justify-center">
-            <span className="text-[9px] font-black uppercase tracking-[0.4em] text-gray-600 border-b border-gray-600 pb-0.5">
-              Sold Out
-            </span>
-          </div>
-        )}
-
-        {hasDiscount && !outOfStock && (
-          <div className="absolute top-3 left-3 z-10 bg-black px-2 py-1 border border-white/20">
-            <span className="text-[7px] font-black uppercase tracking-[0.35em] text-white">
-              {product.discount}% OFF
-            </span>
-          </div>
-        )}
-
-        {!outOfStock && (
-          <button
-            onClick={handleAdd}
-            className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[8px] font-black uppercase tracking-widest px-4 py-2 opacity-0 group-hover:opacity-100 translate-y-2 group-hover:translate-y-0 transition-all duration-300 hover:bg-cardinal whitespace-nowrap"
-          >
-            Add to Bag
-          </button>
-        )}
-      </div>
-
-      <p className="text-[8px] font-black text-cardinal uppercase tracking-widest mb-1">
-        {product.subCategory || product.bucket}
-      </p>
-      <p className="text-xs font-black uppercase tracking-tight text-gray-900 truncate group-hover:text-cardinal transition-colors">
-        {product.name}
-      </p>
-      <div className="flex items-center gap-2 mt-1">
-        {hasDiscount ? (
-          <>
-            <span className="text-sm font-black text-cardinal font-mono">
-              {formatPrice(discountedPrice)}
-            </span>
-            <span className="text-xs text-gray-400 line-through font-mono">
-              {formatPrice(product.price)}
-            </span>
-          </>
-        ) : (
-          <span className="text-sm font-black text-gray-900 font-mono">
-            {formatPrice(product.price)}
-          </span>
-        )}
-      </div>
-    </Link>
-  );
-};
+// ProductCard is used directly here for a premium search results grid
 
 // ─────────────────────────────────────────────────────────────────
 // MAIN SEARCH PAGE
@@ -380,7 +298,7 @@ const SearchPage = () => {
             {results.length > 0 && (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-x-8 gap-y-12">
                 {results.map(product => (
-                  <SearchProductCard key={product.id} product={product} />
+                  <ProductCard key={product.id} product={product} />
                 ))}
               </div>
             )}

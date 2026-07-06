@@ -91,9 +91,12 @@ const ProductCard = ({ product, onImageLoad }) => {
   const { toggleWishlist, isWishlisted } = useWishlist();
   const { formatPrice } = useCurrency();
 
-  const [activeColor, setActiveColor] = useState(product.colors?.[0] ?? null);
+  const [selectedColor, setSelectedColor] = useState(null);
   const [cartAdded,   setCartAdded]   = useState(false);
   const [isHovered,   setIsHovered]   = useState(false);
+
+  const activeColor = selectedColor || product.colors?.[0] || null;
+  const displayImage = selectedColor ? (getVariantImage(product, selectedColor) || product.image) : product.image;
 
   const wishlisted = isWishlisted(product.id);
   const outOfStock = product.stock === 0;
@@ -176,7 +179,7 @@ const ProductCard = ({ product, onImageLoad }) => {
         {/* Main Image */}
         <div className="w-full h-full">
           <MediaRenderer
-            src={product.mediaType === 'embed' ? null : (getVariantImage(product, activeColor) || product.image)}
+            src={product.mediaType === 'embed' ? null : displayImage}
             embedCode={product.mediaType === 'embed' ? product.embedCode : undefined}
             mediaType={product.mediaType}
             alt={product.name}
@@ -301,7 +304,7 @@ const ProductCard = ({ product, onImageLoad }) => {
                 return (
                   <button
                     key={color}
-                    onClick={(e) => { e.stopPropagation(); setActiveColor(color); }}
+                    onClick={(e) => { e.stopPropagation(); setSelectedColor(color); }}
                     aria-label={`Select colour ${getColorName(color)}`}
                     className={[
                       'w-3.5 h-3.5 rounded-[4px] border transition-all duration-200 focus:outline-none',
