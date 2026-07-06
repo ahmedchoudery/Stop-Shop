@@ -1,5 +1,6 @@
 import React from 'react';
 import { Playfair_Display, DM_Sans } from 'next/font/google';
+import { headers } from 'next/headers';
 import Script from 'next/script';
 import Providers from './providers.jsx';
 import Layout from '../layout/Layout.jsx';
@@ -45,6 +46,7 @@ export const viewport = {
 export default function RootLayout({ children }) {
   const gaId = process.env.NEXT_PUBLIC_GA_ID || 'G-XXXXXXXXXX';
   const pixelId = process.env.NEXT_PUBLIC_PIXEL_ID || '1234567890';
+  const nonce = headers().get('x-nonce') || undefined;
 
   return (
     <html lang="en" className={`${dmSans.variable} ${playfair.variable}`}>
@@ -53,8 +55,9 @@ export default function RootLayout({ children }) {
         <Script
           src={`https://www.googletagmanager.com/gtag/js?id=${gaId}`}
           strategy="lazyOnload"
+          nonce={nonce}
         />
-        <Script id="google-analytics" strategy="lazyOnload">
+        <Script id="google-analytics" strategy="lazyOnload" nonce={nonce}>
           {`
             window.dataLayer = window.dataLayer || [];
             function gtag(){dataLayer.push(arguments);}
@@ -62,7 +65,7 @@ export default function RootLayout({ children }) {
             gtag('config', '${gaId}');
           `}
         </Script>
-        <Script id="meta-pixel" strategy="lazyOnload">
+        <Script id="meta-pixel" strategy="lazyOnload" nonce={nonce}>
           {`
             !function(f,b,e,v,n,t,s)
             {if(f.fbq)return;n=f.fbq=function(){n.callMethod?

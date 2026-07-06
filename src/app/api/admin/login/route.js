@@ -61,10 +61,9 @@ export async function POST(req) {
 
     const response = NextResponse.json({ name: admin.name, success: true, token });
 
-    const isProduction = process.env.NODE_ENV === 'production';
     const cookieOptions = {
       httpOnly: true,
-      secure: isProduction,
+      secure: true,
       sameSite: 'lax',
       path: '/',
     };

@@ -108,32 +108,87 @@ export async function middleware(request: NextRequest) {
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set('x-request-id', requestId);
 
+  // Generate dynamic, cryptographically secure nonce
+  const nonce = Buffer.from(crypto.randomUUID()).toString('base64');
+  requestHeaders.set('x-nonce', nonce);
+
+  // 3. Strict CORS lock on all /api/* (except webhooks)
+  let corsHeaders: Record<string, string> = {};
+  if (pathname.startsWith('/api/') && !pathname.startsWith('/api/webhooks')) {
+    const origin = request.headers.get('origin');
+    const ownOrigin = request.nextUrl.origin;
+
+    if (origin && origin !== ownOrigin) {
+      return new NextResponse(
+        JSON.stringify({ error: 'CORS policy violation: Access denied.' }),
+        { status: 403, headers: { 'Content-Type': 'application/json', 'x-request-id': requestId } }
+      );
+    }
+
+    if (request.method === 'OPTIONS') {
+      return new NextResponse(null, {
+        status: 204,
+        headers: {
+          'Access-Control-Allow-Origin': ownOrigin,
+          'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+          'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-csrf-token, x-request-id',
+          'Access-Control-Allow-Credentials': 'true',
+          'x-request-id': requestId,
+        },
+      });
+    }
+
+    corsHeaders = {
+      'Access-Control-Allow-Origin': ownOrigin,
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-csrf-token, x-request-id',
+      'Access-Control-Allow-Credentials': 'true',
+    };
+  }
+
+  const isProduction = process.env.NODE_ENV === 'production';
+  const scriptSrc = isProduction
+    ? `script-src 'self' 'nonce-${nonce}'`
+    : `script-src 'self' 'unsafe-eval' 'nonce-${nonce}'`;
+
+  const styleSrc = `style-src 'self' 'unsafe-inline'`;
+
+  const cspHeader = [
+    "default-src 'self'",
+    scriptSrc,
+    styleSrc,
+    "img-src 'self' data: https://res.cloudinary.com",
+    "font-src 'self' https://fonts.gstatic.com",
+    "connect-src 'self' https://api.resend.com",
+    "object-src 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+  ].join('; ');
+
+  requestHeaders.set('Content-Security-Policy', cspHeader);
+
   const response = NextResponse.next({
     request: {
       headers: requestHeaders,
     },
   });
 
-  // 3. Robust Security Headers & request tracing ID
+  // 4. Robust Security Headers & request tracing ID
   response.headers.set('x-request-id', requestId);
-  response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
+  response.headers.set('x-nonce', nonce);
+  response.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
   response.headers.set('X-Frame-Options', 'DENY');
   response.headers.set('X-Content-Type-Options', 'nosniff');
   response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
-  
-  const cspHeader = [
-    "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com",
-    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-    "img-src 'self' data: https: blob: cloudinary.com *.cloudinary.com",
-    "font-src 'self' https://fonts.gstatic.com",
-    "connect-src 'self' https:",
-    "frame-src 'self'",
-    "object-src 'none'",
-    "base-uri 'self'",
-    "form-action 'self'",
-  ].join('; ');
+  response.headers.set('Permissions-Policy', 'geolocation=(), camera=(), microphone=(), payment=()');
+  response.headers.set('Cross-Origin-Opener-Policy', 'same-origin');
+  response.headers.set('Cross-Origin-Resource-Policy', 'same-site');
   response.headers.set('Content-Security-Policy', cspHeader);
+
+  // Set CORS headers
+  Object.entries(corsHeaders).forEach(([key, value]) => {
+    response.headers.set(key, value);
+  });
 
   return response;
 }
