@@ -96,6 +96,8 @@ export const syncInventory = async (product, moveType = 'ADMIN_UPDATE', note = '
           sizeStock:    sizeStockPlain,
           colorStock:   colorStockPlain,
           status,
+          featuredSection: product.featuredSection || 'collection',
+          displayOrder:    product.displayOrder ?? 0,
           sectionName:  product.sectionName || 'Collection',
           description:  product.description || '',
           careInstructions: product.careInstructions || '',

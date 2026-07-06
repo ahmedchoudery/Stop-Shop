@@ -59,6 +59,8 @@ const productSchema = new mongoose.Schema({
   lifestyleImage: { type: String, default: '' },
   variantImages:  { type: Map, of: String, default: {} },
   gallery:     [{ type: String }],
+  featuredSection: { type: String, default: 'collection' },
+  displayOrder:    { type: Number, default: 0 },
 }, { timestamps: true, versionKey: false });
 
 const inventorySchema = new mongoose.Schema({
@@ -80,6 +82,8 @@ const inventorySchema = new mongoose.Schema({
   lastSold:      { type: Date, default: null },
   lastAdminEdit: { type: Date, default: null },
   movements:     { type: Array, default: [] },
+  featuredSection: { type: String, default: 'collection' },
+  displayOrder:    { type: Number, default: 0 },
 }, { timestamps: true, versionKey: false });
 
 const orderSchema = new mongoose.Schema({
@@ -302,6 +306,8 @@ async function run() {
           sizeStock:     sizeStockPlain,
           status,
           lowStockThreshold: 5,
+          featuredSection: p.featuredSection || 'collection',
+          displayOrder:    p.displayOrder ?? 0,
           // Preserve existing timestamps if they exist
           ...(existing?.lastRestocked ? {} : { lastRestocked: null }),
           ...(existing?.lastSold      ? {} : { lastSold: null }),

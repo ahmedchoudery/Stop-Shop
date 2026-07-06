@@ -52,6 +52,14 @@ async function seed() {
     await mongoose.connect(MONGO_URI, { dbName: 'stopshop' });
     console.log('Connected.');
 
+    // Safety check: Prevent overwriting real products
+    const realProductsCount = await Product.countDocuments({ id: { $nin: ['P001', 'P002', 'P003'] } });
+    if (realProductsCount > 0) {
+      console.error(`❌ Seeding aborted! Found ${realProductsCount} real products in the database.`);
+      console.error('To protect your data, seeding has been blocked. This must never overwrite real products.');
+      return;
+    }
+
     console.log('Cleaning existing products...');
     await Product.deleteMany({});
     console.log('Cleaned.');

@@ -42,6 +42,8 @@ const inventorySchema = new mongoose.Schema({
   sizeStock:           { type: Map, of: Number, default: {} },   // per-size breakdown
   colorStock:          { type: Map, of: Number, default: {} },   // per-color breakdown
   lowStockThreshold:   { type: Number, default: 5 },
+  featuredSection:     { type: String, enum: ['collection', 'drop', 'attitude', 'pieces'], default: 'collection' },
+  displayOrder:        { type: Number, default: 0, min: 0 },
   sectionName:         { type: String, default: 'Collection' },
   description:         { type: String, default: '' },
   careInstructions:    { type: String, default: '' },
