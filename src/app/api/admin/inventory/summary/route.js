@@ -6,7 +6,7 @@ import { requireAdmin } from '../../../../../lib/adminAuth';
 export async function GET(req) {
   try {
     await dbConnect();
-    const adminPayload = requireAdmin(req);
+    const adminPayload = await requireAdmin(req);
     if (!adminPayload) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }

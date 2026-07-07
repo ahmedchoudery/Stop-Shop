@@ -3,7 +3,7 @@ import dbConnect from '../../../../../lib/db';
 import Product from '../../../../../models/Product';
 import { requireAdmin } from '../../../../../lib/adminAuth';
 import { syncInventory } from '../../../../../services/inventoryService';
-import { logAudit } from '../../../../../lib/audit';
+import { withAudit } from '../../../../../lib/audit';
 import { cacheService, CACHE_KEYS } from '../../../../../services/cacheService';
 
 const ADJUSTMENT_REASONS = [
@@ -23,7 +23,7 @@ const ADJUSTMENT_REASONS = [
  */
 export async function GET(req) {
   try {
-    const adminPayload = requireAdmin(req);
+    const adminPayload = await requireAdmin(req);
     if (!adminPayload) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
@@ -45,7 +45,7 @@ export async function GET(req) {
 export async function POST(req) {
   try {
     await dbConnect();
-    const adminPayload = requireAdmin(req);
+    const adminPayload = await requireAdmin(req);
     if (!adminPayload) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
@@ -123,24 +123,24 @@ export async function POST(req) {
       }, { status: 400 });
     }
 
-    await product.save();
-
-    await syncInventory(
-      product,
-      'MANUAL_ADJUST',
-      note || `Manual adjustment: ${reason}`,
-      null,
-      { adjustmentReason: reason }
-    );
-
-    await logAudit('INVENTORY_MANUAL_ADJUST', {
+    await withAudit(
+      'INVENTORY_MANUAL_ADJUST',
       productId,
-      productName: product.name,
-      previousStock: prevStock,
-      newStock: product.quantity,
-      reason,
-      note: note || '',
-    }, adminPayload.email, req);
+      req,
+      { previousStock: prevStock, reason },
+      { newStock: product.quantity, note: note || '' },
+      async (session) => {
+        await product.save({ session });
+        await syncInventory(
+          product,
+          'MANUAL_ADJUST',
+          note || `Manual adjustment: ${reason}`,
+          null,
+          { adjustmentReason: reason },
+          session
+        );
+      }
+    );
 
     await cacheService.invalidateMany([CACHE_KEYS.STATS_INVENTORY, CACHE_KEYS.PRODUCTS, CACHE_KEYS.PUBLIC_PRODUCTS]);
 

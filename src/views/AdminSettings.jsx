@@ -191,8 +191,8 @@ const AdminSettings = () => {
               {[
                 { label: 'Environment', value: getMode() ?? 'production' },
                 { label: 'API URL', value: (getEnvVal('VITE_API_URL') || getEnvVal('NEXT_PUBLIC_API_URL')) ? 'Configured' : 'Proxy' },
-                { label: 'RBAC', value: getEnvVal('VITE_RBAC_ENABLED') === 'true' ? 'Enabled' : 'Disabled' },
-                { label: 'Stage', value: getEnvVal('VITE_RBAC_STAGE') ?? 'local' },
+                { label: 'Security', value: 'Active' },
+                { label: 'Stage', value: 'Production' },
               ].map(item => (
                 <div key={item.label}>
                   <p className="text-[9px] font-black uppercase tracking-widest text-gray-500 mb-1">{item.label}</p>

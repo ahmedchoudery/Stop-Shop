@@ -12,7 +12,7 @@ const LOW_STOCK_THRESHOLD = 3;
  * @param {string} [orderId]  - Order ID if triggered by a sale
  * @param {Object} [meta]     - Optional metadata: { adjustmentReason, supplierName, invoiceRef }
  */
-export const syncInventory = async (product, moveType = 'ADMIN_UPDATE', note = '', orderId = null, meta = {}) => {
+export const syncInventory = async (product, moveType = 'ADMIN_UPDATE', note = '', orderId = null, meta = {}, session = null) => {
   try {
     const totalStock = product.quantity ?? 0;
 
@@ -111,7 +111,7 @@ export const syncInventory = async (product, moveType = 'ADMIN_UPDATE', note = '
           },
         },
       },
-      { upsert: true, new: true }
+      { upsert: true, new: true, ...(session && { session }) }
     );
 
     console.log(`[Inventory] Synced: ${product.id} | ${product.name} | Stock: ${previousStock} → ${totalStock} | ${status}`);

@@ -76,7 +76,7 @@ export async function middleware(request: NextRequest) {
   const requestId = request.headers.get('x-request-id') || crypto.randomUUID();
 
   // 1. Rate Limiting on critical endpoints
-  const RATE_LIMITED_PATHS = ['/api/checkout', '/api/admin/login', '/api/customer/login', '/api/customer/register'];
+  const RATE_LIMITED_PATHS = ['/api/checkout', '/api/admin/login', '/api/auth/login', '/api/customer/login', '/api/customer/register'];
   if (RATE_LIMITED_PATHS.some(path => pathname.startsWith(path))) {
     const ip = request.ip || request.headers.get('x-forwarded-for')?.split(',')[0].trim() || '127.0.0.1';
     const allowed = await checkRateLimit(ip);
@@ -159,7 +159,7 @@ export async function middleware(request: NextRequest) {
     styleSrc,
     "img-src 'self' data: https://res.cloudinary.com",
     "font-src 'self' https://fonts.gstatic.com",
-    "connect-src 'self' https://api.resend.com",
+    "connect-src 'self' https://api.resend.com https://open.er-api.com",
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",

@@ -2,14 +2,14 @@ import { NextResponse } from 'next/server';
 import dbConnect from '../../../../lib/db';
 import Coupon from '../../../../models/Coupon';
 import { requireAdmin } from '../../../../lib/adminAuth';
-import { logAudit } from '../../../../lib/audit';
+import { withAudit } from '../../../../lib/audit';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(req) {
   try {
     await dbConnect();
-    const adminPayload = requireAdmin(req);
+    const adminPayload = await requireAdmin(req);
     if (!adminPayload) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
@@ -35,7 +35,7 @@ export async function GET(req) {
 export async function POST(req) {
   try {
     await dbConnect();
-    const adminPayload = requireAdmin(req);
+    const adminPayload = await requireAdmin(req);
     if (!adminPayload) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
@@ -47,7 +47,7 @@ export async function POST(req) {
       return NextResponse.json({ error: 'Code and value are required' }, { status: 400 });
     }
 
-    const coupon = await Coupon.create({
+    const couponData = {
       code:          code.trim().toUpperCase(),
       type:          type ?? 'percentage',
       value:         parseFloat(value),
@@ -55,19 +55,29 @@ export async function POST(req) {
       maxUses:       maxUses ? parseInt(maxUses) : null,
       expiresAt:     expiresAt ? new Date(expiresAt) : null,
       isActive:      true,
-    });
+    };
 
-    await logAudit('COUPON_CREATE', { code: coupon.code, type: coupon.type, value: coupon.value }, adminPayload.email, req);
+    const coupon = await withAudit(
+      'COUPON_CREATE',
+      couponData.code,
+      req,
+      null,
+      couponData,
+      async (session) => {
+        const created = await Coupon.create([couponData], { session });
+        return created[0];
+      }
+    );
 
-    const formatted = coupon.toObject();
+    const formatted = coupon.toObject ? coupon.toObject() : coupon;
     if (formatted._id) {
       formatted._id = formatted._id.toString();
     }
 
     return NextResponse.json(formatted, { status: 201 });
   } catch (error) {
-    if (error.message === 'Authentication required') {
-      return NextResponse.json({ error: error.message }, { status: 401 });
+    if (error.message === 'Authentication required' || error.message === 'Access denied') {
+      return NextResponse.json({ error: error.message }, { status: error.message.includes('required') ? 401 : 403 });
     }
     if (error.code === 11000) {
       return NextResponse.json({ error: 'Coupon code already exists' }, { status: 409 });

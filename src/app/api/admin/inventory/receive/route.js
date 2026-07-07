@@ -3,7 +3,7 @@ import dbConnect from '../../../../../lib/db';
 import Product from '../../../../../models/Product';
 import { requireAdmin } from '../../../../../lib/adminAuth';
 import { syncInventory } from '../../../../../services/inventoryService';
-import { logAudit } from '../../../../../lib/audit';
+import { withAudit } from '../../../../../lib/audit';
 import { cacheService, CACHE_KEYS } from '../../../../../services/cacheService';
 
 /**
@@ -18,7 +18,7 @@ import { cacheService, CACHE_KEYS } from '../../../../../services/cacheService';
 export async function POST(req) {
   try {
     await dbConnect();
-    const adminPayload = requireAdmin(req);
+    const adminPayload = await requireAdmin(req);
     if (!adminPayload) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
@@ -94,25 +94,24 @@ export async function POST(req) {
       }, { status: 400 });
     }
 
-    await product.save();
-
-    await syncInventory(
-      product,
+    await withAudit(
       'SUPPLIER_RECEIVE',
-      note || `Received from ${supplierName}${invoiceRef ? ` (Invoice: ${invoiceRef})` : ''}`,
-      null,
-      { supplierName, invoiceRef: invoiceRef || '' }
-    );
-
-    await logAudit('SUPPLIER_RECEIVE', {
       productId,
-      productName: product.name,
-      supplierName,
-      invoiceRef: invoiceRef || '',
-      previousStock: prevStock,
-      newStock: product.quantity,
-      received: product.quantity - prevStock,
-    }, adminPayload.email, req);
+      req,
+      { previousStock: prevStock },
+      { newStock: product.quantity, received: product.quantity - prevStock },
+      async (session) => {
+        await product.save({ session });
+        await syncInventory(
+          product,
+          'SUPPLIER_RECEIVE',
+          note || `Received from ${supplierName}${invoiceRef ? ` (Invoice: ${invoiceRef})` : ''}`,
+          null,
+          { supplierName, invoiceRef: invoiceRef || '' },
+          session
+        );
+      }
+    );
 
     await cacheService.invalidateMany([CACHE_KEYS.STATS_INVENTORY, CACHE_KEYS.PRODUCTS, CACHE_KEYS.PUBLIC_PRODUCTS]);
 

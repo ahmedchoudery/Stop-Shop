@@ -5,7 +5,7 @@ import Inventory from '../../../../../models/Inventory';
 import { requireAdmin } from '../../../../../lib/adminAuth';
 import { updateProductSchema } from '../../../../../schemas/validation';
 import { syncInventory } from '../../../../../services/inventoryService';
-import { logAudit } from '../../../../../lib/audit';
+import { withAudit } from '../../../../../lib/audit';
 import { cacheService, CACHE_KEYS } from '../../../../../services/cacheService';
 import mongoose from 'mongoose';
 
@@ -18,7 +18,7 @@ const buildIdQuery = (idParam) => {
 export async function PATCH(req, { params }) {
   try {
     await dbConnect();
-    const adminPayload = requireAdmin(req);
+    const adminPayload = await requireAdmin(req);
     if (!adminPayload) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
@@ -84,32 +84,41 @@ export async function PATCH(req, { params }) {
       updateData.stock    = computedQuantity;
     }
 
-    const product = await Product.findOneAndUpdate(
-      buildIdQuery(id),
-      updateData,
-      { new: true, runValidators: true, context: 'query' }
-    );
-    if (!product) {
-      return NextResponse.json({ error: 'Product not found' }, { status: 404 });
-    }
-
     const prevProduct = await Inventory.findOne({ productId: id }).lean();
     const prevStock   = prevProduct?.totalStock ?? 0;
-    const moveType    = product.quantity > prevStock ? 'RESTOCK' : 'ADMIN_UPDATE';
 
-    await syncInventory(product, moveType, `Admin updated: ${Object.keys(body).join(', ')}`);
-    await logAudit('PRODUCT_UPDATE', { id, changes: Object.keys(body) }, adminPayload.email, req);
+    const product = await withAudit(
+      'PRODUCT_UPDATE',
+      id,
+      req,
+      prevProduct,
+      updateData,
+      async (session) => {
+        const p = await Product.findOneAndUpdate(
+          buildIdQuery(id),
+          updateData,
+          { new: true, runValidators: true, context: 'query', session }
+        );
+        if (!p) {
+          throw new Error('Product not found');
+        }
+        const moveType = p.quantity > prevStock ? 'RESTOCK' : 'ADMIN_UPDATE';
+        await syncInventory(p, moveType, `Admin updated: ${Object.keys(body).join(', ')}`, null, {}, session);
+        return p;
+      }
+    );
+
     await cacheService.invalidateMany([CACHE_KEYS.STATS_INVENTORY, CACHE_KEYS.PRODUCTS, CACHE_KEYS.PUBLIC_PRODUCTS]);
 
-    const formattedProduct = product.toObject();
+    const formattedProduct = product.toObject ? product.toObject() : product;
     if (formattedProduct._id) {
       formattedProduct._id = formattedProduct._id.toString();
     }
 
     return NextResponse.json(formattedProduct);
   } catch (error) {
-    if (error.message === 'Authentication required') {
-      return NextResponse.json({ error: error.message }, { status: 401 });
+    if (error.message === 'Authentication required' || error.message === 'Access denied' || error.message === 'Product not found') {
+      return NextResponse.json({ error: error.message }, { status: error.message.includes('required') ? 401 : error.message.includes('found') ? 404 : 403 });
     }
     return NextResponse.json({ error: error.message || 'Server error' }, { status: 500 });
   }
@@ -118,25 +127,36 @@ export async function PATCH(req, { params }) {
 export async function DELETE(req, { params }) {
   try {
     await dbConnect();
-    const adminPayload = requireAdmin(req);
+    const adminPayload = await requireAdmin(req);
     if (!adminPayload) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
 
     const { id } = params;
 
-    const product = await Product.findOneAndDelete(buildIdQuery(id));
+    const product = await Product.findOne(buildIdQuery(id)).lean();
     if (!product) {
       return NextResponse.json({ error: 'Product not found' }, { status: 404 });
     }
 
-    await logAudit('PRODUCT_DELETE', { id, name: product.name }, adminPayload.email, req);
+    await withAudit(
+      'PRODUCT_DELETE',
+      id,
+      req,
+      product,
+      null,
+      async (session) => {
+        await Product.findOneAndDelete(buildIdQuery(id), { session });
+        await Inventory.deleteOne({ productId: id }, { session });
+      }
+    );
+
     await cacheService.invalidateMany([CACHE_KEYS.STATS_INVENTORY, CACHE_KEYS.PRODUCTS, CACHE_KEYS.PUBLIC_PRODUCTS]);
 
     return NextResponse.json({ message: 'Product removed' });
   } catch (error) {
-    if (error.message === 'Authentication required') {
-      return NextResponse.json({ error: error.message }, { status: 401 });
+    if (error.message === 'Authentication required' || error.message === 'Access denied' || error.message === 'Product not found') {
+      return NextResponse.json({ error: error.message }, { status: error.message.includes('required') ? 401 : error.message.includes('found') ? 404 : 403 });
     }
     return NextResponse.json({ error: error.message || 'Server error' }, { status: 500 });
   }

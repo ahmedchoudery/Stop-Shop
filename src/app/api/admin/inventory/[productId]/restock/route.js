@@ -3,13 +3,13 @@ import dbConnect from '../../../../../../lib/db';
 import Product from '../../../../../../models/Product';
 import { requireAdmin } from '../../../../../../lib/adminAuth';
 import { syncInventory } from '../../../../../../services/inventoryService';
-import { logAudit } from '../../../../../../lib/audit';
+import { withAudit } from '../../../../../../lib/audit';
 import { cacheService, CACHE_KEYS } from '../../../../../../services/cacheService';
 
 export async function POST(req, { params }) {
   try {
     await dbConnect();
-    const adminPayload = requireAdmin(req);
+    const adminPayload = await requireAdmin(req);
     if (!adminPayload) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
@@ -72,19 +72,23 @@ export async function POST(req, { params }) {
       return NextResponse.json({ error: 'Provide either quantity (number), sizeStock (object), or colorStock (object)' }, { status: 400 });
     }
 
-    await product.save();
-
-    await syncInventory(
-      product,
-      'RESTOCK',
-      note || `Admin restocked ${product.quantity - prevStock} units`
-    );
-
-    await logAudit(
-      'INVENTORY_RESTOCK', 
-      { productId, added: quantity ?? sizeStock, newTotal: product.quantity }, 
-      adminPayload.email, 
-      req
+    await withAudit(
+      'INVENTORY_RESTOCK',
+      productId,
+      req,
+      { previousStock: prevStock },
+      { newTotal: product.quantity, added: product.quantity - prevStock, note: note || '' },
+      async (session) => {
+        await product.save({ session });
+        await syncInventory(
+          product,
+          'RESTOCK',
+          note || `Admin restocked ${product.quantity - prevStock} units`,
+          null,
+          {},
+          session
+        );
+      }
     );
     
     await cacheService.invalidateMany([CACHE_KEYS.STATS_INVENTORY, CACHE_KEYS.PRODUCTS, CACHE_KEYS.PUBLIC_PRODUCTS]);

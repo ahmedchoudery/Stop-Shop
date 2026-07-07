@@ -10,7 +10,7 @@ cloudinary.config({
 
 export async function POST(req) {
   try {
-    const adminPayload = requireAdmin(req);
+    const adminPayload = await requireAdmin(req);
     if (!adminPayload) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }

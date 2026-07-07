@@ -10,7 +10,7 @@ import { useAdminUsers } from '../hooks/useDomain.js';
 import { EASING } from '../hooks/useAnime.js';
 import { useTimeout } from '../hooks/useUtils.js';
 
-const ROLES = ['admin', 'super-admin', 'auditor'];
+const ROLES = ['admin', 'staff'];
 
 const AdminUsers = () => {
   const { users, loading, error, creating, deleting, createUser, deleteUser, refetch } = useAdminUsers();
@@ -194,8 +194,7 @@ const AdminUsers = () => {
                 <div className="flex items-center space-x-2 flex-wrap gap-1">
                   {user.roles?.map(role => (
                     <span key={role} className={`flex items-center space-x-1 px-2 py-1 rounded-[4px] text-[8px] font-black uppercase tracking-widest ${
-                      role === 'super-admin' ? 'bg-black text-white' :
-                      role === 'auditor' ? 'bg-blue-50 text-blue-600' : 'bg-gray-100 text-gray-600'
+                      role === 'admin' ? 'bg-black text-white' : 'bg-gray-100 text-gray-600'
                     }`}>
                       <Shield size={9} />
                       <span>{role}</span>
@@ -203,11 +202,11 @@ const AdminUsers = () => {
                   ))}
                 </div>
 
-                {user.lastLogin && (
+                {user.lastLoginAt && (
                   <div className="flex items-center space-x-1.5 mt-3">
                     <Clock size={10} className="text-gray-300" />
                     <p className="text-[9px] font-bold text-gray-300 uppercase tracking-widest">
-                      Last login: {new Date(user.lastLogin).toLocaleDateString()}
+                      Last login: {new Date(user.lastLoginAt).toLocaleDateString()}
                     </p>
                   </div>
                 )}

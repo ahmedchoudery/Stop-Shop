@@ -4,13 +4,13 @@ import Product from '../../../../models/Product';
 import { requireAdmin } from '../../../../lib/adminAuth';
 import { createProductSchema } from '../../../../schemas/validation';
 import { syncInventory } from '../../../../services/inventoryService';
-import { logAudit } from '../../../../lib/audit';
+import { withAudit } from '../../../../lib/audit';
 import { cacheService, CACHE_KEYS } from '../../../../services/cacheService';
 
 export async function GET(req) {
   try {
     await dbConnect();
-    const adminPayload = requireAdmin(req);
+    const adminPayload = await requireAdmin(req);
     if (!adminPayload) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
@@ -55,7 +55,7 @@ export async function GET(req) {
 export async function POST(req) {
   try {
     await dbConnect();
-    const adminPayload = requireAdmin(req);
+    const adminPayload = await requireAdmin(req);
     if (!adminPayload) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
@@ -86,31 +86,42 @@ export async function POST(req) {
       id: validation.data.id || buildId()
     };
 
-    let product;
-    try {
-      product = await new Product(productData).save();
-    } catch (saveErr) {
-      if (saveErr?.code === 11000 && saveErr?.keyPattern?.id) {
-        product = await new Product({ ...productData, id: buildId() }).save();
-      } else {
-        throw saveErr;
+    const product = await withAudit(
+      'PRODUCT_CREATE',
+      productData.id,
+      req,
+      null,
+      productData,
+      async (session) => {
+        let p;
+        try {
+          p = await new Product(productData).save({ session });
+        } catch (saveErr) {
+          if (saveErr?.code === 11000 && saveErr?.keyPattern?.id) {
+            productData.id = buildId();
+            p = await new Product(productData).save({ session });
+          } else {
+            throw saveErr;
+          }
+        }
+        await syncInventory(p, 'INITIAL', 'Product created by admin', null, {}, session);
+        return p;
       }
-    }
+    );
 
-    await syncInventory(product, 'INITIAL', 'Product created by admin');
-    await logAudit('PRODUCT_CREATE', { id: product.id, name: product.name }, adminPayload.email, req);
     await cacheService.invalidateMany([CACHE_KEYS.STATS_INVENTORY, CACHE_KEYS.PRODUCTS, CACHE_KEYS.PUBLIC_PRODUCTS]);
 
-    const formattedProduct = product.toObject();
+    const formattedProduct = product.toObject ? product.toObject() : product;
     if (formattedProduct._id) {
       formattedProduct._id = formattedProduct._id.toString();
     }
 
     return NextResponse.json(formattedProduct, { status: 201 });
   } catch (error) {
-    if (error.message === 'Authentication required') {
-      return NextResponse.json({ error: error.message }, { status: 401 });
+    if (error.message === 'Authentication required' || error.message === 'Access denied') {
+      return NextResponse.json({ error: error.message }, { status: error.message.includes('required') ? 401 : 403 });
     }
     return NextResponse.json({ error: error.message || 'Server error' }, { status: 500 });
   }
 }
+

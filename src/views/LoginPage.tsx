@@ -7,13 +7,22 @@
 
 import React, { useState, useCallback, FormEvent, ChangeEvent } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Eye, EyeOff, Shield, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, Shield, AlertCircle, Key, QrCode, Download } from 'lucide-react';
 import { adminLogin } from '../lib/auth.js';
 import { useMutation } from '../hooks/useAsync.js';
 
 interface FieldErrors {
   email?: string;
   password?: string;
+}
+
+interface TwoFactorData {
+  required: boolean;
+  setupRequired: boolean;
+  tempToken: string;
+  qrCode?: string;
+  secret?: string;
+  backupCodes?: string[];
 }
 
 const LoginPage = () => {
@@ -26,6 +35,14 @@ const LoginPage = () => {
   const [form, setForm] = useState({ email: '', password: '' });
   const [showPassword, setShowPassword] = useState(false);
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+
+  // 2FA state variables
+  const [twoFactorData, setTwoFactorData] = useState<TwoFactorData | null>(null);
+  const [otpCode, setOtpCode] = useState('');
+  const [backupCode, setBackupCode] = useState('');
+  const [useBackupCode, setUseBackupCode] = useState(false);
+  const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
+  const [otpError, setOtpError] = useState('');
 
   // ── Validation ────────────────────────────────────────────────
 
@@ -48,7 +65,20 @@ const LoginPage = () => {
   const { mutate: doLogin, loading, error: loginError } = useMutation<any>(
     () => adminLogin(form.email.trim(), form.password),
     {
-      onSuccess: () => navigate(from, { replace: true }),
+      onSuccess: (data) => {
+        if (data && data['2faRequired']) {
+          setTwoFactorData({
+            required: true,
+            setupRequired: data.setupRequired,
+            tempToken: data.tempToken,
+            qrCode: data.qrCode,
+            secret: data.secret,
+            backupCodes: data.backupCodes
+          });
+        } else {
+          navigate(from, { replace: true });
+        }
+      },
     }
   );
 
@@ -70,6 +100,60 @@ const LoginPage = () => {
       return next;
     });
   }, []);
+
+  const handleVerify2fa = async (e: FormEvent) => {
+    e.preventDefault();
+    setIsVerifyingOtp(true);
+    setOtpError('');
+    try {
+      const payload: any = {
+        tempToken: twoFactorData?.tempToken,
+      };
+      if (useBackupCode) {
+        if (!backupCode.trim()) {
+          throw new Error('Backup code is required');
+        }
+        payload.backupCode = backupCode.trim();
+      } else {
+        if (!otpCode.trim()) {
+          throw new Error('Verification code is required');
+        }
+        payload.code = otpCode.trim();
+      }
+
+      const res = await fetch('/api/auth/2fa/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to verify 2FA code');
+      }
+
+      if (data.token) {
+        localStorage.setItem('stopshop_admin_token', data.token);
+      }
+      navigate(from, { replace: true });
+    } catch (err: any) {
+      setOtpError(err.message || 'Verification failed');
+    } finally {
+      setIsVerifyingOtp(false);
+    }
+  };
+
+  const downloadBackupCodes = () => {
+    if (!twoFactorData?.backupCodes) return;
+    const text = `STOP & SHOP ADMIN BACKUP CODES\n=============================\nGenerated: ${new Date().toLocaleString()}\n\nKeep these codes in a safe place. Each code can only be used once.\n\n${twoFactorData.backupCodes.map((c, i) => `[ ] Code ${i+1}: ${c}`).join('\n')}\n`;
+    const blob = new Blob([text], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'stopshop_backup_codes.txt';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   // ── Styles ────────────────────────────────────────────────────
 
@@ -94,93 +178,282 @@ const LoginPage = () => {
 
         {/* Login Card */}
         <div className="bg-white border border-[#EAEAEA] shadow-[0_8px_30px_rgba(0,0,0,0.03)] p-10 rounded-[4px]">
-          <h2 className="text-2xl font-black uppercase tracking-tighter text-gray-900 mb-8">
-            Sign In
-          </h2>
+          
+          {!twoFactorData ? (
+            <>
+              <h2 className="text-2xl font-black uppercase tracking-tighter text-gray-900 mb-8">
+                Sign In
+              </h2>
 
-          {/* Global error — always surfaced */}
-          {loginError && (
-            <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-[4px] flex items-start space-x-3">
-              <AlertCircle size={16} className="text-red-600 mt-0.5 flex-shrink-0" />
-              <p className="text-xs font-bold text-red-700">{loginError}</p>
+              {/* Global error — always surfaced */}
+              {loginError && (
+                <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-[4px] flex items-start space-x-3">
+                  <AlertCircle size={16} className="text-red-600 mt-0.5 flex-shrink-0" />
+                  <p className="text-xs font-bold text-red-700">{loginError}</p>
+                </div>
+              )}
+
+              <form onSubmit={handleSubmit} noValidate className="space-y-8">
+
+                {/* Email */}
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={form.email}
+                    onChange={handleChange}
+                    className={inputCls('email')}
+                    placeholder="admin@stopshop.com"
+                    autoComplete="email"
+                    disabled={loading}
+                  />
+                  {fieldErrors.email && (
+                    <p className="text-[10px] font-bold text-red-500">{fieldErrors.email}</p>
+                  )}
+                </div>
+
+                {/* Password */}
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                    Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      name="password"
+                      value={form.password}
+                      onChange={handleChange}
+                      className={`${inputCls('password')} pr-10`}
+                      placeholder="••••••••"
+                      autoComplete="current-password"
+                      disabled={loading}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(s => !s)}
+                      className="absolute right-0 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 p-1"
+                      tabIndex={-1}
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                  {fieldErrors.password && (
+                    <p className="text-[10px] font-bold text-red-500">{fieldErrors.password}</p>
+                  )}
+                </div>
+
+                {/* Submit — ALWAYS disabled during loading (react-ui-patterns rule) */}
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-4 bg-cardinal text-white font-black uppercase tracking-[0.3em] text-xs rounded-[4px] border border-gray-250/20 hover:brightness-110 active:scale-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center space-x-3"
+                >
+                  {loading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>Verifying...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Shield size={14} />
+                      <span>Access Dashboard</span>
+                    </>
+                  )}
+                </button>
+              </form>
+            </>
+          ) : (
+            // ── 2FA View ──────────────────────────────────────────────
+            <div>
+              <div className="flex items-center space-x-3 mb-6">
+                <div className="w-8 h-8 bg-cardinal/10 rounded-[4px] flex items-center justify-center text-cardinal">
+                  {twoFactorData.setupRequired ? <QrCode size={16} /> : <Key size={16} />}
+                </div>
+                <h2 className="text-xl font-black uppercase tracking-tighter text-gray-900">
+                  {twoFactorData.setupRequired ? 'Enable Two-Factor (2FA)' : 'Security Verification'}
+                </h2>
+              </div>
+
+              {otpError && (
+                <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-[4px] flex items-start space-x-3">
+                  <AlertCircle size={16} className="text-red-600 mt-0.5 flex-shrink-0" />
+                  <p className="text-xs font-bold text-red-700">{otpError}</p>
+                </div>
+              )}
+
+              {twoFactorData.setupRequired ? (
+                // ── 2FA Setup Flow ──────────────────────────────────────
+                <div className="space-y-6">
+                  <p className="text-xs text-gray-500 leading-relaxed font-bold">
+                    Scan this QR code with Google Authenticator, Duo, or any TOTP app to configure your credentials.
+                  </p>
+
+                  <div className="flex flex-col items-center justify-center bg-gray-50 border border-gray-100 p-4 rounded-[4px]">
+                    {twoFactorData.qrCode && (
+                      <img
+                        src={twoFactorData.qrCode}
+                        alt="2FA QR Code"
+                        className="w-44 h-44 object-contain border border-gray-250/20 bg-white p-2 rounded-[4px]"
+                      />
+                    )}
+                    {twoFactorData.secret && (
+                      <code className="mt-3 text-[10px] font-mono font-bold bg-white border px-3 py-1.5 rounded-[4px] select-all uppercase tracking-wider text-gray-600">
+                        Key: {twoFactorData.secret}
+                      </code>
+                    )}
+                  </div>
+
+                  {twoFactorData.backupCodes && (
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                          Emergency Backup Codes
+                        </label>
+                        <button
+                          type="button"
+                          onClick={downloadBackupCodes}
+                          className="flex items-center space-x-1 text-[9px] font-black uppercase tracking-widest text-cardinal hover:underline"
+                        >
+                          <Download size={10} />
+                          <span>Download</span>
+                        </button>
+                      </div>
+                      <div className="bg-gray-50 border border-gray-100 p-4 rounded-[4px] max-h-24 overflow-y-auto font-mono text-[9px] font-bold text-gray-500 grid grid-cols-2 gap-2 select-all">
+                        {twoFactorData.backupCodes.map((c, i) => (
+                          <div key={i}>• {c}</div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <form onSubmit={handleVerify2fa} className="space-y-4">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                        Verify 6-Digit Code
+                      </label>
+                      <input
+                        type="text"
+                        maxLength={6}
+                        pattern="\d*"
+                        value={otpCode}
+                        onChange={e => setOtpCode(e.target.value.replace(/\D/g, ''))}
+                        className="w-full border-b-2 py-3 text-center text-lg font-mono font-bold bg-transparent outline-none border-gray-100 focus:border-cardinal tracking-[0.5em] placeholder:text-gray-200"
+                        placeholder="000000"
+                        disabled={isVerifyingOtp}
+                        required
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={isVerifyingOtp}
+                      className="w-full py-4 bg-black text-white font-black uppercase tracking-[0.3em] text-xs rounded-[4px] hover:brightness-110 active:scale-95 transition-all disabled:opacity-60 flex items-center justify-center space-x-3"
+                    >
+                      {isVerifyingOtp ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                          <span>Verifying & Activating...</span>
+                        </>
+                      ) : (
+                        <span>Verify & Enable 2FA</span>
+                      )}
+                    </button>
+                  </form>
+                </div>
+              ) : (
+                // ── 2FA Code Verification Flow ──────────────────────────
+                <form onSubmit={handleVerify2fa} className="space-y-6">
+                  <p className="text-xs text-gray-500 leading-relaxed font-bold">
+                    {useBackupCode 
+                      ? 'Enter one of your 10-character backup codes. Each code can be used exactly once.' 
+                      : 'Enter the 6-digit authentication code generated by your mobile authenticator app.'}
+                  </p>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                      {useBackupCode ? 'Backup Recovery Code' : 'Verification Code'}
+                    </label>
+                    {useBackupCode ? (
+                      <input
+                        type="text"
+                        value={backupCode}
+                        onChange={e => setBackupCode(e.target.value)}
+                        className="w-full border-b-2 py-3 text-center text-sm font-mono font-bold bg-transparent outline-none border-gray-100 focus:border-cardinal uppercase tracking-wider"
+                        placeholder="••••••••••"
+                        disabled={isVerifyingOtp}
+                        required
+                      />
+                    ) : (
+                      <input
+                        type="text"
+                        maxLength={6}
+                        pattern="\d*"
+                        value={otpCode}
+                        onChange={e => setOtpCode(e.target.value.replace(/\D/g, ''))}
+                        className="w-full border-b-2 py-3 text-center text-lg font-mono font-bold bg-transparent outline-none border-gray-100 focus:border-cardinal tracking-[0.5em] placeholder:text-gray-200"
+                        placeholder="000000"
+                        disabled={isVerifyingOtp}
+                        required
+                      />
+                    )}
+                  </div>
+
+                  <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-gray-400">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setUseBackupCode(p => !p);
+                        setOtpCode('');
+                        setBackupCode('');
+                        setOtpError('');
+                      }}
+                      className="text-cardinal hover:underline"
+                    >
+                      {useBackupCode ? 'Use Auth App Code' : 'Use Backup Recovery Code'}
+                    </button>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isVerifyingOtp}
+                    className="w-full py-4 bg-cardinal text-white font-black uppercase tracking-[0.3em] text-xs rounded-[4px] hover:brightness-110 active:scale-95 transition-all disabled:opacity-60 flex items-center justify-center space-x-3"
+                  >
+                    {isVerifyingOtp ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <span>Verifying...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Shield size={14} />
+                        <span>Verify Identity</span>
+                      </>
+                    )}
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setTwoFactorData(null);
+                      setOtpCode('');
+                      setBackupCode('');
+                      setOtpError('');
+                    }}
+                    className="w-full py-2 bg-gray-50 border text-gray-700 text-[10px] font-black uppercase tracking-widest hover:bg-gray-100 rounded-[4px] transition-colors"
+                  >
+                    Back to Login
+                  </button>
+                </form>
+              )}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} noValidate className="space-y-8">
-
-            {/* Email */}
-            <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-                Email Address
-              </label>
-              <input
-                type="email"
-                name="email"
-                value={form.email}
-                onChange={handleChange}
-                className={inputCls('email')}
-                placeholder="admin@stopshop.com"
-                autoComplete="email"
-                disabled={loading}
-              />
-              {fieldErrors.email && (
-                <p className="text-[10px] font-bold text-red-500">{fieldErrors.email}</p>
-              )}
-            </div>
-
-            {/* Password */}
-            <div className="space-y-1">
-              <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-                Password
-              </label>
-              <div className="relative">
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  name="password"
-                  value={form.password}
-                  onChange={handleChange}
-                  className={`${inputCls('password')} pr-10`}
-                  placeholder="••••••••"
-                  autoComplete="current-password"
-                  disabled={loading}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(s => !s)}
-                  className="absolute right-0 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 p-1"
-                  tabIndex={-1}
-                >
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
-              </div>
-              {fieldErrors.password && (
-                <p className="text-[10px] font-bold text-red-500">{fieldErrors.password}</p>
-              )}
-            </div>
-
-            {/* Submit — ALWAYS disabled during loading (react-ui-patterns rule) */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-4 bg-cardinal text-white font-black uppercase tracking-[0.3em] text-xs rounded-[4px] border border-gray-250/20 hover:brightness-110 active:scale-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center space-x-3"
-            >
-              {loading ? (
-                <>
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  <span>Verifying...</span>
-                </>
-              ) : (
-                <>
-                  <Shield size={14} />
-                  <span>Access Dashboard</span>
-                </>
-              )}
-            </button>
-          </form>
-
           {/* Security note */}
           <p className="mt-8 text-center text-[9px] font-black uppercase tracking-[0.3em] text-gray-300">
-            256-bit SSL · Session expires in 8 hours
+            256-bit SSL · Session expires in 15 minutes
           </p>
         </div>
 

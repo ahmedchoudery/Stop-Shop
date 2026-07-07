@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import dbConnect from '../../../../../../lib/db';
 import Order from '../../../../../../models/Order';
 import { requireAdmin } from '../../../../../../lib/adminAuth';
+import { withAudit } from '../../../../../../lib/audit';
 import paymentFactory from '../../../../../../lib/payments/PaymentFactory';
 import { cacheService, CACHE_KEYS } from '../../../../../../services/cacheService';
 import { sendOrderStatusEmail } from '../../../../../../services/emailService';
@@ -9,7 +10,7 @@ import { sendOrderStatusEmail } from '../../../../../../services/emailService';
 export async function POST(req, { params }) {
   try {
     await dbConnect();
-    const adminPayload = requireAdmin(req);
+    const adminPayload = await requireAdmin(req);
     if (!adminPayload) {
       return NextResponse.json({ error: 'Authentication required' }, { status: 401 });
     }
@@ -33,6 +34,7 @@ export async function POST(req, { params }) {
     }
 
     // Update payment details and status
+    const prevStatus = orderDoc.paymentDetails.status;
     orderDoc.paymentDetails.status = 'Paid';
     if (orderDoc.status === 'Pending') {
       orderDoc.status = 'Paid';
@@ -42,7 +44,17 @@ export async function POST(req, { params }) {
       details: { verifiedBy: adminPayload.email, timestamp: new Date() }
     });
 
-    await orderDoc.save();
+    await withAudit(
+      'ORDER_PAYMENT_VERIFY',
+      id,
+      req,
+      { status: prevStatus },
+      { status: 'Paid' },
+      async (session) => {
+        await orderDoc.save({ session });
+      }
+    );
+
     await cacheService.invalidateMany([CACHE_KEYS.STATS_REVENUE, CACHE_KEYS.STATS_ORDERS]);
 
     const orderObj = orderDoc.toObject();
@@ -52,6 +64,9 @@ export async function POST(req, { params }) {
 
     return NextResponse.json({ message: 'Payment verified successfully', status: 'Paid' });
   } catch (error) {
+    if (error.message === 'Authentication required' || error.message === 'Access denied') {
+      return NextResponse.json({ error: error.message }, { status: error.message.includes('required') ? 401 : 403 });
+    }
     return NextResponse.json({ error: error.message || 'Server error' }, { status: 500 });
   }
 }
