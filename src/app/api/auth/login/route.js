@@ -27,6 +27,9 @@ export async function POST(req) {
       return NextResponse.json({ error: 'Email and password are required' }, { status: 400 });
     }
 
+    const ipAttempts = await LoginAttempt.countDocuments({ ip });
+    const emailAttempts = await LoginAttempt.countDocuments({ email: emailKey });
+
     const isTest = process.env.NODE_ENV === 'test' || process.env.CI === 'true';
     if (!isTest && (ipAttempts >= 5 || emailAttempts >= 10)) {
       return NextResponse.json({ error: 'Too many requests. Please try again later.' }, { status: 429 });

@@ -74,8 +74,6 @@ export async function withAudit(action, target, req, before, after, operationFn)
         throw txError;
       }
     }
-  } catch (error) {
-    throw error;
   } finally {
     session.endSession();
   }

@@ -94,6 +94,9 @@ const nextConfig = {
       'framer-motion',
       'recharts',
     ],
+    outputFileTracingIncludes: {
+      '/api/**/*': ['./node_modules/argon2/prebuilds/**/*'],
+    },
   },
 };
 
