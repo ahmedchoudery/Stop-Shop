@@ -81,7 +81,7 @@ export async function middleware(request: NextRequest) {
   const requestId = request.headers.get('x-request-id') || crypto.randomUUID();
 
   // 1. Rate Limiting on critical endpoints
-  const RATE_LIMITED_PATHS = ['/api/checkout', '/api/admin/login', '/api/auth/login', '/api/customer/login', '/api/customer/register'];
+  const RATE_LIMITED_PATHS = ['/api/checkout', '/api/customer/login', '/api/customer/register'];
   if (RATE_LIMITED_PATHS.some(path => pathname.startsWith(path))) {
     const ip = request.ip || request.headers.get('x-forwarded-for')?.split(',')[0].trim() || '127.0.0.1';
     const allowed = await checkRateLimit(ip);
