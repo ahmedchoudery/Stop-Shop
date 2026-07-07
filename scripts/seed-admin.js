@@ -47,7 +47,24 @@ async function run() {
   const existing = await User.findOne({ email });
 
   if (existing) {
-    console.log(`ℹ️ Admin user with email ${email} already exists.`);
+    console.log(`ℹ️ Admin user with email ${email} already exists. Updating password...`);
+    const tempPassword = process.env.ADMIN_PASSWORD || (crypto.randomBytes(12).toString('base64') + '!Aa1');
+    const hash = await argon2.hash(tempPassword, {
+      type: argon2.argon2id,
+      memoryCost: 19456,
+      timeCost: 2,
+      parallelism: 1
+    });
+
+    await User.findByIdAndUpdate(existing._id, {
+      passwordHash: hash,
+      twoFactorEnabled: false,
+      twoFactorSecret: undefined,
+      backupCodes: [],
+      failedLoginCount: 0,
+      lockedUntil: null
+    });
+    console.log('✅ Password updated and 2FA reset successfully.');
     
     // Ensure they have the admin role
     const hasAdminRole = await UserRole.findOne({ userId: existing._id, role: 'admin' });
@@ -60,8 +77,8 @@ async function run() {
       console.log('✅ Added admin role to existing user.');
     }
   } else {
-    // Generate a secure temporary password
-    const tempPassword = crypto.randomBytes(12).toString('base64') + '!Aa1';
+    // Use configured ADMIN_PASSWORD from env or generate a secure temporary password
+    const tempPassword = process.env.ADMIN_PASSWORD || (crypto.randomBytes(12).toString('base64') + '!Aa1');
     
     const hash = await argon2.hash(tempPassword, {
       type: argon2.argon2id,
