@@ -35,8 +35,13 @@ async function checkRateLimit(ip: string): Promise<boolean> {
           args: [LIMIT.toString(), Math.ceil(WINDOW_MS / 1000).toString()],
         }),
       });
-      const data = await res.json();
-      return data.result === 1;
+      if (res.ok) {
+        const data = await res.json();
+        if (data && typeof data.result === 'number') {
+          return data.result === 1;
+        }
+      }
+      console.warn('[RateLimit] Upstash returned non-ok response, falling back to local memory limit');
     } catch (e) {
       console.warn('[RateLimit] Upstash call failed, falling back to local memory limit');
     }
