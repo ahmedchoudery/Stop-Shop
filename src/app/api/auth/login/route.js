@@ -239,6 +239,9 @@ export async function POST(req) {
     response.cookies.set('refresh_token', refreshTokenPlain, { ...cookieOptions, maxAge: 30 * 24 * 60 * 60 });
     response.cookies.set('csrf_token', csrfToken, { ...cookieOptions, httpOnly: false, maxAge: 15 * 60 });
 
+    // Reset login attempts on successful login
+    await LoginAttempt.deleteMany({ $or: [{ ip }, { email: emailKey }] }).catch(console.error);
+
     return response;
   } catch (error) {
     console.error('[Login API] Error:', error);
