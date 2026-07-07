@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import dbConnect from '../../../../lib/db';
 import LoginAttempt from '../../../../models/LoginAttempt';
 
-export async function GET(req) {
+export async function GET(_req) {
   try {
     await dbConnect();
     await LoginAttempt.deleteMany({});
