@@ -17,7 +17,7 @@ export const POST = withIdempotency(withRoute({
     body: checkoutSchema
   },
   handler: async ({ req, body }) => {
-    const { customer, items, total, paymentMethod, couponCode, paymentDetails } = body;
+    const { customer, items, paymentMethod, couponCode, paymentDetails } = body;
     const clientIp = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || '127.0.0.1';
     const productIds = [...new Set(items.map(i => i.id))];
 

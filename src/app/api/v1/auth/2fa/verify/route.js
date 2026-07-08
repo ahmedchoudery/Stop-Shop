@@ -15,7 +15,7 @@ export const POST = withRoute({
       tempToken: z.string().optional(),
     })
   },
-  handler: async ({ req, body, user: authUser }) => {
+  handler: async ({ body, user: authUser }) => {
     const { code, tempToken } = body;
     let userId = null;
 
@@ -27,7 +27,7 @@ export const POST = withRoute({
           throw new ApiError('UNAUTHENTICATED', 'Invalid temporary token', 401);
         }
         userId = decoded.userId;
-      } catch (err) {
+      } catch {
         throw new ApiError('UNAUTHENTICATED', 'Expired or invalid temporary token', 401);
       }
     } else {

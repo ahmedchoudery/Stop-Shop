@@ -13,7 +13,7 @@ export const POST = withRoute({
     let formData;
     try {
       formData = await req.formData();
-    } catch (e) {
+    } catch {
       throw new ApiError('VALIDATION', 'Malformed form data', 400);
     }
 
