@@ -7,7 +7,7 @@ import { withRetry } from '../utils/retry.js';
 const getEnv = (...keys) => {
   for (const k of keys) {
     if (typeof k === 'string' && Object.prototype.hasOwnProperty.call(process.env, k)) {
-      const val = process.env[k];
+      const val = Reflect.get(process.env, k);
       if (val) return val;
     }
   }
@@ -46,7 +46,7 @@ const getVariantImage = (product, color) => {
   const searchName = searchParts[1] || '';
 
   if (typeof color === 'string' && Object.prototype.hasOwnProperty.call(imagesObj, color)) {
-    return imagesObj[color];
+    return Reflect.get(imagesObj, color);
   }
 
   for (const [key, val] of Object.entries(imagesObj)) {
@@ -283,7 +283,7 @@ export const checkAndAlertLowStock = async (purchasedItems) => {
           : product.sizeStock;
 
         for (const size of product.sizes) {
-          const rawVal = typeof size === 'string' && Object.prototype.hasOwnProperty.call(sizeStockObj, size) ? sizeStockObj[size] : undefined;
+          const rawVal = typeof size === 'string' && Object.prototype.hasOwnProperty.call(sizeStockObj, size) ? Reflect.get(sizeStockObj, size) : undefined;
           const sizeQty = parseInt(rawVal) ?? 0;
           if (sizeQty <= LOW_STOCK_THRESHOLD) {
             lowStockAlerts.push({
@@ -303,7 +303,7 @@ export const checkAndAlertLowStock = async (purchasedItems) => {
           : product.colorStock;
 
         for (const color of product.colors) {
-          const rawVal = typeof color === 'string' && Object.prototype.hasOwnProperty.call(colorStockObj, color) ? colorStockObj[color] : undefined;
+          const rawVal = typeof color === 'string' && Object.prototype.hasOwnProperty.call(colorStockObj, color) ? Reflect.get(colorStockObj, color) : undefined;
           const colorQty = parseInt(rawVal) ?? 0;
           if (colorQty <= LOW_STOCK_THRESHOLD) {
             lowStockAlerts.push({
@@ -636,7 +636,7 @@ export const sendOrderStatusEmail = async (order, status) => {
     Refunded:  '💵',
   };
 
-  const icon = typeof status === 'string' && Object.prototype.hasOwnProperty.call(STATUS_ICONS, status) ? STATUS_ICONS[status] : '📋';
+  const icon = typeof status === 'string' && Object.prototype.hasOwnProperty.call(STATUS_ICONS, status) ? Reflect.get(STATUS_ICONS, status) : '📋';
   const trackUrl = makeAbsoluteUrl(`/track?orderID=${order.orderID}&email=${encodeURIComponent(customerEmail)}`);
 
   let subject = `${icon} Your order ${order.orderID} has been ${status.toLowerCase()}`;
