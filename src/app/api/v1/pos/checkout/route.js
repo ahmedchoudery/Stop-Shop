@@ -11,7 +11,8 @@ import { NextResponse } from 'next/server';
 const safeGet = (obj, key) => {
   if (!obj || typeof obj !== 'object') return 0;
   if (key === '__proto__' || key === 'constructor' || key === 'prototype') return 0;
-  return Object.prototype.hasOwnProperty.call(obj, key) ? (obj[key] ?? 0) : 0;
+  const desc = Object.getOwnPropertyDescriptor(obj, key);
+  return desc ? (desc.value ?? 0) : 0;
 };
 
 export const POST = withRoute({
