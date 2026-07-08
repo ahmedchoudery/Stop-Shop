@@ -4,12 +4,36 @@ import User from '@/models/User';
 import UserRole from '@/models/UserRole';
 import argon2 from 'argon2';
 
+/**
+ * POST /api/v1/auth/test-reset
+ *
+ * Seeds/resets the E2E test admin user. Only callable when the request
+ * carries the correct x-e2e-secret header (set via E2E_SECRET env var)
+ * OR when CI=true (GitHub Actions built-in).
+ *
+ * This route is intentionally NOT removed in production builds — it is
+ * protected by the secret check and is a no-op in the absence of the header.
+ */
 export const POST = withRoute({
   requiredRole: 'public',
-  handler: async () => {
-    const isTest = process.env.NODE_ENV === 'test' || process.env.CI === 'true';
-    console.log('[TestReset] Endpoint hit. isTest status:', isTest, 'NODE_ENV:', process.env.NODE_ENV, 'CI:', process.env.CI);
-    if (!isTest) {
+  handler: async ({ req }) => {
+    // Guard: require either CI env var or a matching E2E secret header
+    const ciMode = process.env.CI === 'true';
+    const e2eSecret = process.env.E2E_SECRET;
+    const headerSecret = req.headers.get('x-e2e-secret');
+
+    const isAuthorised =
+      ciMode ||
+      (e2eSecret && headerSecret && headerSecret === e2eSecret);
+
+    console.log('[TestReset] Endpoint hit.', {
+      ciMode,
+      hasE2ESecret: !!e2eSecret,
+      headerMatch: headerSecret === e2eSecret,
+      isAuthorised,
+    });
+
+    if (!isAuthorised) {
       console.warn('[TestReset] Forbidden access attempted.');
       throw new ApiError('FORBIDDEN', 'Forbidden', 403);
     }
@@ -24,9 +48,8 @@ export const POST = withRoute({
       parallelism: 1
     });
 
-    console.log('[TestReset] Hashed password successfully. Saving to DB for:', email);
+    console.log('[TestReset] Hashed password. Upserting user:', email);
 
-    // Find, create, or update E2E admin user in a single atomic operation
     const user = await User.findOneAndUpdate(
       { email },
       {
@@ -42,22 +65,17 @@ export const POST = withRoute({
       { upsert: true, new: true }
     );
 
-    console.log('[TestReset] User document after update/upsert:', {
+    console.log('[TestReset] User after upsert:', {
       _id: user?._id,
       email: user?.email,
       twoFactorEnabled: user?.twoFactorEnabled,
       hasPasswordHash: !!user?.passwordHash
     });
 
-    // Ensure role is admin
     const roleExists = await UserRole.findOne({ userId: user._id, role: 'admin' });
     if (!roleExists) {
-      await UserRole.create({
-        userId: user._id,
-        role: 'admin',
-        assignedBy: 'system'
-      });
-      console.log('[TestReset] Created admin role for user.');
+      await UserRole.create({ userId: user._id, role: 'admin', assignedBy: 'system' });
+      console.log('[TestReset] Created admin role.');
     } else {
       console.log('[TestReset] Admin role already exists.');
     }

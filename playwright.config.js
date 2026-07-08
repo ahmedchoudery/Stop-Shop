@@ -2,7 +2,7 @@ import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
   testDir: './playwright-tests',
-  timeout: 90000, // 90 seconds for slow CI environments
+  timeout: process.env.CI ? 120000 : 90000, // 120s in CI, 90s locally
   fullyParallel: false, // Sequenced to prevent database write conflicts
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
@@ -22,9 +22,10 @@ export default defineConfig({
   webServer: {
     command: process.env.CI ? 'npm run start' : 'npm run dev',
     url: 'http://localhost:3000',
-    reuseExistingServer: true,
+    reuseExistingServer: !process.env.CI, // Always start fresh in CI
     stdout: 'pipe',
     stderr: 'pipe',
-    timeout: 120000,
+    timeout: 180000, // 3 min — next start can be slow on CI cold runners
   },
 });
+
