@@ -7,15 +7,27 @@ export const GET = withRoute({
   requiredRole: 'public',
   schema: {
     params: z.object({
-      orderID: z.string().min(1)
+      orderID: z.string().trim().min(1, 'Order ID required')
+    }),
+    query: z.object({
+      email: z.string().trim().email('Invalid email address').optional()
     })
   },
-  handler: async ({ params }) => {
+  handler: async ({ params, query }) => {
     const { orderID } = params;
+    const { email } = query;
+
+    if (!orderID.toUpperCase().startsWith('ORD-')) {
+      throw new ApiError('VALIDATION', 'Invalid order ID format. Must start with ORD-', 400);
+    }
+
+    if (!email) {
+      throw new ApiError('VALIDATION', 'Email address is required for verification', 400);
+    }
 
     const orderDoc = await Order.findOne({ orderID: orderID.toUpperCase() }).lean();
-    if (!orderDoc) {
-      throw new ApiError('NOT_FOUND', 'Order not found', 404);
+    if (!orderDoc || !orderDoc.customer || orderDoc.customer.email.toLowerCase() !== email.toLowerCase()) {
+      throw new ApiError('NOT_FOUND', 'Order not found or verification failed', 404);
     }
 
     const itemIds = orderDoc.items.map(item => item.id);
@@ -28,7 +40,7 @@ export const GET = withRoute({
       id: item.id,
       name: item.name,
       price: item.price,
-      quantity: item.quantity,
+      quantity: item.quantity ?? 1,
       selectedSize: item.selectedSize || '',
       selectedColor: item.selectedColor || '',
       image: item.image || imageMap.get(item.id) || '',
@@ -44,6 +56,13 @@ export const GET = withRoute({
       trackingNumber: orderDoc.trackingNumber || '',
       items:          formattedItems,
       createdAt:      orderDoc.createdAt ? new Date(orderDoc.createdAt).toISOString() : null,
+      updatedAt:      orderDoc.updatedAt ? new Date(orderDoc.updatedAt).toISOString() : null,
+      customer: {
+        name:    orderDoc.customer.name || '',
+        address: orderDoc.customer.address || '',
+        city:    orderDoc.customer.city || '',
+        zip:     orderDoc.customer.zip || '',
+      }
     };
   }
 });

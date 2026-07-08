@@ -81,7 +81,11 @@ export async function middleware(request: NextRequest) {
   const requestId = request.headers.get('x-request-id') || crypto.randomUUID();
 
   // 1. Rate Limiting on critical endpoints
-  const RATE_LIMITED_PATHS = ['/api/checkout', '/api/customer/login', '/api/customer/register'];
+  const RATE_LIMITED_PATHS = [
+    '/api/checkout', '/api/v1/checkout',
+    '/api/customer/login', '/api/v1/customer/login',
+    '/api/customer/register', '/api/v1/customer/register'
+  ];
   if (RATE_LIMITED_PATHS.some(path => pathname.startsWith(path))) {
     const ip = request.ip || request.headers.get('x-forwarded-for')?.split(',')[0].trim() || '127.0.0.1';
     const allowed = await checkRateLimit(ip);
@@ -94,8 +98,15 @@ export async function middleware(request: NextRequest) {
   }
 
   // 2. CSRF Verification for state-changing protected API routes
-  const CSRF_PROTECTED_PATHS = ['/api/admin/', '/api/pos/', '/api/customer/profile'];
-  const CSRF_BYPASS_PATHS = ['/api/admin/login'];
+  const CSRF_PROTECTED_PATHS = [
+    '/api/admin/', '/api/v1/admin/',
+    '/api/pos/', '/api/v1/pos/',
+    '/api/customer/profile', '/api/v1/customer/profile'
+  ];
+  const CSRF_BYPASS_PATHS = [
+    '/api/admin/login', '/api/v1/admin/login',
+    '/api/auth/login', '/api/v1/auth/login'
+  ];
 
   if (
     CSRF_PROTECTED_PATHS.some(path => pathname.startsWith(path)) &&
