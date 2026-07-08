@@ -106,7 +106,7 @@ const InventoryHealthChart = ({ products = [] }) => {
         </div>
       </div>
 
-      <p className="mt-6 w-full border-t border-gray-50 pt-4 text-center text-[9px] font-black italic uppercase tracking-[0.2em] text-gray-300">
+      <p className="mt-6 w-full border-t border-gray-50 pt-4 text-center text-[9px] font-black uppercase italic tracking-[0.2em] text-gray-300">
         Health Score: <span ref={scoreRef} className="text-gray-500">0/100</span>
       </p>
     </div>
