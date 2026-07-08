@@ -48,9 +48,9 @@ const Coupon = mongoose.models.Coupon || mongoose.model('Coupon', couponSchema);
 
 async function seed() {
   try {
-    console.log('Connecting to MongoDB...');
+    console.info('Connecting to MongoDB...');
     await mongoose.connect(MONGO_URI, { dbName: 'stopshop' });
-    console.log('Connected.');
+    console.info('Connected.');
 
     // Safety check: Prevent overwriting real products
     const realProductsCount = await Product.countDocuments({ id: { $nin: ['P001', 'P002', 'P003'] } });
@@ -60,15 +60,15 @@ async function seed() {
       return;
     }
 
-    console.log('Cleaning existing products...');
+    console.info('Cleaning existing products...');
     await Product.deleteMany({});
-    console.log('Cleaned.');
+    console.info('Cleaned.');
 
-    console.log('Cleaning existing coupons...');
+    console.info('Cleaning existing coupons...');
     await Coupon.deleteMany({});
-    console.log('Cleaned.');
+    console.info('Cleaned.');
 
-    console.log(`Inserting ${products.length} products...`);
+    console.info(`Inserting ${products.length} products...`);
     
     // Transform data to match schema if necessary (e.g., converting id to string)
     const preparedProducts = products.map(p => ({
@@ -80,9 +80,9 @@ async function seed() {
     }));
 
     await Product.insertMany(preparedProducts);
-    console.log('Seeding products successful!');
+    console.info('Seeding products successful!');
 
-    console.log('Inserting CARDINAL20 coupon...');
+    console.info('Inserting CARDINAL20 coupon...');
     await Coupon.create({
       code: 'CARDINAL20',
       type: 'percentage',
@@ -93,13 +93,13 @@ async function seed() {
       isActive: true,
       expiresAt: null
     });
-    console.log('Seeding coupon successful!');
+    console.info('Seeding coupon successful!');
 
   } catch (error) {
     console.error('Seeding failed:', error);
   } finally {
     await mongoose.disconnect();
-    console.log('Disconnected.');
+    console.info('Disconnected.');
   }
 }
 
