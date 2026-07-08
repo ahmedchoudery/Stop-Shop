@@ -8,6 +8,12 @@ import { cacheService, CACHE_KEYS } from '@/services/cacheService';
 import { z } from 'zod';
 import { NextResponse } from 'next/server';
 
+const safeGet = (obj, key) => {
+  if (!obj || typeof obj !== 'object') return 0;
+  if (key === '__proto__' || key === 'constructor' || key === 'prototype') return 0;
+  return Object.prototype.hasOwnProperty.call(obj, key) ? (obj[key] ?? 0) : 0;
+};
+
 export const POST = withRoute({
   requiredRole: 'staff',
   schema: {
@@ -23,8 +29,8 @@ export const POST = withRoute({
       paymentType: z.enum(['Cash', 'Card', 'Mobile']),
       customerName: z.string().optional(),
       customerPhone: z.string().optional(),
-      customerEmail: z.string().optional(),
-      note: z.string().optional().default(''),
+      customerEmail: z.string().trim().email().optional(),
+      note: z.string().optional(),
     })
   },
   handler: async ({ req, body, user }) => {
@@ -69,15 +75,15 @@ export const POST = withRoute({
         const matrixKey = `${color}|${size}`;
         available = product.variantMatrix instanceof Map
           ? (product.variantMatrix.get(matrixKey) ?? 0)
-          : (product.variantMatrix?.[matrixKey] ?? 0);
+          : safeGet(product.variantMatrix, matrixKey);
       } else if (size && product.sizeStock) {
         available = product.sizeStock instanceof Map
           ? (product.sizeStock.get(size) ?? 0)
-          : (product.sizeStock?.[size] ?? 0);
+          : safeGet(product.sizeStock, size);
       } else if (color && product.colorStock) {
         available = product.colorStock instanceof Map
           ? (product.colorStock.get(color) ?? 0)
-          : (product.colorStock?.[color] ?? 0);
+          : safeGet(product.colorStock, color);
       }
 
       if (available < qty) {
@@ -199,9 +205,8 @@ export const POST = withRoute({
 
     const verifiedTotal = enrichedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-    let orderDoc;
     try {
-      orderDoc = await Order.create({
+      await Order.create({
         orderID,
         customer: {
           name:  customerName || 'Walk-in Customer',

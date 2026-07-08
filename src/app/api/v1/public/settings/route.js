@@ -15,7 +15,7 @@ export const GET = withRoute({
       }
 
       return data;
-    } catch (error) {
+    } catch {
       return { announcement: 'Welcome to Stop & Shop - E2E Test Store', logo: '' };
     }
   }
