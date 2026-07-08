@@ -53,9 +53,8 @@ async function seed() {
     console.log('Connected.');
 
     // Safety check: Prevent overwriting real products
-    const forceSeed = process.env.FORCE_SEED === 'true';
     const realProductsCount = await Product.countDocuments({ id: { $nin: ['P001', 'P002', 'P003'] } });
-    if (!forceSeed && realProductsCount > 0) {
+    if (realProductsCount > 0) {
       console.error(`❌ Seeding aborted! Found ${realProductsCount} real products in the database.`);
       console.error('To protect your data, seeding has been blocked. This must never overwrite real products.');
       return;
