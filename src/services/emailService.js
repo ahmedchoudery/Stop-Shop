@@ -4,7 +4,15 @@ import Product from '../models/Product.js';
 import Coupon from '../models/Coupon.js';
 import { withRetry } from '../utils/retry.js';
 
-const getEnv = (...keys) => keys.map(k => process.env[k]).find(Boolean);
+const getEnv = (...keys) => {
+  for (const k of keys) {
+    if (typeof k === 'string' && Object.prototype.hasOwnProperty.call(process.env, k)) {
+      const val = process.env[k];
+      if (val) return val;
+    }
+  }
+  return undefined;
+};
 
 const escapeHtml = (unsafe) => {
   if (!unsafe) return '';
@@ -37,7 +45,9 @@ const getVariantImage = (product, color) => {
   const searchHex = searchParts[0];
   const searchName = searchParts[1] || '';
 
-  if (imagesObj[color]) return imagesObj[color];
+  if (typeof color === 'string' && Object.prototype.hasOwnProperty.call(imagesObj, color)) {
+    return imagesObj[color];
+  }
 
   for (const [key, val] of Object.entries(imagesObj)) {
     const keyLower = key.trim().toLowerCase();
@@ -141,7 +151,7 @@ export const sendEmail = async (options) => {
       toEmail.endsWith('@stop-shop-test.com') ||
       (!isVitest && (process.env.NODE_ENV === 'test' || process.env.CI === 'true'))
     ) {
-      console.log(`ℹ️ [Email] Suppressing dispatch to dummy/testing address: ${options.to}`);
+      console.info(`ℹ️ [Email] Suppressing dispatch to dummy/testing address: ${options.to}`);
       return;
     }
 
@@ -179,12 +189,12 @@ export const sendEmail = async (options) => {
         return await response.json();
       }, { name: 'Resend Email Dispatch', retries: 3 });
 
-      console.log(`📧 [Resend] Email dispatched successfully to ${options.to}. ID: ${resData.id}`);
+      console.info(`📧 [Resend] Email dispatched successfully to ${options.to}. ID: ${resData.id}`);
       return resData;
     }
 
     await transporter.sendMail(options);
-    console.log(`📧 [Nodemailer] Email sent successfully to ${options.to}`);
+    console.info(`📧 [Nodemailer] Email sent successfully to ${options.to}`);
   } catch (err) {
     console.error('[Email] Failed to send:', err.message);
   }
@@ -273,7 +283,8 @@ export const checkAndAlertLowStock = async (purchasedItems) => {
           : product.sizeStock;
 
         for (const size of product.sizes) {
-          const sizeQty = parseInt(sizeStockObj[size]) ?? 0;
+          const rawVal = typeof size === 'string' && Object.prototype.hasOwnProperty.call(sizeStockObj, size) ? sizeStockObj[size] : undefined;
+          const sizeQty = parseInt(rawVal) ?? 0;
           if (sizeQty <= LOW_STOCK_THRESHOLD) {
             lowStockAlerts.push({
               name: product.name,
@@ -292,7 +303,8 @@ export const checkAndAlertLowStock = async (purchasedItems) => {
           : product.colorStock;
 
         for (const color of product.colors) {
-          const colorQty = parseInt(colorStockObj[color]) ?? 0;
+          const rawVal = typeof color === 'string' && Object.prototype.hasOwnProperty.call(colorStockObj, color) ? colorStockObj[color] : undefined;
+          const colorQty = parseInt(rawVal) ?? 0;
           if (colorQty <= LOW_STOCK_THRESHOLD) {
             lowStockAlerts.push({
               name: product.name,
@@ -395,7 +407,7 @@ https://stop-shop-gamma.vercel.app/admin/inventory
       html,
     });
 
-    console.log(`📧 Low stock alert sent for ${uniqueAlerts.length} item/variant(s)`);
+    console.info(`📧 Low stock alert sent for ${uniqueAlerts.length} item/variant(s)`);
   } catch (err) {
     console.error('[LowStock] Alert failed:', err.message);
   }
@@ -526,7 +538,7 @@ export const sendOrderConfirmationEmail = async (order) => {
       subject,
       html,
     });
-    console.log(`📧 [OrderConfirmation] Confirmation email sent to ${customerEmail}`);
+    console.info(`📧 [OrderConfirmation] Confirmation email sent to ${customerEmail}`);
   } catch (err) {
     console.error('[OrderConfirmation] Email failed:', err.message);
   }
@@ -593,18 +605,13 @@ export const sendWelcomeEmail = async (customer) => {
       subject,
       html,
     });
-    console.log(`📧 [WelcomeEmail] Welcome email sent to ${customerEmail}`);
+    console.info(`📧 [WelcomeEmail] Welcome email sent to ${customerEmail}`);
   } catch (err) {
     console.error('[WelcomeEmail] Email failed:', err.message);
   }
 };
 
-const STATUS_ICONS = {
-  Paid:      '💳',
-  Shipped:   '📦',
-  Delivered: '✅',
-  Failed:    '❌',
-};
+
 
 /**
  * Sends a branded order status notification email to the customer.
@@ -629,7 +636,7 @@ export const sendOrderStatusEmail = async (order, status) => {
     Refunded:  '💵',
   };
 
-  const icon = STATUS_ICONS[status] ?? '📋';
+  const icon = typeof status === 'string' && Object.prototype.hasOwnProperty.call(STATUS_ICONS, status) ? STATUS_ICONS[status] : '📋';
   const trackUrl = makeAbsoluteUrl(`/track?orderID=${order.orderID}&email=${encodeURIComponent(customerEmail)}`);
 
   let subject = `${icon} Your order ${order.orderID} has been ${status.toLowerCase()}`;
@@ -830,7 +837,7 @@ export const sendOrderStatusEmail = async (order, status) => {
       subject,
       html,
     });
-    console.log(`📧 [OrderStatus] ${status} email sent to ${customerEmail}`);
+    console.info(`📧 [OrderStatus] ${status} email sent to ${customerEmail}`);
   } catch (err) {
     console.error('[OrderStatus] Email failed:', err.message);
   }
@@ -893,7 +900,7 @@ export const sendAdminOrderStatusNotification = async (order, status) => {
       subject,
       html,
     });
-    console.log(`📧 [AdminOrderStatus] Status email sent to admin: ${adminEmail}`);
+    console.info(`📧 [AdminOrderStatus] Status email sent to admin: ${adminEmail}`);
   } catch (err) {
     console.error('[AdminOrderStatus] Email failed:', err.message);
   }
@@ -938,7 +945,7 @@ export const sendAdminNewOrderNotification = async (order) => {
       subject,
       html,
     });
-    console.log(`📧 [AdminNewOrder] Admin notification sent to ${adminEmail}`);
+    console.info(`📧 [AdminNewOrder] Admin notification sent to ${adminEmail}`);
   } catch (err) {
     console.error('[AdminNewOrder] Failed:', err.message);
   }
@@ -981,7 +988,7 @@ export const sendOrderFailedEmail = async (order, reason = 'Payment declined by 
         subject,
         html,
       });
-      console.log(`📧 [OrderFailed] Customer alert sent to ${customerEmail}`);
+      console.info(`📧 [OrderFailed] Customer alert sent to ${customerEmail}`);
     }
 
     // 2. Send to Admin
@@ -1011,7 +1018,7 @@ export const sendOrderFailedEmail = async (order, reason = 'Payment declined by 
         subject,
         html,
       });
-      console.log(`📧 [AdminOrderFailed] Admin alert sent to ${adminEmail}`);
+      console.info(`📧 [AdminOrderFailed] Admin alert sent to ${adminEmail}`);
     }
   } catch (err) {
     console.error('[OrderFailed] Email trigger failed:', err.message);
