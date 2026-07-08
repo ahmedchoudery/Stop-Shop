@@ -145,7 +145,7 @@ export async function POST(req) {
 
       // Validate 2FA
       if (code) {
-        const valid = verifyTotp(code, user.twoFactorSecret);
+        const valid = verifyTotp(code, user.twoFactorSecret, 4);
         if (!valid) {
           return NextResponse.json({ error: 'Invalid 2FA code' }, { status: 401 });
         }

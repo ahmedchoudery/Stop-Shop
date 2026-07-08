@@ -75,7 +75,7 @@ test.describe('Admin Authentication & Security Rebuild', () => {
     await expect(page.locator('h1')).toContainText('Stop & Shop');
 
     // 2. Submit credentials (pre-seeded default admin)
-    await page.fill('input[name="email"]', 'ahmedchoudery30@gmail.com');
+    await page.fill('input[name="email"]', 'e2e-admin@stop-shop-test.com');
     await page.fill('input[name="password"]', 'vxSk9mUi0/NX6IvZ!Aa1');
     await page.click('button[type="submit"]');
 
@@ -96,7 +96,7 @@ test.describe('Admin Authentication & Security Rebuild', () => {
 
     // 6. Test login again after 2FA is activated (verification flow)
     await page.goto('/login');
-    await page.fill('input[name="email"]', 'ahmedchoudery30@gmail.com');
+    await page.fill('input[name="email"]', 'e2e-admin@stop-shop-test.com');
     await page.fill('input[name="password"]', 'vxSk9mUi0/NX6IvZ!Aa1');
     await page.click('button[type="submit"]');
 

@@ -23,7 +23,7 @@ export default defineConfig({
     command: process.env.CI ? 'npm run start' : 'npm run dev',
     url: 'http://localhost:3000',
     reuseExistingServer: true,
-    stdout: 'ignore',
+    stdout: 'pipe',
     stderr: 'pipe',
     timeout: 120000,
   },
