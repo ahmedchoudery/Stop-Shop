@@ -153,8 +153,8 @@ export async function middleware(request: NextRequest) {
 
   const isProduction = process.env.NODE_ENV === 'production';
   const scriptSrc = isProduction
-    ? `script-src 'self' 'nonce-${nonce}'`
-    : `script-src 'self' 'unsafe-eval' 'nonce-${nonce}'`;
+    ? `script-src 'self' 'nonce-${nonce}' https://www.googletagmanager.com https://connect.facebook.net`
+    : `script-src 'self' 'unsafe-eval' 'nonce-${nonce}' https://www.googletagmanager.com https://connect.facebook.net`;
 
   const styleSrc = `style-src 'self' 'unsafe-inline'`;
 
@@ -162,9 +162,9 @@ export async function middleware(request: NextRequest) {
     "default-src 'self'",
     scriptSrc,
     styleSrc,
-    "img-src 'self' data: https://res.cloudinary.com",
+    "img-src 'self' data: https://res.cloudinary.com https://www.google-analytics.com https://www.facebook.com",
     "font-src 'self' https://fonts.gstatic.com",
-    "connect-src 'self' https://api.resend.com https://open.er-api.com",
+    "connect-src 'self' https://api.resend.com https://open.er-api.com https://www.google-analytics.com https://www.google.com https://analytics.google.com",
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'self'",
