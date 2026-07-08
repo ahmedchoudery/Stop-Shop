@@ -19,16 +19,18 @@ const InventoryHealthChart = ({ products = [] }) => {
   const percentRef = useRef(null);
   const scoreRef = useRef(null);
   const { ref, isIntersecting } = useIntersectionObserver({ threshold: 0.3, triggerOnce: true });
-  const hasAnimated = useRef(false);
+  const prevPercentage = useRef(-1);
 
   useEffect(() => {
-    if (!isIntersecting || hasAnimated.current) return;
-    hasAnimated.current = true;
+    // Only animate when visible AND we have real product data AND the percentage changed
+    if (!isIntersecting || products.length === 0 || percentage === prevPercentage.current) return;
+    const fromValue = prevPercentage.current === -1 ? 0 : prevPercentage.current;
+    prevPercentage.current = percentage;
 
-    const pObj = { value: 0 };
+    const pObj = { value: fromValue };
     anime({
       targets: pObj,
-      value: [0, percentage],
+      value: [fromValue, percentage],
       duration: 1400,
       easing: EASING.EXPO_OUT,
       round: 1,
@@ -37,10 +39,11 @@ const InventoryHealthChart = ({ products = [] }) => {
       },
     });
 
-    const sObj = { value: 0 };
+    const fromScore = 100 - fromValue;
+    const sObj = { value: fromScore };
     anime({
       targets: sObj,
-      value: [0, healthScore],
+      value: [fromScore, healthScore],
       duration: 1600,
       easing: EASING.EXPO_OUT,
       round: 1,
@@ -48,7 +51,7 @@ const InventoryHealthChart = ({ products = [] }) => {
         if (scoreRef.current) scoreRef.current.textContent = `${Math.round(sObj.value)}/100`;
       },
     });
-  }, [isIntersecting, percentage, healthScore]);
+  }, [isIntersecting, percentage, healthScore, products.length]);
 
   const data = [
     { name: 'Sold Out', value: soldOut || 1 },
@@ -59,13 +62,13 @@ const InventoryHealthChart = ({ products = [] }) => {
   return (
     <div
       ref={ref}
-      className="bg-white p-8 rounded-sm border border-gray-100 shadow-xl shadow-gray-100/50 flex flex-col items-center justify-center relative min-h-[300px]"
+      className="relative flex min-h-[300px] flex-col items-center justify-center rounded-sm border border-gray-100 bg-white p-8 shadow-xl shadow-gray-100/50"
     >
-      <div className="absolute top-6 left-8">
+      <div className="absolute left-8 top-6">
         <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-400">Inventory Health</h3>
       </div>
 
-      <div className="w-full h-48 relative">
+      <div className="relative h-48 w-full">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
@@ -78,32 +81,32 @@ const InventoryHealthChart = ({ products = [] }) => {
               animationDuration={1200}
             >
               {data.map((_, index) => (
-                <Cell key={index} fill={COLORS[index]} />
+                <Cell key={index} fill={COLORS.at(index)} />
               ))}
             </Pie>
           </PieChart>
         </ResponsiveContainer>
 
         {/* Center text */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-          <span ref={percentRef} className="text-3xl font-black text-cardinal tracking-tighter">0%</span>
-          <span className="text-[8px] font-black uppercase tracking-widest text-gray-400 mt-1">Out of Stock</span>
+        <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center">
+          <span ref={percentRef} className="text-3xl font-black tracking-tighter text-cardinal">0%</span>
+          <span className="mt-1 text-[8px] font-black uppercase tracking-widest text-gray-400">Out of Stock</span>
         </div>
       </div>
 
       {/* Legend */}
       <div className="mt-4 flex space-x-6">
         <div className="flex items-center space-x-2">
-          <div className="w-3 h-3 bg-crimson rounded-sm" />
+          <div className="h-3 w-3 rounded-sm bg-crimson" />
           <p className="text-[9px] font-black uppercase tracking-widest text-gray-500">Sold Out ({soldOut})</p>
         </div>
         <div className="flex items-center space-x-2">
-          <div className="w-3 h-3 bg-gray-200 rounded-sm" />
+          <div className="h-3 w-3 rounded-sm bg-gray-200" />
           <p className="text-[9px] font-black uppercase tracking-widest text-gray-400">In Stock ({inStock})</p>
         </div>
       </div>
 
-      <p className="mt-6 text-[9px] font-black uppercase tracking-[0.2em] text-gray-300 italic border-t border-gray-50 pt-4 w-full text-center">
+      <p className="mt-6 w-full border-t border-gray-50 pt-4 text-center text-[9px] font-black italic uppercase tracking-[0.2em] text-gray-300">
         Health Score: <span ref={scoreRef} className="text-gray-500">0/100</span>
       </p>
     </div>
