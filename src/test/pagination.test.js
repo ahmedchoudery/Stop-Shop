@@ -16,9 +16,12 @@ vi.mock('../lib/db.js', () => ({
   dbConnect: vi.fn().mockResolvedValue(true),
 }));
 
-// Setup hoisted mock for Admin Auth
 vi.mock('../lib/adminAuth.js', () => ({
   requireAdmin: vi.fn().mockReturnValue({ email: 'admin@stopshop.pk' }),
+  getAdminFromToken: vi.fn().mockReturnValue({ id: 'admin-id', email: 'admin@stopshop.pk' }),
+  hasRole: vi.fn().mockResolvedValue(true),
+  JWT_SECRET: 'test-secret-value-longer-than-32-chars-2026',
+  CUSTOMER_JWT_SECRET: 'test-secret-value-longer-than-32-chars-2026',
 }));
 
 // Setup hoisted mocks for models
@@ -50,12 +53,11 @@ vi.mock('../models/Inventory.js', () => ({
   },
 }));
 
-// Import endpoints
-import { GET as getPublicProducts } from '../app/api/public/products/route.js';
-import { GET as getAdminProducts } from '../app/api/admin/products/route.js';
-import { GET as getAdminOrders } from '../app/api/orders/route.js';
-import { GET as getAdminReviews } from '../app/api/admin/reviews/route.js';
-import { GET as getAdminInventory } from '../app/api/admin/inventory/route.js';
+import { GET as getPublicProducts } from '../app/api/v1/public/products/route.js';
+import { GET as getAdminProducts } from '../app/api/v1/admin/products/route.js';
+import { GET as getAdminOrders } from '../app/api/v1/orders/route.js';
+import { GET as getAdminReviews } from '../app/api/v1/admin/reviews/route.js';
+import { GET as getAdminInventory } from '../app/api/v1/admin/inventory/route.js';
 
 describe('Pagination & Projection Tests', () => {
   beforeEach(() => {

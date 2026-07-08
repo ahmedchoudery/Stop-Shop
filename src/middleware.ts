@@ -172,11 +172,24 @@ export async function middleware(request: NextRequest) {
 
   requestHeaders.set('Content-Security-Policy', cspHeader);
 
-  const response = NextResponse.next({
-    request: {
-      headers: requestHeaders,
-    },
-  });
+  const isDeprecated = pathname.startsWith('/api/') && !pathname.startsWith('/api/v1/');
+  const targetPath = isDeprecated ? pathname.replace('/api/', '/api/v1/') : pathname;
+
+  if (isDeprecated) {
+    requestHeaders.set('x-deprecated-api', 'true');
+  }
+
+  const response = isDeprecated
+    ? NextResponse.rewrite(new URL(targetPath, request.url), {
+        request: {
+          headers: requestHeaders,
+        },
+      })
+    : NextResponse.next({
+        request: {
+          headers: requestHeaders,
+        },
+      });
 
   // 4. Robust Security Headers & request tracing ID
   response.headers.set('x-request-id', requestId);
@@ -194,6 +207,11 @@ export async function middleware(request: NextRequest) {
   Object.entries(corsHeaders).forEach(([key, value]) => {
     response.headers.set(key, value);
   });
+
+  if (isDeprecated) {
+    response.headers.set('Deprecation', 'true');
+    response.headers.set('Warning', '299 - "Deprecated API Version"');
+  }
 
   return response;
 }

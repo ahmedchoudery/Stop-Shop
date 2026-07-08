@@ -22,7 +22,7 @@ vi.mock('../models/ProductNotification.js', () => ({
   },
 }));
 
-import { POST } from '../app/api/public/notify-me/route.js';
+import { POST } from '../app/api/v1/public/notify-me/route.js';
 
 describe('POST /api/public/notify-me', () => {
   beforeEach(() => {
@@ -40,7 +40,7 @@ describe('POST /api/public/notify-me', () => {
     const response = await POST(req);
     expect(response.status).toBe(400);
     const data = await response.json();
-    expect(data.error).toBe('Email is required');
+    expect(data.error.message).toBe('Email is required');
   });
 
   it('should reject requests with invalid email format', async () => {
@@ -48,7 +48,7 @@ describe('POST /api/public/notify-me', () => {
     const response = await POST(req);
     expect(response.status).toBe(400);
     const data = await response.json();
-    expect(data.error).toBe('Enter a valid email address');
+    expect(data.error.message).toBe('Enter a valid email address');
   });
 
   it('should reject requests with missing productId', async () => {
@@ -56,7 +56,7 @@ describe('POST /api/public/notify-me', () => {
     const response = await POST(req);
     expect(response.status).toBe(400);
     const data = await response.json();
-    expect(data.error).toBe('Product ID is required');
+    expect(data.error.message).toBe('Product ID is required');
   });
 
   it('should reject if referenced product does not exist', async () => {
@@ -65,7 +65,7 @@ describe('POST /api/public/notify-me', () => {
     const response = await POST(req);
     expect(response.status).toBe(404);
     const data = await response.json();
-    expect(data.error).toBe('Product not found');
+    expect(data.error.message).toBe('Product not found');
   });
 
   it('should successfully save a valid request', async () => {
