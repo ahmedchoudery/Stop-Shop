@@ -26,7 +26,7 @@ export const POST = withRoute({
       ciMode ||
       (e2eSecret && headerSecret && headerSecret === e2eSecret);
 
-    console.log('[TestReset] Endpoint hit.', {
+    console.info('[TestReset] Endpoint hit.', {
       ciMode,
       hasE2ESecret: !!e2eSecret,
       headerMatch: headerSecret === e2eSecret,
@@ -38,7 +38,7 @@ export const POST = withRoute({
       throw new ApiError('FORBIDDEN', 'Forbidden', 403);
     }
 
-    console.log('[TestReset] Connected to database:', mongoose.connection?.name || 'unknown');
+    console.info('[TestReset] Connected to database:', mongoose.connection?.name || 'unknown');
 
     const email = 'e2e-admin@stop-shop-test.com';
     const passwordHash = await argon2.hash('vxSk9mUi0/NX6IvZ!Aa1', {
@@ -48,7 +48,7 @@ export const POST = withRoute({
       parallelism: 1
     });
 
-    console.log('[TestReset] Hashed password. Upserting user:', email);
+    console.info('[TestReset] Hashed password. Upserting user:', email);
 
     const user = await User.findOneAndUpdate(
       { email },
@@ -65,7 +65,7 @@ export const POST = withRoute({
       { upsert: true, new: true }
     );
 
-    console.log('[TestReset] User after upsert:', {
+    console.info('[TestReset] User after upsert:', {
       _id: user?._id,
       email: user?.email,
       twoFactorEnabled: user?.twoFactorEnabled,
@@ -75,9 +75,9 @@ export const POST = withRoute({
     const roleExists = await UserRole.findOne({ userId: user._id, role: 'admin' });
     if (!roleExists) {
       await UserRole.create({ userId: user._id, role: 'admin', assignedBy: 'system' });
-      console.log('[TestReset] Created admin role.');
+      console.info('[TestReset] Created admin role.');
     } else {
-      console.log('[TestReset] Admin role already exists.');
+      console.info('[TestReset] Admin role already exists.');
     }
 
     return { success: true };
