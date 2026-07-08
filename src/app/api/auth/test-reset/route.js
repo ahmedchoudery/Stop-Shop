@@ -35,8 +35,8 @@ export async function POST(req) {
         passwordHash,
         name: 'E2E Test Admin',
         twoFactorEnabled: false,
-        twoFactorSecret: undefined,
-        backupCodes: [],
+        emailOtpCode: null,
+        emailOtpExpiresAt: null,
         failedLoginCount: 0,
         lockedUntil: null
       },

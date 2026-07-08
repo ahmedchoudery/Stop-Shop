@@ -1,39 +1,34 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
-import argon2 from 'argon2';
 import dbConnect from '../../../../../lib/db';
 import User from '../../../../../models/User';
 import RefreshToken from '../../../../../models/RefreshToken';
 import { JWT_SECRET, requireAdmin, hasRole } from '../../../../../lib/adminAuth';
-import { verifyTotp } from '../../../../../lib/totp';
 
 export async function POST(req) {
   try {
     await dbConnect();
     const body = await req.json().catch(() => ({}));
-    const { code, backupCode, tempToken } = body;
+    const { code, tempToken } = body;
 
     let userId = null;
-    let isSetupVerification = false;
 
     if (tempToken) {
       // 1. Verify credentials challenge flow
       try {
         const decoded = jwt.verify(tempToken, JWT_SECRET);
-        if (decoded.step !== '2fa_verify' && decoded.step !== '2fa_setup') {
+        if (decoded.step !== '2fa_verify') {
           return NextResponse.json({ error: 'Invalid temporary token' }, { status: 401 });
         }
         userId = decoded.userId;
-        isSetupVerification = decoded.step === '2fa_setup';
       } catch (err) {
         return NextResponse.json({ error: 'Expired or invalid temporary token' }, { status: 401 });
       }
     } else {
-      // 2. Enabling 2FA flow (user is already logged in)
+      // 2. Require authenticated admin context
       const admin = await requireAdmin(req);
       userId = admin.id;
-      isSetupVerification = true;
     }
 
     const user = await User.findById(userId);
@@ -41,39 +36,27 @@ export async function POST(req) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    if (!code && !backupCode) {
-      return NextResponse.json({ error: 'Code or backup code is required' }, { status: 400 });
+    if (!code) {
+      return NextResponse.json({ error: 'Verification code is required' }, { status: 400 });
     }
 
-    // Verify code
-    if (code) {
-      const valid = verifyTotp(code, user.twoFactorSecret, 4);
-      if (!valid) {
-        return NextResponse.json({ error: 'Invalid 2FA code' }, { status: 401 });
-      }
-    } else if (backupCode) {
-      // Verify backup code
-      let matchedIndex = -1;
-      for (let i = 0; i < user.backupCodes.length; i++) {
-        const verifyResult = await argon2.verify(user.backupCodes[i], backupCode.trim());
-        if (verifyResult) {
-          matchedIndex = i;
-          break;
-        }
-      }
-
-      if (matchedIndex === -1) {
-        return NextResponse.json({ error: 'Invalid backup code' }, { status: 401 });
-      }
-
-      // Remove single-use backup code
-      user.backupCodes.splice(matchedIndex, 1);
+    // Verify Email OTP code
+    if (!user.emailOtpCode || !user.emailOtpExpiresAt) {
+      return NextResponse.json({ error: 'No verification code found. Please request a new code.' }, { status: 401 });
     }
 
-    // Mark 2FA enabled on user
-    if (isSetupVerification) {
-      user.twoFactorEnabled = true;
+    if (new Date() > user.emailOtpExpiresAt) {
+      return NextResponse.json({ error: 'Verification code has expired. Please request a new code.' }, { status: 401 });
     }
+
+    if (user.emailOtpCode !== code.trim()) {
+      return NextResponse.json({ error: 'Invalid verification code' }, { status: 401 });
+    }
+
+    // Clear code on successful verification
+    user.emailOtpCode = null;
+    user.emailOtpExpiresAt = null;
+    user.twoFactorEnabled = true;
 
     user.failedLoginCount = 0;
     user.lockedUntil = null;

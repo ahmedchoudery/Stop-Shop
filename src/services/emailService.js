@@ -134,7 +134,13 @@ const transporter = nodemailer.createTransport({
 export const sendEmail = async (options) => {
   try {
     const toEmail = (options.to || '').toLowerCase().trim();
-    if (toEmail.endsWith('@example.com') || toEmail.includes('example.com') || process.env.NODE_ENV === 'test') {
+    if (
+      toEmail.endsWith('@example.com') ||
+      toEmail.includes('example.com') ||
+      toEmail.endsWith('@stop-shop-test.com') ||
+      process.env.NODE_ENV === 'test' ||
+      process.env.CI === 'true'
+    ) {
       console.log(`ℹ️ [Email] Suppressing dispatch to dummy/testing address: ${options.to}`);
       return;
     }

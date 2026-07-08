@@ -25,8 +25,12 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: null
   },
-  twoFactorSecret: {
+  emailOtpCode: {
     type: String,
+    default: null
+  },
+  emailOtpExpiresAt: {
+    type: Date,
     default: null
   },
   twoFactorEnabled: {
@@ -40,10 +44,6 @@ const userSchema = new mongoose.Schema({
   lockedUntil: {
     type: Date,
     default: null
-  },
-  backupCodes: {
-    type: [String],
-    default: []
   },
   lastUserAgent: {
     type: String,

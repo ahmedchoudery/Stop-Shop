@@ -7,7 +7,7 @@
 
 import React, { useState, useCallback, FormEvent, ChangeEvent } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Eye, EyeOff, Shield, AlertCircle, Key, QrCode, Download } from 'lucide-react';
+import { Eye, EyeOff, Shield, AlertCircle, Key } from 'lucide-react';
 import { adminLogin } from '../lib/auth.js';
 import { useMutation } from '../hooks/useAsync.js';
 
@@ -39,8 +39,7 @@ const LoginPage = () => {
   // 2FA state variables
   const [twoFactorData, setTwoFactorData] = useState<TwoFactorData | null>(null);
   const [otpCode, setOtpCode] = useState('');
-  const [backupCode, setBackupCode] = useState('');
-  const [useBackupCode, setUseBackupCode] = useState(false);
+
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
   const [otpError, setOtpError] = useState('');
 
@@ -109,17 +108,10 @@ const LoginPage = () => {
       const payload: any = {
         tempToken: twoFactorData?.tempToken,
       };
-      if (useBackupCode) {
-        if (!backupCode.trim()) {
-          throw new Error('Backup code is required');
-        }
-        payload.backupCode = backupCode.trim();
-      } else {
-        if (!otpCode.trim()) {
-          throw new Error('Verification code is required');
-        }
-        payload.code = otpCode.trim();
+      if (!otpCode.trim()) {
+        throw new Error('Verification code is required');
       }
+      payload.code = otpCode.trim();
 
       const res = await fetch('/api/auth/2fa/verify', {
         method: 'POST',
@@ -143,17 +135,7 @@ const LoginPage = () => {
     }
   };
 
-  const downloadBackupCodes = () => {
-    if (!twoFactorData?.backupCodes) return;
-    const text = `STOP & SHOP ADMIN BACKUP CODES\n=============================\nGenerated: ${new Date().toLocaleString()}\n\nKeep these codes in a safe place. Each code can only be used once.\n\n${twoFactorData.backupCodes.map((c, i) => `[ ] Code ${i+1}: ${c}`).join('\n')}\n`;
-    const blob = new Blob([text], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'stopshop_backup_codes.txt';
-    a.click();
-    URL.revokeObjectURL(url);
-  };
+
 
   // ── Styles ────────────────────────────────────────────────────
 
@@ -270,10 +252,10 @@ const LoginPage = () => {
             <div>
               <div className="flex items-center space-x-3 mb-6">
                 <div className="w-8 h-8 bg-cardinal/10 rounded-[4px] flex items-center justify-center text-cardinal">
-                  {twoFactorData.setupRequired ? <QrCode size={16} /> : <Key size={16} />}
+                  <Key size={16} />
                 </div>
                 <h2 className="text-xl font-black uppercase tracking-tighter text-gray-900">
-                  {twoFactorData.setupRequired ? 'Enable Two-Factor (2FA)' : 'Security Verification'}
+                  Security Verification
                 </h2>
               </div>
 
@@ -284,170 +266,58 @@ const LoginPage = () => {
                 </div>
               )}
 
-              {twoFactorData.setupRequired ? (
-                // ── 2FA Setup Flow ──────────────────────────────────────
-                <div className="space-y-6">
-                  <p className="text-xs text-gray-500 leading-relaxed font-bold">
-                    Scan this QR code with Google Authenticator, Duo, or any TOTP app to configure your credentials.
-                  </p>
+              <form onSubmit={handleVerify2fa} className="space-y-6">
+                <p className="text-xs text-gray-500 leading-relaxed font-bold">
+                  Enter the 6-digit verification code sent to your admin email address.
+                </p>
 
-                  <div className="flex flex-col items-center justify-center bg-gray-50 border border-gray-100 p-4 rounded-[4px]">
-                    {twoFactorData.qrCode && (
-                      <img
-                        src={twoFactorData.qrCode}
-                        alt="2FA QR Code"
-                        className="w-44 h-44 object-contain border border-gray-250/20 bg-white p-2 rounded-[4px]"
-                      />
-                    )}
-                    {twoFactorData.secret && (
-                      <code className="mt-3 text-[10px] font-mono font-bold bg-white border px-3 py-1.5 rounded-[4px] select-all uppercase tracking-wider text-gray-600">
-                        Key: {twoFactorData.secret}
-                      </code>
-                    )}
-                  </div>
-
-                  {twoFactorData.backupCodes && (
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-                          Emergency Backup Codes
-                        </label>
-                        <button
-                          type="button"
-                          onClick={downloadBackupCodes}
-                          className="flex items-center space-x-1 text-[9px] font-black uppercase tracking-widest text-cardinal hover:underline"
-                        >
-                          <Download size={10} />
-                          <span>Download</span>
-                        </button>
-                      </div>
-                      <div className="bg-gray-50 border border-gray-100 p-4 rounded-[4px] max-h-24 overflow-y-auto font-mono text-[9px] font-bold text-gray-500 grid grid-cols-2 gap-2 select-all">
-                        {twoFactorData.backupCodes.map((c, i) => (
-                          <div key={i}>• {c}</div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  <form onSubmit={handleVerify2fa} className="space-y-4">
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-                        Verify 6-Digit Code
-                      </label>
-                      <input
-                        type="text"
-                        maxLength={6}
-                        pattern="\d*"
-                        value={otpCode}
-                        onChange={e => setOtpCode(e.target.value.replace(/\D/g, ''))}
-                        className="w-full border-b-2 py-3 text-center text-lg font-mono font-bold bg-transparent outline-none border-gray-100 focus:border-cardinal tracking-[0.5em] placeholder:text-gray-200"
-                        placeholder="000000"
-                        disabled={isVerifyingOtp}
-                        required
-                      />
-                    </div>
-
-                    <button
-                      type="submit"
-                      disabled={isVerifyingOtp}
-                      className="w-full py-4 bg-black text-white font-black uppercase tracking-[0.3em] text-xs rounded-[4px] hover:brightness-110 active:scale-95 transition-all disabled:opacity-60 flex items-center justify-center space-x-3"
-                    >
-                      {isVerifyingOtp ? (
-                        <>
-                          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                          <span>Verifying & Activating...</span>
-                        </>
-                      ) : (
-                        <span>Verify & Enable 2FA</span>
-                      )}
-                    </button>
-                  </form>
-                </div>
-              ) : (
-                // ── 2FA Code Verification Flow ──────────────────────────
-                <form onSubmit={handleVerify2fa} className="space-y-6">
-                  <p className="text-xs text-gray-500 leading-relaxed font-bold">
-                    {useBackupCode 
-                      ? 'Enter one of your 10-character backup codes. Each code can be used exactly once.' 
-                      : 'Enter the 6-digit authentication code generated by your mobile authenticator app.'}
-                  </p>
-
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-                      {useBackupCode ? 'Backup Recovery Code' : 'Verification Code'}
-                    </label>
-                    {useBackupCode ? (
-                      <input
-                        type="text"
-                        value={backupCode}
-                        onChange={e => setBackupCode(e.target.value)}
-                        className="w-full border-b-2 py-3 text-center text-sm font-mono font-bold bg-transparent outline-none border-gray-100 focus:border-cardinal uppercase tracking-wider"
-                        placeholder="••••••••••"
-                        disabled={isVerifyingOtp}
-                        required
-                      />
-                    ) : (
-                      <input
-                        type="text"
-                        maxLength={6}
-                        pattern="\d*"
-                        value={otpCode}
-                        onChange={e => setOtpCode(e.target.value.replace(/\D/g, ''))}
-                        className="w-full border-b-2 py-3 text-center text-lg font-mono font-bold bg-transparent outline-none border-gray-100 focus:border-cardinal tracking-[0.5em] placeholder:text-gray-200"
-                        placeholder="000000"
-                        disabled={isVerifyingOtp}
-                        required
-                      />
-                    )}
-                  </div>
-
-                  <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-gray-400">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setUseBackupCode(p => !p);
-                        setOtpCode('');
-                        setBackupCode('');
-                        setOtpError('');
-                      }}
-                      className="text-cardinal hover:underline"
-                    >
-                      {useBackupCode ? 'Use Auth App Code' : 'Use Backup Recovery Code'}
-                    </button>
-                  </div>
-
-                  <button
-                    type="submit"
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                    Verification Code
+                  </label>
+                  <input
+                    type="text"
+                    maxLength={6}
+                    pattern="\d*"
+                    value={otpCode}
+                    onChange={e => setOtpCode(e.target.value.replace(/\D/g, ''))}
+                    className="w-full border-b-2 py-3 text-center text-lg font-mono font-bold bg-transparent outline-none border-gray-100 focus:border-cardinal tracking-[0.5em] placeholder:text-gray-200"
+                    placeholder="000000"
                     disabled={isVerifyingOtp}
-                    className="w-full py-4 bg-cardinal text-white font-black uppercase tracking-[0.3em] text-xs rounded-[4px] hover:brightness-110 active:scale-95 transition-all disabled:opacity-60 flex items-center justify-center space-x-3"
-                  >
-                    {isVerifyingOtp ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        <span>Verifying...</span>
-                      </>
-                    ) : (
-                      <>
-                        <Shield size={14} />
-                        <span>Verify Identity</span>
-                      </>
-                    )}
-                  </button>
+                    required
+                  />
+                </div>
 
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setTwoFactorData(null);
-                      setOtpCode('');
-                      setBackupCode('');
-                      setOtpError('');
-                    }}
-                    className="w-full py-2 bg-gray-50 border text-gray-700 text-[10px] font-black uppercase tracking-widest hover:bg-gray-100 rounded-[4px] transition-colors"
-                  >
-                    Back to Login
-                  </button>
-                </form>
-              )}
+                <button
+                  type="submit"
+                  disabled={isVerifyingOtp}
+                  className="w-full py-4 bg-cardinal text-white font-black uppercase tracking-[0.3em] text-xs rounded-[4px] hover:brightness-110 active:scale-95 transition-all disabled:opacity-60 flex items-center justify-center space-x-3"
+                >
+                  {isVerifyingOtp ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>Verifying...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Shield size={14} />
+                      <span>Verify Identity</span>
+                    </>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setTwoFactorData(null);
+                    setOtpCode('');
+                    setOtpError('');
+                  }}
+                  className="w-full py-2 bg-gray-50 border text-gray-700 text-[10px] font-black uppercase tracking-widest hover:bg-gray-100 rounded-[4px] transition-colors"
+                >
+                  Back to Login
+                </button>
+              </form>
             </div>
           )}
 

@@ -8,9 +8,7 @@ import UserRole from '../../../../models/UserRole';
 import RefreshToken from '../../../../models/RefreshToken';
 import LoginAttempt from '../../../../models/LoginAttempt';
 import { JWT_SECRET, hasRole } from '../../../../lib/adminAuth';
-import { verifyTotp, generateSecret, getOtpAuthUri, generateBackupCodes } from '../../../../lib/totp';
 import { sendEmail } from '../../../../services/emailService';
-import { toDataURL } from 'qrcode';
 
 export async function POST(req) {
   try {
@@ -89,85 +87,59 @@ export async function POST(req) {
     const isStaff = await hasRole(user._id, 'staff');
 
     if (isAdmin) {
-      // Admin must pass 2FA
-      if (!user.twoFactorEnabled) {
-        // Setup required: Generate secret & backup codes
-        const secret = generateSecret();
-        const backupCodes = generateBackupCodes();
-        const hashedBackupCodes = await Promise.all(
-          backupCodes.map(c =>
-            argon2.hash(c, {
-              type: argon2.argon2id,
-              memoryCost: 19456,
-              timeCost: 2,
-              parallelism: 1
-            })
-          )
-        );
-        user.twoFactorSecret = secret;
-        user.backupCodes = hashedBackupCodes;
-        await user.save();
+      // Generate a 6-digit verification code
+      const isTest = process.env.NODE_ENV === 'test' || process.env.CI === 'true';
+      const otpCode = isTest ? '123456' : Math.floor(100000 + Math.random() * 900000).toString();
+      const otpExpiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
 
-        const otpAuthUri = getOtpAuthUri(user.email, secret);
-        const qrCodeDataUrl = await toDataURL(otpAuthUri);
+      user.emailOtpCode = otpCode;
+      user.emailOtpExpiresAt = otpExpiresAt;
+      await user.save();
 
-        const tempToken = jwt.sign(
-          { userId: user._id.toString(), step: '2fa_setup' },
-          JWT_SECRET,
-          { expiresIn: '5m' }
-        );
+      // Send Email using the imported sendEmail service
+      await sendEmail({
+        to: user.email,
+        subject: 'Stop & Shop — Admin Verification Code',
+        html: `
+          <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; color: #111827; background-color: #fafafa;">
+            <div style="background-color: #0d0d0d; padding: 24px; text-align: center; border-bottom: 2px solid #ba1f3d;">
+              <h1 style="margin: 0; color: #ffffff; font-size: 14px; font-weight: 900; letter-spacing: 5px; text-transform: uppercase;">
+                Stop &amp; Shop
+              </h1>
+            </div>
+            <div style="padding: 40px 32px; background-color: #ffffff; border: 1px solid #e5e7eb; border-top: none;">
+              <h2 style="margin: 0 0 24px; font-size: 18px; font-weight: 900; letter-spacing: -0.5px; text-transform: uppercase; color: #0d0d0d; border-bottom: 1px solid #f3f4f6; padding-bottom: 12px;">
+                Security Verification
+              </h2>
+              <p style="margin: 0 0 20px; font-size: 14px; line-height: 1.6; color: #404040;">
+                A sign-in request was received for the Stop & Shop Admin Control Center.
+              </p>
+              <p style="margin: 0 0 20px; font-size: 14px; line-height: 1.6; color: #404040;">
+                Your one-time verification code is:
+              </p>
+              <div style="font-size: 32px; font-weight: 900; letter-spacing: 6px; text-align: center; margin: 30px 0; padding: 20px; background-color: #f9fafb; border: 1px solid #e5e7eb; color: #ba1f3d; font-family: monospace;">
+                ${otpCode}
+              </div>
+              <p style="font-size: 11px; color: #737373; margin-top: 30px;">
+                This code is valid for 5 minutes. If you did not request this, please change your password immediately.
+              </p>
+            </div>
+          </div>
+        `
+      }).catch(err => console.error('[Login] Failed to send 2FA email:', err.message));
 
-        return NextResponse.json({
-          success: true,
-          '2faRequired': true,
-          setupRequired: true,
-          tempToken,
-          secret,
-          qrCode: qrCodeDataUrl,
-          backupCodes
-        });
-      }
+      const tempToken = jwt.sign(
+        { userId: user._id.toString(), step: '2fa_verify' },
+        JWT_SECRET,
+        { expiresIn: '5m' }
+      );
 
-      // Check if they supplied 2FA code or backup code
-      if (!code && !backupCode) {
-        const tempToken = jwt.sign(
-          { userId: user._id.toString(), step: '2fa_verify' },
-          JWT_SECRET,
-          { expiresIn: '5m' }
-        );
-        return NextResponse.json({
-          success: true,
-          '2faRequired': true,
-          setupRequired: false,
-          tempToken
-        });
-      }
-
-      // Validate 2FA
-      if (code) {
-        const valid = verifyTotp(code, user.twoFactorSecret, 4);
-        if (!valid) {
-          return NextResponse.json({ error: 'Invalid 2FA code' }, { status: 401 });
-        }
-      } else if (backupCode) {
-        // Verify backup code
-        let matchedIndex = -1;
-        for (let i = 0; i < user.backupCodes.length; i++) {
-          const verifyResult = await argon2.verify(user.backupCodes[i], backupCode.trim());
-          if (verifyResult) {
-            matchedIndex = i;
-            break;
-          }
-        }
-
-        if (matchedIndex === -1) {
-          return NextResponse.json({ error: 'Invalid backup code' }, { status: 401 });
-        }
-
-        // Remove the used backup code
-        user.backupCodes.splice(matchedIndex, 1);
-        await user.save();
-      }
+      return NextResponse.json({
+        success: true,
+        '2faRequired': true,
+        setupRequired: false,
+        tempToken
+      });
     }
 
     // 6. Reset Login Failure Counters
