@@ -174,7 +174,16 @@ export function useOrders() {
  * javascript-pro: Promise.all coordination + unified error handling.
  */
 export function useDashboardStats() {
-  const fetchAllStats = useCallback(async () => {
+  const fetchAllStats = useCallback(async ({ bustCache = false } = {}) => {
+    // Optionally bust the server-side cache so Redis stale data is cleared
+    if (bustCache) {
+      try {
+        await authFetch(apiUrl('/api/admin/cache/bust'), { method: 'POST' });
+      } catch {
+        // Non-fatal: proceed even if cache bust fails
+      }
+    }
+
     const [revRes, ordRes, invRes] = await Promise.all([
       authFetch(apiUrl('/api/stats/revenue')),
       authFetch(apiUrl('/api/stats/orders')),
@@ -195,9 +204,13 @@ export function useDashboardStats() {
   }, []);
 
   const [state, { execute: refetch }] = useAsync(fetchAllStats);
+
+  // Initial load — bust cache to get fresh data on first visit
   useEffect(() => {
-    refetch().catch(() => {});
+    refetch({ bustCache: true }).catch(() => {});
   }, [refetch]);
+
+  const hardRefetch = useCallback(() => refetch({ bustCache: true }), [refetch]);
 
   return {
     revenue: state.data?.revenue,
@@ -205,9 +218,10 @@ export function useDashboardStats() {
     inventory: state.data?.inventory,
     loading: state.loading,
     error: state.error,
-    refetch,
+    refetch: hardRefetch,
   };
 }
+
 
 export function useRevenueStats() {
   const fetchRevenue = useCallback(async () => {

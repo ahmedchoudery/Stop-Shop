@@ -10,99 +10,87 @@ export const GET = withRoute({
       return cached;
     }
 
-    const thirtyDaysAgo = new Date();
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    const now = new Date();
+    const yesterday    = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const dayBefore    = new Date(now.getTime() - 48 * 60 * 60 * 1000);
 
-    const orders = await Order.find({
-      status: { $nin: ['Cancelled', 'Failed'] },
-      createdAt: { $gte: thirtyDaysAgo }
-    })
-      .select('total salesChannel createdAt')
-      .lean();
+    // Build per-day buckets for the last 7 days (keyed by YYYY-MM-DD in UTC)
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-    // 1. Total & Daily Revenue
-    let totalRevenue = 0;
-    const dailyMap = new Map();
+    const [[result], [yesterdayResult], [dayBeforeResult], weeklyRaw] = await Promise.all([
+      Order.aggregate([
+        { $match: { status: { $nin: ['Cancelled', 'Failed', 'Refunded'] } } },
+        { $group: { _id: null, totalRevenue: { $sum: '$total' }, totalOrders: { $sum: 1 } } },
+      ]),
+      Order.aggregate([
+        { $match: { status: { $nin: ['Cancelled', 'Failed', 'Refunded'] }, createdAt: { $gte: yesterday } } },
+        { $group: { _id: null, revenue: { $sum: '$total' } } },
+      ]),
+      Order.aggregate([
+        { $match: { status: { $nin: ['Cancelled', 'Failed', 'Refunded'] }, createdAt: { $gte: dayBefore, $lt: yesterday } } },
+        { $group: { _id: null, revenue: { $sum: '$total' } } },
+      ]),
+      // Group by calendar date (YYYY-MM-DD) to avoid ISO weekday number ambiguity
+      Order.aggregate([
+        { $match: { status: { $nin: ['Cancelled', 'Failed', 'Refunded'] }, createdAt: { $gte: sevenDaysAgo } } },
+        {
+          $group: {
+            _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+            revenue: { $sum: '$total' },
+            orders:  { $sum: 1 },
+          },
+        },
+        { $sort: { _id: 1 } },
+        { $project: { dateStr: '$_id', revenue: 1, orders: 1, _id: 0 } },
+      ]),
+    ]);
 
-    // Preset last 30 days with 0
-    for (let i = 29; i >= 0; i--) {
-      const d = new Date();
-      d.setDate(d.getDate() - i);
-      const dateStr = d.toISOString().split('T')[0];
-      dailyMap.set(dateStr, 0);
+    const totalRevenue = result?.totalRevenue ?? 0;
+    const yesterdayRev = yesterdayResult?.revenue ?? 0;
+    const dayBeforeRev = dayBeforeResult?.revenue ?? 0;
+    const trend        = dayBeforeRev > 0 ? ((yesterdayRev - dayBeforeRev) / dayBeforeRev) * 100 : 0;
+
+    // Build a 7-day window: today and the 6 days before it
+    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+    // Map YYYY-MM-DD → { revenue, orders }
+    const dateMap = {};
+    for (const row of weeklyRaw) {
+      dateMap[row.dateStr] = { revenue: row.revenue, orders: row.orders };
     }
 
-    // Accumulate
-    for (const order of orders) {
-      totalRevenue += order.total;
-      const dateStr = new Date(order.createdAt).toISOString().split('T')[0];
-      if (dailyMap.has(dateStr)) {
-        dailyMap.set(dateStr, dailyMap.get(dateStr) + order.total);
-      }
+    // Build 7 day slots from sevenDaysAgo to today inclusive
+    const weeklyData = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+      const dateStr = d.toISOString().slice(0, 10); // YYYY-MM-DD
+      const dayName = DAY_NAMES[d.getUTCDay()];
+      const match = dateMap[dateStr];
+      weeklyData.push({
+        day: dayName,
+        revenue: match?.revenue ?? 0,
+        orders: match?.orders ?? 0,
+      });
     }
 
-    const dailyRevenue = Array.from(dailyMap.entries()).map(([date, amount]) => ({
-      date,
-      amount,
-    }));
-
-    // 2. Sales Channel Breakdown
-    const channelMap = new Map();
-    for (const order of orders) {
-      const channel = order.salesChannel || 'Web';
-      channelMap.set(channel, (channelMap.get(channel) || 0) + order.total);
+    // Channel-segmented revenue (Web vs POS)
+    const channelRaw = await Order.aggregate([
+      { $match: { status: { $nin: ['Cancelled', 'Failed', 'Refunded'] } } },
+      { $group: {
+        _id: { $ifNull: ['$salesChannel', 'Web'] },
+        revenue: { $sum: '$total' },
+        orders: { $sum: 1 },
+      }},
+    ]);
+    const channelData = {};
+    for (const ch of channelRaw) {
+      channelData[ch._id] = { revenue: ch.revenue, orders: ch.orders };
     }
 
-    const channels = Array.from(channelMap.entries()).map(([name, value]) => ({
-      name,
-      value,
-    }));
+    const responseBody = { totalRevenue, trend, weeklyData, channelData };
 
-    // 3. Weekly Revenue
-    const weeklyMap = new Map();
-    const dayNames = {
-      0: 'Sunday',
-      1: 'Monday',
-      2: 'Tuesday',
-      3: 'Wednesday',
-      4: 'Thursday',
-      5: 'Friday',
-      6: 'Saturday',
-    };
-
-    // Initialize days of week
-    for (let i = 0; i < 7; i++) {
-      const dayName = Reflect.get(dayNames, i.toString());
-      weeklyMap.set(dayName, 0);
-    }
-
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-    for (const order of orders) {
-      const orderDate = new Date(order.createdAt);
-      if (orderDate >= sevenDaysAgo) {
-        const dayOfWeek = orderDate.getDay();
-        const dayName = Reflect.get(dayNames, dayOfWeek.toString());
-        if (weeklyMap.has(dayName)) {
-          weeklyMap.set(dayName, weeklyMap.get(dayName) + order.total);
-        }
-      }
-    }
-
-    const weeklyRevenue = Array.from(weeklyMap.entries()).map(([day, amount]) => ({
-      day,
-      amount,
-    }));
-
-    const responseBody = {
-      totalRevenue,
-      dailyRevenue,
-      channels,
-      weeklyRevenue,
-    };
-
-    await cacheService.set(CACHE_KEYS.STATS_REVENUE, responseBody, 600); // 10 minutes cache
+    await cacheService.set(CACHE_KEYS.STATS_REVENUE, responseBody, 60); // 1 minute cache
 
     return responseBody;
   }

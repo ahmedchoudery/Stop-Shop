@@ -10,44 +10,25 @@ export const GET = withRoute({
       return cached;
     }
 
-    const products = await Product.find({})
-      .select('id name price discount quantity sizeStock colorStock variantMatrix bucket subCategory')
-      .lean();
+    const [total, lowStock, outOfStock, rawProducts] = await Promise.all([
+      Product.countDocuments(),
+      Product.countDocuments({ quantity: { $gt: 0, $lte: 5 } }),
+      Product.countDocuments({ quantity: 0 }),
+      Product.find({}, { id: 1, name: 1, quantity: 1, bucket: 1, stock: 1 }).lean(),
+    ]);
 
-    let totalItems = 0;
-    let outOfStock = 0;
-    let lowStock = 0;
+    const inStock = total - outOfStock;
 
-    const items = products.map((p) => {
-      const stock = p.quantity ?? 0;
-      totalItems += stock;
-      if (stock === 0) outOfStock++;
-      else if (stock < 5) lowStock++;
+    // Normalize each product — use quantity field (stock and quantity should match)
+    const products = rawProducts.map(p => ({
+      ...p,
+      _id: p._id?.toString() || null,
+      quantity: p.quantity ?? p.stock ?? 0,
+    }));
 
-      return {
-        id: p.id,
-        name: p.name,
-        stock,
-        category: p.bucket || 'Tops',
-        price: p.price,
-      };
-    });
+    const responseBody = { total, inStock, lowStock, outOfStock, products };
 
-    const totalProducts = products.length;
-    const outOfStockRate = totalProducts > 0 ? (outOfStock / totalProducts) * 100 : 0;
-
-    const responseBody = {
-      summary: {
-        totalProducts,
-        totalItems,
-        outOfStock,
-        lowStock,
-        outOfStockRate,
-      },
-      items,
-    };
-
-    await cacheService.set(CACHE_KEYS.STATS_INVENTORY, responseBody, 300); // 5 minutes cache
+    await cacheService.set(CACHE_KEYS.STATS_INVENTORY, responseBody, 60); // 1 minute cache
 
     return responseBody;
   }

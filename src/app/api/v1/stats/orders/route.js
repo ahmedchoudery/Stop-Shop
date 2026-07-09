@@ -2,14 +2,29 @@ import { withRoute } from '@/lib/api/withRoute';
 import Order from '@/models/Order';
 import { cacheService, CACHE_KEYS } from '@/services/cacheService';
 
+// Statuses that mean an order hasn't been shipped/delivered yet
+const AWAITING_FULFILLMENT_STATUSES = ['Pending', 'Processing', 'Confirmed'];
+
 export const GET = withRoute({
-  requiredRole: 'admin',
+  requiredRole: 'staff',
   handler: async () => {
     const data = await cacheService.getOrSet(CACHE_KEYS.STATS_ORDERS, async () => {
       const counts = await Order.aggregate([{ $group: { _id: '$status', count: { $sum: 1 } } }]);
+      const byStatus = counts.reduce((acc, c) => ({ ...acc, [c._id]: c.count }), {});
       const totalOrders = counts.reduce((acc, c) => acc + c.count, 0);
-      const pendingOrders = counts.find(c => c._id === 'Pending')?.count ?? 0;
-      return { totalOrders, pendingOrders, counts: counts.reduce((acc, c) => ({ ...acc, [c._id]: c.count }), {}) };
+
+      // Awaiting fulfillment = all orders not yet shipped or delivered
+      const awaitingFulfillment = AWAITING_FULFILLMENT_STATUSES.reduce(
+        (acc, status) => acc + (byStatus[status] ?? 0),
+        0
+      );
+
+      return {
+        totalOrders,
+        pendingOrders: awaitingFulfillment,   // UI shows this as "awaiting fulfillment"
+        awaitingFulfillment,
+        counts: byStatus,
+      };
     });
 
     return data;
