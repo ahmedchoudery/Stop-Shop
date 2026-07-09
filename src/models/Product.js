@@ -54,17 +54,27 @@ const productSchema = new mongoose.Schema({
   discount:        { type: Number, default: 0, min: 0, max: 100 },
   description:     { type: String, default: '' },
   careInstructions: { type: String, default: '' },
+  slug:             { type: String, unique: true, sparse: true, index: true },
+  categories:       [{ type: String, index: true }],
 }, { timestamps: true, versionKey: false, autoIndex: true });
 
 productSchema.index({ bucket: 1, createdAt: -1 });
 productSchema.index({ createdAt: -1 });
 productSchema.index({ featuredSection: 1, displayOrder: 1 });
+productSchema.index({ slug: 1 }, { unique: true });
+productSchema.index({ categories: 1 });
 
 /**
- * Compute total stock from the appropriate source (priority: matrix > colorStock > sizeStock > manual).
- * This hook runs on .save() — PATCH route manually mirrors this logic.
+ * Compute total stock and slug from the appropriate source.
  */
-productSchema.pre('save', function syncStock() {
+productSchema.pre('save', function syncStockAndSlug() {
+  if (this.name && !this.slug) {
+    this.slug = this.name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)+/g, '') + '-' + (this.id || Math.random().toString(36).substring(2, 7));
+  }
+
   const matrixValues = this.variantMatrix instanceof Map
     ? [...this.variantMatrix.values()]
     : Object.values(this.variantMatrix ?? {});

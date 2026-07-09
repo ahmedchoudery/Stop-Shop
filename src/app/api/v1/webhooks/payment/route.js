@@ -18,7 +18,9 @@ function safeCompare(a, b) {
   return crypto.timingSafeEqual(aBuf, bBuf);
 }
 
-export const POST = withRoute({
+import { withIdempotency } from '@/utils/idempotency.js';
+
+export const POST = withIdempotency(withRoute({
   requiredRole: 'public',
   schema: {
     body: z.object({
@@ -86,4 +88,5 @@ export const POST = withRoute({
 
     return { received: true, orderID: orderDoc.orderID, status: orderDoc.status };
   }
-});
+}));
+

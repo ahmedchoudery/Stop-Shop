@@ -210,4 +210,16 @@ const close = async () => {
   }
 };
 
-export const cacheService = { get, set, del, invalidateMany, getOrSet, close };
+const getStatus = async () => {
+  const redis = getClient();
+  if (!redis) return 'stateless_memory';
+  try {
+    const pong = await redis.ping();
+    return pong === 'PONG' ? 'connected' : `unexpected_response: ${pong}`;
+  } catch (err) {
+    return `disconnected: ${err.message}`;
+  }
+};
+
+export const cacheService = { get, set, del, invalidateMany, getOrSet, close, getStatus };
+

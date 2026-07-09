@@ -2,6 +2,9 @@ import { withRoute } from '@/lib/api/withRoute';
 import Order from '@/models/Order';
 import Product from '@/models/Product';
 import { z } from 'zod';
+import { POST as checkoutPOST } from '../checkout/route.js';
+
+export const POST = checkoutPOST;
 
 export const GET = withRoute({
   requiredRole: 'staff',
@@ -53,3 +56,4 @@ export const GET = withRoute({
     });
   }
 });
+

@@ -7,6 +7,15 @@ import { getAdminFromToken, hasRole } from '../adminAuth';
 import jwt from 'jsonwebtoken';
 import { CUSTOMER_JWT_SECRET } from '../adminAuth';
 import type { ApiErrorCode, AuthenticatedUser } from './types';
+// @ts-ignore
+import logger from '../../utils/logger.js';
+
+// @ts-ignore
+const pinoLogger = logger;
+
+
+
+export const withSentry = Sentry.wrapRouteHandlerWithSentry;
 
 export class ApiError extends Error {
   constructor(
@@ -50,7 +59,7 @@ function getCustomerFromToken(req: any): { id: string; email: string; name: stri
       email: decoded.email,
       name: decoded.name || decoded.email.split('@')[0],
     };
-  } catch (error) {
+  } catch {
     return null;
   }
 }
@@ -58,51 +67,55 @@ function getCustomerFromToken(req: any): { id: string; email: string; name: stri
 export function withRoute<TBody = any, TQuery = any, TParams = any>(
   config: RouteConfig<TBody, TQuery, TParams>
 ) {
-  return async (req: NextRequest, context: { params: any } = { params: {} }) => {
+  const handler = async (req: NextRequest, context: { params: any } = { params: {} }) => {
     // Defensive polyfill for request objects in test/mock environments
     let localReq: any = req;
     if (!localReq) {
-      localReq = { url: 'http://localhost', method: 'GET' };
+      localReq = {
+        url: 'http://localhost',
+        method: 'GET',
+        headers: { get: () => null },
+        cookies: { get: () => null }
+      };
     }
     if (!localReq.url) {
-      localReq = { ...localReq, url: 'http://localhost' };
+      localReq.url = 'http://localhost';
     }
     if (!localReq.method) {
-      localReq = { ...localReq, method: 'GET' };
+      localReq.method = 'GET';
     }
     if (!localReq.headers || typeof localReq.headers.get !== 'function') {
       const rawHeaders = localReq.headers || {};
-      localReq = {
-        ...localReq,
-        headers: {
-          get: (name: string) => {
-            return rawHeaders[name] || rawHeaders[name.toLowerCase()] || null;
-          }
+      localReq.headers = {
+        get: (name: string) => {
+          return rawHeaders[name] || rawHeaders[name.toLowerCase()] || null;
         }
       };
     }
     if (!localReq.cookies || typeof localReq.cookies.get !== 'function') {
       const rawCookies = localReq.cookies || {};
-      localReq = {
-        ...localReq,
-        cookies: {
-          get: (name: string) => {
-            const val = rawCookies[name];
-            return val ? { value: val } : null;
-          }
+      localReq.cookies = {
+        get: (name: string) => {
+          const val = rawCookies[name];
+          return val ? { value: val } : null;
         }
       };
     }
 
+
     const requestId = localReq.headers.get('x-request-id') || crypto.randomUUID();
-    
+    const startTime = Date.now();
+    let authUser: AuthenticatedUser | null = null;
+    let status = 200;
+
+    // Propagate x-request-id to Sentry Scope tags
+    Sentry.getCurrentScope().setTag('requestId', requestId);
+
     try {
       // 1. Database connection check/establish
       await dbConnect();
 
       // 2. Authentication & Authorization
-      let authUser: AuthenticatedUser | null = null;
-
       if (config.requiredRole && config.requiredRole !== 'public') {
         if (config.requiredRole === 'customer') {
           const customer = getCustomerFromToken(localReq);
@@ -164,6 +177,10 @@ export function withRoute<TBody = any, TQuery = any, TParams = any>(
         }
       }
 
+      if (authUser) {
+        Sentry.setUser({ id: authUser.id, email: authUser.email });
+      }
+
       // 3. Validation
       let validatedBody: any = undefined;
       let validatedQuery: any = undefined;
@@ -199,13 +216,14 @@ export function withRoute<TBody = any, TQuery = any, TParams = any>(
         let rawBody: any = null;
         try {
           rawBody = await localReq.json();
-        } catch (e) {
+        } catch {
           throw new ApiError('VALIDATION', 'Malformed request body', 400);
         }
 
+
+
         const result = config.schema.body.safeParse(rawBody);
         if (!result.success) {
-          // If Zod validation failed, extract the first error message for user-friendly default message
           const fieldErrors = result.error.flatten().fieldErrors as Record<string, string[] | undefined>;
           const firstErrField = Object.keys(fieldErrors)[0];
           const firstErrMsg = (firstErrField && fieldErrors[firstErrField]?.[0]) || 'Invalid request body';
@@ -224,17 +242,22 @@ export function withRoute<TBody = any, TQuery = any, TParams = any>(
         requestId,
       });
 
-      // If handler returned a Response/NextResponse, return it directly
+      let response: Response;
       if (result instanceof Response) {
-        return result;
+        response = result;
+      } else {
+        response = NextResponse.json(result);
       }
 
-      // Otherwise wrap it in NextResponse.json
-      return NextResponse.json(result);
+      status = response.status;
+      response.headers.set('x-request-id', requestId);
+      return response;
 
     } catch (error: any) {
+      let response: Response;
       if (error instanceof ApiError) {
-        return NextResponse.json(
+        status = error.status;
+        response = NextResponse.json(
           {
             error: {
               code: error.code,
@@ -243,28 +266,54 @@ export function withRoute<TBody = any, TQuery = any, TParams = any>(
               ...(error.details ? { details: error.details } : {}),
             },
           },
-          { status: error.status, headers: { 'x-request-id': requestId } }
+          { status: error.status }
+        );
+      } else {
+        status = 500;
+        // Capture unexpected internal exceptions to Sentry
+        Sentry.withScope((scope) => {
+          scope.setTag('requestId', requestId);
+          Sentry.captureException(error);
+        });
+
+        console.error(`[API Error] Request ${requestId} failed:`, error);
+
+        response = NextResponse.json(
+          {
+            error: {
+              code: 'INTERNAL',
+              message: 'An unexpected error occurred. Please try again later.',
+              requestId,
+            },
+          },
+          { status: 500 }
         );
       }
 
-      // Capture unexpected internal exceptions to Sentry
-      Sentry.withScope((scope) => {
-        scope.setTag('requestId', requestId);
-        Sentry.captureException(error);
-      });
-
-      console.error(`[API Error] Request ${requestId} failed:`, error);
-
-      return NextResponse.json(
-        {
-          error: {
-            code: 'INTERNAL',
-            message: 'An unexpected error occurred. Please try again later.',
-            requestId,
-          },
-        },
-        { status: 500, headers: { 'x-request-id': requestId } }
-      );
+      response.headers.set('x-request-id', requestId);
+      return response;
+    } finally {
+      const durationMs = Date.now() - startTime;
+      const routePath = localReq.nextUrl?.pathname || new URL(localReq.url).pathname;
+      
+      // Structured JSON logging (pino) — exactly one log line per request
+      pinoLogger.info({
+        requestId,
+        userId: authUser?.id || null,
+        route: routePath,
+        status,
+        durationMs,
+      }, `Request: ${localReq.method} ${routePath} - Status ${status} - ${durationMs}ms`);
     }
   };
+
+  if (process.env.NODE_ENV === 'test' || process.env.VITEST) {
+    return handler;
+  }
+
+  return Sentry.wrapRouteHandlerWithSentry(handler, {
+    method: 'GET',
+    parameterizedRoute: 'unknown'
+  });
 }
+

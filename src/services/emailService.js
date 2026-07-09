@@ -3,6 +3,7 @@ import mongoose from 'mongoose';
 import Product from '../models/Product.js';
 import Coupon from '../models/Coupon.js';
 import { withRetry } from '../utils/retry.js';
+import EmailOutbox from '../models/EmailOutbox.js';
 
 const getEnv = (...keys) => {
   for (const k of keys) {
@@ -152,6 +153,19 @@ export const sendEmail = async (options) => {
       (!isVitest && (process.env.NODE_ENV === 'test' || process.env.CI === 'true'))
     ) {
       console.info(`ℹ️ [Email] Suppressing dispatch to dummy/testing address: ${options.to}`);
+      return;
+    }
+
+    if (options.session) {
+      await EmailOutbox.create([{
+        to: options.to,
+        subject: options.subject,
+        html: options.html,
+        text: options.text || '',
+        status: 'pending',
+        attempts: 0
+      }], { session: options.session });
+      console.info(`📧 [Outbox] Email queued to outbox for ${options.to}`);
       return;
     }
 
@@ -416,7 +430,7 @@ https://stop-shop-gamma.vercel.app/admin/inventory
 /**
  * Sends a detailed order confirmation email to the customer with schema markup.
  */
-export const sendOrderConfirmationEmail = async (order) => {
+export const sendOrderConfirmationEmail = async (order, session = null) => {
   const customerEmail = order?.customer?.email;
   if (!customerEmail) return;
 
@@ -537,8 +551,11 @@ export const sendOrderConfirmationEmail = async (order) => {
       from: `"Stop & Shop" <${getEnv('EMAIL_USER', 'email_user')}>`,
       subject,
       html,
+      session,
     });
-    console.info(`📧 [OrderConfirmation] Confirmation email sent to ${customerEmail}`);
+    if (!session) {
+      console.info(`📧 [OrderConfirmation] Confirmation email sent to ${customerEmail}`);
+    }
   } catch (err) {
     console.error('[OrderConfirmation] Email failed:', err.message);
   }
@@ -909,7 +926,7 @@ export const sendAdminOrderStatusNotification = async (order, status) => {
 /**
  * Sends a notification summary to the Admin when a new order is placed successfully.
  */
-export const sendAdminNewOrderNotification = async (order) => {
+export const sendAdminNewOrderNotification = async (order, session = null) => {
   try {
     const adminEmail = process.env.ADMIN_EMAIL || getEnv('EMAIL_USER');
     if (!adminEmail) return;
@@ -944,8 +961,11 @@ export const sendAdminNewOrderNotification = async (order) => {
       to: adminEmail,
       subject,
       html,
+      session,
     });
-    console.info(`📧 [AdminNewOrder] Admin notification sent to ${adminEmail}`);
+    if (!session) {
+      console.info(`📧 [AdminNewOrder] Admin notification sent to ${adminEmail}`);
+    }
   } catch (err) {
     console.error('[AdminNewOrder] Failed:', err.message);
   }
@@ -1024,3 +1044,39 @@ export const sendOrderFailedEmail = async (order, reason = 'Payment declined by 
     console.error('[OrderFailed] Email trigger failed:', err.message);
   }
 };
+
+export const processOutbox = async () => {
+  try {
+    const pending = await EmailOutbox.find({
+      $or: [
+        { status: 'pending' },
+        { status: 'failed', attempts: { $lt: 3 } }
+      ]
+    }).limit(10);
+
+    for (const email of pending) {
+      email.status = 'sending';
+      await email.save();
+      try {
+        await sendEmail({
+          to: email.to,
+          subject: email.subject,
+          html: email.html,
+          text: email.text
+        });
+        email.status = 'sent';
+        await email.save();
+        console.log(`📧 [Outbox] Successfully processed email outbox entry ${email._id} to ${email.to}`);
+      } catch (err) {
+        email.status = 'failed';
+        email.error = err.message;
+        email.attempts += 1;
+        await email.save();
+        console.error(`📧 [Outbox] Failed processing email outbox entry ${email._id}:`, err.message);
+      }
+    }
+  } catch (err) {
+    console.error('[Outbox Processor] Error processing outbox:', err.message);
+  }
+};
+

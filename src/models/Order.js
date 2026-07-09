@@ -94,6 +94,7 @@ const orderSchema = new mongoose.Schema({
     processedBy:   { type: String, default: '' },        // Admin email
     processedAt:   { type: Date, default: Date.now },
   }],
+  userId:          { type: mongoose.Schema.Types.ObjectId, ref: 'User', index: true },
 }, { timestamps: true, versionKey: false });
 
 orderSchema.index({ status: 1, createdAt: -1 });
@@ -101,6 +102,9 @@ orderSchema.index({ 'customer.email': 1 });
 orderSchema.index({ orderID: 1, createdAt: -1 });
 orderSchema.index({ createdAt: -1 });
 orderSchema.index({ salesChannel: 1, createdAt: -1 });
+orderSchema.index({ userId: 1, createdAt: -1 });
+orderSchema.index({ status: 1, createdAt: 1 });
+
 
 const Order = mongoose.models.Order || mongoose.model('Order', orderSchema);
 

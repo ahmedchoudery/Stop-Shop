@@ -1,5 +1,6 @@
 import { withRoute } from '@/lib/api/withRoute';
 import mongoose from 'mongoose';
+import { cacheService } from '@/services/cacheService';
 import { NextResponse } from 'next/server';
 
 export const GET = withRoute({
@@ -11,6 +12,8 @@ export const GET = withRoute({
     try {
       const readyState = mongoose.connection.readyState;
       if (readyState === 1) {
+        // Perform actual admin ping
+        await mongoose.connection.db.admin().ping();
         mongoStatus = 'connected';
         ok = true;
       } else {
@@ -20,9 +23,12 @@ export const GET = withRoute({
       mongoStatus = `error: ${err.message}`;
     }
 
+    const cacheStatus = await cacheService.getStatus();
+
     const responseBody = {
       ok,
       mongo: mongoStatus,
+      cache: cacheStatus,
       uptime: process.uptime(),
       buildSha: process.env.VERCEL_GIT_COMMIT_SHA || process.env.BUILD_SHA || 'development',
     };

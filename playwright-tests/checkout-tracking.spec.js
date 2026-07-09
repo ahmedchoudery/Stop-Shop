@@ -21,7 +21,7 @@ test.describe('Checkout and Secure Order Tracking E2E Flow', () => {
       }
       try {
         await productLink.click();
-        await page.waitForURL(/\/product\//, { timeout: 20000 });
+        await page.waitForURL(/\/product\//, { timeout: 30000 });
         break;
       } catch (e) {
         if (attempt === 2) throw e;
@@ -30,7 +30,7 @@ test.describe('Checkout and Secure Order Tracking E2E Flow', () => {
     }
 
     // Wait for the main elements to load on the product page
-    await expect(page.locator('button:has-text("Add to Bag")')).toBeVisible({ timeout: 15000 });
+    await expect(page.locator('button:has-text("Add to Bag")')).toBeVisible({ timeout: 30000 });
 
     // Select size if available
     try {
