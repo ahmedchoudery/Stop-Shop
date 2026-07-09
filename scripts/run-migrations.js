@@ -57,7 +57,9 @@ async function run() {
   console.log('Creating indexes on products...');
   try {
     await db.collection('products').dropIndex('slug_1');
-  } catch (e) {}
+  } catch (e) {
+    // Ignore if index doesn't exist
+  }
   await db.collection('products').createIndex({ slug: 1 }, { unique: true });
   await db.collection('products').createIndex({ categories: 1 });
 
@@ -65,17 +67,23 @@ async function run() {
   console.log('Creating index on inventories...');
   try {
     await db.collection('inventories').dropIndex('sku_1');
-  } catch (e) {}
+  } catch (e) {
+    // Ignore if index doesn't exist
+  }
   await db.collection('inventories').createIndex({ sku: 1 }, { unique: true });
 
   // users: email unique with case-insensitive collation
   console.log('Creating case-insensitive index on users...');
   try {
     await db.collection('users').dropIndex('email_1');
-  } catch (e) {}
+  } catch (e) {
+    // Ignore if index doesn't exist
+  }
   try {
     await db.collection('users').dropIndex('users_email_unique_ci');
-  } catch (e) {}
+  } catch (e) {
+    // Ignore if index doesn't exist
+  }
   
   await db.collection('users').createIndex(
     { email: 1 },
@@ -90,7 +98,9 @@ async function run() {
   console.log('Creating unique index on refreshtokens...');
   try {
     await db.collection('refreshtokens').dropIndex('tokenHash_1');
-  } catch (e) {}
+  } catch (e) {
+    // Ignore if index doesn't exist
+  }
   await db.collection('refreshtokens').createIndex({ tokenHash: 1 }, { unique: true });
 
   // auditlogs: actorUserId, at desc

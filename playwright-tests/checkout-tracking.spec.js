@@ -14,23 +14,12 @@ test.describe('Checkout and Secure Order Tracking E2E Flow', () => {
     const productLink = page.locator('article').first();
     await expect(productLink).toBeVisible();
 
-    // Click with retry to handle React hydration delays
-    for (let attempt = 0; attempt < 3; attempt++) {
-      if (page.url().includes('/product/')) {
-        break;
-      }
-      try {
-        await productLink.click();
-        await page.waitForURL(/\/product\//, { timeout: 30000 });
-        break;
-      } catch (e) {
-        if (attempt === 2) throw e;
-        await page.waitForTimeout(1000);
-      }
-    }
+    // Click and wait for navigation to product details page
+    await productLink.click();
+    await page.waitForURL(/\/product\//, { timeout: 60000 });
 
     // Wait for the main elements to load on the product page
-    await expect(page.locator('button:has-text("Add to Bag")')).toBeVisible({ timeout: 30000 });
+    await expect(page.locator('button:has-text("Add to Bag")')).toBeVisible({ timeout: 60000 });
 
     // Select size if available
     try {

@@ -53,7 +53,7 @@ jobs:
         run: npm install
 
       - name: Run unit tests
-        run: npm test
+        run: npm test -- --exclude src/test/idempotency.test.js
 
       - name: Upload coverage report
         if: always()
@@ -96,7 +96,7 @@ jobs:
           mongosh --host 127.0.0.1:27017 --eval 'rs.initiate({_id:"rs0",members:[{_id:0,host:"127.0.0.1:27017"}]})' || true
 
       - name: Run integration tests
-        run: npm test -- src/test/checkout.test.js
+        run: npm test -- src/test/checkout.test.js src/test/idempotency.test.js
 
   build-check:
     name: Build Verification

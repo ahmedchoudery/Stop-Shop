@@ -19,6 +19,9 @@ export default [
       'web-app-next/**',
       'src/types/**',
       'src/test/**',
+      'playwright-report/**',
+      'test-results/**',
+      'coverage/**',
     ],
   },
   {
