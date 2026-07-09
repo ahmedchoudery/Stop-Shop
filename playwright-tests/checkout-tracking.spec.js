@@ -4,7 +4,7 @@ test.describe('Checkout and Secure Order Tracking E2E Flow', () => {
 
   test('should complete a coupon-discounted checkout and track securely via email verification', async ({ page }) => {
     // Log browser messages for debugging
-    page.on('console', msg => console.log('PAGE LOG:', msg.text()));
+    page.on('console', msg => console.info('PAGE LOG:', msg.text()));
     page.on('pageerror', err => console.error('PAGE ERROR:', err.message));
     page.on('requestfailed', request => console.error('REQUEST FAILED:', request.url(), request.failure()?.errorText));
 
@@ -26,7 +26,7 @@ test.describe('Checkout and Secure Order Tracking E2E Flow', () => {
       const sizeButtons = page.locator('div:has(span:has-text("Select Size")) + div button');
       await sizeButtons.first().waitFor({ state: 'visible', timeout: 2000 });
       await sizeButtons.first().click();
-    } catch (e) {
+    } catch {
       // No size buttons found or timed out (product has no sizes)
     }
 
