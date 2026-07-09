@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { useDashboardStats } from '../hooks/useDomain.js';
 
@@ -14,6 +14,9 @@ vi.mock('../config/api.js', () => ({
 
 import { authFetch } from '../lib/auth.js';
 
+// Mock cache bust response — always resolves OK (non-fatal)
+const CACHE_BUST_OK = { ok: true, json: () => Promise.resolve({ success: true }) };
+
 describe('useDashboardStats Hook', () => {
   afterEach(() => {
     vi.restoreAllMocks();
@@ -24,11 +27,12 @@ describe('useDashboardStats Hook', () => {
     const mockOrders = { totalOrders: 75, pendingOrders: 5 };
     const mockInventory = { products: [{ id: '1', quantity: 10 }] };
 
-    // Parallel fetch returns mock values
+    // First call = cache bust, then parallel stats fetches
     authFetch
-      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(mockRevenue) })
-      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(mockOrders) })
-      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(mockInventory) });
+      .mockResolvedValueOnce(CACHE_BUST_OK)                                              // POST /api/admin/cache/bust
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(mockRevenue) })    // GET /api/stats/revenue
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(mockOrders) })     // GET /api/stats/orders
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve(mockInventory) }); // GET /api/stats/inventory
 
     const { result } = renderHook(() => useDashboardStats());
 
@@ -44,14 +48,21 @@ describe('useDashboardStats Hook', () => {
     expect(result.current.orders).toEqual(mockOrders);
     expect(result.current.inventory).toEqual(mockInventory);
     expect(result.current.error).toBeNull();
-    expect(authFetch).toHaveBeenCalledTimes(3);
+    // 1 cache bust + 3 stats fetches = 4 total calls
+    expect(authFetch).toHaveBeenCalledTimes(4);
+    expect(authFetch).toHaveBeenNthCalledWith(
+      1,
+      '/api/admin/cache/bust',
+      { method: 'POST' }
+    );
   });
 
   it('should capture failure and trigger unified error boundary if any query fails', async () => {
     authFetch
-      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({}) })
-      .mockResolvedValueOnce({ ok: false, status: 500 }) // orders fails
-      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({}) });
+      .mockResolvedValueOnce(CACHE_BUST_OK)                                              // POST /api/admin/cache/bust
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({}) })             // GET revenue — ok
+      .mockResolvedValueOnce({ ok: false, status: 500 })                                // GET orders — fails
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({}) });            // GET inventory — ok
 
     const { result } = renderHook(() => useDashboardStats());
 
