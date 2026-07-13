@@ -71,6 +71,7 @@ jobs:
         image: mongo:7
         ports:
           - 27017:27017
+        options: --replSet rs0
     env:
       MONGODB_URI: 'mongodb://127.0.0.1:27017/stopshop_test?replicaSet=rs0'
       MONGO_URL: 'mongodb://127.0.0.1:27017/stopshop_test?replicaSet=rs0'
@@ -93,7 +94,7 @@ jobs:
       - name: Initialize MongoDB replica set
         run: |
           sleep 5
-          mongosh --host 127.0.0.1:27017 --eval 'rs.initiate({_id:"rs0",members:[{_id:0,host:"127.0.0.1:27017"}]})' || true
+          docker exec $(docker ps -q --filter ancestor=mongo:7) mongosh --eval 'rs.initiate({_id:"rs0",members:[{_id:0,host:"127.0.0.1:27017"}]})'
 
       - name: Run integration tests
         run: npm test -- src/test/checkout.test.js src/test/idempotency.test.js
@@ -106,6 +107,7 @@ jobs:
         image: mongo:7
         ports:
           - 27017:27017
+        options: --replSet rs0
     env:
       MONGODB_URI: 'mongodb://127.0.0.1:27017/stopshop_test?replicaSet=rs0'
       MONGO_URL: 'mongodb://127.0.0.1:27017/stopshop_test?replicaSet=rs0'
@@ -128,7 +130,7 @@ jobs:
       - name: Initialize MongoDB replica set
         run: |
           sleep 5
-          mongosh --host 127.0.0.1:27017 --eval 'rs.initiate({_id:"rs0",members:[{_id:0,host:"127.0.0.1:27017"}]})' || true
+          docker exec $(docker ps -q --filter ancestor=mongo:7) mongosh --eval 'rs.initiate({_id:"rs0",members:[{_id:0,host:"127.0.0.1:27017"}]})'
 
       - name: Build frontend
         run: npm run build
@@ -141,6 +143,7 @@ jobs:
         image: mongo:7
         ports:
           - 27017:27017
+        options: --replSet rs0
     env:
       MONGODB_URI: 'mongodb://127.0.0.1:27017/stopshop_test?replicaSet=rs0'
       MONGO_URL: 'mongodb://127.0.0.1:27017/stopshop_test?replicaSet=rs0'
@@ -167,7 +170,7 @@ jobs:
       - name: Initialize MongoDB replica set
         run: |
           sleep 5
-          mongosh --host 127.0.0.1:27017 --eval 'rs.initiate({_id:"rs0",members:[{_id:0,host:"127.0.0.1:27017"}]})' || true
+          docker exec $(docker ps -q --filter ancestor=mongo:7) mongosh --eval 'rs.initiate({_id:"rs0",members:[{_id:0,host:"127.0.0.1:27017"}]})'
           sleep 3
 
       - name: Seed Database

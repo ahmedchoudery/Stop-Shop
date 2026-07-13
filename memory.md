@@ -22,20 +22,16 @@ This document tracks the current state of work, what tasks have been completed, 
 - **Playwright Test Fixes**: Improved DOM selectors, increased timeouts to 60s, and removed recursive click methods in E2E spec files.
 - **CI Transaction Support**: Appended the `?replicaSet=rs0` connection parameter to all MongoDB URIs in `.github/workflows/admin-ci.yml` to support transactions on GitHub Action runners.
 - **Self-Contained DB Tests**: Added dynamic mock product seeding inside `idempotency.test.js` to prevent database product-lookup exceptions on fresh MongoDB containers.
+- **CI Replica Set Initialization Fixes**: Configured GHA service containers with the `options: --replSet rs0` command argument and triggered `rs.initiate` inside the docker container service via `docker exec $(docker ps -q --filter ancestor=mongo:7) mongosh --eval '...'` during workflow execution. This guarantees transaction support runs flawlessly on GitHub Action environments.
+- **Mongoose Index Warning Cleanup**: Removed duplicate schema-level index declarations for `slug` and `categories` in `src/models/Product.js` to eliminate compilation warning logs.
 
 ---
 
 ## 2. What is Currently Being Worked On
-- **Documentation Vault Generation**: Creating the primary Obsidian documentation vault under the `docs/` folder (and copies at the project root) containing:
-  - `prd.md` (Project Requirements)
-  - `Architecture.md` (Flows and Tech Stack)
-  - `rules.md` (Code Guidelines and Visual Boundaries)
-  - `Phases.md` (Lifecycle Roadmap)
-  - `Design.md` (UI/UX System Design Brief)
-  - `memory.md` (Completed Tasks and Action Items log)
+- **CI Verification & Monitoring**: Verifying that the GHA checks succeed on commit push.
 
 ---
 
 ## 3. What is Planned Next
-- **CI Pipeline Monitoring**: Monitor the latest pushed commit `541d374` to verify that both `Integration Tests (MongoDB)` and `E2E Tests (Playwright)` pass successfully on GitHub Actions.
-- **Refinement & Enhancements**: Follow up on user specifications for upcoming feature drops.
+- **CI Pipeline Monitoring**: Monitor the newly pushed commit to verify all checks pass successfully.
+- **Feature Drops**: Align with the user on the next set of feature requests.

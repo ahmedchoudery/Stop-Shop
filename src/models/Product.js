@@ -61,8 +61,6 @@ const productSchema = new mongoose.Schema({
 productSchema.index({ bucket: 1, createdAt: -1 });
 productSchema.index({ createdAt: -1 });
 productSchema.index({ featuredSection: 1, displayOrder: 1 });
-productSchema.index({ slug: 1 }, { unique: true });
-productSchema.index({ categories: 1 });
 
 /**
  * Compute total stock and slug from the appropriate source.
