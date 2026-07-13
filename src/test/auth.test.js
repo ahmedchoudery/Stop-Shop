@@ -61,9 +61,10 @@ describe('Input Validation', () => {
   });
 
   it('should validate order ID format', () => {
-    const validateOrderID = (id) => /^ORD-[A-Z0-9]{9}$/.test(id);
+    const validateOrderID = (id) => /^(ORD-[A-Z0-9]{9}|STOP-\d{4}-\d{6})$/.test(id);
     
     expect(validateOrderID('ORD-ABC123XYZ')).toBe(true);
+    expect(validateOrderID('STOP-2026-000001')).toBe(true);
     expect(validateOrderID('ORD-123')).toBe(false);
     expect(validateOrderID('invalid')).toBe(false);
   });

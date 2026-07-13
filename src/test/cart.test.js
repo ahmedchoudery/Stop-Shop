@@ -209,12 +209,13 @@ describe('Stock validation', () => {
 // ─────────────────────────────────────────────────────────────────
 
 describe('Order ID format', () => {
-  const isValidOrderId = (id) => /^ORD-[A-Z0-9]+$/i.test(id ?? '');
+  const isValidOrderId = (id) => /^(ORD-[A-Z0-9]+|STOP-\d{4}-\d{6})$/i.test(id ?? '');
 
   it('accepts valid order IDs', () => {
     expect(isValidOrderId('ORD-ABC123XYZ')).toBe(true);
     expect(isValidOrderId('ORD-abc123xyz')).toBe(true);
     expect(isValidOrderId('ORD-M3K9L2P7Q1')).toBe(true);
+    expect(isValidOrderId('STOP-2026-000001')).toBe(true);
   });
 
   it('rejects invalid order IDs', () => {

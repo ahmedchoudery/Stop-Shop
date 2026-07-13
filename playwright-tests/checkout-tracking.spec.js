@@ -77,7 +77,7 @@ test.describe('Checkout and Secure Order Tracking E2E Flow', () => {
     const url = new URL(page.url());
     const orderID = url.searchParams.get('orderID');
     expect(orderID).not.toBeNull();
-    expect(orderID).toMatch(/^ORD-/);
+    expect(orderID).toMatch(/^(ORD-|STOP-)/);
 
     // 7. Go to the Order Tracking page
     await page.goto('/track');
@@ -90,7 +90,7 @@ test.describe('Checkout and Secure Order Tracking E2E Flow', () => {
     });
 
     // 8. Attempt tracking with an INCORRECT email (should fail)
-    await page.getByPlaceholder('ORD-XXXXXXXX').fill(orderID);
+    await page.getByPlaceholder(/^(ORD|STOP)-/i).fill(orderID);
     await page.getByPlaceholder('your-email@example.com').fill('wrong@example.com');
     await page.locator('button:has-text("Track Order")').click();
 

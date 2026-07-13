@@ -335,7 +335,7 @@ describe('Checkout flow — end-to-end logic', () => {
         status: 'Pending',
       };
 
-      expect(order.orderID).toMatch(/^ORD-/);
+      expect(order.orderID).toMatch(/^(ORD-|STOP-)/);
       expect(order.total).toBe(5500);
       expect(order.items[0].price).toBe(1500); // server-verified price
       expect(order.items[1].price).toBe(2500); // server-verified price

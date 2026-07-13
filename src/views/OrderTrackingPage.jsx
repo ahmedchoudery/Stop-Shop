@@ -198,7 +198,7 @@ const OrderSearchForm = ({ onSearch, loading, initialOrderId = '' }) => {
               type="text"
               value={orderID}
               onChange={e => setOrderID(e.target.value.toUpperCase())}
-              placeholder="ORD-XXXXXXXX"
+              placeholder="STOP-YYYY-XXXXXX"
               className="w-full bg-transparent pl-7 py-3.5 text-gray-900 font-black text-sm outline-none placeholder:text-gray-300 placeholder:font-normal tracking-widest uppercase"
               required
             />

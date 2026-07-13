@@ -17,8 +17,9 @@ export const GET = withRoute({
     const { orderID } = params;
     const { email } = query;
 
-    if (!orderID.toUpperCase().startsWith('ORD-')) {
-      throw new ApiError('VALIDATION', 'Invalid order ID format. Must start with ORD-', 400);
+    const upperId = orderID.toUpperCase();
+    if (!upperId.startsWith('ORD-') && !upperId.startsWith('STOP-')) {
+      throw new ApiError('VALIDATION', 'Invalid order ID format. Must start with ORD- or STOP-', 400);
     }
 
     if (!email) {
