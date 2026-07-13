@@ -34,6 +34,28 @@ describe('Idempotency Key Concurrent Race-Condition tests', () => {
     if (mongoose.connection.readyState === 0) {
       await mongoose.connect(uri, { dbName: 'stopshop' });
     }
+
+    const prdId = 'PRD-Z5KCUVEHE';
+    await Product.findOneAndUpdate(
+      { id: prdId },
+      {
+        $setOnInsert: {
+          id: prdId,
+          name: 'Comfortable T-Shirt',
+          price: 1500,
+          colors: ['Blue'],
+          sizes: ['M'],
+          featuredSection: 'drop',
+        },
+        $set: {
+          quantity: 10,
+          stock: 10,
+          sizeStock: { M: 10 },
+          colorStock: { Blue: 10 },
+        }
+      },
+      { upsert: true }
+    );
   });
 
   afterAll(async () => {

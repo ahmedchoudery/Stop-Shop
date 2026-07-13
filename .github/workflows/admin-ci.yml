@@ -7,8 +7,8 @@ on:
     branches: ['main']
 
 env:
-  MONGODB_URI: 'mongodb://127.0.0.1:27017/stopshop_test'
-  MONGO_URL: 'mongodb://127.0.0.1:27017/stopshop_test'
+  MONGODB_URI: 'mongodb://127.0.0.1:27017/stopshop_test?replicaSet=rs0'
+  MONGO_URL: 'mongodb://127.0.0.1:27017/stopshop_test?replicaSet=rs0'
   JWT_SECRET: 'ci_test_secret_key_do_not_use_in_production'
   NODE_ENV: 'test'
   REDIS_URL: ''
@@ -72,8 +72,8 @@ jobs:
         ports:
           - 27017:27017
     env:
-      MONGODB_URI: 'mongodb://127.0.0.1:27017/stopshop_test'
-      MONGO_URL: 'mongodb://127.0.0.1:27017/stopshop_test'
+      MONGODB_URI: 'mongodb://127.0.0.1:27017/stopshop_test?replicaSet=rs0'
+      MONGO_URL: 'mongodb://127.0.0.1:27017/stopshop_test?replicaSet=rs0'
       JWT_SECRET: 'ci_test_secret_key_do_not_use_in_production'
       NODE_ENV: 'test'
       REDIS_URL: ''
@@ -107,8 +107,8 @@ jobs:
         ports:
           - 27017:27017
     env:
-      MONGODB_URI: 'mongodb://127.0.0.1:27017/stopshop_test'
-      MONGO_URL: 'mongodb://127.0.0.1:27017/stopshop_test'
+      MONGODB_URI: 'mongodb://127.0.0.1:27017/stopshop_test?replicaSet=rs0'
+      MONGO_URL: 'mongodb://127.0.0.1:27017/stopshop_test?replicaSet=rs0'
       JWT_SECRET: 'ci_test_secret_key_do_not_use_in_production'
       NODE_ENV: 'test'
       REDIS_URL: ''
@@ -142,8 +142,8 @@ jobs:
         ports:
           - 27017:27017
     env:
-      MONGODB_URI: 'mongodb://127.0.0.1:27017/stopshop_test'
-      MONGO_URL: 'mongodb://127.0.0.1:27017/stopshop_test'
+      MONGODB_URI: 'mongodb://127.0.0.1:27017/stopshop_test?replicaSet=rs0'
+      MONGO_URL: 'mongodb://127.0.0.1:27017/stopshop_test?replicaSet=rs0'
       JWT_SECRET: 'ci_test_secret_key_do_not_use_in_production'
       CUSTOMER_JWT_SECRET: 'ci_customer_test_secret_key_do_not_use'
       CI: 'true'
