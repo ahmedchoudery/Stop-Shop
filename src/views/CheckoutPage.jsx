@@ -45,6 +45,8 @@ const CheckoutPage = () => {
         };
       });
 
+      const cartUserId = localStorage.getItem('stopshop-cart-user-id') || undefined;
+
       const res = await fetch(apiUrl('/api/checkout'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -55,6 +57,7 @@ const CheckoutPage = () => {
           paymentMethod: formData.paymentMethod,
           couponCode: formData.couponCode,
           paymentDetails: formData.paymentDetails,
+          cartUserId,
         }),
       });
 

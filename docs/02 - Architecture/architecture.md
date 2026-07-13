@@ -98,5 +98,30 @@ To decouple API response times from third-party email latency, order confirmatio
       │     ├── SUCCESS: Mark log as "sent"
       │     └── FAILURE: Increment retryCount (Max 5, exponentially backs off)
       ▼
-[Finished State]
+[Sent Email]
 ```
+
+---
+
+## 4. Inventory Reservations & Order State Machine
+
+### 4.1 Low Stock Cart Holds (Low Inventory Reservations)
+- To prevent cart hoarding and overselling under concurrent checkout races, product variants with stock level `≤ 10` are held atomically when added to the cart or incremented in quantity.
+- The `POST /api/v1/reservations` endpoint reserves stock immediately by decrementing variant inventory and inserting a `Reservation` document `{ sku, productId, variantId, qty, userId, expiresAt }`.
+- A 1-minute background interval cron runs `releaseExpiredReservations` to release any expired holds (based on `expiresAt` TTL) and restores variant stock atomically.
+- Upon successful checkout, reservation holds are fully cleared without re-incrementing stock.
+
+### 4.2 Custom Order Sequences
+- Instead of using non-sequential timestamps or randomized order IDs, Stop & Shop implements atomic sequence generation via a dedicated `Counter` model.
+- The format matches: `STOP-YYYY-000001` (where `YYYY` is the current year and the sequence is padded to six digits).
+
+### 4.3 Order State Machine Transitions
+- States are transitioned via the `transitionOrder` helper inside [state.ts](file:///C:/Users/JAPAN%20COMPUTERS/OneDrive/Desktop/Stop-Shop/src/lib/orders/state.ts).
+- Valid transitions are enforced via the `ALLOWED_TRANSITIONS` map:
+  - `Pending` ──► `Paid`, `Failed`, `Cancelled`, `Confirmed`, `Processing`
+  - `Paid` ──► `Confirmed`, `Processing`, `Cancelled`
+  - `Confirmed` ──► `Shipped`, `Cancelled`
+  - `Processing` ──► `Shipped`, `Cancelled`
+  - `Shipped` ──► `Delivered`, `Returned`, `Partially Returned`
+  - `Delivered` ──► `Refunded`, `Returned`, `Partially Returned`
+- Transitions log audit trace events to `OrderEvent` collection and enqueue branded status update emails via the email outbox.

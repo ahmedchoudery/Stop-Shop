@@ -4,6 +4,7 @@ import Product from '@/models/Product';
 import { syncInventory } from '@/services/inventoryService';
 import { withAudit } from '@/lib/audit';
 import { cacheService, CACHE_KEYS } from '@/services/cacheService';
+import { transitionOrder } from '@/lib/orders/state';
 import { z } from 'zod';
 
 export const POST = withRoute({
@@ -181,17 +182,22 @@ export const POST = withRoute({
         const totalOrderedQty = order.items.reduce((s, i) => s + i.quantity, 0);
         const totalReturnedQty = (order.returnedItems || []).reduce((s, r) => s + r.quantity, 0);
 
+        let targetStatus = order.status;
         if (totalReturnedQty >= totalOrderedQty) {
-          order.status = 'Returned';
+          targetStatus = 'Returned';
         } else if (totalReturnedQty > 0) {
-          order.status = 'Partially Returned';
+          targetStatus = 'Partially Returned';
         }
 
         if (totalRefund > 0) {
           order.total = Math.max(0, order.total - totalRefund);
         }
 
-        await order.save({ session });
+        if (targetStatus !== order.status) {
+          await transitionOrder(order, targetStatus, user?.id || 'system', { action: 'return', totalReturnedQty }, session);
+        } else {
+          await order.save({ session });
+        }
         return { totalRefund, results, status: order.status, total: order.total };
       }
     );

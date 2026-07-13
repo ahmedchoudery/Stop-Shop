@@ -27,11 +27,19 @@ This document tracks the current state of work, what tasks have been completed, 
 
 ---
 
-## 2. What is Currently Being Worked On
-- **CI Verification & Monitoring**: Verifying that the GHA checks succeed on commit push.
+## 2. What Has Been Completed (Prompt 5 - Concurrency-Safe Inventory & State Machine)
+- **Atomic Stock Decrement**: Replaced read-then-write updates with atomic conditional `findOneAndUpdate` updates on product variant stock Maps and matrices.
+- **Cart hold / reservations**: Added a reservation system hold endpoint (`/api/v1/reservations`) and database model `Reservation` with TTL index, coupled with a 1-minute cron-based background worker to release expired reservations and restore stock.
+- **Counter Order Number sequence**: Created `Counter` model and implemented sequencing to generate human-readable order IDs (`STOP-YYYY-XXXXXX`) during storefront checkout and POS transactions.
+- **Order State Machine**: Built a state machine transition helper `transitionOrder` mapping allowed transitions, logging transition events into `OrderEvent` model, and enqueuing status emails.
+- **Race Condition & Idempotency Tests**: Added `scripts/race-test.mjs` and `scripts/idempotency-test.mjs` running dev server and firing concurrent parallel orders to assert correctness.
 
 ---
 
-## 3. What is Planned Next
-- **CI Pipeline Monitoring**: Monitor the newly pushed commit to verify all checks pass successfully.
+## 3. What is Currently Being Worked On
+- **Verification & Testing**: Verifying local build and running test scripts.
+
+---
+
+## 4. What is Planned Next
 - **Feature Drops**: Align with the user on the next set of feature requests.

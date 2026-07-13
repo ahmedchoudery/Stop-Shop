@@ -5,6 +5,7 @@ export type ApiErrorCode =
   | 'NOT_FOUND'
   | 'CONFLICT'
   | 'RATE_LIMITED'
+  | 'OUT_OF_STOCK'
   | 'INTERNAL';
 
 export interface ApiErrorPayload {

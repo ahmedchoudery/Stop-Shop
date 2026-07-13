@@ -633,7 +633,7 @@ export const sendWelcomeEmail = async (customer) => {
 /**
  * Sends a branded order status notification email to the customer.
  */
-export const sendOrderStatusEmail = async (order, status) => {
+export const sendOrderStatusEmail = async (order, status, session = null) => {
   if (!['Paid', 'Confirmed', 'Shipped', 'Delivered', 'Cancelled', 'Failed', 'Refunded'].includes(status)) return;
 
   if (status === 'Confirmed') {
@@ -853,8 +853,11 @@ export const sendOrderStatusEmail = async (order, status) => {
       from:    `"Stop & Shop" <${getEnv('EMAIL_USER', 'email_user')}>`,
       subject,
       html,
+      session,
     });
-    console.info(`📧 [OrderStatus] ${status} email sent to ${customerEmail}`);
+    if (!session) {
+      console.info(`📧 [OrderStatus] ${status} email sent to ${customerEmail}`);
+    }
   } catch (err) {
     console.error('[OrderStatus] Email failed:', err.message);
   }

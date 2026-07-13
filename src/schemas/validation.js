@@ -137,6 +137,7 @@ export const checkoutSchema = z.object({
     cardExpiry:      z.string().trim().optional(),
     cardCvv:         z.string().trim().optional(),
   }).optional(),
+  cartUserId:    z.string().optional(),
 });
 
 /** @typedef {z.infer<typeof checkoutSchema>} CheckoutInput */

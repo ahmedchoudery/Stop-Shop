@@ -1,6 +1,7 @@
-import { withRoute, ApiError } from '@/lib/api/withRoute';
+import { withRoute, ApiError, OutOfStockError } from '@/lib/api/withRoute';
 import Product from '@/models/Product';
 import Order from '@/models/Order';
+import Counter from '@/models/Counter';
 import { syncInventory } from '@/services/inventoryService';
 import { checkAndAlertLowStock } from '@/services/emailService';
 import { logAudit } from '@/lib/audit';
@@ -99,8 +100,15 @@ export const POST = withRoute({
           }
         }
 
-        const orderID = `POS-${Date.now().toString(36).toUpperCase()}`;
-        const receiptNumber = `RCP-${Date.now().toString(36).toUpperCase()}`;
+        // Generate Order ID and Receipt Number using Counter sequence
+        const year = new Date().getFullYear();
+        const counter = await Counter.findOneAndUpdate(
+          { _id: 'orderNumber' },
+          { $inc: { seq: 1 } },
+          { upsert: true, new: true, session }
+        );
+        const orderID = `STOP-${year}-${String(counter.seq).padStart(6, '0')}`;
+        const receiptNumber = `RCP-${year}-${String(counter.seq).padStart(6, '0')}`;
 
         // Atomic stock decrements
         for (const item of items) {
@@ -152,7 +160,7 @@ export const POST = withRoute({
 
           if (!updatedProduct) {
             const name = dbProduct ? dbProduct.name : item.id;
-            throw new Error(`Insufficient stock for ${name}${size ? ` (${size})` : ''}${color ? ` (${color})` : ''}. Item may have been sold.`);
+            throw new OutOfStockError(`Insufficient stock for ${name}${size ? ` (${size})` : ''}${color ? ` (${color})` : ''}. Item may have been sold.`);
           }
 
           await syncInventory(
@@ -237,6 +245,9 @@ export const POST = withRoute({
       });
     } catch (orderErr) {
       console.error('[POS Checkout] Transaction failed:', orderErr.message);
+      if (orderErr instanceof OutOfStockError) {
+        throw orderErr;
+      }
       throw new ApiError('VALIDATION', orderErr.message, 400);
     } finally {
       await session.endSession();

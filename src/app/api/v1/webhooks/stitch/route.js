@@ -2,8 +2,8 @@ import { withRoute, ApiError } from '@/lib/api/withRoute';
 import crypto from 'crypto';
 import Order from '@/models/Order';
 import { cacheService, CACHE_KEYS } from '@/services/cacheService';
-import { sendOrderStatusEmail } from '@/services/emailService';
 import { withIdempotency } from '@/utils/idempotency.js';
+import { transitionOrder } from '@/lib/orders/state';
 import { z } from 'zod';
 
 const WEBHOOK_SECRET = process.env.PAYMENT_WEBHOOK_SECRET || 'stop_shop_payment_secret_2026';
@@ -47,11 +47,11 @@ export const POST = withIdempotency(withRoute({
       throw new ApiError('NOT_FOUND', 'Order not found', 404);
     }
 
-    // Process payment status transitions
+    let targetStatus = orderDoc.status;
     if (event === 'payment.captured' || event === 'payment.success') {
       orderDoc.paymentDetails.status = 'Paid';
       if (orderDoc.status === 'Pending') {
-        orderDoc.status = 'Paid';
+        targetStatus = 'Paid';
       }
       orderDoc.paymentDetails.transactionID = transactionID || orderDoc.paymentDetails.transactionID;
       orderDoc.paymentDetails.gatewayLogs.push({
@@ -60,14 +60,14 @@ export const POST = withIdempotency(withRoute({
       });
     } else if (event === 'payment.failed') {
       orderDoc.paymentDetails.status = 'Failed';
-      orderDoc.status = 'Failed';
+      targetStatus = 'Failed';
       orderDoc.paymentDetails.gatewayLogs.push({
         action: 'WEBHOOK_PAYMENT_FAILED',
         details: { error: error || 'Payment declined by gateway', webhookPayload: body, timestamp: new Date() },
       });
     } else if (event === 'payment.refunded') {
       orderDoc.paymentDetails.status = 'Refunded';
-      orderDoc.status = 'Refunded';
+      targetStatus = 'Refunded';
       orderDoc.paymentDetails.refundedAt = new Date();
       orderDoc.paymentDetails.gatewayLogs.push({
         action: 'WEBHOOK_PAYMENT_REFUNDED',
@@ -75,15 +75,12 @@ export const POST = withIdempotency(withRoute({
       });
     }
 
-    await orderDoc.save();
-    await cacheService.invalidateMany([CACHE_KEYS.STATS_REVENUE, CACHE_KEYS.STATS_ORDERS]);
-
-    const orderObj = orderDoc.toObject();
-    if (['Paid', 'Failed', 'Refunded'].includes(orderObj.status)) {
-      sendOrderStatusEmail(orderObj, orderObj.status).catch(err => {
-        console.error('[WebhookEmail] Failed to send notification:', err.message);
-      });
+    if (targetStatus !== orderDoc.status) {
+      await transitionOrder(orderDoc, targetStatus, 'system', { webhookEvent: event });
+    } else {
+      await orderDoc.save();
     }
+    await cacheService.invalidateMany([CACHE_KEYS.STATS_REVENUE, CACHE_KEYS.STATS_ORDERS]);
 
     return { received: true, orderID: orderDoc.orderID, status: orderDoc.status };
   }

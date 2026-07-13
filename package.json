@@ -16,6 +16,7 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
+    "test:race": "node scripts/race-test.mjs && node scripts/idempotency-test.mjs",
     "type-check": "npx -p typescript tsc --noEmit"
   },
   "dependencies": {

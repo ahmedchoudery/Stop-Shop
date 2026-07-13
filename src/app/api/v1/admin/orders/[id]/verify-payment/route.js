@@ -3,7 +3,7 @@ import Order from '@/models/Order';
 import { withAudit } from '@/lib/audit';
 import paymentFactory from '@/lib/payments/PaymentFactory';
 import { cacheService, CACHE_KEYS } from '@/services/cacheService';
-import { sendOrderStatusEmail } from '@/services/emailService';
+import { transitionOrder } from '@/lib/orders/state';
 import { z } from 'zod';
 
 export const POST = withRoute({
@@ -35,9 +35,6 @@ export const POST = withRoute({
     // Update payment details and status
     const prevStatus = orderDoc.paymentDetails.status;
     orderDoc.paymentDetails.status = 'Paid';
-    if (orderDoc.status === 'Pending') {
-      orderDoc.status = 'Paid';
-    }
     orderDoc.paymentDetails.gatewayLogs.push({
       action: 'PAYMENT_MANUALLY_VERIFIED',
       details: { verifiedBy: user?.email || '', timestamp: new Date() }
@@ -50,16 +47,15 @@ export const POST = withRoute({
       { status: prevStatus },
       { status: 'Paid' },
       async (session) => {
-        await orderDoc.save({ session });
+        if (orderDoc.status === 'Pending') {
+          await transitionOrder(orderDoc, 'Paid', user?.id || 'system', { action: 'manual-verification' }, session);
+        } else {
+          await orderDoc.save({ session });
+        }
       }
     );
 
     await cacheService.invalidateMany([CACHE_KEYS.STATS_REVENUE, CACHE_KEYS.STATS_ORDERS]);
-
-    const orderObj = orderDoc.toObject();
-    sendOrderStatusEmail(orderObj, 'Paid').catch(err => {
-      console.error('[AdminVerifyEmail] Failed to send notification:', err.message);
-    });
 
     return { message: 'Payment verified successfully', status: 'Paid' };
   }

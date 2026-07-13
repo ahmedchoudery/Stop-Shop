@@ -1,7 +1,9 @@
-import { withRoute, ApiError } from '@/lib/api/withRoute';
+import { withRoute, ApiError, OutOfStockError } from '@/lib/api/withRoute';
 import Product from '@/models/Product';
 import Order from '@/models/Order';
 import Coupon from '@/models/Coupon';
+import Counter from '@/models/Counter';
+import Reservation from '@/models/Reservation';
 import { withIdempotency } from '@/utils/idempotency.js';
 import { checkoutSchema } from '@/schemas/validation';
 import { syncInventory } from '@/services/inventoryService';
@@ -24,7 +26,7 @@ export const POST = withIdempotency(withRoute({
     body: checkoutSchema
   },
   handler: async ({ req, body }) => {
-    const { customer, items, paymentMethod, couponCode, paymentDetails } = body;
+    const { customer, items, paymentMethod, couponCode, paymentDetails, cartUserId } = body;
     const clientIp = req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || '127.0.0.1';
     const productIds = [...new Set(items.map(i => i.id))];
 
@@ -40,50 +42,16 @@ export const POST = withIdempotency(withRoute({
         }
         const productMap = new Map(dbProducts.map(p => [p.id, p]));
 
-        // Stock validation
-        for (const item of items) {
-          const product = productMap.get(item.id);
-          if (!product) {
-            throw new Error(`Product not found: ${item.id}`);
-          }
+        // Generate Order ID using Counter sequence
+        const year = new Date().getFullYear();
+        const counter = await Counter.findOneAndUpdate(
+          { _id: 'orderNumber' },
+          { $inc: { seq: 1 } },
+          { upsert: true, new: true, session }
+        );
+        const orderID = `STOP-${year}-${String(counter.seq).padStart(6, '0')}`;
 
-          const qty = Math.max(1, parseInt(item.quantity) || 1);
-          const size = (item.selectedSize ?? '').trim();
-          const color = (item.selectedColor ?? '').trim();
-
-          const sizeStockMap = product.sizeStock;
-          const colorStockMap = product.colorStock;
-
-          const hasSizeStock = sizeStockMap && (sizeStockMap instanceof Map ? sizeStockMap.size > 0 : Object.keys(sizeStockMap).length > 0);
-          const hasColorStock = colorStockMap && (colorStockMap instanceof Map ? colorStockMap.size > 0 : Object.keys(colorStockMap).length > 0);
-
-          let available = product.quantity;
-
-          if (hasSizeStock || hasColorStock) {
-            let sizeAvailable = Infinity;
-            let colorAvailable = Infinity;
-
-            if (hasSizeStock && size) {
-              sizeAvailable = sizeStockMap instanceof Map ? (sizeStockMap.get(size) ?? 0) : (Reflect.get(sizeStockMap, size) ?? 0);
-            }
-            if (hasColorStock && color) {
-              colorAvailable = colorStockMap instanceof Map ? (colorStockMap.get(color) ?? 0) : (Reflect.get(colorStockMap, color) ?? 0);
-            }
-
-            available = Math.min(
-              hasSizeStock && size ? sizeAvailable : product.quantity,
-              hasColorStock && color ? colorAvailable : product.quantity
-            );
-          }
-
-          if (available < qty) {
-            throw new Error(`Not enough stock for ${product.name}${size ? ` (size ${size})` : ''}${color ? ` (color ${color})` : ''}. Available: ${available}`);
-          }
-        }
-
-        const orderID = `ORD-${Date.now().toString(36).toUpperCase()}`;
-
-        // Decrement stock + sync inventory per product
+        // Decrement stock + sync inventory per product, respecting active reservations
         for (const item of items) {
           const qty = Math.max(1, parseInt(item.quantity) || 1);
           const size = (item.selectedSize ?? '').trim();
@@ -103,47 +71,73 @@ export const POST = withIdempotency(withRoute({
           const sizeKey   = (!matrixKey && size && hasSizeStock)  ? `sizeStock.${size}`  : null;
           const colorKey  = (!matrixKey && color && hasColorStock) ? `colorStock.${color}` : null;
 
-          const stockUpdate = { $inc: { quantity: -qty, stock: -qty } };
-          if (matrixKey) {
-            Reflect.set(stockUpdate.$inc, matrixKey, -qty);
-            Reflect.set(stockUpdate.$inc, `colorStock.${color}`, -qty);
-            Reflect.set(stockUpdate.$inc, `sizeStock.${size}`, -qty);
-          }
-          if (sizeKey)   Reflect.set(stockUpdate.$inc, sizeKey, -qty);
-          if (colorKey)  Reflect.set(stockUpdate.$inc, colorKey, -qty);
+          // Check if there is an active reservation for this user/variant
+          const variantId = `${item.id}-${color}-${size}`;
+          let reservedQty = 0;
+          let reservationDoc = null;
 
-          const availabilityCheck = {
-            id: item.id,
-            stock: { $gte: qty },
-          };
-          if (matrixKey) {
-            Reflect.set(availabilityCheck, matrixKey, { $gte: qty });
-            Reflect.set(availabilityCheck, `colorStock.${color}`, { $gte: qty });
-            Reflect.set(availabilityCheck, `sizeStock.${size}`, { $gte: qty });
-          } else {
-            if (sizeKey)  Reflect.set(availabilityCheck, sizeKey, { $gte: qty });
-            if (colorKey) Reflect.set(availabilityCheck, colorKey, { $gte: qty });
+          if (cartUserId) {
+            reservationDoc = await Reservation.findOne({ productId: item.id, variantId, userId: cartUserId }).session(session);
+            if (reservationDoc) {
+              reservedQty = reservationDoc.qty;
+            }
           }
 
-          const updatedProduct = await Product.findOneAndUpdate(
-            availabilityCheck,
-            stockUpdate,
-            { new: true, session }
-          );
+          const neededQty = qty - reservedQty;
 
-          if (!updatedProduct) {
-            const name = dbProduct ? dbProduct.name : item.id;
-            throw new Error(`Not enough stock for ${name}${size ? ` (size ${size})` : ''}${color ? ` (color ${color})` : ''}. Please adjust your quantity and try again.`);
+          if (neededQty > 0) {
+            const stockUpdate = { $inc: { quantity: -neededQty, stock: -neededQty } };
+            if (matrixKey) {
+              Reflect.set(stockUpdate.$inc, matrixKey, -neededQty);
+              Reflect.set(stockUpdate.$inc, `colorStock.${color}`, -neededQty);
+              Reflect.set(stockUpdate.$inc, `sizeStock.${size}`, -neededQty);
+            }
+            if (sizeKey)   Reflect.set(stockUpdate.$inc, sizeKey, -neededQty);
+            if (colorKey)  Reflect.set(stockUpdate.$inc, colorKey, -neededQty);
+
+            const availabilityCheck = {
+              id: item.id,
+              stock: { $gte: neededQty },
+            };
+            if (matrixKey) {
+              Reflect.set(availabilityCheck, matrixKey, { $gte: neededQty });
+              Reflect.set(availabilityCheck, `colorStock.${color}`, { $gte: neededQty });
+              Reflect.set(availabilityCheck, `sizeStock.${size}`, { $gte: neededQty });
+            } else {
+              if (sizeKey)  Reflect.set(availabilityCheck, sizeKey, { $gte: neededQty });
+              if (colorKey) Reflect.set(availabilityCheck, colorKey, { $gte: neededQty });
+            }
+
+            const updatedProduct = await Product.findOneAndUpdate(
+              availabilityCheck,
+              stockUpdate,
+              { new: true, session }
+            );
+
+            if (!updatedProduct) {
+              const name = dbProduct ? dbProduct.name : item.id;
+              throw new OutOfStockError(`Not enough stock for ${name}${size ? ` (size ${size})` : ''}${color ? ` (color ${color})` : ''}.`);
+            }
+
+            await syncInventory(
+              updatedProduct,
+              'SALE',
+              `Sold ${neededQty}x ${updatedProduct.name}${size ? ` (${size})` : ''}${color ? ` (${color})` : ''} via order ${orderID}`,
+              orderID,
+              {},
+              session
+            );
           }
 
-          await syncInventory(
-            updatedProduct,
-            'SALE',
-            `Sold ${qty}x ${updatedProduct.name}${size ? ` (${size})` : ''}${color ? ` (${color})` : ''} via order ${orderID}`,
-            orderID,
-            {},
-            session
-          );
+          // Clean up reservation
+          if (reservationDoc) {
+            if (reservedQty <= qty) {
+              await Reservation.deleteOne({ _id: reservationDoc._id }).session(session);
+            } else {
+              reservationDoc.qty -= qty;
+              await reservationDoc.save({ session });
+            }
+          }
         }
 
         // Enrich items
@@ -266,6 +260,9 @@ export const POST = withIdempotency(withRoute({
       });
     } catch (dbError) {
       console.error(`[Checkout] Transaction failed:`, dbError.message);
+      if (dbError instanceof OutOfStockError) {
+        throw dbError;
+      }
       throw new ApiError('VALIDATION', dbError.message, 400);
     } finally {
       await session.endSession();

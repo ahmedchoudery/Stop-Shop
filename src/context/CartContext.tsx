@@ -8,6 +8,7 @@
 import React, { createContext, useContext, useReducer, useMemo, useCallback, useEffect, useRef, useState, ReactNode } from 'react';
 import { useLocalStorage } from '../hooks/useUtils.js';
 import { CartItem, Product, Coupon } from '../types/index.ts';
+import { apiUrl } from '../config/api.js';
 
 // ─────────────────────────────────────────────────────────────────
 // TYPES & CONSTANTS
@@ -216,9 +217,9 @@ export interface CartContextType {
   sortBy: string;
   shouldScrollGrid: number;
   isBouncing: boolean;
-  addToCart: (product: CartItem) => void;
-  removeFromCart: (id: string, activeColor: string | undefined, selectedSize: string | undefined, cartId?: number | null) => void;
-  updateQuantity: (id: string, activeColor: string | undefined, selectedSize: string | undefined, delta: number, cartId?: number | null) => void;
+  addToCart: (product: CartItem) => Promise<boolean>;
+  removeFromCart: (id: string, activeColor: string | undefined, selectedSize: string | undefined, cartId?: number | null) => Promise<void>;
+  updateQuantity: (id: string, activeColor: string | undefined, selectedSize: string | undefined, delta: number, cartId?: number | null) => Promise<boolean>;
   setCartItemOptions: (cartId: number, activeColor?: string, selectedSize?: string) => void;
   clearCart: () => void;
   openDrawer: (mode: 'cart' | 'product' | 'wishlist', product?: Product | null) => void;
@@ -393,20 +394,118 @@ export const CartProvider = ({ children }: CartProviderProps) => {
 
   // ── STABLE ACTION CREATORS ─────────────────────────────────────
 
+  const getCartUserId = (): string => {
+    if (typeof window === 'undefined') return '';
+    let id = localStorage.getItem('stopshop-cart-user-id');
+    if (!id) {
+      id = 'guest-' + Math.random().toString(36).substring(2, 15);
+      localStorage.setItem('stopshop-cart-user-id', id);
+    }
+    return id;
+  };
+
   const addToCart = useCallback(
-    (product: CartItem) => dispatch({ type: 'ADD_ITEM', payload: { product } }),
+    async (product: CartItem) => {
+      const cartUserId = getCartUserId();
+      const color = product.selectedColor || '';
+      const size = product.selectedSize || '';
+
+      try {
+        const res = await fetch(apiUrl('/api/v1/reservations'), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            productId: product.id,
+            color,
+            size,
+            qty: 1,
+            userId: cartUserId,
+          }),
+        });
+
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error?.message || 'Out of stock');
+        }
+      } catch (err: any) {
+        alert(err.message || 'OutOfStockError');
+        return false;
+      }
+
+      dispatch({ type: 'ADD_ITEM', payload: { product } });
+      return true;
+    },
     []
   );
 
   const removeFromCart = useCallback(
-    (id: string, activeColor: string | undefined, selectedSize: string | undefined, cartId: number | null = null) =>
-      dispatch({ type: 'REMOVE_ITEM', payload: { id, activeColor, selectedSize, cartId } }),
+    async (id: string, activeColor: string | undefined, selectedSize: string | undefined, cartId: number | null = null) => {
+      const cartUserId = getCartUserId();
+      try {
+        await fetch(apiUrl('/api/v1/reservations'), {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            productId: id,
+            color: activeColor || '',
+            size: selectedSize || '',
+            qty: 99999, // release all
+            userId: cartUserId,
+          }),
+        });
+      } catch (err) {
+        console.error('[RemoveReservation] Error:', err);
+      }
+      dispatch({ type: 'REMOVE_ITEM', payload: { id, activeColor, selectedSize, cartId } });
+    },
     []
   );
 
   const updateQuantity = useCallback(
-    (id: string, activeColor: string | undefined, selectedSize: string | undefined, delta: number, cartId: number | null = null) =>
-      dispatch({ type: 'UPDATE_QUANTITY', payload: { id, activeColor, selectedSize, delta, cartId } }),
+    async (id: string, activeColor: string | undefined, selectedSize: string | undefined, delta: number, cartId: number | null = null) => {
+      const cartUserId = getCartUserId();
+      if (delta > 0) {
+        try {
+          const res = await fetch(apiUrl('/api/v1/reservations'), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              productId: id,
+              color: activeColor || '',
+              size: selectedSize || '',
+              qty: delta,
+              userId: cartUserId,
+            }),
+          });
+
+          if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            throw new Error(data.error?.message || 'Out of stock');
+          }
+        } catch (err: any) {
+          alert(err.message || 'OutOfStockError');
+          return false;
+        }
+      } else if (delta < 0) {
+        try {
+          await fetch(apiUrl('/api/v1/reservations'), {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              productId: id,
+              color: activeColor || '',
+              size: selectedSize || '',
+              qty: -delta,
+              userId: cartUserId,
+            }),
+          });
+        } catch (err) {
+          console.error('[ReleaseReservation] Error:', err);
+        }
+      }
+      dispatch({ type: 'UPDATE_QUANTITY', payload: { id, activeColor, selectedSize, delta, cartId } });
+      return true;
+    },
     []
   );
 

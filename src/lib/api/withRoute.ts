@@ -29,6 +29,13 @@ export class ApiError extends Error {
   }
 }
 
+export class OutOfStockError extends Error {
+  constructor(message: string) {
+    super(message);
+    Object.setPrototypeOf(this, OutOfStockError.prototype);
+  }
+}
+
 interface RouteConfig<TBody = any, TQuery = any, TParams = any> {
   schema?: {
     body?: z.ZodSchema<TBody>;
@@ -267,6 +274,18 @@ export function withRoute<TBody = any, TQuery = any, TParams = any>(
             },
           },
           { status: error.status }
+        );
+      } else if (error instanceof OutOfStockError) {
+        status = 409;
+        response = NextResponse.json(
+          {
+            error: {
+              code: 'OUT_OF_STOCK',
+              message: error.message,
+              requestId,
+            },
+          },
+          { status: 409 }
         );
       } else {
         status = 500;

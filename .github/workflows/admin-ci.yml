@@ -95,6 +95,9 @@ jobs:
       - name: Run integration tests
         run: npm test -- src/test/checkout.test.js src/test/idempotency.test.js
 
+      - name: Run race & idempotency verification tests
+        run: npm run test:race
+
   build-check:
     name: Build Verification
     runs-on: ubuntu-latest
