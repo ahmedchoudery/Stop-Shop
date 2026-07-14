@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
+import { describe, it, expect, beforeAll, beforeEach, afterAll, vi } from 'vitest';
 import mongoose from 'mongoose';
 import EmailOutbox from '../models/EmailOutbox.js';
 import SuppressedEmail from '../models/SuppressedEmail.js';
@@ -21,6 +21,9 @@ describe('Email Outbox Cron & Failover Integration Tests', () => {
     process.env.RESEND_API_KEY = 're_test_key_123';
     process.env.BREVO_API_KEY = 'br_test_key_123';
     await dbConnect();
+  });
+
+  beforeEach(async () => {
     await EmailOutbox.deleteMany({});
     await SuppressedEmail.deleteMany({});
   });

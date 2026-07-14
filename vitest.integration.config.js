@@ -13,13 +13,10 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.js'],
-    include: ['src/**/*.{test,spec}.{js,jsx}'],
-    exclude: ['src/test/idempotency.test.js', 'src/test/emailOutbox.test.js', 'src/test/checkout.test.js'],
-    coverage: {
-      provider: 'v8',
-      reporter: ['text', 'json', 'html'],
-      include: ['src/**/*.{js,jsx}'],
-      exclude: ['node_modules', 'dist', 'web-app-next'],
-    },
+    include: [
+      'src/test/checkout.test.js',
+      'src/test/idempotency.test.js',
+      'src/test/emailOutbox.test.js'
+    ],
   },
 });
