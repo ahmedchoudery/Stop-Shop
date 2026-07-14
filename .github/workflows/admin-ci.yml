@@ -53,7 +53,7 @@ jobs:
         run: npm install
 
       - name: Run unit tests
-        run: npm test -- --exclude src/test/idempotency.test.js
+        run: npm test -- --exclude src/test/idempotency.test.js --exclude src/test/emailOutbox.test.js
 
       - name: Upload coverage report
         if: always()
@@ -93,7 +93,7 @@ jobs:
           sleep 2
 
       - name: Run integration tests
-        run: npm test -- src/test/checkout.test.js src/test/idempotency.test.js
+        run: npm test -- src/test/checkout.test.js src/test/idempotency.test.js src/test/emailOutbox.test.js
 
       - name: Run race & idempotency verification tests
         run: npm run test:race
