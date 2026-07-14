@@ -9,6 +9,7 @@ import { cacheService, CACHE_KEYS } from '@/services/cacheService';
 import { z } from 'zod';
 import { NextResponse } from 'next/server';
 import mongoose from 'mongoose';
+import { checkLowStockAlert } from '@/services/lowStockService';
 
 const safeGet = (obj, key) => {
   if (!obj || typeof obj !== 'object') return 0;
@@ -171,6 +172,8 @@ export const POST = withRoute({
             {},
             session
           );
+
+          await checkLowStockAlert(updatedProduct, size, color, session);
         }
 
         // Enrich items with product data

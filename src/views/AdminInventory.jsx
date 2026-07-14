@@ -56,8 +56,29 @@ const AdminInventory = () => {
   const [savedIds, setSavedIds] = useState(new Set());
   const [expandedIds, setExpandedIds] = useState(new Set());
   
+  // Low stock alert states
+  const [alerts, setAlerts] = useState([]);
+  const [alertsLoading, setAlertsLoading] = useState(false);
+  const [viewMode, setViewMode] = useState('inventory'); // 'inventory' | 'alerts'
+  const [globalThreshold, setGlobalThreshold] = useState(5);
+  
   const searchTerm = useDebounce(searchRaw, 250);
   const flashTimeout = useTimeout();
+
+  const fetchAlerts = useCallback(async () => {
+    setAlertsLoading(true);
+    try {
+      const res = await authFetch(apiUrl('/api/admin/inventory?type=alerts'));
+      if (res.ok) {
+        const data = await res.json();
+        setAlerts(data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch alerts:', err.message);
+    } finally {
+      setAlertsLoading(false);
+    }
+  }, []);
 
   const fetchProducts = useCallback(async () => {
     setLoading(true);
@@ -68,6 +89,12 @@ const AdminInventory = () => {
       if (!res.ok) throw new Error('Failed to fetch inventory');
       const data = await res.json();
       setProducts(data);
+
+      const settingsRes = await authFetch(apiUrl('/api/v1/public/settings'));
+      if (settingsRes.ok) {
+        const settingsData = await settingsRes.json();
+        setGlobalThreshold(settingsData?.lowStockThreshold ?? 5);
+      }
     } catch (err) {
       setError(err.message);
     } finally {
@@ -77,7 +104,76 @@ const AdminInventory = () => {
 
   useEffect(() => {
     fetchProducts();
-  }, [fetchProducts]);
+    fetchAlerts();
+  }, [fetchProducts, fetchAlerts]);
+
+  const handleSnooze = async (alertId) => {
+    try {
+      const res = await authFetch(apiUrl('/api/admin/inventory'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'snooze', alertId }),
+      });
+      if (res.ok) {
+        alert('Alert successfully snoozed for 7 days!');
+        fetchAlerts();
+        fetchProducts();
+      }
+    } catch (err) {
+      alert('Snooze failed: ' + err.message);
+    }
+  };
+
+  const handleRestock = async (alertId, customQty = 50) => {
+    try {
+      const res = await authFetch(apiUrl('/api/admin/inventory'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'restock', alertId, quantity: customQty }),
+      });
+      if (res.ok) {
+        alert(`Successfully restocked ${customQty} units!`);
+        fetchAlerts();
+        fetchProducts();
+      }
+    } catch (err) {
+      alert('Restock failed: ' + err.message);
+    }
+  };
+
+  const handleSaveThreshold = async (sku, thresholdVal) => {
+    try {
+      const res = await authFetch(apiUrl('/api/admin/inventory'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'threshold', sku, threshold: parseInt(thresholdVal) || 0 }),
+      });
+      if (res.ok) {
+        alert(`Successfully set low stock threshold to ${thresholdVal} units!`);
+        fetchAlerts();
+        fetchProducts();
+      }
+    } catch (err) {
+      alert('Failed to save threshold: ' + err.message);
+    }
+  };
+
+  const handleSaveGlobalThreshold = async (thresholdVal) => {
+    try {
+      const res = await authFetch(apiUrl('/api/admin/inventory'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'global-threshold', threshold: parseInt(thresholdVal) || 0 }),
+      });
+      if (res.ok) {
+        alert(`Successfully set global low stock threshold to ${thresholdVal} units!`);
+        fetchAlerts();
+        fetchProducts();
+      }
+    } catch (err) {
+      alert('Failed to save global threshold: ' + err.message);
+    }
+  };
 
   const toggleExpanded = (productId) => {
     setExpandedIds(prev => {
@@ -173,373 +269,524 @@ const AdminInventory = () => {
         <InventoryHealthChart products={products} />
       </div>
 
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4 mb-6">
-        <div className="relative flex-grow">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
-          <input
-            type="text"
-            placeholder="Search by name or SKU..."
-            value={searchRaw}
-            onChange={e => setSearchRaw(e.target.value)}
-            className="w-full bg-gray-50 border border-gray-200 rounded-[4px] py-3 pl-10 pr-10 text-xs font-bold focus:bg-white focus:border-black outline-none transition-all placeholder:text-gray-300"
-          />
-          {searchRaw && (
-            <button onClick={() => setSearchRaw('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
-              <X size={14} />
-            </button>
+      {/* View Switcher Tabs */}
+      <div className="flex space-x-6 mb-6 border-b border-gray-200 pb-3">
+        <button
+          onClick={() => setViewMode('inventory')}
+          className={`pb-2 px-1 text-xs font-black uppercase tracking-widest border-b-2 transition-all ${
+            viewMode === 'inventory' ? 'border-black text-black font-black' : 'border-transparent text-gray-400 hover:text-black'
+          }`}
+        >
+          Product Inventory
+        </button>
+        <button
+          onClick={() => { setViewMode('alerts'); fetchAlerts(); }}
+          className={`pb-2 px-1 text-xs font-black uppercase tracking-widest border-b-2 transition-all flex items-center space-x-1.5 ${
+            viewMode === 'alerts' ? 'border-black text-black font-black' : 'border-transparent text-gray-400 hover:text-black'
+          }`}
+        >
+          <span>Low-Stock Alerts</span>
+          {alerts.filter(a => a.status === 'active').length > 0 && (
+            <span className="bg-red-500 text-white rounded-full px-1.5 py-0.5 text-[8px] font-black tracking-normal">
+              {alerts.filter(a => a.status === 'active').length}
+            </span>
           )}
-        </div>
-        <div className="flex items-center space-x-2">
-          <Filter size={14} className="text-gray-400" />
-          {[
-            { value: 'all', label: 'All' },
-            { value: 'out', label: 'Sold Out' },
-            { value: 'low', label: 'Low Stock' },
-            { value: 'in', label: 'In Stock' },
-          ].map(opt => (
-            <button
-              key={opt.value}
-              onClick={() => setStockFilter(opt.value)}
-              className={`px-3 py-2 rounded-[4px] text-[9px] font-black uppercase tracking-widest transition-all duration-200 ${
-                stockFilter === opt.value
-                  ? 'bg-black text-white'
-                  : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
-              }`}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
+        </button>
       </div>
 
-      {/* Table */}
-      <div className="bg-white border border-gray-200 rounded-[4px] overflow-hidden">
-        <AsyncContent loading={loading} error={error} data={filtered} onRetry={fetchProducts}
-          empty={
-            <div className="p-16 text-center">
-              <Package size={28} className="mx-auto text-gray-200 mb-3" />
-              <p className="text-xs font-black uppercase tracking-[0.4em] text-gray-300">
-                {searchTerm ? 'No products match your search' : 'No products in inventory'}
-              </p>
+      {viewMode === 'alerts' ? (
+        <div className="bg-white border border-gray-200 rounded-[4px] overflow-hidden">
+          <div className="p-4 border-b border-gray-150 flex flex-col sm:flex-row sm:items-center justify-between bg-gray-50/50 gap-4">
+            <h3 className="text-xs font-black uppercase tracking-[0.2em] text-gray-900">Active Low Stock Alerts</h3>
+            <div className="flex items-center space-x-3">
+              <label className="text-[9px] font-black uppercase tracking-widest text-gray-400">Global Default Threshold:</label>
+              <input
+                type="number"
+                value={globalThreshold}
+                onChange={e => setGlobalThreshold(parseInt(e.target.value) || 0)}
+                onBlur={e => handleSaveGlobalThreshold(e.target.value)}
+                className="w-16 bg-white border border-gray-300 rounded px-2 py-1 text-xs font-bold font-mono text-center outline-none focus:border-black transition-all"
+              />
             </div>
-          }
-        >
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-gray-50 border-b border-gray-150">
-                  {['SKU', 'Product', 'Price (PKR)', '% Off', 'Stock', 'Status'].map(h => (
-                    <th key={h} className="p-4 text-[9px] font-black uppercase tracking-widest text-gray-400">{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {filtered.map(product => {
-                  const outOfStock = product.quantity === 0;
-                  const lowStock = product.quantity > 0 && product.quantity < 5;
-                  const saved = savedIds.has(product.id);
-                  const isExpanded = expandedIds.has(product.id);
-                  
-                  const hasMatrix = product.variantMatrix && (
-                    product.variantMatrix instanceof Map 
-                      ? product.variantMatrix.size > 0 
-                      : Object.keys(product.variantMatrix).length > 0
-                  );
-                  const hasSizes = product.sizes && product.sizes.length > 0;
-                  const hasColors = product.colors && product.colors.length > 0;
-                  const isVariant = hasMatrix || hasSizes || hasColors;
+          </div>
+          <AsyncContent loading={alertsLoading} error={null} data={alerts} onRetry={fetchAlerts}
+            empty={
+              <div className="p-16 text-center">
+                <Package size={28} className="mx-auto text-gray-200 mb-3" />
+                <p className="text-xs font-black uppercase tracking-[0.4em] text-gray-300">
+                  No active low stock alerts
+                </p>
+              </div>
+            }
+          >
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-gray-50 border-b border-gray-150">
+                    {['Product', 'SKU', 'Variant', 'Stock', 'Threshold', '7-Day Sales', 'Status', 'Actions'].map(h => (
+                      <th key={h} className="p-4 text-[9px] font-black uppercase tracking-widest text-gray-400">{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {alerts.map(alert => {
+                    const isActive = alert.status === 'active';
+                    const isSnoozed = alert.status === 'snoozed';
+                    return (
+                      <tr key={alert._id} className={`hover:bg-gray-50/60 ${isActive ? 'bg-red-50/10' : ''}`}>
+                        {/* Product */}
+                        <td className="p-4">
+                          <div className="flex items-center space-x-3">
+                            {alert.productImage && (
+                              <img src={alert.productImage} alt={alert.productName} className="w-9 h-9 object-cover rounded-[4px] border border-gray-150 flex-shrink-0" />
+                            )}
+                            <span className="text-sm font-black uppercase tracking-tight text-gray-900">{alert.productName}</span>
+                          </div>
+                        </td>
 
-                  return (
-                    <React.Fragment key={product.id}>
-                      <tr
-                        className={`group transition-colors duration-200 ${outOfStock ? 'bg-red-50/40' : 'hover:bg-gray-50/60'} ${isExpanded ? 'bg-gray-50/30' : ''}`}
-                      >
                         {/* SKU */}
-                        <td className="p-4 font-mono text-[10px] font-bold text-gray-400">#{product.id}</td>
-                        
-                        {/* Product details + expand button */}
+                        <td className="p-4 font-mono text-xs font-bold text-gray-400">#{alert.sku}</td>
+
+                        {/* Variant */}
                         <td className="p-4">
-                          <div className="flex items-center space-x-3">
-                            {product.image && (
-                              <img src={product.image} alt={product.name} className="w-9 h-9 object-cover rounded-[4px] border border-gray-150 flex-shrink-0" loading="lazy" />
-                            )}
-                            <div className="flex flex-col">
-                              <div className="flex items-center">
-                                <span className="text-sm font-black uppercase tracking-tight text-gray-900">{product.name}</span>
-                                {isVariant && (
-                                  <button
-                                    onClick={() => toggleExpanded(product.id)}
-                                    className={`ml-3 px-2.5 py-1 text-[8px] font-black uppercase tracking-widest rounded-[3px] border transition-all ${
-                                      isExpanded 
-                                        ? 'bg-black border-black text-white' 
-                                        : 'bg-white border-gray-200 text-gray-500 hover:border-black hover:text-black'
-                                    }`}
-                                  >
-                                    {isExpanded ? 'Hide Matrix' : 'Edit Matrix'}
-                                  </button>
-                                )}
-                              </div>
-                              <span className="text-[8px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">
-                                {product.bucket || 'General'} · {product.subCategory || 'General'}
-                              </span>
-                            </div>
-                            {outOfStock && <AlertTriangle size={12} className="text-red-500 flex-shrink-0" />}
-                          </div>
+                          <span className="px-2 py-0.5 rounded bg-gray-100 text-[10px] font-black uppercase tracking-wider text-gray-600">
+                            {alert.variantId}
+                          </span>
                         </td>
 
-                        {/* Price */}
+                        {/* Stock */}
+                        <td className="p-4 font-mono text-sm font-black text-gray-900">{alert.currentStock}</td>
+
+                        {/* Threshold */}
                         <td className="p-4">
                           <input
-                            type="number" step="0.01"
-                            value={product.price}
-                            onChange={e => handleLocalChange(product.id, 'price', e.target.value)}
-                            onBlur={e => handleUpdate(product.id, 'price', e.target.value)}
-                            onKeyDown={e => e.key === 'Enter' && handleUpdate(product.id, 'price', e.target.value)}
-                            className="w-24 bg-transparent border-b border-transparent focus:border-black outline-none py-1 text-sm font-black transition-all font-mono"
+                            type="number"
+                            value={alert.threshold}
+                            onChange={e => {
+                              const val = parseInt(e.target.value) || 0;
+                              setAlerts(prev => prev.map(a => a._id === alert._id ? { ...a, threshold: val } : a));
+                            }}
+                            onBlur={e => handleSaveThreshold(alert.sku, e.target.value)}
+                            className="w-16 bg-transparent border-b border-transparent focus:border-black outline-none text-sm font-black font-mono text-center"
                           />
                         </td>
 
-                        {/* Discount */}
-                        <td className="p-4">
-                          <input
-                            type="number" min="0" max="100"
-                            value={product.discount ?? 0}
-                            onChange={e => handleLocalChange(product.id, 'discount', e.target.value)}
-                            onBlur={e => handleUpdate(product.id, 'discount', e.target.value)}
-                            onKeyDown={e => e.key === 'Enter' && handleUpdate(product.id, 'discount', e.target.value)}
-                            className="w-16 bg-transparent border-b border-transparent focus:border-black outline-none py-1 text-sm font-black transition-all font-mono"
-                          />
-                        </td>
-
-                        {/* Quantity (Stock) */}
-                        <td className="p-4">
-                          <div className="flex items-center space-x-3">
-                            <input
-                              type="number"
-                              value={product.quantity}
-                              disabled={isVariant}
-                              onChange={e => handleLocalChange(product.id, 'quantity', e.target.value)}
-                              onBlur={e => handleUpdate(product.id, 'quantity', e.target.value)}
-                              onKeyDown={e => e.key === 'Enter' && handleUpdate(product.id, 'quantity', e.target.value)}
-                              className={`w-20 bg-transparent border-b border-transparent focus:border-black outline-none py-1 text-sm font-black transition-all font-mono ${
-                                isVariant ? 'text-gray-400 cursor-not-allowed border-none' : ''
-                              }`}
-                            />
-                            {isVariant && (
-                              <span className="text-[7px] font-black uppercase tracking-widest text-gray-450 bg-gray-100 border border-gray-150 px-1.5 py-0.5 rounded-[2px]" title="Determined by variant stocks below">
-                                Synced
-                              </span>
-                            )}
-                            {saved && (
-                              <span
-                                data-saved={product.id}
-                                className="text-green-500 text-base font-black"
-                                style={{ opacity: 0 }}
-                              >
-                                ✓
-                              </span>
-                            )}
-                          </div>
+                        {/* 7-Day Sales */}
+                        <td className="p-4 font-mono text-sm font-bold text-gray-550">
+                          {alert.salesVelocity ?? 0} units
                         </td>
 
                         {/* Status */}
                         <td className="p-4">
-                          <span className={`px-2.5 py-1 rounded-[4px] text-[8px] font-black uppercase tracking-widest border ${
-                            outOfStock
-                              ? 'bg-black border-black text-white'
-                              : lowStock
-                                ? 'bg-[#FDFBEC] border-[#F9CFCF] text-[#9F2F2D]'
-                                : 'bg-[#EDF3EC] border-[#D0E2CE] text-[#346538]'
+                          <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest ${
+                            isActive ? 'bg-red-100 text-red-700' :
+                            isSnoozed ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-green-100 text-green-700'
                           }`}>
-                            {outOfStock ? 'Sold Out' : lowStock ? 'Low Stock' : 'In Stock'}
+                            {alert.status}
                           </span>
                         </td>
+
+                        {/* Actions */}
+                        <td className="p-4">
+                          {isActive && (
+                            <div className="flex space-x-2">
+                              <button
+                                onClick={() => handleRestock(alert._id, 50)}
+                                className="px-2.5 py-1 bg-black text-white text-[8px] font-black uppercase tracking-widest rounded-[3px] hover:bg-gray-800 transition-all"
+                              >
+                                Restock 50
+                              </button>
+                              <button
+                                onClick={() => handleSnooze(alert._id)}
+                                className="px-2.5 py-1 bg-white border border-gray-200 text-gray-600 text-[8px] font-black uppercase tracking-widest rounded-[3px] hover:border-black hover:text-black transition-all"
+                              >
+                                Snooze 7d
+                              </button>
+                            </div>
+                          )}
+                        </td>
                       </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </AsyncContent>
+        </div>
+      ) : (
+        <>
+          {/* Filters */}
+          <div className="flex flex-col sm:flex-row gap-4 mb-6">
+            <div className="relative flex-grow">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
+              <input
+                type="text"
+                placeholder="Search by name or SKU..."
+                value={searchRaw}
+                onChange={e => setSearchRaw(e.target.value)}
+                className="w-full bg-gray-50 border border-gray-200 rounded-[4px] py-3 pl-10 pr-10 text-xs font-bold focus:bg-white focus:border-black outline-none transition-all placeholder:text-gray-300"
+              />
+              {searchRaw && (
+                <button onClick={() => setSearchRaw('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400">
+                  <X size={14} />
+                </button>
+              )}
+            </div>
+            <div className="flex items-center space-x-2">
+              <Filter size={14} className="text-gray-400" />
+              {[
+                { value: 'all', label: 'All' },
+                { value: 'out', label: 'Sold Out' },
+                { value: 'low', label: 'Low Stock' },
+                { value: 'in', label: 'In Stock' },
+              ].map(opt => (
+                <button
+                  key={opt.value}
+                  onClick={() => setStockFilter(opt.value)}
+                  className={`px-3 py-2 rounded-[4px] text-[9px] font-black uppercase tracking-widest transition-all duration-200 ${
+                    stockFilter === opt.value
+                      ? 'bg-black text-white'
+                      : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
 
-                      {/* Expandable Variant editor sub-row */}
-                      {isExpanded && isVariant && (
-                        <tr className="bg-gray-50/50">
-                          <td colSpan={6} className="p-6 border-b border-gray-150">
-                            <div className="bg-white border border-gray-150 rounded-[4px] p-6 max-w-3xl animate-scale-in">
-                              <div className="flex items-center justify-between mb-4 border-b border-gray-100 pb-3">
-                                <div>
-                                  <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-900">
-                                    Variant Stock Matrix
-                                  </h4>
-                                  <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mt-1">
-                                    Edit quantities below. Changes save to MongoDB automatically on blur or Enter.
-                                  </p>
+          {/* Table */}
+          <div className="bg-white border border-gray-200 rounded-[4px] overflow-hidden">
+            <AsyncContent loading={loading} error={error} data={filtered} onRetry={fetchProducts}
+              empty={
+                <div className="p-16 text-center">
+                  <Package size={28} className="mx-auto text-gray-200 mb-3" />
+                  <p className="text-xs font-black uppercase tracking-[0.4em] text-gray-300">
+                    {searchTerm ? 'No products match your search' : 'No products in inventory'}
+                  </p>
+                </div>
+              }
+            >
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="bg-gray-50 border-b border-gray-150">
+                      {['SKU', 'Product', 'Price (PKR)', '% Off', 'Stock', 'Status'].map(h => (
+                        <th key={h} className="p-4 text-[9px] font-black uppercase tracking-widest text-gray-400">{h}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {filtered.map(product => {
+                      const outOfStock = product.quantity === 0;
+                      const lowStock = product.quantity > 0 && product.quantity < 5;
+                      const saved = savedIds.has(product.id);
+                      const isExpanded = expandedIds.has(product.id);
+                      
+                      const hasMatrix = product.variantMatrix && (
+                        product.variantMatrix instanceof Map 
+                          ? product.variantMatrix.size > 0 
+                          : Object.keys(product.variantMatrix).length > 0
+                      );
+                      const hasSizes = product.sizes && product.sizes.length > 0;
+                      const hasColors = product.colors && product.colors.length > 0;
+                      const isVariant = hasMatrix || hasSizes || hasColors;
+
+                      return (
+                        <React.Fragment key={product.id}>
+                          <tr
+                            className={`group transition-colors duration-200 ${outOfStock ? 'bg-red-50/40' : 'hover:bg-gray-50/60'} ${isExpanded ? 'bg-gray-50/30' : ''}`}
+                          >
+                            {/* SKU */}
+                            <td className="p-4 font-mono text-[10px] font-bold text-gray-400">#{product.id}</td>
+                            
+                            {/* Product details + expand button */}
+                            <td className="p-4">
+                              <div className="flex items-center space-x-3">
+                                {product.image && (
+                                  <img src={product.image} alt={product.name} className="w-9 h-9 object-cover rounded-[4px] border border-gray-150 flex-shrink-0" loading="lazy" />
+                                )}
+                                <div className="flex flex-col">
+                                  <div className="flex items-center">
+                                    <span className="text-sm font-black uppercase tracking-tight text-gray-900">{product.name}</span>
+                                    {isVariant && (
+                                      <button
+                                        onClick={() => toggleExpanded(product.id)}
+                                        className={`ml-3 px-2.5 py-1 text-[8px] font-black uppercase tracking-widest rounded-[3px] border transition-all ${
+                                          isExpanded 
+                                            ? 'bg-black border-black text-white' 
+                                            : 'bg-white border-gray-200 text-gray-500 hover:border-black hover:text-black'
+                                        }`}
+                                      >
+                                        {isExpanded ? 'Hide Matrix' : 'Edit Matrix'}
+                                      </button>
+                                    )}
+                                  </div>
+                                  <span className="text-[8px] text-gray-400 font-bold uppercase tracking-widest mt-0.5">
+                                    {product.bucket || 'General'} · {product.subCategory || 'General'}
+                                  </span>
                                 </div>
-                                <button
-                                  onClick={() => toggleExpanded(product.id)}
-                                  className="p-1 hover:bg-gray-100 rounded-[3px] text-gray-400 hover:text-black transition-all"
-                                >
-                                  <X size={12} />
-                                </button>
+                                {outOfStock && <AlertTriangle size={12} className="text-red-500 flex-shrink-0" />}
                               </div>
+                            </td>
 
-                              {/* Matrix Editor: Both colors AND sizes exist */}
-                              {hasMatrix && hasColors && hasSizes && (
-                                <div className="overflow-x-auto">
-                                  <table className="w-full text-left text-[9px] uppercase tracking-wider font-mono">
-                                    <thead>
-                                      <tr className="border-b border-gray-150 bg-gray-50/60">
-                                        <th className="p-2.5 font-black text-gray-900">Color Variant</th>
-                                        {product.sizes.map(sz => (
-                                          <th key={sz} className="p-2.5 font-black text-gray-900 text-center">{sz}</th>
-                                        ))}
-                                      </tr>
-                                    </thead>
-                                    <tbody>
-                                      {product.colors.map(col => {
-                                        const colorName = getColorName(col);
-                                        return (
-                                          <tr key={col} className="border-b border-gray-50 hover:bg-gray-50/30">
-                                            <td className="p-2 flex items-center space-x-2">
-                                              <span className="w-2.5 h-2.5 rounded-full border border-gray-250 flex-shrink-0" style={getBackgroundStyle(col)} />
-                                              <span className="font-bold text-gray-700">{colorName}</span>
-                                            </td>
-                                            {product.sizes.map(sz => {
-                                              const key = `${col}|${sz}`;
-                                              const matrixVal = product.variantMatrix instanceof Map
-                                                ? (product.variantMatrix.get(key) ?? 0)
-                                                : (product.variantMatrix?.[key] ?? 0);
-                                              return (
-                                                <td key={sz} className="p-1 text-center">
-                                                  <input
-                                                    type="number"
-                                                    min="0"
-                                                    value={matrixVal}
-                                                    onChange={e => handleVariantMatrixChange(product.id, key, e.target.value)}
-                                                    onBlur={() => handleVariantMatrixSave(product.id)}
-                                                    onKeyDown={e => e.key === 'Enter' && handleVariantMatrixSave(product.id)}
-                                                    className="w-16 text-center bg-gray-50 border-b border-transparent focus:border-black focus:bg-white outline-none py-1.5 text-[10px] font-black font-mono transition-all rounded-[2px]"
-                                                  />
-                                                </td>
-                                              );
-                                            })}
+                            {/* Price */}
+                            <td className="p-4">
+                              <input
+                                type="number" step="0.01"
+                                value={product.price}
+                                onChange={e => handleLocalChange(product.id, 'price', e.target.value)}
+                                onBlur={e => handleUpdate(product.id, 'price', e.target.value)}
+                                onKeyDown={e => e.key === 'Enter' && handleUpdate(product.id, 'price', e.target.value)}
+                                className="w-24 bg-transparent border-b border-transparent focus:border-black outline-none py-1 text-sm font-black transition-all font-mono"
+                              />
+                            </td>
+
+                            {/* Discount */}
+                            <td className="p-4">
+                              <input
+                                type="number" min="0" max="100"
+                                value={product.discount ?? 0}
+                                onChange={e => handleLocalChange(product.id, 'discount', e.target.value)}
+                                onBlur={e => handleUpdate(product.id, 'discount', e.target.value)}
+                                onKeyDown={e => e.key === 'Enter' && handleUpdate(product.id, 'discount', e.target.value)}
+                                className="w-16 bg-transparent border-b border-transparent focus:border-black outline-none py-1 text-sm font-black transition-all font-mono"
+                              />
+                            </td>
+
+                            {/* Quantity (Stock) */}
+                            <td className="p-4">
+                              <div className="flex items-center space-x-3">
+                                <input
+                                  type="number"
+                                  value={product.quantity}
+                                  disabled={isVariant}
+                                  onChange={e => handleLocalChange(product.id, 'quantity', e.target.value)}
+                                  onBlur={e => handleUpdate(product.id, 'quantity', e.target.value)}
+                                  onKeyDown={e => e.key === 'Enter' && handleUpdate(product.id, 'quantity', e.target.value)}
+                                  className={`w-20 bg-transparent border-b border-transparent focus:border-black outline-none py-1 text-sm font-black transition-all font-mono ${
+                                    isVariant ? 'text-gray-400 cursor-not-allowed border-none' : ''
+                                  }`}
+                                />
+                                {isVariant && (
+                                  <span className="text-[7px] font-black uppercase tracking-widest text-gray-450 bg-gray-100 border border-gray-150 px-1.5 py-0.5 rounded-[2px]" title="Determined by variant stocks below">
+                                    Synced
+                                  </span>
+                                )}
+                                {saved && (
+                                  <span
+                                    data-saved={product.id}
+                                    className="text-green-500 text-base font-black"
+                                    style={{ opacity: 0 }}
+                                  >
+                                    ✓
+                                  </span>
+                                )}
+                              </div>
+                            </td>
+
+                            {/* Status */}
+                            <td className="p-4">
+                              <span className={`px-2.5 py-1 rounded-[4px] text-[8px] font-black uppercase tracking-widest border ${
+                                outOfStock
+                                  ? 'bg-black border-black text-white'
+                                  : lowStock
+                                    ? 'bg-[#FDFBEC] border-[#F9CFCF] text-[#9F2F2D]'
+                                    : 'bg-[#EDF3EC] border-[#D0E2CE] text-[#346538]'
+                              }`}>
+                                {outOfStock ? 'Sold Out' : lowStock ? 'Low Stock' : 'In Stock'}
+                              </span>
+                            </td>
+                          </tr>
+
+                          {/* Expandable Variant editor sub-row */}
+                          {isExpanded && isVariant && (
+                            <tr className="bg-gray-50/50">
+                              <td colSpan={6} className="p-6 border-b border-gray-150">
+                                <div className="bg-white border border-gray-150 rounded-[4px] p-6 max-w-3xl animate-scale-in">
+                                  <div className="flex items-center justify-between mb-4 border-b border-gray-100 pb-3">
+                                    <div>
+                                      <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-900">
+                                        Variant Stock Matrix
+                                      </h4>
+                                      <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mt-1">
+                                        Edit quantities below. Changes save to MongoDB automatically on blur or Enter.
+                                      </p>
+                                    </div>
+                                    <button
+                                      onClick={() => toggleExpanded(product.id)}
+                                      className="p-1 hover:bg-gray-100 rounded-[3px] text-gray-400 hover:text-black transition-all"
+                                    >
+                                      <X size={12} />
+                                    </button>
+                                  </div>
+
+                                  {/* Matrix Editor: Both colors AND sizes exist */}
+                                  {hasMatrix && hasColors && hasSizes && (
+                                    <div className="overflow-x-auto">
+                                      <table className="w-full text-left text-[9px] uppercase tracking-wider font-mono">
+                                        <thead>
+                                          <tr className="border-b border-gray-150 bg-gray-50/60">
+                                            <th className="p-2.5 font-black text-gray-900">Color Variant</th>
+                                            {product.sizes.map(sz => (
+                                              <th key={sz} className="p-2.5 font-black text-gray-900 text-center">{sz}</th>
+                                            ))}
                                           </tr>
+                                        </thead>
+                                        <tbody>
+                                          {product.colors.map(col => {
+                                            const colorName = getColorName(col);
+                                            return (
+                                              <tr key={col} className="border-b border-gray-50 hover:bg-gray-50/30">
+                                                <td className="p-2 flex items-center space-x-2">
+                                                  <span className="w-2.5 h-2.5 rounded-full border border-gray-250 flex-shrink-0" style={getBackgroundStyle(col)} />
+                                                  <span>{colorName}</span>
+                                                </td>
+                                                {product.sizes.map(sz => {
+                                                  const key = `${colorName}|${sz}`;
+                                                  const matrixValue = product.variantMatrix instanceof Map 
+                                                    ? (product.variantMatrix.get(key) ?? 0)
+                                                    : (product.variantMatrix?.[key] ?? 0);
+                                                  return (
+                                                    <td key={sz} className="p-2 text-center">
+                                                      <input
+                                                        type="number"
+                                                        min="0"
+                                                        value={matrixValue}
+                                                        onChange={e => handleVariantMatrixChange(product.id, key, e.target.value)}
+                                                        onBlur={() => handleVariantMatrixSave(product.id)}
+                                                        onKeyDown={e => e.key === 'Enter' && handleVariantMatrixSave(product.id)}
+                                                        className="w-16 bg-gray-50 border-b border-transparent focus:border-black focus:bg-white outline-none py-1 text-center font-black transition-all rounded-[2px]"
+                                                      />
+                                                    </td>
+                                                  );
+                                                })}
+                                              </tr>
+                                            );
+                                          })}
+                                        </tbody>
+                                      </table>
+                                    </div>
+                                  )}
+
+                                  {/* Sizes only editor */}
+                                  {!hasMatrix && hasSizes && (
+                                    <div className="flex flex-wrap gap-6 font-mono text-[9px]">
+                                      {product.sizes.map(sz => {
+                                        const sizeVal = product.sizeStock instanceof Map
+                                          ? (product.sizeStock.get(sz) ?? 0)
+                                          : (product.sizeStock?.[sz] ?? 0);
+                                        return (
+                                          <div key={sz} className="flex flex-col space-y-1.5">
+                                            <label className="text-[8px] font-black uppercase tracking-widest text-gray-400">
+                                              Size {sz}
+                                            </label>
+                                            <input
+                                              type="number"
+                                              min="0"
+                                              value={sizeVal}
+                                              onChange={e => {
+                                                const val = Math.max(0, parseInt(e.target.value) || 0);
+                                                setProducts(prev => prev.map(p => {
+                                                  if (p.id === product.id) {
+                                                    const stock = p.sizeStock instanceof Map ? Object.fromEntries(p.sizeStock) : { ...(p.sizeStock ?? {}) };
+                                                    stock[sz] = val;
+                                                    return { ...p, sizeStock: stock };
+                                                  }
+                                                  return p;
+                                                }));
+                                              }}
+                                              onBlur={() => {
+                                                const p = products.find(p => p.id === product.id);
+                                                const stock = p?.sizeStock instanceof Map ? Object.fromEntries(p.sizeStock) : (p?.sizeStock ?? {});
+                                                handleUpdate(product.id, 'sizeStock', stock);
+                                              }}
+                                              onKeyDown={e => {
+                                                if (e.key === 'Enter') {
+                                                  const p = products.find(p => p.id === product.id);
+                                                  const stock = p?.sizeStock instanceof Map ? Object.fromEntries(p.sizeStock) : (p?.sizeStock ?? {});
+                                                  handleUpdate(product.id, 'sizeStock', stock);
+                                                }
+                                              }}
+                                              className="w-24 bg-gray-50 border-b border-transparent focus:border-black focus:bg-white outline-none py-2 px-3 text-center text-xs font-black font-mono transition-all rounded-[2px]"
+                                            />
+                                          </div>
                                         );
                                       })}
-                                    </tbody>
-                                  </table>
-                                </div>
-                              )}
+                                    </div>
+                                  )}
 
-                              {/* Size Only Editor (Sizes exist, but no Colors) */}
-                              {!hasMatrix && hasSizes && (
-                                <div className="flex flex-wrap gap-5 py-2">
-                                  {product.sizes.map(sz => {
-                                    const sizeVal = product.sizeStock instanceof Map
-                                      ? (product.sizeStock.get(sz) ?? 0)
-                                      : (product.sizeStock?.[sz] ?? 0);
-                                    return (
-                                      <div key={sz} className="flex flex-col space-y-1.5">
-                                        <label className="text-[8px] font-black uppercase tracking-widest text-gray-400">Size {sz}</label>
-                                        <input
-                                          type="number"
-                                          min="0"
-                                          value={sizeVal}
-                                          onChange={e => {
-                                            const val = Math.max(0, parseInt(e.target.value) || 0);
-                                            setProducts(prev => prev.map(p => {
-                                              if (p.id === product.id) {
-                                                const stock = p.sizeStock instanceof Map ? Object.fromEntries(p.sizeStock) : { ...(p.sizeStock ?? {}) };
-                                                stock[sz] = val;
-                                                return { ...p, sizeStock: stock };
-                                              }
-                                              return p;
-                                            }));
-                                          }}
-                                          onBlur={() => {
-                                            const p = products.find(p => p.id === product.id);
-                                            const stock = p?.sizeStock instanceof Map ? Object.fromEntries(p.sizeStock) : (p?.sizeStock ?? {});
-                                            handleUpdate(product.id, 'sizeStock', stock);
-                                          }}
-                                          onKeyDown={e => {
-                                            if (e.key === 'Enter') {
-                                              const p = products.find(p => p.id === product.id);
-                                              const stock = p?.sizeStock instanceof Map ? Object.fromEntries(p.sizeStock) : (p?.sizeStock ?? {});
-                                              handleUpdate(product.id, 'sizeStock', stock);
-                                            }
-                                          }}
-                                          className="w-20 bg-gray-50 border-b border-transparent focus:border-black focus:bg-white outline-none py-2 px-3 text-center text-xs font-black font-mono transition-all rounded-[2px]"
-                                        />
-                                      </div>
-                                    );
-                                  })}
+                                  {/* Colors only editor */}
+                                  {!hasMatrix && hasColors && (
+                                    <div className="flex flex-wrap gap-6 font-mono text-[9px]">
+                                      {product.colors.map(col => {
+                                        const colorVal = product.colorStock instanceof Map
+                                          ? (product.colorStock.get(col) ?? 0)
+                                          : (product.colorStock?.[col] ?? 0);
+                                        return (
+                                          <div key={col} className="flex flex-col space-y-1.5">
+                                            <label className="text-[8px] font-black uppercase tracking-widest text-gray-400 flex items-center space-x-1.5">
+                                              <span className="w-2 h-2 rounded-full border border-gray-250" style={getBackgroundStyle(col)} />
+                                              <span>{getColorName(col)}</span>
+                                            </label>
+                                            <input
+                                              type="number"
+                                              min="0"
+                                              value={colorVal}
+                                              onChange={e => {
+                                                const val = Math.max(0, parseInt(e.target.value) || 0);
+                                                setProducts(prev => prev.map(p => {
+                                                  if (p.id === product.id) {
+                                                    const stock = p.colorStock instanceof Map ? Object.fromEntries(p.colorStock) : { ...(p.colorStock ?? {}) };
+                                                    stock[col] = val;
+                                                    return { ...p, colorStock: stock };
+                                                  }
+                                                  return p;
+                                                }));
+                                              }}
+                                              onBlur={() => {
+                                                const p = products.find(p => p.id === product.id);
+                                                const stock = p?.colorStock instanceof Map ? Object.fromEntries(p.colorStock) : (p?.colorStock ?? {});
+                                                handleUpdate(product.id, 'colorStock', stock);
+                                              }}
+                                              onKeyDown={e => {
+                                                if (e.key === 'Enter') {
+                                                  const p = products.find(p => p.id === product.id);
+                                                  const stock = p?.colorStock instanceof Map ? Object.fromEntries(p.colorStock) : (p?.colorStock ?? {});
+                                                  handleUpdate(product.id, 'colorStock', stock);
+                                                }
+                                              }}
+                                              className="w-24 bg-gray-50 border-b border-transparent focus:border-black focus:bg-white outline-none py-2 px-3 text-center text-xs font-black font-mono transition-all rounded-[2px]"
+                                            />
+                                          </div>
+                                        );
+                                      })}
+                                    </div>
+                                  )}
                                 </div>
-                              )}
+                              </td>
+                            </tr>
+                          )}
+                        </React.Fragment>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </AsyncContent>
 
-                              {/* Color Only Editor (Colors exist, but no Sizes) */}
-                              {!hasMatrix && hasColors && (
-                                <div className="flex flex-wrap gap-5 py-2">
-                                  {product.colors.map(col => {
-                                    const colorVal = product.colorStock instanceof Map
-                                      ? (product.colorStock.get(col) ?? 0)
-                                      : (product.colorStock?.[col] ?? 0);
-                                    return (
-                                      <div key={col} className="flex flex-col space-y-1.5">
-                                        <label className="text-[8px] font-black uppercase tracking-widest text-gray-400 flex items-center space-x-1.5">
-                                          <span className="w-2 h-2 rounded-full border border-gray-250" style={getBackgroundStyle(col)} />
-                                          <span>{getColorName(col)}</span>
-                                        </label>
-                                        <input
-                                          type="number"
-                                          min="0"
-                                          value={colorVal}
-                                          onChange={e => {
-                                            const val = Math.max(0, parseInt(e.target.value) || 0);
-                                            setProducts(prev => prev.map(p => {
-                                              if (p.id === product.id) {
-                                                const stock = p.colorStock instanceof Map ? Object.fromEntries(p.colorStock) : { ...(p.colorStock ?? {}) };
-                                                stock[col] = val;
-                                                return { ...p, colorStock: stock };
-                                              }
-                                              return p;
-                                            }));
-                                          }}
-                                          onBlur={() => {
-                                            const p = products.find(p => p.id === product.id);
-                                            const stock = p?.colorStock instanceof Map ? Object.fromEntries(p.colorStock) : (p?.colorStock ?? {});
-                                            handleUpdate(product.id, 'colorStock', stock);
-                                          }}
-                                          onKeyDown={e => {
-                                            if (e.key === 'Enter') {
-                                              const p = products.find(p => p.id === product.id);
-                                              const stock = p?.colorStock instanceof Map ? Object.fromEntries(p.colorStock) : (p?.colorStock ?? {});
-                                              handleUpdate(product.id, 'colorStock', stock);
-                                            }
-                                          }}
-                                          className="w-24 bg-gray-50 border-b border-transparent focus:border-black focus:bg-white outline-none py-2 px-3 text-center text-xs font-black font-mono transition-all rounded-[2px]"
-                                        />
-                                      </div>
-                                    );
-                                  })}
-                                </div>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      )}
-                    </React.Fragment>
-                  );
-                })}
-              </tbody>
-            </table>
+            <div className="px-6 py-4 border-t border-gray-150 flex items-center justify-between">
+              <p className="text-[9px] font-black uppercase tracking-[0.3em] text-gray-400 italic">
+                {filtered.length} of {products.length} products
+              </p>
+              <p className="text-[9px] font-black uppercase tracking-widest text-gray-300">
+                Tip: Edit price directly inline. Click "Edit Matrix" on variant products to edit individual size/color stock.
+              </p>
+            </div>
           </div>
-        </AsyncContent>
-
-        <div className="px-6 py-4 border-t border-gray-150 flex items-center justify-between">
-          <p className="text-[9px] font-black uppercase tracking-[0.3em] text-gray-400 italic">
-            {filtered.length} of {products.length} products
-          </p>
-          <p className="text-[9px] font-black uppercase tracking-widest text-gray-300">
-            Tip: Edit price directly inline. Click "Edit Matrix" on variant products to edit individual size/color stock.
-          </p>
-        </div>
-      </div>
+        </>
+      )}
     </div>
   );
 };

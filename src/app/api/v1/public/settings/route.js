@@ -8,7 +8,7 @@ export const GET = withRoute({
   handler: async () => {
     try {
       const settings = await Settings.findOne().lean();
-      const data = settings ?? { announcement: 'Welcome to Stop & Shop - E2E Test Store', logo: '' };
+      const data = settings ?? { announcement: 'Welcome to Stop & Shop - E2E Test Store', logo: '', lowStockThreshold: 5 };
 
       if (data._id) {
         data._id = data._id.toString();
@@ -16,7 +16,7 @@ export const GET = withRoute({
 
       return data;
     } catch {
-      return { announcement: 'Welcome to Stop & Shop - E2E Test Store', logo: '' };
+      return { announcement: 'Welcome to Stop & Shop - E2E Test Store', logo: '', lowStockThreshold: 5 };
     }
   }
 });

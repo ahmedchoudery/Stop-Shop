@@ -56,6 +56,7 @@ const productSchema = new mongoose.Schema({
   careInstructions: { type: String, default: '' },
   slug:             { type: String, unique: true, sparse: true, index: true },
   categories:       [{ type: String, index: true }],
+  lowStockThreshold: { type: Number, min: 0 },
 }, { timestamps: true, versionKey: false, autoIndex: true });
 
 productSchema.index({ bucket: 1, createdAt: -1 });
@@ -87,7 +88,9 @@ productSchema.pre('save', function syncStockAndSlug() {
     const sizeSums  = {};
     const matrix    = this.variantMatrix instanceof Map ? this.variantMatrix : new Map(Object.entries(this.variantMatrix ?? {}));
     for (const [key, qty] of matrix) {
-      const [color, size] = key.split('|');
+      const lastPipeIndex = key.lastIndexOf('|');
+      const color = lastPipeIndex !== -1 ? key.substring(0, lastPipeIndex) : key;
+      const size = lastPipeIndex !== -1 ? key.substring(lastPipeIndex + 1) : '';
       if (color) colorSums[color] = (colorSums[color] || 0) + Math.max(0, parseInt(qty) || 0);
       if (size)  sizeSums[size]  = (sizeSums[size]  || 0) + Math.max(0, parseInt(qty) || 0);
     }

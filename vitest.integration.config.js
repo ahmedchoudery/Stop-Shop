@@ -22,7 +22,8 @@ export default defineConfig({
     include: [
       'src/test/checkout.test.js',
       'src/test/idempotency.test.js',
-      'src/test/emailOutbox.test.js'
+      'src/test/emailOutbox.test.js',
+      'src/test/lowStockAlert.test.js'
     ],
   },
 });

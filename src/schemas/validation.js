@@ -177,6 +177,7 @@ export const createAdminSchema = z.object({
 export const updateSettingsSchema = z.object({
   logo:         z.string().url('Invalid logo URL').or(z.literal('')).optional(),
   announcement: z.string().trim().max(500, 'Announcement too long').optional(),
+  lowStockThreshold: z.number().min(0, 'Threshold must be positive').optional(),
 });
 
 // ─────────────────────────────────────────────────────────────────

@@ -51,7 +51,9 @@ export const PATCH = withRoute({
       const colorSums = {};
       const sizeSums = {};
       for (const [key, qty] of Object.entries(updateData.variantMatrix)) {
-        const [color, size] = key.split('|');
+        const lastPipeIndex = key.lastIndexOf('|');
+        const color = lastPipeIndex !== -1 ? key.substring(0, lastPipeIndex) : key;
+        const size = lastPipeIndex !== -1 ? key.substring(lastPipeIndex + 1) : '';
         if (color) {
           const cur = parseInt(Reflect.get(colorSums, color)) || 0;
           Reflect.set(colorSums, color, cur + Math.max(0, parseInt(qty) || 0));

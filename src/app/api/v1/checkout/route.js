@@ -18,6 +18,7 @@ import paymentFactory from '@/lib/payments/PaymentFactory';
 import { calculateDiscount } from '@/utils/pricing';
 import { NextResponse } from 'next/server';
 import mongoose from 'mongoose';
+import { checkLowStockAlert } from '@/services/lowStockService';
 
 export const POST = withIdempotency(withRoute({
   requiredRole: 'public',
@@ -126,6 +127,8 @@ export const POST = withIdempotency(withRoute({
               {},
               session
             );
+
+            await checkLowStockAlert(updatedProduct, size, color, session);
           }
 
           // Clean up reservation

@@ -14,7 +14,7 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.js'],
     include: ['src/**/*.{test,spec}.{js,jsx}'],
-    exclude: ['src/test/idempotency.test.js', 'src/test/emailOutbox.test.js', 'src/test/checkout.test.js'],
+    exclude: ['src/test/idempotency.test.js', 'src/test/emailOutbox.test.js', 'src/test/checkout.test.js', 'src/test/lowStockAlert.test.js'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],

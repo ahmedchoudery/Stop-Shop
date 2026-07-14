@@ -1,6 +1,12 @@
-import { withRoute } from '@/lib/api/withRoute';
+import { withRoute, ApiError } from '@/lib/api/withRoute';
 import Inventory from '@/models/Inventory';
+import Product from '@/models/Product';
+import Settings from '@/models/Settings';
+import LowStockAlert from '@/models/LowStockAlert';
+import { syncInventory } from '@/services/inventoryService';
 import { z } from 'zod';
+
+export const dynamic = 'force-dynamic';
 
 export const GET = withRoute({
   requiredRole: 'admin',
@@ -8,12 +14,55 @@ export const GET = withRoute({
     query: z.object({
       page: z.string().transform(val => Math.max(1, parseInt(val, 10))).optional().default('1'),
       limit: z.string().transform(val => Math.max(1, Math.min(100, parseInt(val, 10)))).optional().default('100'),
+      type: z.enum(['inventory', 'alerts']).optional().default('inventory'),
     })
   },
   handler: async ({ query }) => {
     const page = query.page;
     const limit = query.limit;
     const skip = (page - 1) * limit;
+
+    if (query.type === 'alerts') {
+      const alerts = await LowStockAlert.find({})
+        .sort({ createdAt: -1 })
+        .lean();
+
+      const enriched = await Promise.all(alerts.map(async (alert) => {
+        const product = await Product.findOne({ id: alert.sku })
+          .select('name image variantMatrix sizeStock colorStock quantity lowStockThreshold')
+          .lean();
+        
+        let currentStock = 0;
+        let threshold = 5;
+        if (product) {
+          threshold = product.lowStockThreshold ?? 5;
+          const colorAndSize = alert.variantId;
+          if (colorAndSize === 'default') {
+            currentStock = product.quantity ?? 0;
+          } else if (colorAndSize.includes('|')) {
+            currentStock = product.variantMatrix?.[colorAndSize] ?? 0;
+          } else if (product.sizes?.includes(colorAndSize)) {
+            currentStock = product.sizeStock?.[colorAndSize] ?? 0;
+          } else if (product.colors?.includes(colorAndSize)) {
+            currentStock = product.colorStock?.[colorAndSize] ?? 0;
+          }
+        }
+
+        return {
+          ...alert,
+          _id: alert._id?.toString() || null,
+          productName: product?.name || alert.sku,
+          productImage: product?.image || '',
+          currentStock,
+          threshold,
+        };
+      }));
+
+      return new Response(JSON.stringify(enriched), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
 
     const totalCount = await Inventory.countDocuments({});
     const inventory = await Inventory.find({})
@@ -40,5 +89,108 @@ export const GET = withRoute({
         'X-Limit': limit.toString(),
       }
     });
+  }
+});
+
+export const POST = withRoute({
+  requiredRole: 'admin',
+  schema: {
+    body: z.object({
+      action: z.enum(['snooze', 'restock', 'threshold', 'global-threshold']),
+      sku: z.string().optional(),
+      variantId: z.string().optional(),
+      alertId: z.string().optional(),
+      quantity: z.number().optional(),
+      threshold: z.number().optional(),
+    })
+  },
+  handler: async ({ body }) => {
+    const { action, sku, variantId, alertId, quantity, threshold } = body;
+
+    if (action === 'global-threshold') {
+      const settings = await Settings.findOneAndUpdate(
+        {},
+        { lowStockThreshold: threshold },
+        { upsert: true, new: true }
+      );
+      return { success: true, lowStockThreshold: settings.lowStockThreshold };
+    }
+
+    if (action === 'threshold') {
+      if (!sku) throw new ApiError('BAD_REQUEST', 'Product sku is required', 400);
+      const prd = await Product.findOneAndUpdate(
+        { id: sku },
+        { lowStockThreshold: threshold },
+        { new: true }
+      );
+      if (!prd) throw new ApiError('NOT_FOUND', 'Product not found', 404);
+      return { success: true, sku, lowStockThreshold: prd.lowStockThreshold };
+    }
+
+    let alert;
+    if (alertId) {
+      alert = await LowStockAlert.findById(alertId);
+    } else if (sku && variantId) {
+      alert = await LowStockAlert.findOne({ sku, variantId }).sort({ createdAt: -1 });
+    }
+
+    if (!alert) throw new ApiError('NOT_FOUND', 'Low stock alert not found', 404);
+
+    if (action === 'snooze') {
+      alert.snoozedUntil = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+      alert.status = 'snoozed';
+      await alert.save();
+      return { success: true, alert };
+    }
+
+    if (action === 'restock') {
+      const restockQty = quantity ?? 50;
+      const product = await Product.findOne({ id: alert.sku });
+      if (!product) throw new ApiError('NOT_FOUND', 'Product not found', 404);
+
+      const colorAndSize = alert.variantId;
+      let color = '';
+      let size = '';
+      let updateKey = 'quantity';
+
+      if (colorAndSize !== 'default') {
+        if (colorAndSize.includes('|')) {
+          const lastPipeIndex = colorAndSize.lastIndexOf('|');
+          color = colorAndSize.substring(0, lastPipeIndex);
+          size = colorAndSize.substring(lastPipeIndex + 1);
+          updateKey = `variantMatrix.${color}|${size}`;
+        } else {
+          if (product.sizes?.includes(colorAndSize)) {
+            size = colorAndSize;
+            updateKey = `sizeStock.${size}`;
+          } else if (product.colors?.includes(colorAndSize)) {
+            color = colorAndSize;
+            updateKey = `colorStock.${color}`;
+          }
+        }
+      }
+
+      const productUpdate = { $inc: { [updateKey]: restockQty } };
+      const updatedProduct = await Product.findOneAndUpdate(
+        { id: alert.sku },
+        productUpdate,
+        { new: true }
+      );
+
+      await syncInventory(
+        updatedProduct,
+        'RESTOCK',
+        `Restocked ${restockQty}x ${updatedProduct.name} variant "${colorAndSize}"`,
+        `RESTOCK-${Date.now()}`,
+        {}
+      );
+
+      alert.status = 'restocked';
+      await alert.save();
+
+      return { success: true, alert, currentStock: restockQty };
+    }
+
+    throw new ApiError('BAD_REQUEST', 'Invalid action', 400);
   }
 });

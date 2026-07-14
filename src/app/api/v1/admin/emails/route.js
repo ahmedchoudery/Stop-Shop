@@ -22,6 +22,7 @@ import OrderPaymentFailedCustomer from '@/emails/order-payment-failed-customer';
 import OrderPaymentFailedAdmin from '@/emails/order-payment-failed-admin';
 import OrderRefundedCustomer from '@/emails/order-refunded-customer';
 import OrderRefundedAdmin from '@/emails/order-refunded-admin';
+import LowStockAlertAdminEmail from '@/emails/low-stock-alert-admin';
 
 const TEMPLATES = {
   'order-confirmed-customer': OrderConfirmedCustomer,
@@ -38,6 +39,7 @@ const TEMPLATES = {
   'order-payment-failed-admin': OrderPaymentFailedAdmin,
   'order-refunded-customer': OrderRefundedCustomer,
   'order-refunded-admin': OrderRefundedAdmin,
+  'low-stock-alert-admin': LowStockAlertAdminEmail,
 };
 
 // Mock data to preview templates if no outbox item is available
@@ -63,6 +65,14 @@ const MOCK_PREVIEW_DATA = {
     notes: 'Please call before delivery.',
   },
   customerPastOrderCount: 3,
+  // Low-stock fallback preview fields
+  productId: 'PRD-998877',
+  productName: 'Premium Oxford Shirt',
+  productImage: 'https://images.unsplash.com/photo-1596755094514-f87e34085b2c?w=400',
+  variantId: 'White | M',
+  currentStock: 2,
+  salesVelocity: 14,
+  threshold: 5,
 };
 
 export const GET = withRoute({
