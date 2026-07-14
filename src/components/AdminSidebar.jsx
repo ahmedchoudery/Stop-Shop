@@ -22,6 +22,7 @@ import {
   Shield,
   X,
   ScanBarcode,
+  Mail,
 } from 'lucide-react';
 import { clearToken } from '../lib/auth.js';
 
@@ -36,6 +37,7 @@ const NAV_ITEMS = [
   { to: '/admin/reviews',    icon: Star,            label: 'Reviews' },
   { to: '/admin/users',      icon: Users,           label: 'Users' },
   { to: '/admin/audits',     icon: FileText,        label: 'Audit Log' },
+  { to: '/admin/emails',     icon: Mail,            label: 'Emails' },
   { to: '/admin/settings',   icon: Settings,        label: 'Settings' },
 ];
 

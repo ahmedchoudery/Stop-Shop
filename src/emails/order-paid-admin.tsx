@@ -1,0 +1,6 @@
+import * as React from 'react';
+import { OrderLifecycleEmail } from './OrderLifecycleEmail';
+
+export default function OrderPaidAdminEmail(props: any) {
+  return <OrderLifecycleEmail {...props} status="Paid" isAdmin={true} />;
+}

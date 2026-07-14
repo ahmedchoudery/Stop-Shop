@@ -27,15 +27,28 @@ This document tracks the current state of work, what tasks have been completed, 
 
 ---
 
-## 2. What is Currently Being Worked On
-- **CI Verification & Monitoring**: Verifying that the GHA checks succeed on commit push.
+## 2. What Has Been Completed (Prompt 5 - Concurrency-Safe Inventory & State Machine)
+- **Atomic Stock Decrement**: Replaced read-then-write updates with atomic conditional `findOneAndUpdate` updates on product variant stock Maps and matrices.
+- **Cart hold / reservations**: Added a reservation system hold endpoint (`/api/v1/reservations`) and database model `Reservation` with TTL index, coupled with a 1-minute cron-based background worker to release expired reservations and restore stock.
+- **Counter Order Number sequence**: Created `Counter` model and implemented sequencing to generate human-readable order IDs (`STOP-YYYY-XXXXXX`) during storefront checkout and POS transactions.
+- **Order State Machine**: Built a state machine transition helper `transitionOrder` mapping allowed transitions, logging transition events into `OrderEvent` model, and enqueuing status emails.
+- **Race Condition & Idempotency Tests**: Added `scripts/race-test.mjs` and `scripts/idempotency-test.mjs` running dev server and firing concurrent parallel orders to assert correctness.
 
 ---
 
-## 3. What is Currently Being Worked On
-- **All Verified**: All GitHub Actions verification checks (Build, Lint, Unit Tests, Integration Tests, E2E Tests, Dependency Audit) are green and passing successfully.
+## 4. What Has Been Completed (Prompt 7 - Automated Order-Lifecycle Emails)
+- **Unique Idempotency Outbox**: Added unique `idempotencyKey` values, templates, status tracking, retry counts, and next attempt timestamps to the `EmailOutbox` model.
+- **Auto-Failover Provider**: Built `emailProvider.js` with Resend (primary) and Brevo (fallback), automatically failing over after 3 Resend `5xx` errors within 60 seconds.
+- **Suppression Management**: Created `SuppressedEmail` schema and HMAC-verified webhook endpoint at `/api/webhooks/resend` to automatically suppress bounced addresses.
+- **14 React Email templates**: Built a unified layout `BaseLayout.tsx` and compiled 14 custom `.tsx` template components under `src/emails/`.
+- **Admin Email Console**: Implemented `/admin/emails` view showing outbox log queue, suppression table, and live side-by-side template preview iframes.
 
 ---
 
-## 4. What is Planned Next
+## 5. What is Currently Being Worked On
+- **All Verified**: All integrations, linter checks, and 235 tests are passing 100% green.
+
+---
+
+## 6. What is Planned Next
 - **Feature Drops**: Align with the user on the next set of feature requests.

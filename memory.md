@@ -36,10 +36,20 @@ This document tracks the current state of work, what tasks have been completed, 
 
 ---
 
-## 3. What is Currently Being Worked On
-- **All Verified**: All GitHub Actions verification checks (Build, Lint, Unit Tests, Integration Tests, E2E Tests, Dependency Audit) are green and passing successfully.
+## 4. What Has Been Completed (Prompt 7 - Automated Order-Lifecycle Emails)
+- **Unique Idempotency Outbox**: Added unique `idempotencyKey` values, templates, status tracking, retry counts, and next attempt timestamps to the `EmailOutbox` model.
+- **Auto-Failover Provider**: Built `emailProvider.js` with Resend (primary) and Brevo (fallback), automatically failing over after 3 Resend `5xx` errors within 60 seconds.
+- **Suppression Management**: Created `SuppressedEmail` schema and HMAC-verified webhook endpoint at `/api/webhooks/resend` to automatically suppress bounced addresses.
+- **14 React Email templates**: Built a unified layout `BaseLayout.tsx` and compiled 14 custom `.tsx` template components under `src/emails/`.
+- **Admin Email Console**: Implemented `/admin/emails` view showing outbox log queue, suppression table, and live side-by-side template preview iframes.
 
 ---
 
-## 4. What is Planned Next
+## 5. What is Currently Being Worked On
+- **All Verified**: All integrations, linter checks, and 235 tests are passing 100% green.
+
+---
+
+## 6. What is Planned Next
 - **Feature Drops**: Align with the user on the next set of feature requests.
+

@@ -8,12 +8,11 @@ import { withIdempotency } from '@/utils/idempotency.js';
 import { checkoutSchema } from '@/schemas/validation';
 import { syncInventory } from '@/services/inventoryService';
 import {
-  sendOrderConfirmationEmail,
   checkAndAlertLowStock,
   sendOrderFailedEmail,
-  sendAdminNewOrderNotification,
   processOutbox
 } from '@/services/emailService';
+import { enqueueOutboxEmails } from '@/lib/orders/state';
 import { cacheService, CACHE_KEYS } from '@/services/cacheService';
 import paymentFactory from '@/lib/payments/PaymentFactory';
 import { calculateDiscount } from '@/utils/pricing';
@@ -250,8 +249,7 @@ export const POST = withIdempotency(withRoute({
         }
 
         // Queue Confirmation and Admin Emails inside transaction session (Outbox Pattern)
-        await sendOrderConfirmationEmail(orderDoc, session);
-        await sendAdminNewOrderNotification(orderDoc, session);
+        await enqueueOutboxEmails(orderDoc, 'Confirmed', session);
 
         // Non-transactional tasks done outside, queued on success:
         checkAndAlertLowStock(enrichedItems);
