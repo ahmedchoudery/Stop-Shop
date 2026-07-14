@@ -45,11 +45,18 @@ This document tracks the current state of work, what tasks have been completed, 
 
 ---
 
-## 5. What is Currently Being Worked On
-- **All Verified**: All integrations, linter checks, and 235 tests are passing 100% green.
+## 5. What Has Been Completed (Prompt 8 - Low-Stock Alerts)
+- **Atomic Stock Trigger**: Integrated alert checks directly inside the atomic stock decrement. When variant stock drops below the threshold, a new daily alert is registered in the `LowStockAlert` collection using a unique index on `(sku, variantId, date)`.
+- **Worker & Outbox Integration**: Enqueues a notification email `low-stock-alert-admin` to the outbox under the idempotency key `low-stock:${sku}:${variantId}:${date}` to avoid duplicate spams.
+- **Admin Inventory Dashboard**: Designed the `/admin/inventory` dashboard featuring a variant list, stock status flags, one-click "mark restocked", "snooze 7 days", and custom stock threshold configurations (defaulting to 5 units or global default settings).
 
 ---
 
-## 6. What is Planned Next
+## 6. What is Currently Being Worked On
+- **All Verified**: All integrations, linter checks, and 238 tests are passing 100% green.
+
+---
+
+## 7. What is Planned Next
 - **Feature Drops**: Align with the user on the next set of feature requests.
 
