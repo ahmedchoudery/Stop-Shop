@@ -18,7 +18,7 @@ jobs:
     name: Lint & Type Check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup Node.js 20.x
         uses: actions/setup-node@v4
@@ -40,7 +40,7 @@ jobs:
     name: Unit Tests (Vitest)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup Node.js 20.x
         uses: actions/setup-node@v4
@@ -73,7 +73,7 @@ jobs:
       NODE_ENV: 'test'
       REDIS_URL: ''
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup Node.js 20.x
         uses: actions/setup-node@v4
@@ -108,7 +108,7 @@ jobs:
       NODE_ENV: 'test'
       REDIS_URL: ''
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup Node.js 20.x
         uses: actions/setup-node@v4
@@ -141,7 +141,7 @@ jobs:
       CI: 'true'
       REDIS_URL: ''
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup Node.js 20.x
         uses: actions/setup-node@v4
@@ -188,7 +188,7 @@ jobs:
     name: Dependency Audit
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Setup Node.js 20.x
         uses: actions/setup-node@v4
