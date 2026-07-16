@@ -123,7 +123,6 @@ const PowerOfChoiceHero = () => {
             src="/Hero-Tablet.jpeg"
             alt="SS'26 Collection"
             fill
-            priority
             sizes="100vw"
             className="object-cover object-bottom"
             style={{ willChange: 'transform' }}
@@ -135,7 +134,6 @@ const PowerOfChoiceHero = () => {
             src="/Hero-Desktop.jpeg"
             alt="SS'26 Collection"
             fill
-            priority
             sizes="100vw"
             className="object-cover object-center"
             style={{ willChange: 'transform' }}

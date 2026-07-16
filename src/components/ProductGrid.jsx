@@ -1,3 +1,5 @@
+'use client';
+
 /**
  * ProductGrid — Unified Dark Edition
  * Pure layout renderer — all filtering/sorting delegated to useProducts hook.

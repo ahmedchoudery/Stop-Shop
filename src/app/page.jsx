@@ -4,7 +4,7 @@ import dbConnect from '../lib/db';
 import Product from '../models/Product';
 import HomePageClient from './HomePageClient.jsx';
 
-export const revalidate = 60; // Cache and revalidate pages every 60 seconds (Incremental Static Regeneration)
+export const revalidate = 300; // Cache and revalidate pages every 300 seconds (Incremental Static Regeneration)
 
 export default async function Page() {
   await dbConnect();
@@ -59,6 +59,7 @@ export default async function Page() {
 
   return (
     <>
+      <link rel="preload" as="image" href="/Hero-Mobile.jpeg" fetchPriority="high" />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}

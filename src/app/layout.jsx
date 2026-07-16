@@ -6,21 +6,31 @@ import Providers from './providers.jsx';
 import Layout from '../layout/Layout.jsx';
 import UniversalDrawer from '../layout/UniversalDrawer.jsx';
 import ErrorBoundary from '../components/ErrorBoundary.tsx';
+import WebVitalsReporter from '../components/WebVitalsReporter.jsx';
 import '../styles/index.css';
 
 const playfair = Playfair_Display({
   weight: ['400', '700', '900'],
-  subsets: ['latin'],
+  subsets: ['latin', 'latin-ext'],
   style: ['normal', 'italic'],
   variable: '--font-playfair',
   display: 'swap',
+  preload: false,
 });
 
 const dmSans = DM_Sans({
-  weight: ['400', '700'],
-  subsets: ['latin'],
+  weight: '400',
+  subsets: ['latin', 'latin-ext'],
   variable: '--font-dm-sans',
   display: 'swap',
+});
+
+const dmSansBold = DM_Sans({
+  weight: '700',
+  subsets: ['latin', 'latin-ext'],
+  variable: '--font-dm-sans-bold',
+  display: 'swap',
+  preload: false,
 });
 
 export const metadata = {
@@ -49,7 +59,7 @@ export default function RootLayout({ children }) {
   const nonce = headers().get('x-nonce') || undefined;
 
   return (
-    <html lang="en" className={`${dmSans.variable} ${playfair.variable}`}>
+    <html lang="en" className={`${dmSans.variable} ${dmSansBold.variable} ${playfair.variable}`}>
       <body className="font-sans antialiased selection:bg-white/10 selection:text-black">
         {/* Analytics & Pixel Tracking (Deferred for better TBT/INP) */}
         <Script
@@ -82,6 +92,7 @@ export default function RootLayout({ children }) {
 
         <ErrorBoundary title="Fatal App Error">
           <Providers>
+            <WebVitalsReporter />
             <Layout>
               {children}
             </Layout>

@@ -1,16 +1,23 @@
 import React, { useEffect } from 'react';
 import Image from 'next/image';
 
-const getOptimizedImageUrl = (src, width = 600) => {
+const cloudinaryLoader = ({ src, width, quality }) => {
   if (!src || typeof src !== 'string') return src;
-  if (src.includes('res.cloudinary.com')) {
-    if (src.includes('/upload/')) {
-      if (!src.includes('/f_auto')) {
-        return src.replace('/upload/', `/upload/f_auto,q_auto,w_${width}/`);
-      }
+  if (src.includes('res.cloudinary.com') && src.includes('/upload/')) {
+    const [base, rest] = src.split('/upload/');
+    const parts = rest.split('/');
+    if (parts[0].includes(',') || /^[a-z]_[a-z0-9_]+$/i.test(parts[0]) || parts[0] === 'f_auto' || parts[0] === 'q_auto') {
+      parts.shift();
     }
+    const params = ['f_auto', 'q_auto', `w_${width}`];
+    if (quality) params.push(`q_${quality}`);
+    return `${base}/upload/${params.join(',')}/${parts.join('/')}`;
   }
   return src;
+};
+
+const getOptimizedImageUrl = (src, width = 600) => {
+  return cloudinaryLoader({ src, width });
 };
 
 function parseEmbed(raw) {
@@ -170,6 +177,7 @@ const MediaRenderer = ({ src, embedCode, mediaType, alt, className, onLoad, widt
       return (
         <div className="relative w-full h-full">
           <Image
+            loader={cloudinaryLoader}
             src={optimizedEmbedSrc}
             alt={alt || 'Embedded image'}
             fill
@@ -215,6 +223,7 @@ const MediaRenderer = ({ src, embedCode, mediaType, alt, className, onLoad, widt
   return (
     <div className="relative w-full h-full">
       <Image
+        loader={cloudinaryLoader}
         src={optimizedSrc}
         alt={alt || "Product media"}
         fill

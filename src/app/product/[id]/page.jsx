@@ -5,7 +5,7 @@ import dbConnect from '../../../lib/db';
 import Product from '../../../models/Product';
 import ProductPageClient from './ProductPageClient.jsx';
 
-export const revalidate = 60; // Cache and revalidate pages every 60 seconds
+export const revalidate = 300; // Cache and revalidate pages every 300 seconds
 
 // ── Dynamic Metadata Generation (Preserving e-commerce SEO rules exactly) ──
 export async function generateMetadata({ params }) {
