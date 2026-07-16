@@ -52,6 +52,14 @@ async function seed() {
     const pathSegments = connStrWithoutParams.split('/');
     const extractedDbName = pathSegments.slice(3).join('/').split('#')[0];
     const dbName = extractedDbName || (process.env.NODE_ENV === 'test' ? 'stopshop_test' : 'stopshop');
+
+    // ── HARD SAFETY: Never seed production ──
+    if (dbName === 'stopshop') {
+      console.error('🚨 FATAL: Refusing to seed production database "stopshop".');
+      console.error('   Set MONGODB_URI to point to stopshop_test or another test database.');
+      process.exit(1);
+    }
+
     console.info(`Connecting to database: ${dbName}...`);
     await mongoose.connect(MONGO_URI, { dbName });
     console.info('Connected.');

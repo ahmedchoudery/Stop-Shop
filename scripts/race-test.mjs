@@ -20,6 +20,10 @@ async function main() {
     const pathSegments = connStrWithoutParams.split('/');
     const extractedDbName = pathSegments.slice(3).join('/').split('#')[0];
     const dbName = extractedDbName || (process.env.NODE_ENV === 'test' ? 'stopshop_test' : 'stopshop');
+    if (dbName === 'stopshop') {
+      console.error('🚨 FATAL: Refusing to run race-test against production database "stopshop".');
+      process.exit(1);
+    }
     await mongoose.connect(MONGODB_URI, { dbName });
   }
 
