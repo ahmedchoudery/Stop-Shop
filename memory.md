@@ -50,13 +50,18 @@ This document tracks the current state of work, what tasks have been completed, 
 - **Worker & Outbox Integration**: Enqueues a notification email `low-stock-alert-admin` to the outbox under the idempotency key `low-stock:${sku}:${variantId}:${date}` to avoid duplicate spams.
 - **Admin Inventory Dashboard**: Designed the `/admin/inventory` dashboard featuring a variant list, stock status flags, one-click "mark restocked", "snooze 7 days", and custom stock threshold configurations (defaulting to 5 units or global default settings).
 
+
 ---
 
-## 6. What is Currently Being Worked On
-- **All Verified**: All integrations, linter checks, and 238 tests are passing 100% green.
+## 6. What Has Been Completed (Prompt 9 - Performance & Core Web Vitals Overhaul)
+- **Preloading & LCP**: Mobile LCP hero preloaded via link headers; non-LCP desktop/tablet image priority loading removed to reduce resource competition.
+- **Cloudinary CDN optimizations**: Custom loader registered on Next.js `<Image>` components, automatically formatting width (`w_`), `f_auto`, and `q_auto` to request fully responsive and lightweight CDN resources.
+- **Font preloading & subsetting**: Configured self-hosted fonts with `latin-ext` subsets, only preloading 1 critical body weight (`DM_Sans` 400), and applying `font-display: swap`.
+- **ISR & caching configurations**: Enabled 300s ISR on `/` and `/product/[id]`. Configured 60s ISR on the new `/category/[slug]` route. Configured 60s maxage + 600s stale-while-revalidate Cache-Control headers on the public products API.
+- **Real-time Web Vitals reporter**: Added client-side monitoring dispatching metrics via `navigator.sendBeacon` to `/api/analytics/vitals`, logging results via Pino.
 
 ---
 
 ## 7. What is Planned Next
-- **Feature Drops**: Align with the user on the next set of feature requests.
+- **Next Prompt / Alignment**: Ready for next requests from the user.
 
