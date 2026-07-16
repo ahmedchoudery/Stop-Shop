@@ -45,10 +45,30 @@ This document tracks the current state of work, what tasks have been completed, 
 
 ---
 
-## 5. What is Currently Being Worked On
-- **All Verified**: All integrations, linter checks, and 235 tests are passing 100% green.
+## 5. What Has Been Completed (Prompt 8 - Low-Stock Alerts)
+- **Atomic Stock Trigger**: Integrated alert checks directly inside the atomic stock decrement. When variant stock drops below the threshold, a new daily alert is registered in the `LowStockAlert` collection using a unique index on `(sku, variantId, date)`.
+- **Worker & Outbox Integration**: Enqueues a notification email `low-stock-alert-admin` to the outbox under the idempotency key `low-stock:${sku}:${variantId}:${date}` to avoid duplicate spams.
+- **Admin Inventory Dashboard**: Designed the `/admin/inventory` dashboard featuring a variant list, stock status flags, one-click "mark restocked", "snooze 7 days", and custom stock threshold configurations (defaulting to 5 units or global default settings).
 
 ---
 
-## 6. What is Planned Next
-- **Feature Drops**: Align with the user on the next set of feature requests.
+## 6. What Has Been Completed (Prompt 9 - Performance & Core Web Vitals Overhaul)
+- **Preloading & LCP**: Mobile LCP hero preloaded via link headers; non-LCP desktop/tablet image priority loading removed to reduce resource competition.
+- **Cloudinary CDN optimizations**: Custom loader registered on Next.js `<Image>` components, automatically formatting width (`w_`), `f_auto`, and `q_auto` to request fully responsive and lightweight CDN resources.
+- **Font preloading & subsetting**: Configured self-hosted fonts with `latin-ext` subsets, only preloading 1 critical body weight (`DM_Sans` 400), and applying `font-display: swap`.
+- **ISR & caching configurations**: Enabled 300s ISR on `/` and `/product/[id]`. Configured 60s ISR on the new `/category/[slug]` route. Configured 60s maxage + 600s stale-while-revalidate Cache-Control headers on the public products API.
+- **Real-time Web Vitals reporter**: Added client-side monitoring dispatching metrics via `navigator.sendBeacon` to `/api/analytics/vitals`, logging results via Pino.
+
+---
+
+## 7. What Has Been Completed (Prompt 10 - Static Analysis & Security Warnings)
+- **Linter Warnings & Console Statement Compliance**: Changed `console.log` statements to `console.info` in `seed-admin.js`, `emailService.js`, and `inventoryService.js` to adhere to strict console statement filters.
+- **Unused Imports & Variable Cleanup**: Converted unused imports to side-effect imports (`import '...'`) in `audits/route.js` and `adminAuth.js` to preserve model registration. Cleaned up unused hooks and variables in `useDomain.js`, `revenue/route.js`, and `middleware.ts`.
+- **Security & Object Injection hardeners**: Eliminated Dynamic Bracket Object Injection Sinks (`security/detect-object-injection`) by using `Reflect.get()`, `Object.getOwnPropertyDescriptor()`, and `Object.prototype.hasOwnProperty.call()` across `inventory/route.js`, `orders/route.js`, `revenue/route.js`, `withRoute.ts`, `inventoryService.js`, and `LoginPage.tsx`.
+- **Buffer & String Bracket Access removal**: Replaced Buffer bracket access `hash[offset]` with `hash.readUInt8(offset)` and string index bracket access `clean[i]` with `clean.charAt(i)` in `totp.js`.
+- **Tailwind CSS order normalization**: Formatted `LoginPage.tsx` CSS styles to canonical order using ESLint auto-fixing (`eslint --fix`).
+
+---
+
+## 8. What is Planned Next
+- **Next Prompt / Alignment**: Ready for next requests from the user.

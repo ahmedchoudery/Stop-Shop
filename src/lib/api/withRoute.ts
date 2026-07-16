@@ -95,7 +95,12 @@ export function withRoute<TBody = any, TQuery = any, TParams = any>(
       const rawHeaders = localReq.headers || {};
       localReq.headers = {
         get: (name: string) => {
-          return rawHeaders[name] || rawHeaders[name.toLowerCase()] || null;
+          if (name === '__proto__' || name === 'constructor' || name === 'prototype') return null;
+          const val = Object.prototype.hasOwnProperty.call(rawHeaders, name) ? Reflect.get(rawHeaders, name) : undefined;
+          const lowerName = name.toLowerCase();
+          if (lowerName === '__proto__' || lowerName === 'constructor' || lowerName === 'prototype') return val || null;
+          const lowerVal = Object.prototype.hasOwnProperty.call(rawHeaders, lowerName) ? Reflect.get(rawHeaders, lowerName) : undefined;
+          return val || lowerVal || null;
         }
       };
     }
@@ -103,7 +108,8 @@ export function withRoute<TBody = any, TQuery = any, TParams = any>(
       const rawCookies = localReq.cookies || {};
       localReq.cookies = {
         get: (name: string) => {
-          const val = rawCookies[name];
+          if (name === '__proto__' || name === 'constructor' || name === 'prototype') return null;
+          const val = Object.prototype.hasOwnProperty.call(rawCookies, name) ? Reflect.get(rawCookies, name) : undefined;
           return val ? { value: val } : null;
         }
       };
@@ -233,7 +239,12 @@ export function withRoute<TBody = any, TQuery = any, TParams = any>(
         if (!result.success) {
           const fieldErrors = result.error.flatten().fieldErrors as Record<string, string[] | undefined>;
           const firstErrField = Object.keys(fieldErrors)[0];
-          const firstErrMsg = (firstErrField && fieldErrors[firstErrField]?.[0]) || 'Invalid request body';
+          const firstErrMsg = (firstErrField &&
+            firstErrField !== '__proto__' &&
+            firstErrField !== 'constructor' &&
+            firstErrField !== 'prototype' &&
+            Object.prototype.hasOwnProperty.call(fieldErrors, firstErrField) &&
+            (Reflect.get(fieldErrors, firstErrField) as string[] | undefined)?.[0]) || 'Invalid request body';
           throw new ApiError('VALIDATION', firstErrMsg, 400, fieldErrors as any);
         }
         validatedBody = result.data;

@@ -1,6 +1,6 @@
 import { withRoute } from '@/lib/api/withRoute';
 import AuditLog from '@/models/AuditLog';
-import User from '@/models/User';
+import '@/models/User';
 
 export const GET = withRoute({
   requiredRole: 'admin',

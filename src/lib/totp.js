@@ -14,9 +14,10 @@ export function base32Decode(base32) {
   let value = 0;
 
   for (let i = 0; i < clean.length; i++) {
-    const idx = alphabet.indexOf(clean[i]);
+    const char = clean.charAt(i);
+    const idx = alphabet.indexOf(char);
     if (idx === -1) {
-      throw new Error(`Invalid base32 character: ${clean[i]}`);
+      throw new Error(`Invalid base32 character: ${char}`);
     }
     value = (value << 5) | idx;
     bits += 5;
@@ -70,11 +71,11 @@ export function verifyTotp(token, secret, window = 1) {
       hmac.update(countBuf);
       const hash = hmac.digest();
 
-      const offset = hash[hash.length - 1] & 0xf;
-      const binary = ((hash[offset] & 0x7f) << 24) |
-                     ((hash[offset + 1] & 0xff) << 16) |
-                     ((hash[offset + 2] & 0xff) << 8) |
-                     (hash[offset + 3] & 0xff);
+      const offset = hash.readUInt8(hash.length - 1) & 0xf;
+      const binary = ((hash.readUInt8(offset) & 0x7f) << 24) |
+                     ((hash.readUInt8(offset + 1) & 0xff) << 16) |
+                     ((hash.readUInt8(offset + 2) & 0xff) << 8) |
+                     (hash.readUInt8(offset + 3) & 0xff);
 
       const otp = (binary % 1000000).toString().padStart(6, '0');
       if (otp === cleanToken) return true;

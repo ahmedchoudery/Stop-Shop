@@ -42,7 +42,7 @@ async function checkRateLimit(ip: string): Promise<boolean> {
         }
       }
       console.warn('[RateLimit] Upstash returned non-ok response, falling back to local memory limit');
-    } catch (e) {
+    } catch {
       console.warn('[RateLimit] Upstash call failed, falling back to local memory limit');
     }
   }

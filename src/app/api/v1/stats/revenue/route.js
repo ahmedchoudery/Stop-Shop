@@ -51,7 +51,6 @@ export const GET = withRoute({
     const trend        = dayBeforeRev > 0 ? ((yesterdayRev - dayBeforeRev) / dayBeforeRev) * 100 : 0;
 
     // Build a 7-day window: today and the 6 days before it
-    const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
     const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
     // Map YYYY-MM-DD → { revenue, orders }
@@ -66,7 +65,7 @@ export const GET = withRoute({
       const d = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
       const dateStr = d.toISOString().slice(0, 10); // YYYY-MM-DD
       const dayName = DAY_NAMES[d.getUTCDay()];
-      const match = dateMap[dateStr];
+      const match = (dateStr && Object.prototype.hasOwnProperty.call(dateMap, dateStr)) ? dateMap[dateStr] : undefined;
       weeklyData.push({
         day: dayName,
         revenue: match?.revenue ?? 0,

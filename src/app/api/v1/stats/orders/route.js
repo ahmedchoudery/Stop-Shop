@@ -10,12 +10,20 @@ export const GET = withRoute({
   handler: async () => {
     const data = await cacheService.getOrSet(CACHE_KEYS.STATS_ORDERS, async () => {
       const counts = await Order.aggregate([{ $group: { _id: '$status', count: { $sum: 1 } } }]);
-      const byStatus = counts.reduce((acc, c) => ({ ...acc, [c._id]: c.count }), {});
+      const byStatus = counts.reduce((acc, c) => {
+        if (c._id && c._id !== '__proto__' && c._id !== 'constructor' && c._id !== 'prototype') {
+          acc[c._id] = c.count;
+        }
+        return acc;
+      }, Object.create(null));
       const totalOrders = counts.reduce((acc, c) => acc + c.count, 0);
 
       // Awaiting fulfillment = all orders not yet shipped or delivered
       const awaitingFulfillment = AWAITING_FULFILLMENT_STATUSES.reduce(
-        (acc, status) => acc + (byStatus[status] ?? 0),
+        (acc, status) => {
+          const val = Object.prototype.hasOwnProperty.call(byStatus, status) ? byStatus[status] : 0;
+          return acc + val;
+        },
         0
       );
 

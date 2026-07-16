@@ -4,7 +4,7 @@
  *          react-ui-patterns (loading only when no data), javascript-pro (async/await)
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useEffect, useCallback } from 'react';
 import { apiUrl } from '../config/api.js';
 import { authFetch, handleAuthError } from '../lib/auth.js';
 import { useAsync, useMutation } from './useAsync.js';

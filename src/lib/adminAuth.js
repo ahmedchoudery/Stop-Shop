@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
-import User from '../models/User';
-import UserRole from '../models/UserRole';
+import '../models/User';
+import '../models/UserRole';
 
 let JWT_SECRET = process.env.JWT_SECRET || process.env.ADMIN_JWT_SECRET;
 let CUSTOMER_JWT_SECRET = process.env.CUSTOMER_JWT_SECRET || process.env.JWT_SECRET;
@@ -55,7 +55,7 @@ export function getAdminFromToken(req) {
 
   try {
     return jwt.verify(decodeURIComponent(token), JWT_SECRET);
-  } catch (error) {
+  } catch {
     return null;
   }
 }

@@ -6,6 +6,13 @@ import LowStockAlert from '@/models/LowStockAlert';
 import { syncInventory } from '@/services/inventoryService';
 import { z } from 'zod';
 
+const safeGet = (obj, key) => {
+  if (!obj || typeof obj !== 'object') return 0;
+  if (key === '__proto__' || key === 'constructor' || key === 'prototype') return 0;
+  const desc = Object.getOwnPropertyDescriptor(obj, key);
+  return desc ? (desc.value ?? 0) : 0;
+};
+
 export const dynamic = 'force-dynamic';
 
 export const GET = withRoute({
@@ -40,11 +47,11 @@ export const GET = withRoute({
           if (colorAndSize === 'default') {
             currentStock = product.quantity ?? 0;
           } else if (colorAndSize.includes('|')) {
-            currentStock = product.variantMatrix?.[colorAndSize] ?? 0;
+            currentStock = safeGet(product.variantMatrix, colorAndSize);
           } else if (product.sizes?.includes(colorAndSize)) {
-            currentStock = product.sizeStock?.[colorAndSize] ?? 0;
+            currentStock = safeGet(product.sizeStock, colorAndSize);
           } else if (product.colors?.includes(colorAndSize)) {
-            currentStock = product.colorStock?.[colorAndSize] ?? 0;
+            currentStock = safeGet(product.colorStock, colorAndSize);
           }
         }
 

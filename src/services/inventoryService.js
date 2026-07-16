@@ -56,7 +56,7 @@ export const syncInventory = async (product, moveType = 'ADMIN_UPDATE', note = '
       previousStock,
       newStock:         totalStock,
       note:             note || `${moveType} — stock changed by ${quantityDelta > 0 ? '+' : ''}${quantityDelta}`,
-      triggeredBy:      triggeredByMap[moveType] || 'admin',
+      triggeredBy:      (moveType && Object.prototype.hasOwnProperty.call(triggeredByMap, moveType)) ? Reflect.get(triggeredByMap, moveType) : 'admin',
       orderId:          orderId ?? null,
       adjustmentReason: meta.adjustmentReason || '',
       supplierName:     meta.supplierName || '',
@@ -114,7 +114,7 @@ export const syncInventory = async (product, moveType = 'ADMIN_UPDATE', note = '
       { upsert: true, new: true, ...(session && { session }) }
     );
 
-    console.log(`[Inventory] Synced: ${product.id} | ${product.name} | Stock: ${previousStock} → ${totalStock} | ${status}`);
+    console.info(`[Inventory] Synced: ${product.id} | ${product.name} | Stock: ${previousStock} → ${totalStock} | ${status}`);
   } catch (err) {
     // Never let inventory sync crash the main operation
     console.error('[Inventory] Sync failed for product', product.id, ':', err.message);

@@ -93,9 +93,17 @@ const LoginPage = () => {
     // Clear field error on change
     setFieldErrors(prev => {
       const field = name as keyof FieldErrors;
-      if (!prev[field]) return prev;
+      if (field !== 'email' && field !== 'password') return prev;
+      
+      const hasError = field === 'email' ? !!prev.email : !!prev.password;
+      if (!hasError) return prev;
+      
       const next = { ...prev };
-      delete next[field];
+      if (field === 'email') {
+        delete next.email;
+      } else {
+        delete next.password;
+      }
       return next;
     });
   }, []);
@@ -139,17 +147,20 @@ const LoginPage = () => {
 
   // ── Styles ────────────────────────────────────────────────────
 
-  const inputCls = (field: keyof FieldErrors) => `w-full border-b-2 py-3 text-sm font-bold bg-transparent outline-none transition-all placeholder:text-gray-300 ${
-    fieldErrors[field] ? 'border-red-400 text-red-900' : 'border-gray-100 focus:border-cardinal'
-  }`;
+  const inputCls = (field: keyof FieldErrors) => {
+    const hasError = field === 'email' ? !!fieldErrors.email : field === 'password' ? !!fieldErrors.password : false;
+    return `w-full border-b-2 py-3 text-sm font-bold bg-transparent outline-none transition-all placeholder:text-gray-300 ${
+      hasError ? 'border-red-400 text-red-900' : 'border-gray-100 focus:border-cardinal'
+    }`;
+  };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
       <div className="w-full max-w-md">
 
         {/* Brand Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-5xl font-black italic uppercase tracking-tighter text-cardinal mb-3">
+        <div className="mb-12 text-center">
+          <h1 className="mb-3 text-5xl font-black uppercase italic tracking-tighter text-cardinal">
             Stop & Shop
           </h1>
           <div className="flex items-center justify-center space-x-2 text-gray-400">
@@ -159,18 +170,18 @@ const LoginPage = () => {
         </div>
 
         {/* Login Card */}
-        <div className="bg-white border border-[#EAEAEA] shadow-[0_8px_30px_rgba(0,0,0,0.03)] p-10 rounded-[4px]">
+        <div className="rounded-[4px] border border-[#EAEAEA] bg-white p-10 shadow-[0_8px_30px_rgba(0,0,0,0.03)]">
           
           {!twoFactorData ? (
             <>
-              <h2 className="text-2xl font-black uppercase tracking-tighter text-gray-900 mb-8">
+              <h2 className="mb-8 text-2xl font-black uppercase tracking-tighter text-gray-900">
                 Sign In
               </h2>
 
               {/* Global error — always surfaced */}
               {loginError && (
-                <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-[4px] flex items-start space-x-3">
-                  <AlertCircle size={16} className="text-red-600 mt-0.5 flex-shrink-0" />
+                <div className="mb-6 flex items-start space-x-3 rounded-[4px] border border-red-100 bg-red-50 p-4">
+                  <AlertCircle size={16} className="mt-0.5 flex-shrink-0 text-red-600" />
                   <p className="text-xs font-bold text-red-700">{loginError}</p>
                 </div>
               )}
@@ -216,7 +227,7 @@ const LoginPage = () => {
                     <button
                       type="button"
                       onClick={() => setShowPassword(s => !s)}
-                      className="absolute right-0 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-700 p-1"
+                      className="absolute right-0 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-gray-700"
                       tabIndex={-1}
                     >
                       {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -231,11 +242,11 @@ const LoginPage = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-4 bg-cardinal text-white font-black uppercase tracking-[0.3em] text-xs rounded-[4px] border border-gray-250/20 hover:brightness-110 active:scale-95 transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center space-x-3"
+                  className="border-gray-250/20 flex w-full items-center justify-center space-x-3 rounded-[4px] border bg-cardinal py-4 text-xs font-black uppercase tracking-[0.3em] text-white transition-all hover:brightness-110 active:scale-95 disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {loading ? (
                     <>
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
                       <span>Verifying...</span>
                     </>
                   ) : (
@@ -250,8 +261,8 @@ const LoginPage = () => {
           ) : (
             // ── 2FA View ──────────────────────────────────────────────
             <div>
-              <div className="flex items-center space-x-3 mb-6">
-                <div className="w-8 h-8 bg-cardinal/10 rounded-[4px] flex items-center justify-center text-cardinal">
+              <div className="mb-6 flex items-center space-x-3">
+                <div className="bg-cardinal/10 flex h-8 w-8 items-center justify-center rounded-[4px] text-cardinal">
                   <Key size={16} />
                 </div>
                 <h2 className="text-xl font-black uppercase tracking-tighter text-gray-900">
@@ -260,14 +271,14 @@ const LoginPage = () => {
               </div>
 
               {otpError && (
-                <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-[4px] flex items-start space-x-3">
-                  <AlertCircle size={16} className="text-red-600 mt-0.5 flex-shrink-0" />
+                <div className="mb-6 flex items-start space-x-3 rounded-[4px] border border-red-100 bg-red-50 p-4">
+                  <AlertCircle size={16} className="mt-0.5 flex-shrink-0 text-red-600" />
                   <p className="text-xs font-bold text-red-700">{otpError}</p>
                 </div>
               )}
 
               <form onSubmit={handleVerify2fa} className="space-y-6">
-                <p className="text-xs text-gray-500 leading-relaxed font-bold">
+                <p className="text-xs font-bold leading-relaxed text-gray-500">
                   Enter the 6-digit verification code sent to your admin email address.
                 </p>
 
@@ -281,7 +292,7 @@ const LoginPage = () => {
                     pattern="\d*"
                     value={otpCode}
                     onChange={e => setOtpCode(e.target.value.replace(/\D/g, ''))}
-                    className="w-full border-b-2 py-3 text-center text-lg font-mono font-bold bg-transparent outline-none border-gray-100 focus:border-cardinal tracking-[0.5em] placeholder:text-gray-200"
+                    className="w-full border-b-2 border-gray-100 bg-transparent py-3 text-center font-mono text-lg font-bold tracking-[0.5em] outline-none placeholder:text-gray-200 focus:border-cardinal"
                     placeholder="000000"
                     disabled={isVerifyingOtp}
                     required
@@ -291,11 +302,11 @@ const LoginPage = () => {
                 <button
                   type="submit"
                   disabled={isVerifyingOtp}
-                  className="w-full py-4 bg-cardinal text-white font-black uppercase tracking-[0.3em] text-xs rounded-[4px] hover:brightness-110 active:scale-95 transition-all disabled:opacity-60 flex items-center justify-center space-x-3"
+                  className="flex w-full items-center justify-center space-x-3 rounded-[4px] bg-cardinal py-4 text-xs font-black uppercase tracking-[0.3em] text-white transition-all hover:brightness-110 active:scale-95 disabled:opacity-60"
                 >
                   {isVerifyingOtp ? (
                     <>
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
                       <span>Verifying...</span>
                     </>
                   ) : (
@@ -313,7 +324,7 @@ const LoginPage = () => {
                     setOtpCode('');
                     setOtpError('');
                   }}
-                  className="w-full py-2 bg-gray-50 border text-gray-700 text-[10px] font-black uppercase tracking-widest hover:bg-gray-100 rounded-[4px] transition-colors"
+                  className="w-full rounded-[4px] border bg-gray-50 py-2 text-[10px] font-black uppercase tracking-widest text-gray-700 transition-colors hover:bg-gray-100"
                 >
                   Back to Login
                 </button>
@@ -328,7 +339,7 @@ const LoginPage = () => {
         </div>
 
         {/* Version */}
-        <p className="text-center text-[8px] font-black uppercase tracking-[0.5em] text-gray-300 mt-8">
+        <p className="mt-8 text-center text-[8px] font-black uppercase tracking-[0.5em] text-gray-300">
           Gujarat Edition · 2026
         </p>
       </div>

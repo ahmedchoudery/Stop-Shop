@@ -39,15 +39,15 @@ async function run() {
     process.exit(1);
   }
 
-  console.log('🔌 Connecting to MongoDB...');
+  console.info('🔌 Connecting to MongoDB...');
   await mongoose.connect(MONGO_URI, { dbName: 'stopshop' });
-  console.log('✅ Connected.');
+  console.info('✅ Connected.');
 
   const email = ADMIN_EMAIL.toLowerCase().trim();
   const existing = await User.findOne({ email });
 
   if (existing) {
-    console.log(`ℹ️ Admin user with email ${email} already exists. Updating password...`);
+    console.info(`ℹ️ Admin user with email ${email} already exists. Updating password...`);
     const tempPassword = process.env.ADMIN_PASSWORD || (crypto.randomBytes(12).toString('base64') + '!Aa1');
     const hash = await argon2.hash(tempPassword, {
       type: argon2.argon2id,
@@ -64,7 +64,7 @@ async function run() {
       failedLoginCount: 0,
       lockedUntil: null
     });
-    console.log('✅ Password updated and 2FA reset successfully.');
+    console.info('✅ Password updated and 2FA reset successfully.');
     
     // Ensure they have the admin role
     const hasAdminRole = await UserRole.findOne({ userId: existing._id, role: 'admin' });
@@ -74,7 +74,7 @@ async function run() {
         role: 'admin',
         assignedBy: 'system'
       });
-      console.log('✅ Added admin role to existing user.');
+      console.info('✅ Added admin role to existing user.');
     }
   } else {
     // Use configured ADMIN_PASSWORD from env or generate a secure temporary password
@@ -102,12 +102,12 @@ async function run() {
       assignedBy: 'system'
     });
 
-    console.log('\n==================================================');
-    console.log('🎉 INITIAL ADMIN ACCOUNT CREATED SUCCESSFULLY! 🎉');
-    console.log(`📧 Email:              ${email}`);
-    console.log(`🔑 Temporary Password: ${tempPassword}`);
-    console.log('==================================================');
-    console.log('⚠️ Please copy this password and log in immediately to set up 2FA.');
+    console.info('\n==================================================');
+    console.info('🎉 INITIAL ADMIN ACCOUNT CREATED SUCCESSFULLY! 🎉');
+    console.info(`📧 Email:              ${email}`);
+    console.info(`🔑 Temporary Password: ${tempPassword}`);
+    console.info('==================================================');
+    console.info('⚠️ Please copy this password and log in immediately to set up 2FA.');
   }
 
   await mongoose.disconnect();

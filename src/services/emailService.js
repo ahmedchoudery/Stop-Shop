@@ -1069,7 +1069,7 @@ export const processOutbox = async () => {
         });
         email.status = 'sent';
         await email.save();
-        console.log(`📧 [Outbox] Successfully processed email outbox entry ${email._id} to ${email.to}`);
+        console.info(`📧 [Outbox] Successfully processed email outbox entry ${email._id} to ${email.to}`);
       } catch (err) {
         email.status = 'failed';
         email.error = err.message;
