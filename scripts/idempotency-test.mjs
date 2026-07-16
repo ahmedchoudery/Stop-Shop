@@ -16,7 +16,11 @@ async function main() {
 
   // 1. Connect to DB and seed
   if (mongoose.connection.readyState === 0) {
-    await mongoose.connect(MONGODB_URI, { dbName: 'stopshop' });
+    const connStrWithoutParams = MONGODB_URI.split('?')[0];
+    const pathSegments = connStrWithoutParams.split('/');
+    const extractedDbName = pathSegments.slice(3).join('/').split('#')[0];
+    const dbName = extractedDbName || (process.env.NODE_ENV === 'test' ? 'stopshop_test' : 'stopshop');
+    await mongoose.connect(MONGODB_URI, { dbName });
   }
 
   // Delete any existing test data
