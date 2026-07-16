@@ -48,8 +48,12 @@ const Coupon = mongoose.models.Coupon || mongoose.model('Coupon', couponSchema);
 
 async function seed() {
   try {
-    console.info('Connecting to MongoDB...');
-    await mongoose.connect(MONGO_URI, { dbName: 'stopshop' });
+    const connStrWithoutParams = MONGO_URI.split('?')[0];
+    const pathSegments = connStrWithoutParams.split('/');
+    const extractedDbName = pathSegments.slice(3).join('/').split('#')[0];
+    const dbName = extractedDbName || (process.env.NODE_ENV === 'test' ? 'stopshop_test' : 'stopshop');
+    console.info(`Connecting to database: ${dbName}...`);
+    await mongoose.connect(MONGO_URI, { dbName });
     console.info('Connected.');
 
     // Safety check: Prevent overwriting real products

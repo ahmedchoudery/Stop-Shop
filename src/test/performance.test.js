@@ -17,6 +17,18 @@ vi.mock('../models/Product', () => ({
   }
 }));
 
+vi.mock('../lib/db', () => ({
+  default: vi.fn().mockResolvedValue(true),
+  dbConnect: vi.fn().mockResolvedValue(true),
+}));
+
+vi.mock('../lib/adminAuth', () => ({
+  getAdminFromToken: vi.fn().mockReturnValue(null),
+  hasRole: vi.fn().mockResolvedValue(false),
+  JWT_SECRET: 'test-secret',
+  CUSTOMER_JWT_SECRET: 'test-customer-secret',
+}));
+
 vi.mock('../utils/logger', () => ({
   default: {
     info: vi.fn(),

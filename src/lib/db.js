@@ -36,8 +36,14 @@ async function dbConnect() {
   }
 
   if (!cached.promise) {
+    const connStrWithoutParams = MONGODB_URI.split('?')[0];
+    const pathSegments = connStrWithoutParams.split('/');
+    // The dbName is the segment after the hosts part (index 3)
+    const extractedDbName = pathSegments.slice(3).join('/').split('#')[0];
+    const dbName = extractedDbName || (process.env.NODE_ENV === 'test' ? 'stopshop_test' : 'stopshop');
+
     const opts = {
-      dbName: 'stopshop',
+      dbName,
       maxPoolSize: parseInt(process.env.MONGODB_MAX_POOL_SIZE || '10', 10),
       socketTimeoutMS: 45000,
       family: 4,
