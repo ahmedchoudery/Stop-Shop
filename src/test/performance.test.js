@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { GET as getProducts } from '../app/api/v1/public/products/route';
-import { POST as postVitals } from '../app/api/analytics/vitals/route';
+import { POST as postVitals } from '../app/api/v1/analytics/vitals/route';
 import Product from '../models/Product';
 // @ts-ignore
 import logger from '../utils/logger';

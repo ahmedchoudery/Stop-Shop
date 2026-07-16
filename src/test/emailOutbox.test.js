@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, beforeEach, afterAll, vi } from 'vites
 import mongoose from 'mongoose';
 import EmailOutbox from '../models/EmailOutbox.js';
 import SuppressedEmail from '../models/SuppressedEmail.js';
-import { GET as cronGET } from '../app/api/cron/email-outbox/route.js';
+import { GET as cronGET } from '../app/api/v1/cron/email-outbox/route.js';
 import dbConnect from '../lib/db.js';
 
 // Setup MockRequest similar to other tests
