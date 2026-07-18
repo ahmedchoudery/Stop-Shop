@@ -46,6 +46,7 @@ This document serves as the source of truth for coding standards, libraries allo
 - **Case-Insensitive Collation**: Customer and admin authentication email searches must configure case-insensitive collations:
   `{ email: 1 }, { collation: { locale: 'en', strength: 2 }, unique: true }`.
 - **Dual-Write Safety**: Do not trigger mail SMTP calls inside transaction blocks. Write to the `EmailOutbox` collection instead, letting the outbox worker pick up and execute mail processing asynchronously.
+- **Mongoose Hook Safety**: Post-save/delete model hooks (`post('save')`, `post('findOneAndDelete')`, etc.) must check for active transaction sessions (`doc.$session()` or `this.options?.session`) and skip fallback queries if a session is present. This prevents concurrent out-of-transaction database writes from triggering write conflicts and aborting active transactions.
 
 ---
 

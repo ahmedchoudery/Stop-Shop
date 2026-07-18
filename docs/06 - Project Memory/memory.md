@@ -72,6 +72,7 @@ This document tracks the current state of work, what tasks have been completed, 
 - **Duplicate Documentation Cleanup**: Deleted duplicate root markdown files (`Architecture.md`, `DESIGN.md`, `EMAIL.md`, `memory.md`, `Phases.md`, `prd.md`, `rules.md`), maintaining a single source of truth inside the `docs/` vault.
 - **Unified API Routing Namespace**: Relocated independent API endpoints `/api/analytics/vitals` and `/api/cron/email-outbox` to the `/api/v1/...` subdirectory structures. This avoids potential 404 rewrite vulnerabilities in Next.js middleware and unifies all application API endpoints.
 - **Client-Side Error Extraction Fix**: Fixed a widespread bug that returned `[object Object]` error messages on client actions by creating a robust `extractErrorMessage` parser utility in `src/lib/auth.js`. Integrated it in product creation, POS checkout, coupon management, customer checkout, order tracking, and dynamic hooks.
+- **Mongoose Hook Transaction Safety**: Added transaction session guards in [Product.js](file:///c:/Users/JAPAN%20COMPUTERS/OneDrive/Desktop/Stop-Shop/src/models/Product.js) model hooks to bypass fallback syncs/cleanups when queries run inside active transactions, eliminating MongoDB catalog write conflict aborts. Added the **Mongoose Hook Safety** standard to [rules.md](file:///c:/Users/JAPAN%20COMPUTERS/OneDrive/Desktop/Stop-Shop/docs/03%20-%20Guidelines%20&%20Rules/rules.md).
 
 ---
 
