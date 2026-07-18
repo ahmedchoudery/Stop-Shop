@@ -33,34 +33,58 @@ const makeAbsoluteUrl = (url) => {
 };
 
 const getVariantImage = (product, color) => {
-  if (!color || !product.variantImages) return null;
+  if (!color) return null;
 
-  const imagesObj = product.variantImages instanceof Map
-    ? Object.fromEntries(product.variantImages)
-    : product.variantImages;
+  // 1. Try explicit variantImages mapping
+  if (product.variantImages) {
+    const imagesObj = product.variantImages instanceof Map
+      ? Object.fromEntries(product.variantImages)
+      : product.variantImages;
 
-  if (typeof imagesObj !== 'object') return null;
+    if (typeof imagesObj === 'object') {
+      const searchColor = color.trim().toLowerCase();
+      const searchParts = searchColor.split('|').map(p => p.trim());
+      const searchHex = searchParts[0];
+      const searchName = searchParts[1] || '';
 
-  const searchColor = color.trim().toLowerCase();
-  const searchParts = searchColor.split('|').map(p => p.trim());
-  const searchHex = searchParts[0];
-  const searchName = searchParts[1] || '';
+      let matchedVal = null;
+      if (typeof color === 'string' && Object.prototype.hasOwnProperty.call(imagesObj, color)) {
+        matchedVal = Reflect.get(imagesObj, color);
+      }
 
-  if (typeof color === 'string' && Object.prototype.hasOwnProperty.call(imagesObj, color)) {
-    return Reflect.get(imagesObj, color);
+      if (!matchedVal) {
+        for (const [key, val] of Object.entries(imagesObj)) {
+          const keyLower = key.trim().toLowerCase();
+          if (keyLower === searchColor) { matchedVal = val; break; }
+
+          const keyParts = keyLower.split('|').map(p => p.trim());
+          const keyHex = keyParts[0];
+          const keyName = keyParts[1] || '';
+
+          if (searchHex && keyHex === searchHex) { matchedVal = val; break; }
+          if (searchName && keyName && keyName === searchName) { matchedVal = val; break; }
+          if (keyLower === searchHex || keyLower === searchName) { matchedVal = val; break; }
+        }
+      }
+
+      if (matchedVal && typeof matchedVal === 'string' && matchedVal.trim() !== '') {
+        return matchedVal;
+      }
+    }
   }
 
-  for (const [key, val] of Object.entries(imagesObj)) {
-    const keyLower = key.trim().toLowerCase();
-    if (keyLower === searchColor) return val;
-
-    const keyParts = keyLower.split('|').map(p => p.trim());
-    const keyHex = keyParts[0];
-    const keyName = keyParts[1] || '';
-
-    if (searchHex && keyHex === searchHex) return val;
-    if (searchName && keyName && keyName === searchName) return val;
-    if (keyLower === searchHex || keyLower === searchName) return val;
+  // 2. Sequential fallback to gallery images based on color index
+  if (product.colors && Array.isArray(product.colors)) {
+    const colorIndex = product.colors.findIndex(c => c.trim().toLowerCase() === color.trim().toLowerCase());
+    if (colorIndex === 0) {
+      return product.image;
+    }
+    if (colorIndex > 0 && product.gallery && Array.isArray(product.gallery)) {
+      const galleryImg = product.gallery[colorIndex - 1];
+      if (galleryImg && typeof galleryImg === 'string' && galleryImg.trim() !== '') {
+        return galleryImg;
+      }
+    }
   }
 
   return null;
