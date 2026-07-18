@@ -27,7 +27,12 @@ export default async function CategoryPage({ params }) {
   const { slug } = params;
   const bucketName = BUCKETS[slug.toLowerCase()] || 'Tops';
 
-  const rawProducts = await Product.find({ bucket: bucketName })
+  const query = { bucket: bucketName };
+  if (bucketName !== 'Outfit') {
+    query.featuredSection = { $ne: 'attitude' };
+  }
+
+  const rawProducts = await Product.find(query)
     .sort({ createdAt: -1 })
     .lean();
 

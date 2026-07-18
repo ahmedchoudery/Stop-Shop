@@ -11,7 +11,7 @@ export default async function Page() {
   
   // Fetch products directly on the server (zero network roundtrips!)
   const [rawProducts, rawDrop, rawAttitude, rawPieces] = await Promise.all([
-    Product.find().sort({ createdAt: -1 }).lean(),
+    Product.find({ featuredSection: { $ne: 'attitude' } }).sort({ createdAt: -1 }).lean(),
     Product.find({ featuredSection: 'drop' }).sort({ displayOrder: 1, createdAt: -1 }).lean(),
     Product.find({ featuredSection: 'attitude' }).sort({ displayOrder: 1, createdAt: -1 }).lean(),
     Product.find({ featuredSection: 'pieces' }).sort({ displayOrder: 1, createdAt: -1 }).lean()

@@ -59,11 +59,15 @@ export default async function Page({ params }) {
   let rawAllProducts = [];
   
   if (rawProduct) {
-    rawAllProducts = await Product.find({
+    const relatedQuery = {
       bucket: rawProduct.bucket,
       quantity: { $gt: 0 },
       _id: { $ne: rawProduct._id }
-    })
+    };
+    if (rawProduct.bucket !== 'Outfit') {
+      relatedQuery.featuredSection = { $ne: 'attitude' };
+    }
+    rawAllProducts = await Product.find(relatedQuery)
     .select('id name price discount image bucket subCategory quantity')
     .limit(12)
     .lean();

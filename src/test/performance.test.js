@@ -53,8 +53,8 @@ describe('Performance Overhaul Routes', () => {
       expect(response.status).toBe(200);
       expect(response.headers.get('Cache-Control')).toBe('public, s-maxage=60, stale-while-revalidate=600');
 
-      expect(Product.countDocuments).toHaveBeenCalledWith({ bucket: 'Tops' });
-      expect(Product.find).toHaveBeenCalledWith({ bucket: 'Tops' });
+      expect(Product.countDocuments).toHaveBeenCalledWith({ bucket: 'Tops', featuredSection: { $ne: 'attitude' } });
+      expect(Product.find).toHaveBeenCalledWith({ bucket: 'Tops', featuredSection: { $ne: 'attitude' } });
 
       const data = await response.json();
       expect(data[0].name).toBe('Product A');

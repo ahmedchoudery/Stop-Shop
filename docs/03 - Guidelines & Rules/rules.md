@@ -63,6 +63,9 @@ This document serves as the source of truth for coding standards, libraries allo
   - Body & Form labels: DM Sans / SF Pro Display (Sans-Serif).
   - Order numbers, transaction records, currencies, metadata: Monospace (Geist Mono).
 - **No Placeholders**: Never write mock products, default layouts, or placeholder URLs in source files. Maintain realistic fashion metadata.
+- **Section-Specific Product Display**:
+  - Products must only display in the section(s) explicitly assigned by the admin (no fallback to general catalog lists inside section carousels like `Featured Drop` or `Pieces That Speak`).
+  - Lookbook outfits (`featuredSection === 'attitude'`) must be excluded from the general collection lists, catalog pages, related items, and search results, unless the user explicitly filters by the `Outfit` category.
 
 ---
 

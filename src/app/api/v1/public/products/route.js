@@ -31,6 +31,10 @@ export const GET = withRoute({
       }
     }
 
+    if (!filter.bucket || filter.bucket !== 'Outfit') {
+      filter.featuredSection = { $ne: 'attitude' };
+    }
+
     const totalCount = await Product.countDocuments(filter);
     const products = await Product.find(filter)
       .select('id name price discount image colors sizes bucket subCategory quantity isNew createdAt specs sizeStock colorStock variantMatrix lifestyleImage variantImages gallery featuredSection displayOrder description careInstructions')

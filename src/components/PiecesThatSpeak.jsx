@@ -151,7 +151,7 @@ const PiecesCard = ({ product, index }) => {
 
 /* ─── Main Component ────────────────────────────────────────────────────── */
 
-export default function PiecesThatSpeak({ products: initialProducts = [], fallbackProducts = [] }) {
+export default function PiecesThatSpeak({ products: initialProducts = [] }) {
   const scrollRef = useRef(null);
   const [products, setProducts] = useState(initialProducts);
   const [loading, setLoading] = useState(initialProducts.length === 0);
@@ -169,16 +169,16 @@ export default function PiecesThatSpeak({ products: initialProducts = [], fallba
         return res.json();
       })
       .then(data => {
-        setProducts(data && data.length > 0 ? data : fallbackProducts);
+        setProducts(data || []);
       })
       .catch(err => {
         console.error('[PiecesThatSpeak] fetch failed:', err);
-        setProducts(fallbackProducts);
+        setProducts([]);
       })
       .finally(() => setLoading(false));
-  }, [initialProducts, fallbackProducts]);
+  }, [initialProducts]);
 
-  const displayProducts = products.length > 0 ? products : fallbackProducts;
+  const displayProducts = products;
 
   const handleScroll = useCallback(() => {
     const el = scrollRef.current;
