@@ -167,10 +167,10 @@ const RelatedProducts = ({ currentId, category, subCategory, allProducts }) => {
 
 // ── Main ProductPage ─────────────────────────────────────────────
 
+/** Returns the single thumbnail URL for a color (first image in the array, or legacy string). */
 const getVariantImage = (product, color) => {
   if (!color) return null;
 
-  // 1. Try explicit variantImages mapping
   if (product.variantImages) {
     const imagesObj = product.variantImages instanceof Map
       ? Object.fromEntries(product.variantImages)
@@ -200,13 +200,15 @@ const getVariantImage = (product, color) => {
         }
       }
 
-      if (matchedVal && typeof matchedVal === 'string' && matchedVal.trim() !== '') {
-        return matchedVal;
+      // matchedVal may be an array (new) or a string (legacy)
+      const img = Array.isArray(matchedVal) ? matchedVal[0] : matchedVal;
+      if (img && typeof img === 'string' && img.trim() !== '') {
+        return img;
       }
     }
   }
 
-  // 2. Sequential fallback to gallery images based on color index
+  // Sequential fallback to gallery images based on color index
   if (product.colors && Array.isArray(product.colors)) {
     const colorIndex = product.colors.findIndex(c => c.trim().toLowerCase() === color.trim().toLowerCase());
     if (colorIndex === 0) {
@@ -221,6 +223,51 @@ const getVariantImage = (product, color) => {
   }
 
   return null;
+};
+
+/** Returns the full image array for a color (for detail-page gallery). */
+const getVariantImages = (product, color) => {
+  if (!color) return null;
+
+  if (product.variantImages) {
+    const imagesObj = product.variantImages instanceof Map
+      ? Object.fromEntries(product.variantImages)
+      : product.variantImages;
+
+    if (typeof imagesObj === 'object') {
+      const searchColor = color.trim().toLowerCase();
+      const searchParts = searchColor.split('|').map(p => p.trim());
+      const searchHex = searchParts[0];
+      const searchName = searchParts[1] || '';
+
+      let matchedVal = null;
+      if (imagesObj[color]) matchedVal = imagesObj[color];
+
+      if (!matchedVal) {
+        for (const [key, val] of Object.entries(imagesObj)) {
+          const keyLower = key.trim().toLowerCase();
+          if (keyLower === searchColor) { matchedVal = val; break; }
+          const keyParts = keyLower.split('|').map(p => p.trim());
+          const keyHex = keyParts[0];
+          const keyName = keyParts[1] || '';
+          if (searchHex && keyHex === searchHex) { matchedVal = val; break; }
+          if (searchName && keyName && keyName === searchName) { matchedVal = val; break; }
+          if (keyLower === searchHex || keyLower === searchName) { matchedVal = val; break; }
+        }
+      }
+
+      if (Array.isArray(matchedVal) && matchedVal.length > 0) {
+        return matchedVal.filter(u => u && typeof u === 'string' && u.trim());
+      }
+      if (typeof matchedVal === 'string' && matchedVal.trim()) {
+        return [matchedVal]; // legacy single string
+      }
+    }
+  }
+
+  // Fallback: single image derived from gallery index
+  const thumb = getVariantImage(product, color);
+  return thumb ? [thumb] : null;
 };
 
 const ProductPage = () => {
@@ -275,10 +322,11 @@ const ProductPage = () => {
     setGalleryIndex(0);
   }, [selectedColor]);
 
-  const variantImg = selectedColor ? getVariantImage(product, selectedColor) : null;
+  const variantImgs = selectedColor ? getVariantImages(product, selectedColor) : null;
   const gallery = product
-    ? (variantImg ? [variantImg] : [product.image, ...(product.gallery ?? [])].filter(Boolean))
+    ? ((variantImgs && variantImgs.length > 0) ? variantImgs : [product.image, ...(product.gallery ?? [])].filter(Boolean))
     : [];
+
 
   const getStock = () => {
     if (!product) return 0;

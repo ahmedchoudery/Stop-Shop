@@ -82,14 +82,14 @@ describe('createProductSchema', () => {
       sizes: ['S', 'M', 'L', 'XL'],
       sizeStock: { S: 10, M: 20, L: 15, XL: 5 },
       lifestyleImage: '',
-      variantImages: { Black: 'https://cdn.example.com/black.jpg' },
+      variantImages: { Black: ['https://cdn.example.com/black.jpg'] },
       gallery: [],
       featuredSection: 'collection',
     };
     const data = assertValid(createProductSchema, full);
     expect(data.id).toBe('PRD-TEST12345');
     expect(data.sizeStock.S).toBe(10);
-    expect(data.variantImages.Black).toBe('https://cdn.example.com/black.jpg');
+    expect(data.variantImages.Black).toEqual(['https://cdn.example.com/black.jpg']);
   });
 
   it('rejects negative price', () => assertInvalid(createProductSchema, { ...minimal, price: -100 }, 'price'));

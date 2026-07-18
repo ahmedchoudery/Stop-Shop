@@ -62,7 +62,7 @@ export const createProductSchema = z.object({
   colorStock:    z.record(z.string(), z.number().nonnegative()).optional().default({}),
   variantMatrix: z.record(z.string(), z.number().nonnegative()).optional().default({}),
   lifestyleImage: z.string().max(2000).optional().default(''),
-  variantImages: z.record(z.string(), z.string()).optional().default({}),
+  variantImages: z.record(z.string(), z.array(z.string().max(2000))).optional().default({}),
   gallery:       z.array(z.string().max(2000)).optional().default([]),
   featuredSection: z.enum(['collection', 'drop', 'attitude', 'pieces'], { required_error: 'Storefront section is required' }),
   sectionName:     z.string().optional(),

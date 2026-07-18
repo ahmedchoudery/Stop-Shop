@@ -46,7 +46,7 @@ const productSchema = new mongoose.Schema({
   colorStock:    { type: Map, of: Number, default: {} },      // { White: 30 }     — used when colors only
   variantMatrix: { type: Map, of: Number, default: {} },      // { 'Red|S': 5, 'Red|M': 3, 'Blue|S': 4 } — used when both colors AND sizes
   lifestyleImage: { type: String, default: '' },
-  variantImages: { type: Map, of: String, default: {} },  // { 'Red': 'url', 'Blue': 'url' }
+  variantImages: { type: Map, of: [String], default: {} }, // { 'Red': ['url1','url2'], 'Blue': ['url3'] }
   gallery:       [{ type: String }],
   featuredSection: { type: String, enum: ['collection', 'drop', 'attitude', 'pieces'], required: true },
   sectionName:     { type: String, default: 'Collection' },

@@ -84,15 +84,21 @@ const ProductForm = memo(({
     }
   };
 
+  // Push a new image URL into the variantImages array for the given color
   const handleVariantImageUpload = async (color, file) => {
     if (!file) return;
     try {
       setUploading(true);
       const url = await uploadFileToCloudinary(file);
-      setForm(f => ({
-        ...f,
-        variantImages: { ...(f.variantImages || {}), [color]: url }
-      }));
+      setForm(f => {
+        const existing = Array.isArray(f.variantImages?.[color])
+          ? f.variantImages[color]
+          : (f.variantImages?.[color] ? [f.variantImages[color]] : []);
+        return {
+          ...f,
+          variantImages: { ...(f.variantImages || {}), [color]: [...existing, url] }
+        };
+      });
     } catch (err) {
       alert('Failed to upload variant image: ' + err.message);
     } finally {
@@ -100,20 +106,38 @@ const ProductForm = memo(({
     }
   };
 
+  // Remove one specific URL from a color's image array
+  const removeVariantImage = (color, urlToRemove) => {
+    setForm(f => {
+      const existing = Array.isArray(f.variantImages?.[color]) ? f.variantImages[color] : [];
+      return {
+        ...f,
+        variantImages: { ...(f.variantImages || {}), [color]: existing.filter(u => u !== urlToRemove) }
+      };
+    });
+  };
+
   const addColor = () => {
     const color = colorInput.trim();
     if (!color) return;
     if (!form.colors.includes(color)) {
-      setForm(f => ({
-        ...f,
-        colors: [...f.colors, color],
-        variantImages: { ...(f.variantImages || {}), [color]: f.variantImages?.[color] || '' },
-        colorStock: { ...(f.colorStock || {}), [color]: f.colorStock?.[color] ?? 0 },
-        // If sizes exist, add matrix entries for this color × all sizes
-        variantMatrix: f.sizes?.length > 0
-          ? f.sizes.reduce((m, size) => ({ ...m, [`${color}|${size}`]: f.variantMatrix?.[`${color}|${size}`] ?? 0 }), { ...(f.variantMatrix || {}) })
-          : (f.variantMatrix || {}),
-      }));
+      setForm(f => {
+        // Normalise any existing value for this color to an array
+        const existing = f.variantImages?.[color];
+        const normalised = Array.isArray(existing)
+          ? existing
+          : (existing && typeof existing === 'string' && existing.trim() ? [existing] : []);
+        return {
+          ...f,
+          colors: [...f.colors, color],
+          variantImages: { ...(f.variantImages || {}), [color]: normalised },
+          colorStock: { ...(f.colorStock || {}), [color]: f.colorStock?.[color] ?? 0 },
+          // If sizes exist, add matrix entries for this color × all sizes
+          variantMatrix: f.sizes?.length > 0
+            ? f.sizes.reduce((m, size) => ({ ...m, [`${color}|${size}`]: f.variantMatrix?.[`${color}|${size}`] ?? 0 }), { ...(f.variantMatrix || {}) })
+            : (f.variantMatrix || {}),
+        };
+      });
     }
   };
 
@@ -132,10 +156,6 @@ const ProductForm = memo(({
   const setColorStock = (color, qty) => {
     const val = qty === '' ? '' : Math.max(0, parseInt(qty) || 0);
     setForm(f => ({ ...f, colorStock: { ...(f.colorStock || {}), [color]: val } }));
-  };
-
-  const setVariantImageForColor = (color, value) => {
-    setForm(f => ({ ...f, variantImages: { ...(f.variantImages || {}), [color]: value } }));
   };
 
   const addSize = () => {
@@ -179,16 +199,10 @@ const ProductForm = memo(({
 
   return (
     <div className="space-y-7 text-left">
+      {/* ① Hero media */}
       <MediaSection
         form={form}
         onImageUpload={handleImageUpload}
-        uploading={uploading}
-      />
-
-      <GallerySection
-        form={form}
-        onGalleryUpload={handleGalleryUpload}
-        onRemoveGallery={removeGalleryItem}
         uploading={uploading}
       />
 
@@ -207,6 +221,7 @@ const ProductForm = memo(({
 
       <SpecsSection form={form} setForm={setForm} />
 
+      {/* ② Color variants — each color gets its own image gallery */}
       <ColorsSection
         form={form}
         colorInput={colorInput}
@@ -214,10 +229,21 @@ const ProductForm = memo(({
         onAddColor={addColor}
         onRemoveColor={removeColor}
         onVariantImageUpload={handleVariantImageUpload}
+        onRemoveVariantImage={removeVariantImage}
         onSetColorStock={setColorStock}
         uploading={uploading}
         hasSizes={form.sizes?.length > 0}
       />
+
+      {/* ③ Gallery — only shown when the product has NO color variants */}
+      {form.colors?.length === 0 && (
+        <GallerySection
+          form={form}
+          onGalleryUpload={handleGalleryUpload}
+          onRemoveGallery={removeGalleryItem}
+          uploading={uploading}
+        />
+      )}
 
       <SizesSection
         form={form}
@@ -287,29 +313,66 @@ const MediaSection = memo(({ form, onImageUpload, uploading }) => (
 
 MediaSection.displayName = 'MediaSection';
 
+/**
+ * GallerySection
+ * Only rendered when the product has NO color variants.
+ * These images are shown in the product detail page carousel.
+ */
 const GallerySection = memo(({ form, onGalleryUpload, onRemoveGallery, uploading }) => (
-  <div>
-    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Gallery Images (optional)</label>
-    <label className={`flex items-center justify-center w-full py-4 border border-dashed border-gray-200 rounded-[4px] cursor-pointer hover:border-black hover:bg-black/5 transition-all mb-3 ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
-      <span className="text-[11px] font-black uppercase tracking-widest text-gray-500">
-        {uploading ? 'Uploading...' : 'Click to Upload Gallery Image'}
-      </span>
-      <input type="file" accept="image/*" className="hidden" onChange={onGalleryUpload} disabled={uploading} />
-    </label>
-    {form.gallery?.length > 0 && (
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+  <div className="border border-dashed border-blue-200 bg-blue-50/40 rounded-[4px] p-4 space-y-3">
+    {/* Header */}
+    <div className="flex items-start justify-between gap-3">
+      <div>
+        <label className="block text-[10px] font-black uppercase tracking-widest text-blue-700 mb-0.5">
+          Product Images
+        </label>
+        <p className="text-[9px] font-bold text-blue-500 leading-snug">
+          Upload all photos shown on the product detail page.
+          The first image is the main thumbnail in the product grid.
+        </p>
+      </div>
+      <label className={`flex-shrink-0 flex items-center gap-2 px-4 py-2 bg-white border border-blue-200 rounded-[4px] cursor-pointer hover:border-blue-500 hover:bg-blue-50 transition-all ${
+        uploading ? 'opacity-50 pointer-events-none' : ''
+      }`}>
+        <Upload size={12} className="text-blue-500" />
+        <span className="text-[10px] font-black uppercase tracking-widest text-blue-600">
+          {uploading ? 'Uploading...' : 'Add Image'}
+        </span>
+        <input type="file" accept="image/*" className="hidden" onChange={onGalleryUpload} disabled={uploading} />
+      </label>
+    </div>
+
+    {/* Thumbnails */}
+    {form.gallery?.length > 0 ? (
+      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
         {form.gallery.map((item, idx) => (
-          <div key={`${item}-${idx}`} className="relative rounded-[4px] overflow-hidden border border-gray-200">
-            <img src={item} alt={`Gallery ${idx + 1}`} className="w-full h-24 object-cover" />
-            <button onClick={() => onRemoveGallery(item)} className="absolute top-1 right-1 bg-white/90 text-red-600 p-1 rounded-full text-xs">×</button>
+          <div key={`${item}-${idx}`} className="relative group rounded-[4px] overflow-hidden border border-blue-100">
+            <img src={item} alt={`Photo ${idx + 1}`} className="w-full h-20 object-cover" />
+            {idx === 0 && (
+              <span className="absolute bottom-0 inset-x-0 text-center text-[8px] font-black uppercase tracking-wider bg-blue-600/80 text-white py-0.5">
+                Thumbnail
+              </span>
+            )}
+            <button
+              onClick={() => onRemoveGallery(item)}
+              className="absolute top-1 right-1 bg-white/90 text-red-500 rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+              title="Remove"
+            >
+              <X size={10} />
+            </button>
           </div>
         ))}
       </div>
+    ) : (
+      <p className="text-[10px] font-bold text-blue-400 text-center py-3">
+        No images uploaded yet — click &ldquo;Add Image&rdquo; above.
+      </p>
     )}
   </div>
 ));
 
 GallerySection.displayName = 'GallerySection';
+
 
 const BasicInfoSection = memo(({ form, setForm }) => (
   <div className="grid grid-cols-3 gap-4">
@@ -499,58 +562,149 @@ const SpecsSection = memo(({ form, setForm }) => (
 
 SpecsSection.displayName = 'SpecsSection';
 
-const ColorsSection = memo(({ form, colorInput, setColorInput, onAddColor, onRemoveColor, onVariantImageUpload, onSetColorStock, uploading, hasSizes }) => (
-  <div>
-    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Color Variants</label>
-    <div className="flex items-center space-x-3 mb-3">
-      <input type="color" value={colorInput} onChange={e => setColorInput(e.target.value)}
-        className="w-12 h-10 rounded-[4px] border border-gray-200 cursor-pointer" />
-      <input type="text" value={colorInput} onChange={e => setColorInput(e.target.value)}
-        placeholder="#FF0000"
-        className="flex-grow border border-gray-200 rounded-[4px] px-4 py-2.5 text-sm font-mono font-bold focus:border-black outline-none" />
-      <button onClick={onAddColor} className="px-4 py-2.5 bg-black text-white rounded-[4px] text-[11px] font-black uppercase tracking-widest hover:bg-black/90 transition-colors">Add</button>
-    </div>
-    {form.colors.length > 0 && (
-      <div className="space-y-3">
-        {form.colors.map(c => (
-          <div key={c} className={`grid grid-cols-1 items-center gap-3 bg-gray-50 border border-gray-200 rounded-[4px] p-2 ${
-            hasSizes ? 'sm:grid-cols-[auto_1fr_auto]' : 'sm:grid-cols-[auto_130px_1fr_auto]'
-          }`}>
-            <div className="flex items-center space-x-2">
-              <div className="w-6 h-6 rounded-full border border-gray-300 flex-shrink-0"
-                style={c.includes('|') ? { background: `linear-gradient(to right, ${c.split('|')[0]} 50%, ${c.split('|')[1]} 50%)` } : { backgroundColor: c }} />
-              <span className="text-[11px] font-mono font-bold text-gray-600 w-16 truncate">{c}</span>
-            </div>
-            
-            {!hasSizes && (
-              <div className="flex items-center space-x-2 bg-white px-2 py-1 rounded-[4px] border border-gray-150">
-                <span className="text-[9px] font-black uppercase tracking-wider text-gray-400">Qty:</span>
-                <input type="number" min="0" value={form.colorStock?.[c] ?? ''}
-                  onChange={e => onSetColorStock(c, e.target.value)}
-                  className="w-full border-0 focus:ring-0 p-0 text-[11px] font-black text-center outline-none" />
-              </div>
-            )}
+/**
+ * ColorsSection
+ * Each color gets its own dedicated image gallery.
+ * - First image = thumbnail shown in product grid & card.
+ * - All images = gallery shown on product detail page when that color is selected.
+ * - Admin can upload as many images as they want per color.
+ */
+const ColorsSection = memo(({ form, colorInput, setColorInput, onAddColor, onRemoveColor, onVariantImageUpload, onRemoveVariantImage, onSetColorStock, uploading, hasSizes }) => {
+  const getColorImages = (color) => {
+    const raw = form.variantImages?.[color];
+    if (Array.isArray(raw)) return raw;
+    if (raw && typeof raw === 'string' && raw.trim()) return [raw]; // backward compat
+    return [];
+  };
 
-            <div className="flex items-center space-x-2">
-              {form.variantImages?.[c] && (
-                <img src={form.variantImages[c]} alt="Variant" className="w-8 h-8 rounded object-cover border border-gray-200 flex-shrink-0" />
-              )}
-              <label className={`flex-grow flex items-center justify-center py-2 px-3 border border-dashed border-gray-300 rounded-[4px] cursor-pointer hover:bg-white transition-colors ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
-                <Upload size={12} className="text-gray-400 mr-2" />
-                <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-                  {uploading ? 'Uploading...' : 'Upload Image'}
-                </span>
-                <input type="file" accept="image/*" className="hidden" onChange={e => onVariantImageUpload(c, e.target.files[0])} disabled={uploading} />
-              </label>
-            </div>
-            
-            <button onClick={() => onRemoveColor(c)} className="text-gray-400 hover:text-red-500 p-1 self-center sm:justify-self-end"><X size={16} /></button>
-          </div>
-        ))}
+  return (
+    <div>
+      {/* Section header */}
+      <div className="flex items-center justify-between mb-2">
+        <label className="text-[10px] font-black uppercase tracking-widest text-gray-500">
+          Color Variants
+        </label>
+        {form.colors.length > 0 && (
+          <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider">
+            {form.colors.length} color{form.colors.length > 1 ? 's' : ''} added
+          </span>
+        )}
       </div>
-    )}
-  </div>
-));
+
+      {/* Color picker row */}
+      <div className="flex items-center space-x-3 mb-4">
+        <input type="color" value={colorInput} onChange={e => setColorInput(e.target.value)}
+          className="w-12 h-10 rounded-[4px] border border-gray-200 cursor-pointer" />
+        <input type="text" value={colorInput} onChange={e => setColorInput(e.target.value)}
+          placeholder="#FF0000 or #FF0000|ColorName"
+          className="flex-grow border border-gray-200 rounded-[4px] px-4 py-2.5 text-sm font-mono font-bold focus:border-black outline-none" />
+        <button onClick={onAddColor} className="px-4 py-2.5 bg-black text-white rounded-[4px] text-[11px] font-black uppercase tracking-widest hover:bg-black/90 transition-colors">
+          Add Color
+        </button>
+      </div>
+
+      {/* Per-color image gallery cards */}
+      {form.colors.length > 0 && (
+        <div className="space-y-4">
+          {form.colors.map(c => {
+            const colorImages = getColorImages(c);
+            return (
+              <div key={c} className="border border-gray-200 rounded-[4px] overflow-hidden">
+                {/* Color card header */}
+                <div className="flex items-center justify-between bg-gray-50 px-4 py-2.5 border-b border-gray-200">
+                  <div className="flex items-center gap-3">
+                    <div
+                      className="w-7 h-7 rounded-full border-2 border-white ring-1 ring-gray-300 flex-shrink-0"
+                      style={
+                        c.includes('|')
+                          ? { background: `linear-gradient(135deg, ${c.split('|')[0]} 50%, ${c.split('|')[1]} 50%)` }
+                          : { backgroundColor: c }
+                      }
+                    />
+                    <div>
+                      <p className="text-[11px] font-black font-mono text-gray-800 leading-none">
+                        {c.includes('|') && !c.split('|')[0].startsWith('#') ? c : c.split('|')[1] || c}
+                      </p>
+                      <p className="text-[9px] text-gray-400 font-mono mt-0.5">{c}</p>
+                    </div>
+                    {!hasSizes && (
+                      <div className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-[4px] px-2.5 py-1 ml-2">
+                        <span className="text-[9px] font-black uppercase tracking-wider text-gray-400">Stock:</span>
+                        <input
+                          type="number" min="0"
+                          value={form.colorStock?.[c] ?? ''}
+                          onChange={e => onSetColorStock(c, e.target.value)}
+                          className="w-14 border-0 focus:ring-0 p-0 text-[11px] font-black text-center outline-none"
+                          placeholder="0"
+                        />
+                      </div>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => onRemoveColor(c)}
+                    className="text-gray-400 hover:text-red-500 p-1 transition-colors"
+                    title="Remove color"
+                  >
+                    <X size={15} />
+                  </button>
+                </div>
+
+                {/* Image gallery area */}
+                <div className="p-3 bg-white">
+                  {/* Instruction */}
+                  <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mb-2">
+                    Images for this color
+                    <span className="normal-case font-normal ml-1 text-gray-400">
+                      — first image is the thumbnail shown in the product grid
+                    </span>
+                  </p>
+
+                  {/* Uploaded images grid */}
+                  {colorImages.length > 0 && (
+                    <div className="grid grid-cols-4 sm:grid-cols-6 gap-2 mb-2">
+                      {colorImages.map((url, idx) => (
+                        <div key={`${url}-${idx}`} className="relative group rounded-[4px] overflow-hidden border border-gray-200">
+                          <img src={url} alt={`${c} photo ${idx + 1}`} className="w-full h-16 object-cover" />
+                          {idx === 0 && (
+                            <span className="absolute bottom-0 inset-x-0 text-center text-[7px] font-black uppercase tracking-wider bg-black/70 text-white py-0.5">
+                              Thumbnail
+                            </span>
+                          )}
+                          <button
+                            onClick={() => onRemoveVariantImage(c, url)}
+                            className="absolute top-0.5 right-0.5 bg-white/90 text-red-500 rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity"
+                            title="Remove"
+                          >
+                            <X size={9} />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Upload button */}
+                  <label className={`flex items-center justify-center gap-2 w-full py-2.5 border border-dashed border-gray-300 rounded-[4px] cursor-pointer hover:border-black hover:bg-gray-50 transition-all ${
+                    uploading ? 'opacity-50 pointer-events-none' : ''
+                  }`}>
+                    <Upload size={12} className="text-gray-400" />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">
+                      {uploading ? 'Uploading...' : colorImages.length === 0 ? 'Upload First Image (Thumbnail)' : 'Add Another Image'}
+                    </span>
+                    <input
+                      type="file" accept="image/*" className="hidden"
+                      onChange={e => onVariantImageUpload(c, e.target.files[0])}
+                      disabled={uploading}
+                    />
+                  </label>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+});
 
 ColorsSection.displayName = 'ColorsSection';
 

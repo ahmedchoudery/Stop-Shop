@@ -67,8 +67,10 @@ const getVariantImage = (product, color) => {
         }
       }
 
-      if (matchedVal && typeof matchedVal === 'string' && matchedVal.trim() !== '') {
-        return matchedVal;
+      // matchedVal may be an array (new format) or a string (legacy)
+      const img = Array.isArray(matchedVal) ? matchedVal[0] : matchedVal;
+      if (img && typeof img === 'string' && img.trim() !== '') {
+        return img;
       }
     }
   }
