@@ -67,6 +67,7 @@ This document serves as the source of truth for coding standards, libraries allo
   - Products must only display in the section(s) explicitly assigned by the admin (no fallback to general catalog lists inside section carousels like `Featured Drop` or `Pieces That Speak`).
   - Lookbook outfits (`featuredSection === 'attitude'`) must be excluded from the general collection lists, catalog pages, related items, and search results, unless the user explicitly filters by the `Outfit` category.
 - **Variant Image Fallback Standard**: Color variant swatches on product cards and product pages must resolve images by checking the explicit `variantImages` map first, and then sequentially falling back to the `gallery` array based on the index position of the selected color within the `colors` array (where index 0 matches the main product image and index `i > 0` matches `gallery[i - 1]`). This guarantees that variant switching remains fully functional even if explicit image URLs are blank.
+- **Selected Color Variant Display**: On product details pages, only the image(s) corresponding to the selected color variant should be rendered in the media gallery grid. The main gallery must dynamically switch to a single-image array containing only the selected variant image (or fall back to displaying the full default catalog set only if no variant image is resolved).
 
 ---
 
