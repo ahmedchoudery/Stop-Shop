@@ -131,6 +131,10 @@ productSchema.pre('save', function syncStockAndSlug() {
 
 // ── Post-save: auto-sync Inventory ─────────────────────────────
 productSchema.post('save', async function (doc) {
+  if (doc.$session()) {
+    console.info('[Product Post-save] Skipped automatic syncInventory (handled inside transaction session)');
+    return;
+  }
   try {
     const { syncInventory } = await import('../services/inventoryService.js');
     await syncInventory(doc, 'ADMIN_UPDATE', 'Product saved by admin');
@@ -142,6 +146,10 @@ productSchema.post('save', async function (doc) {
 // ── Post-delete: remove from Inventory and Reviews ─────────────
 productSchema.post('findOneAndDelete', async function (doc) {
   if (!doc) return;
+  if (this.options?.session) {
+    console.info('[Product Post-delete] Skipped automatic cleanup (handled inside transaction session)');
+    return;
+  }
   try {
     const Inventory = mongoose.models.Inventory || mongoose.model('Inventory');
     await Inventory.deleteOne({ productId: doc.id });
