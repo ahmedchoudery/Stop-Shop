@@ -80,6 +80,9 @@ export const POST = withRoute({
       throw new ApiError('UNAUTHENTICATED', 'Invalid email or password', 401);
     }
 
+    // Reset login attempts immediately since password is correct (prevents 2FA rate-limit blocks)
+    await LoginAttempt.deleteMany({ $or: [{ ip }, { email: emailKey }] }).catch(console.error);
+
     // 5. Check if User is Admin for mandatory 2FA check
     const isAdmin = await hasRole(user._id, 'admin');
     const isStaff = await hasRole(user._id, 'staff');
