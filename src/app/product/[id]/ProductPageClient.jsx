@@ -230,11 +230,9 @@ export default function ProductPageClient({ product, allProducts = [] }) {
   }
 
   const variantImg = selectedColor ? getVariantImage(product, selectedColor) : null;
-  const gallery = [
-    product.image,
-    ...(product.gallery ?? []),
-    ...(variantImg ? [variantImg] : []),
-  ].filter(Boolean);
+  const gallery = variantImg
+    ? [variantImg]
+    : [product.image, ...(product.gallery ?? [])].filter(Boolean);
 
   const getStock = () => {
     let sizeStockVal = Infinity;

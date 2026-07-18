@@ -271,12 +271,14 @@ const ProductPage = () => {
     return () => resetMeta();
   }, [id]);
 
+  useEffect(() => {
+    setGalleryIndex(0);
+  }, [selectedColor]);
+
   const variantImg = selectedColor ? getVariantImage(product, selectedColor) : null;
-  const gallery = product ? [
-    product.image,
-    ...(product.gallery ?? []),
-    ...(variantImg ? [variantImg] : []),
-  ].filter(Boolean) : [];
+  const gallery = product
+    ? (variantImg ? [variantImg] : [product.image, ...(product.gallery ?? [])].filter(Boolean))
+    : [];
 
   const getStock = () => {
     if (!product) return 0;
@@ -572,11 +574,7 @@ const ProductPage = () => {
                         key={color}
                         onClick={() => {
                           setSelectedColor(color);
-                          const vi = product.variantImages?.[color];
-                          if (vi) {
-                            const idx = gallery.indexOf(vi);
-                            if (idx > -1) setGalleryIndex(idx);
-                          }
+                          setGalleryIndex(0);
                         }}
                         title={getColorName(color)}
                         className={`w-8 h-8 border-2 transition-all duration-200 focus:outline-none ${
