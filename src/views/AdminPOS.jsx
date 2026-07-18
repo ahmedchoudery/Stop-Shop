@@ -14,7 +14,7 @@ import {
   Banknote, Smartphone, User, Receipt, Check, AlertTriangle,
   Package, ScanBarcode, ChevronDown, Printer, ArrowLeft
 } from 'lucide-react';
-import { authFetch, handleAuthError } from '../lib/auth.js';
+import { authFetch, handleAuthError, extractErrorMessage } from '../lib/auth.js';
 import { apiUrl } from '../config/api.js';
 
 /* ═══════════════════════════════════════════════════════════
@@ -769,7 +769,10 @@ const AdminPOS = () => {
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Checkout failed');
+      if (!res.ok) {
+        if (handleAuthError(res.status)) throw new Error('Session expired. Redirecting to login...');
+        throw new Error(extractErrorMessage(data, 'Checkout failed'));
+      }
 
       setReceipt({
         orderID: data.orderID,

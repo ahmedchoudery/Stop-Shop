@@ -68,7 +68,12 @@ This document tracks the current state of work, what tasks have been completed, 
 - **Buffer & String Bracket Access removal**: Replaced Buffer bracket access `hash[offset]` with `hash.readUInt8(offset)` and string index bracket access `clean[i]` with `clean.charAt(i)` in `totp.js`.
 - **Tailwind CSS order normalization**: Formatted `LoginPage.tsx` CSS styles to canonical order using ESLint auto-fixing (`eslint --fix`).
 
+## 8. What Has Been Completed (Prompt 11/12 - Duplicate Cleanups, Unified API & Safe Error Parsing)
+- **Duplicate Documentation Cleanup**: Deleted duplicate root markdown files (`Architecture.md`, `DESIGN.md`, `EMAIL.md`, `memory.md`, `Phases.md`, `prd.md`, `rules.md`), maintaining a single source of truth inside the `docs/` vault.
+- **Unified API Routing Namespace**: Relocated independent API endpoints `/api/analytics/vitals` and `/api/cron/email-outbox` to the `/api/v1/...` subdirectory structures. This avoids potential 404 rewrite vulnerabilities in Next.js middleware and unifies all application API endpoints.
+- **Client-Side Error Extraction Fix**: Fixed a widespread bug that returned `[object Object]` error messages on client actions by creating a robust `extractErrorMessage` parser utility in `src/lib/auth.js`. Integrated it in product creation, POS checkout, coupon management, customer checkout, order tracking, and dynamic hooks.
+
 ---
 
-## 8. What is Planned Next
+## 9. What is Planned Next
 - **Next Prompt / Alignment**: Ready for next requests from the user.

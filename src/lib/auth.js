@@ -134,6 +134,25 @@ export const isLoggedIn = () => {
 };
 
 // ─────────────────────────────────────────────────────────────────
+// ERROR EXTRACTOR
+// ─────────────────────────────────────────────────────────────────
+
+/**
+ * Safely extracts a string error message from an API response JSON.
+ *
+ * @param {any} data
+ * @param {string} [fallback]
+ * @returns {string}
+ */
+export const extractErrorMessage = (data, fallback = 'An error occurred') => {
+  if (!data) return fallback;
+  if (data.error && typeof data.error === 'object') {
+    return data.error.message || data.error.code || fallback;
+  }
+  return data.message || data.error || fallback;
+};
+
+// ─────────────────────────────────────────────────────────────────
 // ADMIN LOGIN
 // ─────────────────────────────────────────────────────────────────
 
@@ -166,11 +185,11 @@ const res = await fetch('/api/admin/login', {
   if (!res.ok) {
     // Map status codes to user‑friendly messages
     const messages = {
-      401: data.error ?? 'Invalid email or password.',
-      423: data.error ?? 'Account is temporarily locked.',
+      401: extractErrorMessage(data, 'Invalid email or password.'),
+      423: extractErrorMessage(data, 'Account is temporarily locked.'),
       429: 'Too many attempts. Please wait 15 minutes.',
     };
-    throw new Error(messages[res.status] ?? data.error ?? 'Login failed. Please try again.');
+    throw new Error(messages[res.status] ?? extractErrorMessage(data, 'Login failed. Please try again.'));
   }
 
   // Persist token for Bearer fallback

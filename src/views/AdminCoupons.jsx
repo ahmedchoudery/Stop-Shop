@@ -15,7 +15,7 @@ import {
   Plus, Tag, Trash2, ToggleLeft, ToggleRight,
   CheckCircle, AlertCircle, X, RefreshCw, Copy, Check
 } from 'lucide-react';
-import { authFetch, handleAuthError } from '../lib/auth.js';
+import { authFetch, handleAuthError, extractErrorMessage } from '../lib/auth.js';
 import { apiUrl } from '../config/api.js';
 import { useTimeout } from '../hooks/useUtils.js';
 
@@ -122,7 +122,10 @@ const AdminCoupons = () => {
       });
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? 'Failed to create coupon');
+      if (!res.ok) {
+        if (handleAuthError(res.status)) throw new Error('Session expired. Redirecting to login...');
+        throw new Error(extractErrorMessage(data, 'Failed to create coupon'));
+      }
 
       setCoupons(prev => [data, ...prev]);
       setForm(DEFAULT_FORM);

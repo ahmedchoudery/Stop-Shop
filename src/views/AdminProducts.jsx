@@ -20,7 +20,7 @@ import { AsyncContent } from '../components/ErrorBoundary.tsx';
 import ProductForm from '../components/ProductForm.jsx';
 import ProductTable from '../components/ProductTable.jsx';
 import ProductFilters from '../components/ProductFilters.tsx';
-import { authFetch, handleAuthError } from '../lib/auth.js';
+import { authFetch, handleAuthError, extractErrorMessage } from '../lib/auth.js';
 import { apiUrl } from '../config/api.js';
 import { useAsync } from '../hooks/useAsync.js';
 import { useDebounce, useTimeout } from '../hooks/useUtils.js';
@@ -341,8 +341,9 @@ const AdminProducts = () => {
       });
 
       if (!res.ok) {
+        if (handleAuthError(res.status)) throw new Error('Session expired. Redirecting to login...');
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.message ?? data.error ?? `Failed to ${isEditing ? 'update' : 'create'} product`);
+        throw new Error(extractErrorMessage(data, `Failed to ${isEditing ? 'update' : 'create'} product`));
       }
 
       const saved = await res.json();
@@ -388,8 +389,9 @@ const AdminProducts = () => {
       });
 
       if (!res.ok) {
+        if (handleAuthError(res.status)) throw new Error('Session expired. Redirecting to login...');
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.message ?? data.error ?? 'Failed to delete product');
+        throw new Error(extractErrorMessage(data, 'Failed to delete product'));
       }
 
       // Remove from local state immediately

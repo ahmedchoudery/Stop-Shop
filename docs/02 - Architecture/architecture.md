@@ -26,8 +26,7 @@ Stop-Shop/
 └── src/
     ├── app/                 # Next.js Pages, Routing & Route Handlers (API v1)
     │   ├── api/             # Next.js Route Handlers
-    │   │   ├── admin/       # Admin console actions
-    │   │   ├── v1/          # Public and customer API routes
+    │   │   ├── v1/          # Core APIs (admin, public, stats, analytics, cron)
     │   │   └── webhooks/    # Third-party webhook endpoints
     │   ├── account/         # Customer account views (React Router bound)
     │   ├── admin/           # Admin portal views (React Router bound)

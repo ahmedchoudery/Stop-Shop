@@ -23,6 +23,7 @@ import {
   Home
 } from 'lucide-react';
 import { apiUrl } from '../config/api.js';
+import { extractErrorMessage } from '../lib/auth.js';
 
 // ─────────────────────────────────────────────────────────────────
 // ORDER STATUS CONFIG
@@ -555,7 +556,7 @@ const OrderTrackingPage = () => {
         return;
       }
       if (!res.ok) {
-        setError(data.error ?? 'Something went wrong. Please try again.');
+        setError(extractErrorMessage(data, 'Something went wrong. Please try again.'));
         return;
       }
 

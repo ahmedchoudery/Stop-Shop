@@ -6,7 +6,7 @@
 
 import { useEffect, useCallback } from 'react';
 import { apiUrl } from '../config/api.js';
-import { authFetch, handleAuthError } from '../lib/auth.js';
+import { authFetch, handleAuthError, extractErrorMessage } from '../lib/auth.js';
 import { useAsync, useMutation } from './useAsync.js';
 
 // ─────────────────────────────────────────────────────────────────
@@ -41,12 +41,9 @@ export function useProducts() {
         body: JSON.stringify(productData),
       });
       if (!res.ok) {
-        let errMsg = 'Failed to create product';
-        try {
-          const errData = await res.json();
-          errMsg = errData.message || errData.error || (errData.errors?.[0]?.message) || errMsg;
-        } catch { /* fallback to default */ }
-        throw new Error(errMsg);
+        if (handleAuthError(res.status)) throw new Error('Session expired. Redirecting to login...');
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(extractErrorMessage(errData, 'Failed to create product'));
       }
       return res.json();
     },
@@ -60,7 +57,11 @@ export function useProducts() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-      if (!res.ok) throw new Error('Failed to update product');
+      if (!res.ok) {
+        if (handleAuthError(res.status)) throw new Error('Session expired. Redirecting to login...');
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(extractErrorMessage(errData, 'Failed to update product'));
+      }
       return res.json();
     },
     { onSuccess: () => refetch() }
@@ -71,7 +72,11 @@ export function useProducts() {
       const res = await authFetch(apiUrl(`/api/admin/products/${id}`), {
         method: 'DELETE',
       });
-      if (!res.ok) throw new Error('Failed to delete product');
+      if (!res.ok) {
+        if (handleAuthError(res.status)) throw new Error('Session expired. Redirecting to login...');
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(extractErrorMessage(errData, 'Failed to delete product'));
+      }
     },
     { onSuccess: () => refetch() }
   );
@@ -145,7 +150,11 @@ export function useOrders() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status }),
       });
-      if (!res.ok) throw new Error('Failed to update order status');
+      if (!res.ok) {
+        if (handleAuthError(res.status)) throw new Error('Session expired. Redirecting to login...');
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(extractErrorMessage(errData, 'Failed to update order status'));
+      }
       return res.json();
     },
     { onSuccess: () => refetch() }
@@ -289,7 +298,11 @@ export function useSettings(isAdmin = false) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(settingsData),
       });
-      if (!res.ok) throw new Error('Failed to update settings');
+      if (!res.ok) {
+        if (handleAuthError(res.status)) throw new Error('Session expired. Redirecting to login...');
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(extractErrorMessage(errData, 'Failed to update settings'));
+      }
       return res.json();
     },
     { onSuccess: () => refetch() }
@@ -325,8 +338,9 @@ export function useAdminUsers() {
         body: JSON.stringify(userData),
       });
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error ?? 'Failed to create user');
+        if (handleAuthError(res.status)) throw new Error('Session expired. Redirecting to login...');
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(extractErrorMessage(errData, 'Failed to create user'));
       }
       return res.json();
     },
@@ -339,8 +353,9 @@ export function useAdminUsers() {
         method: 'DELETE',
       });
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error ?? 'Failed to delete user');
+        if (handleAuthError(res.status)) throw new Error('Session expired. Redirecting to login...');
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(extractErrorMessage(errData, 'Failed to delete user'));
       }
     },
     { onSuccess: () => refetch() }

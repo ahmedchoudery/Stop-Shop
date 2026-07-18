@@ -12,6 +12,7 @@ import { useCart } from '../context/CartContext.tsx';
 import { apiUrl } from '../config/api.js';
 import { useMutation } from '../hooks/useAsync.js';
 import CheckoutForm from '../components/CheckoutForm.jsx';
+import { extractErrorMessage } from '../lib/auth.js';
 
 const CheckoutPage = () => {
   const { cartItems, total, clearCart } = useCart();
@@ -63,7 +64,7 @@ const CheckoutPage = () => {
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error ?? 'Checkout failed. Please try again.');
+        throw new Error(extractErrorMessage(data, 'Checkout failed. Please try again.'));
       }
       return res.json();
     },

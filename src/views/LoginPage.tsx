@@ -8,7 +8,7 @@
 import React, { useState, useCallback, FormEvent, ChangeEvent } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Eye, EyeOff, Shield, AlertCircle, Key } from 'lucide-react';
-import { adminLogin } from '../lib/auth.js';
+import { adminLogin, extractErrorMessage } from '../lib/auth.js';
 import { useMutation } from '../hooks/useAsync.js';
 
 interface FieldErrors {
@@ -129,7 +129,7 @@ const LoginPage = () => {
 
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data.error || 'Failed to verify 2FA code');
+        throw new Error(extractErrorMessage(data, 'Failed to verify 2FA code'));
       }
 
       if (data.token) {
