@@ -91,8 +91,14 @@ productSchema.pre('save', function syncStockAndSlug() {
       const lastPipeIndex = key.lastIndexOf('|');
       const color = lastPipeIndex !== -1 ? key.substring(0, lastPipeIndex) : key;
       const size = lastPipeIndex !== -1 ? key.substring(lastPipeIndex + 1) : '';
-      if (color) colorSums[color] = (colorSums[color] || 0) + Math.max(0, parseInt(qty) || 0);
-      if (size)  sizeSums[size]  = (sizeSums[size]  || 0) + Math.max(0, parseInt(qty) || 0);
+      if (color && color !== '__proto__' && color !== 'constructor' && color !== 'prototype') {
+        const currentVal = Reflect.get(colorSums, color) || 0;
+        Reflect.set(colorSums, color, currentVal + Math.max(0, parseInt(qty) || 0));
+      }
+      if (size && size !== '__proto__' && size !== 'constructor' && size !== 'prototype') {
+        const currentVal = Reflect.get(sizeSums, size) || 0;
+        Reflect.set(sizeSums, size, currentVal + Math.max(0, parseInt(qty) || 0));
+      }
     }
     this.colorStock = new Map(Object.entries(colorSums));
     this.sizeStock  = new Map(Object.entries(sizeSums));
@@ -153,11 +159,11 @@ productSchema.post('findOneAndDelete', async function (doc) {
   try {
     const Inventory = mongoose.models.Inventory || mongoose.model('Inventory');
     await Inventory.deleteOne({ productId: doc.id });
-    console.log(`[Inventory] Removed inventory entry for deleted product: ${doc.id}`);
+     console.info(`[Inventory] Removed inventory entry for deleted product: ${doc.id}`);
 
     const Review = mongoose.models.Review || mongoose.model('Review');
     await Review.deleteMany({ productId: doc.id });
-    console.log(`[Review] Removed all reviews for deleted product: ${doc.id}`);
+    console.info(`[Review] Removed all reviews for deleted product: ${doc.id}`);
   } catch (err) {
     console.error('[Product Post-delete] cleanup failed:', err.message);
   }
