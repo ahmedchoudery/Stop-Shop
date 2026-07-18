@@ -24,7 +24,7 @@ const getBackgroundStyle = (color) => {
     const parts = color.split('|');
     const part0 = parts[0].trim();
     const part1 = parts[1].trim();
-    const isHex = (str) => /^#([0-9A-F]{3}){1,2}$/i.test(str);
+    const isHex = (str) => /^#([0-9A-F]{3}|[0-9A-F]{6})$/i.test(str);
     if (isHex(part0) && !isHex(part1)) {
       return { backgroundColor: part0 };
     } else {
@@ -40,7 +40,7 @@ const getColorName = (color) => {
     const parts = color.split('|');
     const part0 = parts[0].trim();
     const part1 = parts[1].trim();
-    const isHex = (str) => /^#([0-9A-F]{3}){1,2}$/i.test(str);
+    const isHex = (str) => /^#([0-9A-F]{3}|[0-9A-F]{6})$/i.test(str);
     if (isHex(part0) && !isHex(part1)) {
       return part1;
     } else {
@@ -66,7 +66,12 @@ const getVariantImage = (product, color) => {
       const searchName = searchParts[1] || '';
 
       let matchedVal = null;
-      if (imagesObj[color]) matchedVal = imagesObj[color];
+      if (
+        typeof color === 'string' &&
+        Object.prototype.hasOwnProperty.call(imagesObj, color)
+      ) {
+        matchedVal = Reflect.get(imagesObj, color) || null;
+      }
 
       if (!matchedVal) {
         for (const [key, val] of Object.entries(imagesObj)) {

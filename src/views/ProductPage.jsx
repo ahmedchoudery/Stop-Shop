@@ -42,7 +42,7 @@ const setProductMeta = (product) => {
       document.head.appendChild(m);
       return m;
     })();
-    el.setAttribute('content', vals[i]);
+    el.setAttribute('content', vals[i] ?? ''); // eslint-disable-line security/detect-object-injection
   });
   upsert('meta[name="twitter:card"]', 'content', 'summary_large_image');
   upsert('meta[name="twitter:title"]', 'content', title);
@@ -76,7 +76,7 @@ const getBackgroundStyle = (color) => {
     const parts = color.split('|');
     const part0 = parts[0].trim();
     const part1 = parts[1].trim();
-    const isHex = (str) => /^#([0-9A-F]{3}){1,2}$/i.test(str);
+    const isHex = (str) => /^#([0-9A-F]{3}|[0-9A-F]{6})$/i.test(str);
     if (isHex(part0) && !isHex(part1)) {
       return { backgroundColor: part0 };
     } else {
@@ -92,7 +92,7 @@ const getColorName = (color) => {
     const parts = color.split('|');
     const part0 = parts[0].trim();
     const part1 = parts[1].trim();
-    const isHex = (str) => /^#([0-9A-F]{3}){1,2}$/i.test(str);
+    const isHex = (str) => /^#([0-9A-F]{3}|[0-9A-F]{6})$/i.test(str);
     if (isHex(part0) && !isHex(part1)) {
       return part1;
     } else {
@@ -183,7 +183,12 @@ const getVariantImage = (product, color) => {
       const searchName = searchParts[1] || '';
 
       let matchedVal = null;
-      if (imagesObj[color]) matchedVal = imagesObj[color];
+      if (
+        typeof color === 'string' &&
+        Object.prototype.hasOwnProperty.call(imagesObj, color)
+      ) {
+        matchedVal = Reflect.get(imagesObj, color) || null;
+      }
 
       if (!matchedVal) {
         for (const [key, val] of Object.entries(imagesObj)) {
@@ -241,7 +246,12 @@ const getVariantImages = (product, color) => {
       const searchName = searchParts[1] || '';
 
       let matchedVal = null;
-      if (imagesObj[color]) matchedVal = imagesObj[color];
+      if (
+        typeof color === 'string' &&
+        Object.prototype.hasOwnProperty.call(imagesObj, color)
+      ) {
+        matchedVal = Reflect.get(imagesObj, color) || null;
+      }
 
       if (!matchedVal) {
         for (const [key, val] of Object.entries(imagesObj)) {
@@ -353,19 +363,19 @@ const ProductPage = () => {
 
     if (hasMatrix) {
       if (selectedColor && selectedSize) {
-        return variantMatrixObj[`${selectedColor}|${selectedSize}`] ?? 0;
+        return Reflect.get(variantMatrixObj, `${selectedColor}|${selectedSize}`) ?? 0;
       } else if (selectedColor) {
-        return colorStockObj?.[selectedColor] ?? 0;
+        return Reflect.get(colorStockObj ?? {}, selectedColor) ?? 0;
       } else if (selectedSize) {
-        return sizeStockObj?.[selectedSize] ?? 0;
+        return Reflect.get(sizeStockObj ?? {}, selectedSize) ?? 0;
       }
     }
 
     if (hasSizeStock && selectedSize) {
-      sizeStockVal = sizeStockObj[selectedSize] ?? 0;
+      sizeStockVal = Reflect.get(sizeStockObj, selectedSize) ?? 0;
     }
     if (hasColorStock && selectedColor) {
-      colorStockVal = colorStockObj[selectedColor] ?? 0;
+      colorStockVal = Reflect.get(colorStockObj, selectedColor) ?? 0;
     }
 
     if (hasSizeStock || hasColorStock) {
@@ -656,8 +666,8 @@ const ProductPage = () => {
                       : null;
                     const hasMatrix = variantMatrixObj && Object.keys(variantMatrixObj).length > 0;
                     const sizeQty = (hasMatrix && selectedColor)
-                      ? (variantMatrixObj[`${selectedColor}|${size}`] ?? 0)
-                      : (sizeStockObj?.[size] ?? 0);
+                      ? (Reflect.get(variantMatrixObj, `${selectedColor}|${size}`) ?? 0)
+                      : (sizeStockObj ? (Reflect.get(sizeStockObj, size) ?? 0) : 0);
                     const unavail = sizeQty === 0;
                     return (
                       <button
