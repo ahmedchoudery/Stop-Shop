@@ -5,6 +5,7 @@
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   Heart, ShoppingBag, Share2, MessageCircle, Check,
@@ -298,6 +299,11 @@ const ProductPage = () => {
   const [sizeError, setSizeError] = useState(false);
   const [copied, setCopied] = useState(false);
   const [qty, setQty] = useState(1);
+
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [zoomScale, setZoomScale] = useState(1);
@@ -628,7 +634,7 @@ const ProductPage = () => {
             </div>
 
             {/* Lightbox Modal */}
-            {isLightboxOpen && gallery.length > 0 && (
+            {isLightboxOpen && gallery.length > 0 && mounted && createPortal(
               <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-black/95 backdrop-blur-sm select-none">
                 {/* Close button */}
                 <button
@@ -702,7 +708,8 @@ const ProductPage = () => {
                     />
                   </div>
                 </div>
-              </div>
+              </div>,
+              document.body
             )}
 
             {/* Thumbnails */}

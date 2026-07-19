@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useCallback, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Heart, ShoppingBag, Share2, MessageCircle, Check,
   ChevronRight, Star, Package, Truck, RotateCcw,
@@ -226,6 +227,11 @@ export default function ProductPageClient({ product, allProducts = [] }) {
   const [copied, setCopied] = useState(false);
   const [cartAdded, setCartAdded] = useState(false);
   const [sizeError, setSizeError] = useState(false);
+
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [zoomScale, setZoomScale] = useState(1);
@@ -508,7 +514,7 @@ export default function ProductPageClient({ product, allProducts = [] }) {
             </div>
 
             {/* Lightbox Modal */}
-            {isLightboxOpen && gallery.length > 0 && (
+            {isLightboxOpen && gallery.length > 0 && mounted && createPortal(
               <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-black/95 backdrop-blur-sm select-none">
                 {/* Close button */}
                 <button
@@ -582,7 +588,8 @@ export default function ProductPageClient({ product, allProducts = [] }) {
                     />
                   </div>
                 </div>
-              </div>
+              </div>,
+              document.body
             )}
 
             {/* Thumbnails */}
