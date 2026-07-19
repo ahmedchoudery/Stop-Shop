@@ -172,6 +172,34 @@ const ProductCard = ({ product, onImageLoad }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [cartAdded,   setCartAdded]   = useState(false);
   const [isHovered,   setIsHovered]   = useState(false);
+  const [isHeld,      setIsHeld]      = useState(false);
+  
+  const touchTimeoutRef = React.useRef(null);
+
+  const handleTouchStart = useCallback(() => {
+    if (touchTimeoutRef.current) {
+      clearTimeout(touchTimeoutRef.current);
+      touchTimeoutRef.current = null;
+    }
+    setIsHeld(true);
+  }, []);
+
+  const handleTouchEnd = useCallback(() => {
+    if (touchTimeoutRef.current) {
+      clearTimeout(touchTimeoutRef.current);
+    }
+    touchTimeoutRef.current = setTimeout(() => {
+      setIsHeld(false);
+    }, 2000);
+  }, []);
+
+  React.useEffect(() => {
+    return () => {
+      if (touchTimeoutRef.current) {
+        clearTimeout(touchTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const activeColor = selectedColor || product.colors?.[0] || null;
 
@@ -288,10 +316,13 @@ const ProductCard = ({ product, onImageLoad }) => {
 
   return (
     <article
-      className="group relative cursor-pointer"
+      className="group relative cursor-pointer select-none"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={handleCardMouseLeave}
       onClick={handleCardClick}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchEnd}
     >
       {/* ── Image Container ── */}
       <div className="relative aspect-[3/4] overflow-hidden mb-3.5">
@@ -312,10 +343,12 @@ const ProductCard = ({ product, onImageLoad }) => {
         </div>
 
         {/* Gallery navigation arrows */}
-        {cardImages.length > 1 && isHovered && (
+        {cardImages.length > 1 && (isHovered || isHeld) && (
           <>
             <button
               onClick={handlePrevImage}
+              onTouchStart={(e) => e.stopPropagation()}
+              onTouchEnd={(e) => e.stopPropagation()}
               className="absolute left-2.5 top-1/2 -translate-y-1/2 z-20 w-7 h-7 flex items-center justify-center bg-white/95 hover:bg-black hover:text-white border border-gray-200/40 text-black transition-all duration-200 shadow-md active-scale rounded-[2px]"
               aria-label="Previous image"
             >
@@ -323,6 +356,8 @@ const ProductCard = ({ product, onImageLoad }) => {
             </button>
             <button
               onClick={handleNextImage}
+              onTouchStart={(e) => e.stopPropagation()}
+              onTouchEnd={(e) => e.stopPropagation()}
               className="absolute right-2.5 top-1/2 -translate-y-1/2 z-20 w-7 h-7 flex items-center justify-center bg-white/95 hover:bg-black hover:text-white border border-gray-200/40 text-black transition-all duration-200 shadow-md active-scale rounded-[2px]"
               aria-label="Next image"
             >
