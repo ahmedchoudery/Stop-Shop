@@ -217,6 +217,11 @@ export default function ProductPageClient({ product, allProducts = [] }) {
   const [qty, setQty] = useState(1);
   const [activeTab, setActiveTab] = useState('description');
   const [showSizeChart, setShowSizeChart] = useState(false);
+  const [galleryIndex, setGalleryIndex] = useState(0);
+
+  useEffect(() => {
+    setGalleryIndex(0);
+  }, [selectedColor]);
   
   const [copied, setCopied] = useState(false);
   const [cartAdded, setCartAdded] = useState(false);
@@ -381,19 +386,64 @@ export default function ProductPageClient({ product, allProducts = [] }) {
           
           {/* Media/Gallery Area - Left Column */}
           <div className="lg:col-span-7 space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {gallery.slice(0, 4).map((img, i) => (
-                <div key={i} className="aspect-[3/4] bg-[#F8F7F5] overflow-hidden group">
-                  <MediaRenderer
-                    src={img}
-                    alt={`${product.name} view ${i + 1}`}
-                    width={1000}
-                    priority={i === 0}
-                    className="w-full h-full object-cover group-hover:scale-[1.03] transition-transform duration-500"
-                  />
+            {/* Main image */}
+            <div className="relative aspect-[3/4] bg-[#F8F7F5] overflow-hidden group">
+              {gallery.length > 0 ? (
+                <MediaRenderer
+                  src={product.mediaType === 'embed' ? null : gallery[galleryIndex]}
+                  embedCode={product.mediaType === 'embed' ? product.embedCode : undefined}
+                  mediaType={product.mediaType}
+                  alt={product.name}
+                  width={1000}
+                  priority={true}
+                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <Package size={48} className="text-gray-200" />
                 </div>
-              ))}
+              )}
+
+              {/* Gallery nav arrows */}
+              {gallery.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => setGalleryIndex(i => (i - 1 + gallery.length) % gallery.length)}
+                    className="absolute left-4 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/95 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-black hover:text-white border border-gray-200 shadow-md active-scale rounded-[2px]"
+                    aria-label="Previous image"
+                  >
+                    <ChevronLeft size={16} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setGalleryIndex(i => (i + 1) % gallery.length)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/95 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-black hover:text-white border border-gray-200 shadow-md active-scale rounded-[2px]"
+                    aria-label="Next image"
+                  >
+                    <ChevronRight size={16} />
+                  </button>
+                </>
+              )}
             </div>
+
+            {/* Thumbnails */}
+            {gallery.length > 1 && (
+              <div className="grid grid-cols-6 gap-2">
+                {gallery.slice(0, 12).map((img, i) => (
+                  <button
+                    key={i}
+                    type="button"
+                    onClick={() => setGalleryIndex(i)}
+                    className={`aspect-square bg-[#F8F7F5] overflow-hidden border transition-all duration-200 rounded-[2px] ${
+                      i === galleryIndex ? 'border-black ring-1 ring-black' : 'border-gray-200 opacity-60 hover:opacity-100'
+                    }`}
+                  >
+                    <img src={img} alt="" className="w-full h-full object-cover" loading="lazy" />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Details Form Area - Right Column */}
