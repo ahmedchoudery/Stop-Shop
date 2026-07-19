@@ -42,7 +42,7 @@ const DEFAULT_FORM = {
   rating:         5,
   bucket:         'Tops',
   subCategory:    'Shirts',
-  specs:          [],
+  specs:          ['', '', ''],
   colors:         [],
   sizes:          [],
   sizeStock:      {},
@@ -259,7 +259,7 @@ const AdminProducts = () => {
       subCategory:    (product.subCategory && product.subCategory !== 'General')
                         ? product.subCategory
                         : getDefaultSubCategory(product.bucket ?? 'Tops'),
-      specs:          product.specs          ?? [],
+      specs:          (product.specs || []).concat(['', '', '']).slice(0, 3),
       colors:         product.colors         ?? [],
       sizes:          product.sizes          ?? [],
       sizeStock:      product.sizeStock instanceof Map
@@ -314,6 +314,7 @@ const AdminProducts = () => {
         quantity: parseInt(form.quantity) || 0,
         stock:    parseInt(form.quantity) || 0,  // Always mirrors quantity
         discount: parseInt(form.discount) || 0,
+        specs:    (form.specs || []).map(s => s.trim()).filter(Boolean),
         // Ensure sizeStock values are numbers (0 is valid)
         sizeStock: Object.fromEntries(
           Object.entries(form.sizeStock ?? {}).map(([k, v]) => [k, Math.max(0, parseInt(v) || 0)])

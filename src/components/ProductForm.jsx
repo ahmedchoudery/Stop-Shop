@@ -202,6 +202,7 @@ const ProductForm = memo(({
       {/* ① Hero media */}
       <MediaSection
         form={form}
+        setForm={setForm}
         onImageUpload={handleImageUpload}
         uploading={uploading}
       />
@@ -217,6 +218,8 @@ const ProductForm = memo(({
         setForm={setForm}
         allProducts={allProducts}
         editingProduct={editingProduct}
+        onSecondaryMediaUpload={handleSecondaryMediaUpload}
+        uploading={uploading}
       />
 
       <SpecsSection form={form} setForm={setForm} />
@@ -270,46 +273,118 @@ const ProductForm = memo(({
 
 ProductForm.displayName = 'ProductForm';
 
-const MediaSection = memo(({ form, onImageUpload, uploading }) => (
-  <div>
-    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-3">Product Media (Image or Video) *</label>
-    
-    <div className="flex items-start space-x-4">
-      <div className="w-28 h-28 bg-gray-50 border border-dashed border-gray-200 rounded-[4px] overflow-hidden flex-shrink-0 relative">
-        {uploading && (
-          <div className="absolute inset-0 bg-white/70 flex items-center justify-center z-10">
-            <div className="w-6 h-6 border-2 border-black border-t-transparent rounded-full animate-spin" />
-          </div>
-        )}
-        {form.image ? (
-          form.image.match(/\.(mp4|webm|ogg)(\?.*)?$/i) ? (
-            <video src={form.image} className="w-full h-full object-cover" autoPlay muted loop />
-          ) : (
-            <img src={form.image} alt="" className="w-full h-full object-cover" />
-          )
-        ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <Image size={28} className="text-gray-300" />
-          </div>
-        )}
-      </div>
-      <div className="flex-grow">
-        <label className={`flex flex-col items-center justify-center w-full py-4 px-6 border border-dashed border-gray-200 rounded-[4px] cursor-pointer hover:border-black hover:bg-black/5 transition-all text-center ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
-          <Upload size={20} className="text-gray-400 mb-2" />
-          <span className="text-[11px] font-black uppercase tracking-widest text-gray-500 mb-2">
-            {uploading ? 'Uploading to Cloudinary...' : 'Click to Upload Media'}
-          </span>
-          <div className="text-[9px] leading-relaxed text-gray-400 space-y-1">
-            <p><span className="font-bold text-gray-500">Images:</span> WebP (Best), JPG, PNG, GIF, SVG</p>
-            <p><span className="font-bold text-gray-500">Videos:</span> MP4, WebM, OGG (Short showcases)</p>
-            <p><span className="font-bold text-gray-500">Limits:</span> Max 5MB | <span className="font-bold text-gray-500">Ratio:</span> 1:1 or 4:5 recommended</p>
-          </div>
-          <input type="file" accept="image/*,video/*" className="hidden" onChange={onImageUpload} disabled={uploading} />
+const MediaSection = memo(({ form, setForm, onImageUpload, uploading }) => {
+  const mediaType = form.mediaType || 'upload';
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500">
+          Product Media (Image or Video) *
         </label>
+        <div className="flex space-x-1 border border-gray-200 rounded-[4px] p-0.5 bg-gray-50">
+          {[
+            { id: 'upload', label: 'Upload' },
+            { id: 'url', label: 'URL' },
+            { id: 'embed', label: 'Embed' },
+          ].map(tab => (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setForm(f => ({ ...f, mediaType: tab.id }))}
+              className={`px-3 py-1 text-[9px] font-black uppercase tracking-wider rounded-[2px] transition-all ${
+                mediaType === tab.id
+                  ? 'bg-black text-white'
+                  : 'text-gray-500 hover:text-black'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+      </div>
+      
+      <div className="flex items-start space-x-4">
+        <div className="w-28 h-28 bg-gray-50 border border-dashed border-gray-200 rounded-[4px] overflow-hidden flex-shrink-0 relative">
+          {uploading && (
+            <div className="absolute inset-0 bg-white/70 flex items-center justify-center z-10">
+              <div className="w-6 h-6 border-2 border-black border-t-transparent rounded-full animate-spin" />
+            </div>
+          )}
+          {mediaType === 'embed' && form.embedCode ? (
+            <div className="w-full h-full flex flex-col items-center justify-center bg-gray-100 p-2 text-center">
+              <Code2 size={20} className="text-gray-400 mb-1" />
+              <span className="text-[8px] font-black uppercase tracking-widest text-gray-500">
+                Embed Code Ready
+              </span>
+            </div>
+          ) : form.image ? (
+            form.image.match(/\.(mp4|webm|ogg)(\?.*)?$/i) ? (
+              <video src={form.image} className="w-full h-full object-cover" autoPlay muted loop />
+            ) : (
+              <img src={form.image} alt="" className="w-full h-full object-cover" />
+            )
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <Image size={28} className="text-gray-300" />
+            </div>
+          )}
+        </div>
+        <div className="flex-grow">
+          {mediaType === 'upload' && (
+            <label className={`flex flex-col items-center justify-center w-full py-4 px-6 border border-dashed border-gray-200 rounded-[4px] cursor-pointer hover:border-black hover:bg-black/5 transition-all text-center ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
+              <Upload size={20} className="text-gray-400 mb-2" />
+              <span className="text-[11px] font-black uppercase tracking-widest text-gray-500 mb-2">
+                {uploading ? 'Uploading to Cloudinary...' : 'Click to Upload Media'}
+              </span>
+              <div className="text-[9px] leading-relaxed text-gray-400 space-y-1">
+                <p><span className="font-bold text-gray-500">Images:</span> WebP (Best), JPG, PNG, GIF, SVG</p>
+                <p><span className="font-bold text-gray-500">Videos:</span> MP4, WebM, OGG (Short showcases)</p>
+                <p><span className="font-bold text-gray-500">Limits:</span> Max 5MB | <span className="font-bold text-gray-500">Ratio:</span> 1:1 or 4:5 recommended</p>
+              </div>
+              <input type="file" accept="image/*,video/*" className="hidden" onChange={onImageUpload} disabled={uploading} />
+            </label>
+          )}
+
+          {mediaType === 'url' && (
+            <div className="space-y-2">
+              <span className="block text-[9px] font-black uppercase tracking-widest text-gray-400">
+                Direct URL to Image or Video
+              </span>
+              <input
+                type="text"
+                value={form.image || ''}
+                onChange={e => setForm(f => ({ ...f, image: e.target.value }))}
+                placeholder="https://example.com/image.jpg"
+                className="w-full border border-gray-200 rounded-[4px] px-4 py-3 text-sm font-bold focus:border-black outline-none transition-colors"
+              />
+              <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wide">
+                Supports direct links to images or video formats (.mp4, .webm).
+              </p>
+            </div>
+          )}
+
+          {mediaType === 'embed' && (
+            <div className="space-y-2">
+              <span className="block text-[9px] font-black uppercase tracking-widest text-gray-400">
+                Embed HTML / Code
+              </span>
+              <textarea
+                value={form.embedCode || ''}
+                onChange={e => setForm(f => ({ ...f, embedCode: e.target.value }))}
+                placeholder="Paste HTML embed code from YouTube, TikTok, Instagram, etc."
+                className="w-full border border-gray-200 rounded-[4px] px-4 py-3 text-xs font-mono focus:border-black outline-none transition-colors h-20 resize-none"
+              />
+              <p className="text-[9px] font-bold text-gray-400 uppercase tracking-wide">
+                Supports iframe/video embed elements. Player will render inline.
+              </p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
-  </div>
-));
+  );
+});
 
 MediaSection.displayName = 'MediaSection';
 
@@ -899,7 +974,7 @@ const RatingSection = memo(({ form, setForm }) => (
 
 RatingSection.displayName = 'RatingSection';
 
-const PlacementSection = memo(({ form, setForm, allProducts, editingProduct }) => {
+const PlacementSection = memo(({ form, setForm, allProducts, editingProduct, onSecondaryMediaUpload, uploading }) => {
   const sections = [
     { id: 'collection', name: "Collection", desc: "Standard Catalog only" },
     { id: 'drop', name: "The Drop", desc: "Hero/Featured section" },
@@ -956,7 +1031,7 @@ const PlacementSection = memo(({ form, setForm, allProducts, editingProduct }) =
               className={`p-4 rounded-[4px] border text-left flex flex-col justify-between transition-all min-h-[110px] ${
                 isSelected
                   ? 'border-black bg-black text-white shadow-sm'
-                  : 'border-gray-250 bg-white hover:border-gray-400 text-black'
+                  : 'border-gray-255 bg-white hover:border-gray-400 text-black'
               }`}
             >
               <div>
@@ -970,6 +1045,57 @@ const PlacementSection = memo(({ form, setForm, allProducts, editingProduct }) =
           );
         })}
       </div>
+
+      {/* Lifestyle Image for Defined by Attitude */}
+      {selectedSection === 'attitude' && (
+        <div className="bg-white border border-gray-200 rounded-[4px] p-4 space-y-3">
+          <div>
+            <span className="block text-[9px] font-black uppercase tracking-widest text-gray-400 mb-1">
+              Lifestyle / Lookbook Image (optional)
+            </span>
+            <p className="text-[10px] text-gray-500 font-bold leading-normal">
+              Shown in the editorial Lookbook strip instead of the main product thumbnail.
+            </p>
+          </div>
+          
+          <div className="flex items-center space-x-4">
+            <div className="w-16 h-20 bg-gray-50 border border-gray-200 rounded-[4px] overflow-hidden flex-shrink-0 relative">
+              {uploading && (
+                <div className="absolute inset-0 bg-white/70 flex items-center justify-center z-10">
+                  <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                </div>
+              )}
+              {form.lifestyleImage ? (
+                <img src={form.lifestyleImage} alt="Lifestyle" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center">
+                  <Image size={18} className="text-gray-300" />
+                </div>
+              )}
+            </div>
+            
+            <div className="flex-grow flex items-center space-x-2">
+              <label className={`flex-grow flex items-center justify-center py-2 px-3 border border-dashed border-gray-300 rounded-[4px] cursor-pointer hover:bg-gray-50 hover:border-black transition-all ${uploading ? 'opacity-50 pointer-events-none' : ''}`}>
+                <Upload size={12} className="text-gray-400 mr-2" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">
+                  {uploading ? 'Uploading...' : form.lifestyleImage ? 'Change Image' : 'Upload Image'}
+                </span>
+                <input type="file" accept="image/*" className="hidden" onChange={onSecondaryMediaUpload} disabled={uploading} />
+              </label>
+              
+              {form.lifestyleImage && (
+                <button
+                  type="button"
+                  onClick={() => setForm(f => ({ ...f, lifestyleImage: '' }))}
+                  className="px-3 py-2 border border-red-200 text-red-600 rounded-[4px] text-[10px] font-black uppercase tracking-widest hover:bg-red-50 transition-colors"
+                >
+                  Remove
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Display Order Selection */}
       {showPositionInput && (

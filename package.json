@@ -87,6 +87,7 @@
     "eslint-plugin-tailwindcss": "^3.17.4",
     "globals": "^17.4.0",
     "jsdom": "^24.0.0",
+    "prettier-plugin-tailwindcss": "^0.8.1",
     "typescript": "6.0.3",
     "vitest": "^1.6.0"
   }
