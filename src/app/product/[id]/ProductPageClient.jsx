@@ -287,12 +287,21 @@ export default function ProductPageClient({ product, allProducts = [] }) {
   };
 
   useEffect(() => {
+    if (isLightboxOpen) {
+      document.body.classList.add('lightbox-open');
+    } else {
+      document.body.classList.remove('lightbox-open');
+    }
+
     if (!isLightboxOpen) return;
     const handleKeyDown = (e) => {
       if (e.key === 'Escape') handleCloseLightbox();
     };
     window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      document.body.classList.remove('lightbox-open');
+    };
   }, [isLightboxOpen]);
 
   const [notifyEmail, setNotifyEmail] = useState('');
