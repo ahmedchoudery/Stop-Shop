@@ -222,8 +222,6 @@ const ProductForm = memo(({
         uploading={uploading}
       />
 
-      <SpecsSection form={form} setForm={setForm} />
-
       {/* ② Color variants — each color gets its own image gallery */}
       <ColorsSection
         form={form}
@@ -621,21 +619,7 @@ const StockCategorySection = memo(({ form, setForm }) => {
 
 StockCategorySection.displayName = 'StockCategorySection';
 
-const SpecsSection = memo(({ form, setForm }) => (
-  <div>
-    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Product Specs (up to 3)</label>
-    <div className="space-y-2">
-      {form.specs.map((spec, i) => (
-        <input key={i} type="text" value={spec}
-          onChange={e => { const s = [...form.specs]; s[i] = e.target.value; setForm(f => ({ ...f, specs: s })); }}
-          placeholder={`Spec ${i + 1} — e.g. 100% Cotton`}
-          className="w-full border border-gray-200 rounded-[4px] px-4 py-2.5 text-sm font-bold focus:border-black outline-none transition-colors" />
-      ))}
-    </div>
-  </div>
-));
 
-SpecsSection.displayName = 'SpecsSection';
 
 /**
  * ColorsSection
@@ -1142,7 +1126,7 @@ export const EMPTY_FORM = {
   gallery: [],
   bucket: 'Tops', subCategory: 'Shirts',
   rating: 5, stock: 0,
-  specs: ['', '', ''],
+  specs: [],
   colors: [],
   variantImages: {},
   sizes: [],

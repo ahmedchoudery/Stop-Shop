@@ -42,7 +42,7 @@ const DEFAULT_FORM = {
   rating:         5,
   bucket:         'Tops',
   subCategory:    'Shirts',
-  specs:          ['', '', ''],
+  specs:          [],
   colors:         [],
   sizes:          [],
   sizeStock:      {},
@@ -259,7 +259,7 @@ const AdminProducts = () => {
       subCategory:    (product.subCategory && product.subCategory !== 'General')
                         ? product.subCategory
                         : getDefaultSubCategory(product.bucket ?? 'Tops'),
-      specs:          (product.specs || []).concat(['', '', '']).slice(0, 3),
+      specs:          product.specs          ?? [],
       colors:         product.colors         ?? [],
       sizes:          product.sizes          ?? [],
       sizeStock:      product.sizeStock instanceof Map
