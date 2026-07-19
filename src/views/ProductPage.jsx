@@ -10,7 +10,7 @@ import {
   Heart, ShoppingBag, Share2, MessageCircle, Check,
   ChevronRight, Star, Package, Truck, RotateCcw,
   Shield, ArrowLeft, AlertTriangle, ChevronLeft,
-  Minus, Plus
+  Minus, Plus, X, ZoomIn, ZoomOut
 } from 'lucide-react';
 import { useCart } from '../context/CartContext.tsx';
 import { useWishlist } from '../context/WishlistContext.jsx';
@@ -299,6 +299,25 @@ const ProductPage = () => {
   const [copied, setCopied] = useState(false);
   const [qty, setQty] = useState(1);
 
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
+  const [zoomScale, setZoomScale] = useState(1);
+
+  const handleZoomIn = () => setZoomScale(prev => Math.min(3, prev + 0.25));
+  const handleZoomOut = () => setZoomScale(prev => Math.max(1, prev - 0.25));
+  const handleCloseLightbox = () => {
+    setIsLightboxOpen(false);
+    setZoomScale(1);
+  };
+
+  useEffect(() => {
+    if (!isLightboxOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') handleCloseLightbox();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isLightboxOpen]);
+
   // Fetch product
   useEffect(() => {
     const load = async () => {
@@ -501,7 +520,10 @@ const ProductPage = () => {
           {/* ── Gallery ───────────────────────────────────────── */}
           <div className="space-y-3">
             {/* Main image */}
-            <div className="relative aspect-[4/5] bg-[#F8F7F5] overflow-hidden group">
+            <div
+              className="relative aspect-[4/5] bg-[#F8F7F5] overflow-hidden group cursor-zoom-in"
+              onClick={() => gallery.length > 0 && setIsLightboxOpen(true)}
+            >
               {gallery.length > 0 ? (
                 <MediaRenderer
                   src={product.mediaType === 'embed' ? null : gallery[galleryIndex]}
@@ -520,13 +542,13 @@ const ProductPage = () => {
               {gallery.length > 1 && (
                 <>
                   <button
-                    onClick={() => setGalleryIndex(i => (i - 1 + gallery.length) % gallery.length)}
+                    onClick={(e) => { e.stopPropagation(); setGalleryIndex(i => (i - 1 + gallery.length) % gallery.length); }}
                     className="absolute left-4 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-cardinal hover:text-white"
                   >
                     <ChevronLeft size={15} />
                   </button>
                   <button
-                    onClick={() => setGalleryIndex(i => (i + 1) % gallery.length)}
+                    onClick={(e) => { e.stopPropagation(); setGalleryIndex(i => (i + 1) % gallery.length); }}
                     className="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-cardinal hover:text-white"
                   >
                     <ChevronRight size={15} />
@@ -546,6 +568,75 @@ const ProductPage = () => {
                 </div>
               )}
             </div>
+
+            {/* Lightbox Modal */}
+            {isLightboxOpen && gallery.length > 0 && (
+              <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/95 backdrop-blur-sm select-none">
+                {/* Close button */}
+                <button
+                  type="button"
+                  onClick={handleCloseLightbox}
+                  className="absolute top-6 right-6 text-white/75 hover:text-white hover:scale-110 transition-all p-3 z-50 bg-white/10 hover:bg-white/20 rounded-[2px] cursor-pointer"
+                  aria-label="Close Lightbox"
+                >
+                  <X size={20} />
+                </button>
+
+                {/* Zoom controls floating bar */}
+                <div className="absolute bottom-8 z-50 flex items-center space-x-4 bg-black/40 backdrop-blur-md px-5 py-2.5 rounded-[4px] border border-white/15">
+                  <button
+                    type="button"
+                    onClick={handleZoomOut}
+                    disabled={zoomScale <= 1}
+                    className="text-white/75 hover:text-white disabled:opacity-40 transition-colors p-1"
+                    aria-label="Zoom Out"
+                  >
+                    <ZoomOut size={18} />
+                  </button>
+                  <span className="text-[10px] font-mono text-white/90 font-bold uppercase tracking-widest min-w-[48px] text-center">
+                    {Math.round(zoomScale * 100)}%
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleZoomIn}
+                    disabled={zoomScale >= 3}
+                    className="text-white/75 hover:text-white disabled:opacity-40 transition-colors p-1"
+                    aria-label="Zoom In"
+                  >
+                    <ZoomIn size={18} />
+                  </button>
+                  {zoomScale > 1 && (
+                    <>
+                      <div className="w-[1px] h-4 bg-white/20" />
+                      <button
+                        type="button"
+                        onClick={() => setZoomScale(1)}
+                        className="text-[9px] font-black uppercase tracking-wider text-white/75 hover:text-white transition-colors"
+                      >
+                        Reset
+                      </button>
+                    </>
+                  )}
+                </div>
+
+                {/* Centered Image Container */}
+                <div className="relative w-full h-full max-w-5xl max-h-[85vh] flex items-center justify-center overflow-hidden px-4">
+                  <div
+                    className="transition-transform duration-200 ease-out flex items-center justify-center"
+                    style={{
+                      transform: `scale(${zoomScale})`,
+                      cursor: zoomScale > 1 ? 'grab' : 'default',
+                    }}
+                  >
+                    <img
+                      src={gallery[galleryIndex]}
+                      alt={product.name}
+                      className="max-w-full max-h-[80vh] object-contain shadow-2xl pointer-events-none"
+                    />
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Thumbnails */}
             {gallery.length > 1 && (
