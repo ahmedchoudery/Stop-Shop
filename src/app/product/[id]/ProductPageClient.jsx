@@ -500,7 +500,7 @@ export default function ProductPageClient({ product, allProducts = [] }) {
 
             {/* Lightbox Modal */}
             {isLightboxOpen && gallery.length > 0 && (
-              <div className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/95 backdrop-blur-sm select-none">
+              <div className="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-black/95 backdrop-blur-sm select-none">
                 {/* Close button */}
                 <button
                   type="button"
@@ -539,7 +539,7 @@ export default function ProductPageClient({ product, allProducts = [] }) {
                       <div className="w-[1px] h-4 bg-white/20" />
                       <button
                         type="button"
-                        onClick={() => setZoomScale(1)}
+                        onClick={() => { setZoomScale(1); setPanOffset({ x: 0, y: 0 }); }}
                         className="text-[9px] font-black uppercase tracking-wider text-white/75 hover:text-white transition-colors"
                       >
                         Reset
