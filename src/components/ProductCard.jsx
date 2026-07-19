@@ -9,7 +9,7 @@
  */
 
 import React, { useState, useCallback } from 'react';
-import { Heart, ShoppingBag, Eye } from 'lucide-react';
+import { Heart, ShoppingBag, Eye, ChevronLeft, ChevronRight } from 'lucide-react';
 import anime from 'animejs';
 import { useNavigate } from '../utils/router-compat.jsx';
 import { useCart } from '../context/CartContext.tsx';
@@ -113,6 +113,55 @@ const getVariantImage = (product, color) => {
   return null;
 };
 
+const getVariantImages = (product, color) => {
+  if (!color) return null;
+
+  if (product.variantImages) {
+    const imagesObj = product.variantImages instanceof Map
+      ? Object.fromEntries(product.variantImages)
+      : product.variantImages;
+
+    if (typeof imagesObj === 'object') {
+      const searchColor = color.trim().toLowerCase();
+      const searchParts = searchColor.split('|').map(p => p.trim());
+      const searchHex = searchParts[0];
+      const searchName = searchParts[1] || '';
+
+      let matchedVal = null;
+      if (
+        typeof color === 'string' &&
+        Object.prototype.hasOwnProperty.call(imagesObj, color)
+      ) {
+        matchedVal = Reflect.get(imagesObj, color) || null;
+      }
+
+      if (!matchedVal) {
+        for (const [key, val] of Object.entries(imagesObj)) {
+          const keyLower = key.trim().toLowerCase();
+          if (keyLower === searchColor) { matchedVal = val; break; }
+          const keyParts = keyLower.split('|').map(p => p.trim());
+          const keyHex = keyParts[0];
+          const keyName = keyParts[1] || '';
+          if (searchHex && keyHex === searchHex) { matchedVal = val; break; }
+          if (searchName && keyName && keyName === searchName) { matchedVal = val; break; }
+          if (keyLower === searchHex || keyLower === searchName) { matchedVal = val; break; }
+        }
+      }
+
+      if (Array.isArray(matchedVal) && matchedVal.length > 0) {
+        return matchedVal.filter(u => u && typeof u === 'string' && u.trim());
+      }
+      if (typeof matchedVal === 'string' && matchedVal.trim()) {
+        return [matchedVal];
+      }
+    }
+  }
+
+  // Fallback: single image derived from gallery index
+  const thumb = getVariantImage(product, color);
+  return thumb ? [thumb] : null;
+};
+
 const ProductCard = ({ product, onImageLoad }) => {
   const navigate      = useNavigate();
   const { addToCart } = useCart();
@@ -120,11 +169,38 @@ const ProductCard = ({ product, onImageLoad }) => {
   const { formatPrice } = useCurrency();
 
   const [selectedColor, setSelectedColor] = useState(null);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [cartAdded,   setCartAdded]   = useState(false);
   const [isHovered,   setIsHovered]   = useState(false);
 
   const activeColor = selectedColor || product.colors?.[0] || null;
-  const displayImage = selectedColor ? (getVariantImage(product, selectedColor) || product.image) : product.image;
+
+  // Resolve images array for the active variant or default gallery
+  const cardImages = React.useMemo(() => {
+    if (selectedColor) {
+      const colorImgs = getVariantImages(product, selectedColor);
+      if (colorImgs && colorImgs.length > 0) return colorImgs;
+    } else if (product.colors && product.colors.length > 0) {
+      const firstColor = product.colors[0];
+      const colorImgs = getVariantImages(product, firstColor);
+      if (colorImgs && colorImgs.length > 0) return colorImgs;
+    }
+
+    const list = [];
+    if (product.image && typeof product.image === 'string' && product.image.trim()) {
+      list.push(product.image);
+    }
+    if (product.gallery && Array.isArray(product.gallery)) {
+      product.gallery.forEach(img => {
+        if (img && typeof img === 'string' && img.trim() && !list.includes(img)) {
+          list.push(img);
+        }
+      });
+    }
+    return list;
+  }, [product, selectedColor]);
+
+  const displayImage = cardImages[currentImageIndex] || product.image;
 
   const wishlisted = isWishlisted(product.id);
   const outOfStock = product.stock === 0;
@@ -144,6 +220,21 @@ const ProductCard = ({ product, onImageLoad }) => {
 
   const handleCardMouseLeave = useCallback(() => {
     setIsHovered(false);
+  }, []);
+
+  const handlePrevImage = useCallback((e) => {
+    e.stopPropagation();
+    setCurrentImageIndex(prev => (prev - 1 + cardImages.length) % cardImages.length);
+  }, [cardImages.length]);
+
+  const handleNextImage = useCallback((e) => {
+    e.stopPropagation();
+    setCurrentImageIndex(prev => (prev + 1) % cardImages.length);
+  }, [cardImages.length]);
+
+  const handleSelectColor = useCallback((color) => {
+    setSelectedColor(color);
+    setCurrentImageIndex(0);
   }, []);
 
   // ── Handlers ─────────────────────────────────────────────────────
@@ -219,6 +310,26 @@ const ProductCard = ({ product, onImageLoad }) => {
             ].join(' ')}
           />
         </div>
+
+        {/* Gallery navigation arrows */}
+        {cardImages.length > 1 && isHovered && (
+          <>
+            <button
+              onClick={handlePrevImage}
+              className="absolute left-2.5 top-1/2 -translate-y-1/2 z-20 w-7 h-7 flex items-center justify-center bg-white/95 hover:bg-black hover:text-white border border-gray-200/40 text-black transition-all duration-200 shadow-md active-scale rounded-[2px]"
+              aria-label="Previous image"
+            >
+              <ChevronLeft size={13} />
+            </button>
+            <button
+              onClick={handleNextImage}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 z-20 w-7 h-7 flex items-center justify-center bg-white/95 hover:bg-black hover:text-white border border-gray-200/40 text-black transition-all duration-200 shadow-md active-scale rounded-[2px]"
+              aria-label="Next image"
+            >
+              <ChevronRight size={13} />
+            </button>
+          </>
+        )}
 
         {/* Hover overlay */}
         <div
@@ -332,7 +443,7 @@ const ProductCard = ({ product, onImageLoad }) => {
                 return (
                   <button
                     key={color}
-                    onClick={(e) => { e.stopPropagation(); setSelectedColor(color); }}
+                    onClick={(e) => { e.stopPropagation(); handleSelectColor(color); }}
                     aria-label={`Select colour ${getColorName(color)}`}
                     className={[
                       'w-3.5 h-3.5 rounded-[4px] border transition-all duration-200 focus:outline-none',
