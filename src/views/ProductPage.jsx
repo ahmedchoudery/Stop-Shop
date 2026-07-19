@@ -301,12 +301,61 @@ const ProductPage = () => {
 
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [zoomScale, setZoomScale] = useState(1);
+  const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
   const handleZoomIn = () => setZoomScale(prev => Math.min(3, prev + 0.25));
-  const handleZoomOut = () => setZoomScale(prev => Math.max(1, prev - 0.25));
+  const handleZoomOut = () => {
+    setZoomScale(prev => {
+      const next = Math.max(1, prev - 0.25);
+      if (next === 1) {
+        setPanOffset({ x: 0, y: 0 });
+      }
+      return next;
+    });
+  };
+
   const handleCloseLightbox = () => {
     setIsLightboxOpen(false);
     setZoomScale(1);
+    setPanOffset({ x: 0, y: 0 });
+    setIsDragging(false);
+  };
+
+  const handleMouseDown = (e) => {
+    if (zoomScale <= 1) return;
+    setIsDragging(true);
+    setDragStart({ x: e.clientX - panOffset.x, y: e.clientY - panOffset.y });
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDragging || zoomScale <= 1) return;
+    e.preventDefault();
+    setPanOffset({
+      x: e.clientX - dragStart.x,
+      y: e.clientY - dragStart.y,
+    });
+  };
+
+  const handleMouseUpOrLeave = () => {
+    setIsDragging(false);
+  };
+
+  const handleTouchStart = (e) => {
+    if (zoomScale <= 1 || e.touches.length !== 1) return;
+    setIsDragging(true);
+    const touch = e.touches[0];
+    setDragStart({ x: touch.clientX - panOffset.x, y: touch.clientY - panOffset.y });
+  };
+
+  const handleTouchMove = (e) => {
+    if (!isDragging || zoomScale <= 1 || e.touches.length !== 1) return;
+    const touch = e.touches[0];
+    setPanOffset({
+      x: touch.clientX - dragStart.x,
+      y: touch.clientY - dragStart.y,
+    });
   };
 
   useEffect(() => {
@@ -620,12 +669,21 @@ const ProductPage = () => {
                 </div>
 
                 {/* Centered Image Container */}
-                <div className="relative w-full h-full max-w-5xl max-h-[85vh] flex items-center justify-center overflow-hidden px-4">
+                <div
+                  className="relative w-full h-full max-w-5xl max-h-[85vh] flex items-center justify-center overflow-hidden px-4"
+                  onMouseDown={handleMouseDown}
+                  onMouseMove={handleMouseMove}
+                  onMouseUp={handleMouseUpOrLeave}
+                  onMouseLeave={handleMouseUpOrLeave}
+                  onTouchStart={handleTouchStart}
+                  onTouchMove={handleTouchMove}
+                  onTouchEnd={handleMouseUpOrLeave}
+                >
                   <div
-                    className="transition-transform duration-200 ease-out flex items-center justify-center"
+                    className={`${isDragging ? 'transition-none' : 'transition-transform duration-200'} ease-out flex items-center justify-center`}
                     style={{
-                      transform: `scale(${zoomScale})`,
-                      cursor: zoomScale > 1 ? 'grab' : 'default',
+                      transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoomScale})`,
+                      cursor: zoomScale > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default',
                     }}
                   >
                     <img
