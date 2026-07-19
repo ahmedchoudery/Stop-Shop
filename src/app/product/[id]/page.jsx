@@ -61,6 +61,7 @@ export default async function Page({ params }) {
   if (rawProduct) {
     const relatedQuery = {
       bucket: rawProduct.bucket,
+      subCategory: rawProduct.subCategory,
       quantity: { $gt: 0 },
       _id: { $ne: rawProduct._id }
     };

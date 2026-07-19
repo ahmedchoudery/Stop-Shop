@@ -70,6 +70,7 @@ This document serves as the source of truth for coding standards, libraries allo
 - **Selected Color Variant Display**: On product details pages, only the image(s) corresponding to the selected color variant should be rendered in the media gallery grid. The main gallery must dynamically switch to a single-image array containing only the selected variant image (or fall back to displaying the full default catalog set only if no variant image is resolved).
 - **Variant Matrix Key Parity**: The keys in `variantMatrix` and related stock maps must always use the raw color identifier (e.g. `#FF0000|Red|M` which includes the hex color prefix) instead of the human-readable name (`Red|M`) to ensure consistency across the checkout, inventory panel, database, and client product details.
 - **Editorial/Lookbook Media Uploads**: Admin interfaces must provide dedicated image upload pickers for Lookbook/Lifestyle images when products are mapped to the *Defined by Attitude* storefront strip, and support tabbed selection for different product media formats (direct upload, external image/video URLs, or customizable video embed frames).
+- **Sub-Category Recommendations**: Recommended product sections on details pages must strictly filter products matching the current product's `bucket` (category) AND `subCategory`. The section header must dynamically reflect this subcategory name (e.g., "From Polos"). No generic fallback categories should be displayed.
 
 ---
 

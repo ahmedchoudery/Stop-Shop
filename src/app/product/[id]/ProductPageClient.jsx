@@ -56,10 +56,9 @@ const getColorName = (color) => {
 
 const RelatedProducts = ({ currentId, category, subCategory, allProducts = [] }) => {
   const { formatPrice } = useCurrency();
-  const related = [
-    ...allProducts.filter(p => p.bucket === category && p.subCategory === subCategory && (p.id !== currentId && p._id !== currentId) && p.quantity > 0),
-    ...allProducts.filter(p => p.bucket === category && p.subCategory !== subCategory && (p.id !== currentId && p._id !== currentId) && p.quantity > 0),
-  ].slice(0, 4);
+  const related = allProducts
+    .filter(p => p.bucket === category && p.subCategory === subCategory && (p.id !== currentId && p._id !== currentId) && p.quantity > 0)
+    .slice(0, 4);
   
   if (!related.length) return null;
 
@@ -69,7 +68,7 @@ const RelatedProducts = ({ currentId, category, subCategory, allProducts = [] })
         <div className="flex items-baseline justify-between mb-10">
           <div>
             <p className="text-[8px] font-black uppercase tracking-[0.5em] text-cardinal mb-2">You May Also Like</p>
-            <h2 className="text-2xl font-black uppercase tracking-tighter text-gray-900">From {category}</h2>
+            <h2 className="text-2xl font-black uppercase tracking-tighter text-gray-900">From {subCategory || category}</h2>
           </div>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-5">
