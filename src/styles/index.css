@@ -668,3 +668,8 @@ a {
     scroll-behavior: auto !important;
   }
 }
+
+/* Hide header wrapper when image zoom lightbox is open */
+body.lightbox-open .global-header-wrapper {
+  display: none !important;
+}

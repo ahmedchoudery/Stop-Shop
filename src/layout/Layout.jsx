@@ -133,7 +133,7 @@ const Layout = ({ children, products = [] }) => {
 
     {/* ── Fixed Header Wrapper (Unified fixed container outside overflow constraints to prevent WebKit shifting) ─── */}
     <div 
-      className="fixed left-0 right-0 z-[110] pointer-events-none"
+      className="fixed left-0 right-0 z-[110] pointer-events-none global-header-wrapper"
       style={{
         top: 0,
         transform: 'translate3d(0, 0, 0)',
