@@ -644,7 +644,7 @@ const AdminInventory = () => {
                                                   <span>{colorName}</span>
                                                 </td>
                                                 {product.sizes.map(sz => {
-                                                  const key = `${colorName}|${sz}`;
+                                                  const key = `${col}|${sz}`;
                                                   const matrixValue = product.variantMatrix instanceof Map 
                                                     ? (product.variantMatrix.get(key) ?? 0)
                                                     : (product.variantMatrix?.[key] ?? 0);
