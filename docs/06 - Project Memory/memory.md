@@ -78,7 +78,17 @@ This document tracks the current state of work, what tasks have been completed, 
 - **Login Rate Limit 2FA Early Exit Fix**: Added immediate `LoginAttempt` database cleanup right after successful password verification (before the 2FA / OTP redirect triggers) in the login route handler. This prevents successful password submissions from accumulating in the rate-limit database and triggering lockout blocks for administrators during normal working hours.
 - **Selected Color Variant Gallery Filtering**: Updated `ProductPageClient.jsx` and `ProductPage.jsx` to dynamically filter the media gallery list so it only contains and renders the selected color variant image. Reset the active thumbnail/main image index (`galleryIndex`) to `0` whenever a color is selected to prevent indexing errors. Updated `rules.md` to establish this selected variant display standard.
 
+## 9. What Has Been Completed (Prompt 13 - Color Variant Galleries, Security & Data Loss Fixes)
+- **Multi-Image Variant Galleries**: Upgraded the schema from a single image map to support multiple images per color variant (`Map<string, string[]>`), and redesigned the `ProductForm.jsx` edit workflow to display dedicated image gallery uploading widgets for each color variant.
+- **Security Warning Sanitisation**: Resolved potential ReDoS concerns by rewriting color hex verification regexes to avoid nested quantifiers. Prevented generic object injection sinks (`security/detect-object-injection`) by using `Object.prototype.hasOwnProperty.call` guards and `Reflect.get()` lookups across `ProductCard.jsx`, `ProductPage.jsx`, and endpoints.
+- **Admin Form Data Loss Fixes**:
+  - Restored missing fields (`mediaType`, `embedCode`, `rating`, `lowStockThreshold`, etc.) to the `GET /api/admin/products` endpoint select projections, ensuring they are not wiped when editing.
+  - Redesigned `MediaSection` in `ProductForm.jsx` to support toggling and editing **Upload**, **External URL**, and **Embed Code** media inputs.
+  - Added a **Lifestyle/Lookbook Image** upload picker in `PlacementSection` when the storefront placement is set to *Defined by Attitude*.
+  - Initialized and padded product `specs` to always display exactly 3 input fields in the admin form, filtering out empty inputs before saving.
+- **Inventory Matrix Variant Key Match**: Resolved a critical key resolution bug in `AdminInventory.jsx` variant matrix editor where it used the human-readable color name (`colorName`) instead of the raw color variant string (`col`) to modify `variantMatrix`, causing updates to not map to database keys.
+
 ---
 
-## 9. What is Planned Next
+## 10. What is Planned Next
 - **Next Prompt / Alignment**: Ready for next requests from the user.
