@@ -95,6 +95,7 @@ This document tracks the current state of work, what tasks have been completed, 
 - **Lightbox z-Index and Body Toggle Hiding**: Increased the z-index to `9999` and added a `useEffect` hook to toggle `.lightbox-open` class on `document.body` that hides the global header wrapper to resolve clipping and overlapping.
 - **Containing Block React Portal refactor**: Wrapped the Lightbox Modal inside a React `createPortal` mounting onto `document.body` to bypass Framer Motion translate containment, resolving the top white bar completely.
 - **Sub-Category Recommendations**: Modified the recommended products database query (`page.jsx`) and client filters (`ProductPageClient.jsx`, `ProductPage.jsx`) to filter recommended items strictly by `subCategory` in addition to category (`bucket`), displaying the specific subcategory name in the header.
+- **Mobile Touch-Hold Card Navigation**: Implemented touch gestures (`onTouchStart`, `onTouchEnd`, `onTouchCancel`) inside `ProductCard.jsx` to toggle navigation arrows on mobile devices when cards are touched/held. Included a 2-second decay timer to ensure users have enough time to tap the arrows.
 
 ---
 

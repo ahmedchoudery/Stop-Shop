@@ -71,6 +71,7 @@ This document serves as the source of truth for coding standards, libraries allo
 - **Variant Matrix Key Parity**: The keys in `variantMatrix` and related stock maps must always use the raw color identifier (e.g. `#FF0000|Red|M` which includes the hex color prefix) instead of the human-readable name (`Red|M`) to ensure consistency across the checkout, inventory panel, database, and client product details.
 - **Editorial/Lookbook Media Uploads**: Admin interfaces must provide dedicated image upload pickers for Lookbook/Lifestyle images when products are mapped to the *Defined by Attitude* storefront strip, and support tabbed selection for different product media formats (direct upload, external image/video URLs, or customizable video embed frames).
 - **Sub-Category Recommendations**: Recommended product sections on details pages must strictly filter products matching the current product's `bucket` (category) AND `subCategory`. The section header must dynamically reflect this subcategory name (e.g., "From Polos"). No generic fallback categories should be displayed.
+- **Mobile Touch-Hold Card Navigation**: Product cards in mobile views must support dynamic touch-hold state transitions (`onTouchStart` and `onTouchEnd` callbacks). When a user presses/holds a card, the image slide navigation arrows must become visible immediately, remaining visible for 2 seconds after touch release to enable easy variant image switching on touch screens. Stop event propagation on arrow buttons to prevent routing clicks.
 
 ---
 
