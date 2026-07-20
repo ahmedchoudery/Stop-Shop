@@ -123,9 +123,11 @@ export const syncInventory = async (product, moveType = 'ADMIN_UPDATE', note = '
 
     // Trigger restock check if total stock has increased or it is a restock
     if (quantityDelta > 0 || moveType === 'RESTOCK') {
-      processRestockNotifications(product).catch(err => {
-        console.error('[Inventory] Restock notification trigger failed:', err.message);
-      });
+      setTimeout(() => {
+        processRestockNotifications(product).catch(err => {
+          console.error('[Inventory] Restock notification trigger failed:', err.message);
+        });
+      }, 1000);
     }
   } catch (err) {
     // Never let inventory sync crash the main operation

@@ -1,6 +1,9 @@
 import { withRoute, ApiError } from '@/lib/api/withRoute';
+import mongoose from 'mongoose';
 import EmailOutbox from '@/models/EmailOutbox';
 import SuppressedEmail from '@/models/SuppressedEmail';
+import ProductNotification from '@/models/ProductNotification';
+import Product from '@/models/Product';
 import { render } from '@react-email/render';
 import React from 'react';
 import { z } from 'zod';
@@ -79,7 +82,7 @@ export const GET = withRoute({
   requiredRole: 'admin',
   schema: {
     query: z.object({
-      type: z.enum(['outbox', 'suppression', 'preview']).default('outbox'),
+      type: z.enum(['outbox', 'suppression', 'preview', 'notifications']).default('outbox'),
       status: z.string().optional(),
       page: z.string().transform(val => Math.max(1, parseInt(val) || 1)).default('1'),
       limit: z.string().transform(val => Math.max(1, parseInt(val) || 10)).default('10'),
@@ -118,6 +121,40 @@ export const GET = withRoute({
         SuppressedEmail.find().sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
         SuppressedEmail.countDocuments(),
       ]);
+
+      return {
+        items,
+        pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+      };
+    }
+
+    if (type === 'notifications') {
+      const skip = (page - 1) * limit;
+      const [rawItems, total] = await Promise.all([
+        ProductNotification.find().sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+        ProductNotification.countDocuments(),
+      ]);
+
+      const productIds = [...new Set(rawItems.map(item => item.productId))];
+      const products = await Product.find({
+        $or: [
+          { id: { $in: productIds } },
+          { _id: { $in: productIds.filter(id => mongoose.isValidObjectId(id)) } }
+        ]
+      }).lean();
+
+      const productMap = {};
+      products.forEach(p => {
+        productMap[p.id] = p;
+        productMap[p._id.toString()] = p;
+      });
+
+      const items = rawItems.map(item => ({
+        ...item,
+        _id: item._id.toString(),
+        productName: productMap[item.productId]?.name || 'Unknown Product',
+        productImage: productMap[item.productId]?.image || '',
+      }));
 
       return {
         items,

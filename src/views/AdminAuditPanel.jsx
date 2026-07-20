@@ -21,6 +21,7 @@ const SEVERITY_CONFIG = {
 const AdminAuditPanel = () => {
   const [searchRaw, setSearchRaw] = useState('');
   const [severityFilter, setSeverityFilter] = useState('all');
+  const [expandedLogId, setExpandedLogId] = useState(null);
   const searchTerm = useDebounce(searchRaw, 250);
 
   const fetchLogs = useCallback(async () => {
@@ -122,34 +123,50 @@ const AdminAuditPanel = () => {
               return (
                 <div
                   key={log._id ?? i}
-                  className={`flex items-start space-x-4 px-6 py-4 hover:bg-gray-50/60 transition-colors duration-150`}
+                  className="border-b border-gray-100 last:border-0"
                 >
-                  <div className={`w-8 h-8 ${config.bg} border ${config.border} rounded-[4px] flex items-center justify-center flex-shrink-0 mt-0.5`}>
-                    <SeverityIcon size={13} className={config.color} />
-                  </div>
-                  <div className="flex-grow min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <p className="text-sm font-black uppercase tracking-tight text-gray-900 truncate">
-                        {log.action ?? 'Unknown action'}
-                      </p>
-                      <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest flex-shrink-0 ml-4">
-                        {(log.createdAt || log.timestamp) ? new Date(log.createdAt || log.timestamp).toLocaleString('en-PK') : '—'}
-                      </span>
+                  <div
+                    onClick={() => setExpandedLogId(expandedLogId === log._id ? null : log._id)}
+                    className="flex items-start space-x-4 px-6 py-4 hover:bg-gray-50/60 cursor-pointer transition-colors duration-150"
+                  >
+                    <div className={`w-8 h-8 ${config.bg} border ${config.border} rounded-[4px] flex items-center justify-center flex-shrink-0 mt-0.5`}>
+                      <SeverityIcon size={13} className={config.color} />
                     </div>
-                    <div className="flex items-center space-x-3">
-                      {log.adminEmail && (
-                        <span className="text-[10px] font-bold text-gray-500">{log.adminEmail}</span>
-                      )}
-                      {log.resourceType && log.resourceType !== 'system' && (
-                        <span className="text-[9px] font-black uppercase tracking-widest bg-gray-100 text-gray-500 px-2 py-0.5 rounded-[4px]">
-                          {log.resourceType}
+                    <div className="flex-grow min-w-0">
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="text-sm font-black uppercase tracking-tight text-gray-900 truncate">
+                          {log.action ?? 'Unknown action'}
+                        </p>
+                        <span className="text-[9px] font-bold text-gray-400 uppercase tracking-widest flex-shrink-0 ml-4">
+                          {(log.createdAt || log.timestamp) ? new Date(log.createdAt || log.timestamp).toLocaleString('en-PK') : '—'}
                         </span>
-                      )}
-                      {log.ip && (
-                        <span className="text-[9px] font-mono text-gray-300">{log.ip}</span>
-                      )}
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        {log.adminEmail && (
+                          <span className="text-[10px] font-bold text-gray-500">{log.adminEmail}</span>
+                        )}
+                        {log.resourceType && log.resourceType !== 'system' && (
+                          <span className="text-[9px] font-black uppercase tracking-widest bg-gray-100 text-gray-500 px-2 py-0.5 rounded-[4px]">
+                            {log.resourceType}
+                          </span>
+                        )}
+                        {log.ip && (
+                          <span className="text-[9px] font-mono text-gray-300">{log.ip}</span>
+                        )}
+                        <span className="text-[9px] font-black uppercase tracking-widest text-gray-400 hover:text-gray-900 ml-auto transition-all">
+                          {expandedLogId === log._id ? 'Close Details ▲' : 'View Details ▼'}
+                        </span>
+                      </div>
                     </div>
                   </div>
+                  {expandedLogId === log._id && (
+                    <div className="px-6 pb-6 pt-2 bg-gray-50 border-t border-gray-100">
+                      <div className="font-bold text-gray-900 mb-2 uppercase text-[9px] tracking-widest">Audit Log Document Details:</div>
+                      <pre className="p-4 bg-white border border-gray-200 rounded-[4px] text-xs font-mono text-gray-700 max-h-96 overflow-y-auto">
+                        {JSON.stringify(log, null, 2)}
+                      </pre>
+                    </div>
+                  )}
                 </div>
               );
             })}

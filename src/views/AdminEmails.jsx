@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Table, Tabs, Card, Tag, Button, Input, Form, Select, Modal, Space, Message, Tooltip } from 'antd';
-import { Mail, Search, RefreshCw, AlertTriangle, Eye, ShieldAlert, UserCheck, Plus, Trash2 } from 'lucide-react';
+import { Mail, Search, RefreshCw, AlertTriangle, Eye, ShieldAlert, UserCheck, Plus, Trash2, BellRing } from 'lucide-react';
 import { authFetch } from '../lib/auth.js';
 import { apiUrl } from '../config/api.js';
 
@@ -24,6 +24,12 @@ export default function AdminEmails() {
   const [suppressedPage, setSuppressedPage] = useState(1);
   const [addSuppressionVisible, setAddSuppressionVisible] = useState(false);
   const [form] = Form.useForm();
+
+  // Notifications state
+  const [notificationItems, setNotificationItems] = useState([]);
+  const [notificationLoading, setNotificationLoading] = useState(false);
+  const [notificationTotal, setNotificationTotal] = useState(0);
+  const [notificationPage, setNotificationPage] = useState(1);
 
   // Preview state
   const [previewVisible, setPreviewVisible] = useState(false);
@@ -64,13 +70,32 @@ export default function AdminEmails() {
     }
   };
 
+  // Fetch Product Notifications list
+  const fetchNotifications = async () => {
+    setNotificationLoading(true);
+    try {
+      const url = `/api/v1/admin/emails?type=notifications&page=${notificationPage}&limit=10`;
+      const res = await authFetch(apiUrl(url));
+      if (res && res.items) {
+        setNotificationItems(res.items);
+        setNotificationTotal(res.pagination.total);
+      }
+    } catch (err) {
+      console.error('Failed to fetch notifications:', err.message);
+    } finally {
+      setNotificationLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (activeTab === 'outbox') {
       fetchOutbox();
     } else if (activeTab === 'suppression') {
       fetchSuppression();
+    } else if (activeTab === 'notifications') {
+      fetchNotifications();
     }
-  }, [activeTab, outboxPage, outboxStatus, suppressedPage]);
+  }, [activeTab, outboxPage, outboxStatus, suppressedPage, notificationPage]);
 
   const handleSearch = () => {
     setOutboxPage(1);
@@ -248,6 +273,78 @@ export default function AdminEmails() {
     },
   ];
 
+  const notificationColumns = [
+    {
+      title: 'Customer Details',
+      key: 'customer',
+      render: (_, record) => (
+        <div className="flex flex-col">
+          <span className="font-bold text-gray-900">{record.name || 'Anonymous'}</span>
+          <span className="text-xs text-gray-500">{record.email}</span>
+        </div>
+      ),
+    },
+    {
+      title: 'Product Information',
+      key: 'product',
+      render: (_, record) => (
+        <div className="flex items-center gap-2">
+          {record.productImage && (
+            <img src={record.productImage} className="w-8 h-8 object-cover rounded-[2px] border border-gray-100" alt="" />
+          )}
+          <div className="flex flex-col">
+            <span className="font-bold text-xs uppercase tracking-tight text-gray-900">{record.productName}</span>
+            <span className="text-[9px] font-mono text-gray-400">{record.productId}</span>
+          </div>
+        </div>
+      ),
+    },
+    {
+      title: 'Requested Variant',
+      key: 'variant',
+      render: (_, record) => (
+        <div className="flex items-center gap-2">
+          {record.selectedColor && (
+            <div className="flex items-center gap-1.5">
+              <span className="text-[10px] font-bold text-gray-400 uppercase">Color:</span>
+              <div className="flex items-center gap-1">
+                <span
+                  className="w-3.5 h-3.5 rounded-[4px] border border-gray-200 inline-block"
+                  style={{ backgroundColor: record.selectedColor.split('|')[0] }}
+                />
+                <span className="text-[10px] font-bold text-gray-700">{record.selectedColor.split('|')[1] || record.selectedColor}</span>
+              </div>
+            </div>
+          )}
+          {record.selectedSize && (
+            <span className="text-[10px] font-bold text-gray-700 bg-gray-100 border border-gray-200 px-1.5 py-0.5 rounded-[2px]">
+              SIZE {record.selectedSize}
+            </span>
+          )}
+          {!record.selectedColor && !record.selectedSize && (
+            <span className="text-[10px] font-bold text-gray-400 italic">ANY VARIANT</span>
+          )}
+        </div>
+      ),
+    },
+    {
+      title: 'Status',
+      dataIndex: 'notified',
+      key: 'notified',
+      render: (notified) => (
+        <Tag color={notified ? 'success' : 'processing'} className="font-black uppercase text-[9px] tracking-wider px-2 py-0.5 rounded-[2px]">
+          {notified ? 'NOTIFIED (RESTOCKED)' : 'PENDING WAITING'}
+        </Tag>
+      ),
+    },
+    {
+      title: 'Requested At',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
+      render: (date) => <span className="text-xs text-gray-500">{new Date(date).toLocaleString('en-PK')}</span>,
+    },
+  ];
+
   const templatesList = [
     'order-confirmed-customer',
     'order-confirmed-admin',
@@ -313,6 +410,14 @@ export default function AdminEmails() {
           <TabPane
             tab={
               <span className="flex items-center gap-2 font-black uppercase text-[10px] tracking-wider">
+                <BellRing size={14} /> Restock Notifications
+              </span>
+            }
+            key="notifications"
+          />
+          <TabPane
+            tab={
+              <span className="flex items-center gap-2 font-black uppercase text-[10px] tracking-wider">
                 <Eye size={14} /> Template Previews
               </span>
             }
@@ -372,11 +477,48 @@ export default function AdminEmails() {
                 dataSource={outboxItems}
                 loading={outboxLoading}
                 rowKey="idempotencyKey"
+                expandable={{
+                  expandedRowRender: (record) => (
+                    <div className="bg-gray-50 p-4 rounded-[4px] border border-gray-150 text-xs font-mono text-gray-700 max-h-96 overflow-y-auto">
+                      <div className="font-bold text-gray-900 mb-2 uppercase text-[10px] tracking-widest">Email Payload variables & details:</div>
+                      <pre>{JSON.stringify(record, null, 2)}</pre>
+                    </div>
+                  ),
+                  rowExpandable: () => true,
+                }}
                 pagination={{
                   current: outboxPage,
                   pageSize: 10,
                   total: outboxTotal,
                   onChange: setOutboxPage,
+                  showSizeChanger: false,
+                }}
+                className="custom-admin-table"
+              />
+            </div>
+          )}
+
+          {activeTab === 'notifications' && (
+            <div className="space-y-6">
+              <Table
+                columns={notificationColumns}
+                dataSource={notificationItems}
+                loading={notificationLoading}
+                rowKey="_id"
+                expandable={{
+                  expandedRowRender: (record) => (
+                    <div className="bg-gray-50 p-4 rounded-[4px] border border-gray-150 text-xs font-mono text-gray-700 max-h-96 overflow-y-auto">
+                      <div className="font-bold text-gray-900 mb-2 uppercase text-[10px] tracking-widest">Waitlist Notification Document details:</div>
+                      <pre>{JSON.stringify(record, null, 2)}</pre>
+                    </div>
+                  ),
+                  rowExpandable: () => true,
+                }}
+                pagination={{
+                  current: notificationPage,
+                  pageSize: 10,
+                  total: notificationTotal,
+                  onChange: setNotificationPage,
                   showSizeChanger: false,
                 }}
                 className="custom-admin-table"
