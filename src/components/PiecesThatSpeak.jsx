@@ -310,7 +310,7 @@ const PiecesCard = ({ product }) => {
         </div>
 
         {/* Color variants section (Dedicated row with space for 6 colors) */}
-        {product.colors?.length > 1 && (
+        {product.colors?.length > 1 ? (
           <div className="flex items-center gap-1.5 mt-3.5 pt-2.5 border-t border-gray-150/40">
             {product.colors.slice(0, 6).map((color) => {
               const isSelected = activeColor === color;
@@ -334,6 +334,8 @@ const PiecesCard = ({ product }) => {
               </span>
             )}
           </div>
+        ) : (
+          <div className="h-[25px] mt-3.5 pt-2.5 border-t border-transparent" />
         )}
       </div>
     </article>
