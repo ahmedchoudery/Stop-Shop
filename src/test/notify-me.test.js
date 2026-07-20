@@ -85,6 +85,7 @@ describe('POST /api/public/notify-me', () => {
     expect(data.message).toContain('Notification request saved');
     expect(mockNotificationCreate).toHaveBeenCalledWith({
       email: 'customer@domain.com',
+      name: '',
       productId: 'PRD-1',
       selectedSize: 'M',
       selectedColor: 'Charcoal',

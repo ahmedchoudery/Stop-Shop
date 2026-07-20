@@ -25,7 +25,11 @@ export async function GET(req) {
     const processed = [];
 
     for (const notif of pendingNotifications) {
-      const product = await Product.findOne({ id: notif.productId });
+      const product = await Product.findOne(
+        mongoose.isValidObjectId(notif.productId)
+          ? { $or: [{ id: notif.productId }, { _id: notif.productId }] }
+          : { id: notif.productId }
+      );
       if (!product) {
         // Product no longer exists, mark notified so we don't spin on it
         notif.notified = true;

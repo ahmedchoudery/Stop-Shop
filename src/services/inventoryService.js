@@ -139,8 +139,11 @@ async function processRestockNotifications(product) {
     const React = (await import('react')).default;
     const RestockNotificationCustomerEmail = (await import('../emails/restock-notification-customer.tsx')).default;
 
+    const productSku = (product.get && typeof product.get === 'function') ? product.get('id') : product.id;
+    const productIdStr = product._id?.toString() || product.id;
+
     const pending = await ProductNotification.find({
-      productId: product.id,
+      productId: { $in: [productSku, productIdStr].filter(Boolean) },
       notified: false
     });
 

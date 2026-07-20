@@ -318,8 +318,52 @@ export default function ProductPageClient({ product, allProducts = [] }) {
   const [showNotifyModal, setShowNotifyModal] = useState(false);
 
   const openNotifyModal = (preSize = '', preColor = '') => {
-    setNotifySize(preSize || selectedSize || '');
-    setNotifyColor(preColor || selectedColor || '');
+    const sizeStockObj = product.sizeStock
+      ? (product.sizeStock instanceof Map ? Object.fromEntries(product.sizeStock) : product.sizeStock)
+      : null;
+    const colorStockObj = product.colorStock
+      ? (product.colorStock instanceof Map ? Object.fromEntries(product.colorStock) : product.colorStock)
+      : null;
+    const variantMatrixObj = product.variantMatrix
+      ? (product.variantMatrix instanceof Map ? Object.fromEntries(product.variantMatrix) : product.variantMatrix)
+      : null;
+    const hasMatrix = variantMatrixObj && Object.keys(variantMatrixObj).length > 0;
+
+    // 1. Determine color
+    let initialColor = preColor || selectedColor || '';
+    const oosColors = (product.colors || []).filter(col => {
+      if (hasMatrix) {
+        const colKeys = Object.keys(variantMatrixObj).filter(k => k.startsWith(`${col}|`));
+        return colKeys.length > 0 && colKeys.every(k => (variantMatrixObj[k] ?? 0) === 0);
+      } else if (colorStockObj) {
+        return (colorStockObj[col] ?? 0) === 0;
+      }
+      return false;
+    });
+
+    if (oosColors.length === 1) {
+      initialColor = oosColors[0];
+    } else if (oosColors.length > 1 && !oosColors.includes(initialColor)) {
+      initialColor = ''; // Reset to force dropdown selection
+    }
+
+    // 2. Determine size
+    let initialSize = preSize || selectedSize || '';
+    const oosSizes = (product.sizes || []).filter(size => {
+      const ss = (hasMatrix && initialColor)
+        ? (variantMatrixObj[`${initialColor}|${size}`] ?? 0)
+        : (sizeStockObj?.[size] ?? 0);
+      return ss === 0;
+    });
+
+    if (oosSizes.length === 1) {
+      initialSize = oosSizes[0];
+    } else if (oosSizes.length > 1 && !oosSizes.includes(initialSize)) {
+      initialSize = ''; // Reset to force dropdown selection
+    }
+
+    setNotifySize(initialSize);
+    setNotifyColor(initialColor);
     setNotifyEmail('');
     setNotifyName('');
     setNotifyStatus(null);
