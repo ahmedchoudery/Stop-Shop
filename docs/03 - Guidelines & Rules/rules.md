@@ -90,6 +90,10 @@ This document serves as the source of truth for coding standards, libraries allo
 - **Collection Section Card Style (`ProductCard`)**:
   - Remains a flat, transparent/borderless card flush with the main catalog grid.
   - Color swatches must be styled at the original size (`w-3.5 h-3.5 rounded-[4px]`) and positioned next to the price in the footer, with extra space allowed to prevent layout collisions.
+- **Jeans Sub-category Size Presets**: The admin dashboard product form must present numeric waist size preset pills (`28`, `30`, `32`, `34`, `36`, `38`) when `subCategory === 'Jeans'`, instead of the standard alphabet-based variants (`XS`, `S`, `M`, `L`, `XL`).
+- **Diagonal Sold-out Badges**: Out-of-stock sizes and colors on the product detail client page must render with a visual diagonal red strikethrough SVG badge overlay (`stroke="#BA1F3D"` or `#a41f22`) to indicate sold-out availability, without changing the circular/box shape border.
+- **Restock Notification Modal & Auto-Selection**: A dedicated "Notify when Available" button (background `#a41f22`, white text) must render under "Add to Bag" if any variant is out of stock. When clicked, it opens a portal-mounted modal. If only one size is out of stock, it must be automatically pre-selected in the modal state (`notifySize`); if only one color is out of stock, it must be automatically pre-selected in the modal state (`notifyColor`), preventing empty strings from being submitted for single out-of-stock items.
+- **Immediate Restock Email Trigger**: Restock waitlist matches must be evaluated immediately inside the database inventory sync hook (`syncInventory`) when stock increases. The system must pre-render the JSX restock notification email template and dispatch it instantly to the customer's inbox, updating the notification record to `notified: true`. Product matching queries must check both the SKU (`id` string) and Mongoose `_id` string to prevent ID representation mismatches.
 
 
 ---
