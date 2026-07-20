@@ -1,3 +1,4 @@
+import { NextResponse } from 'next/server';
 import { withRoute } from '@/lib/api/withRoute';
 import Product from '@/models/Product';
 import { cacheService, CACHE_KEYS } from '@/services/cacheService';
@@ -8,9 +9,15 @@ export const GET = withRoute({
     const section = query?.section;
     const cacheKey = CACHE_KEYS.PUBLIC_PRODUCTS + `_featured_${section || 'all'}`;
 
+    const headers = {
+      'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+      'CDN-Cache-Control': 'no-store',
+      'Vercel-CDN-Cache-Control': 'no-store',
+    };
+
     const cached = await cacheService.get(cacheKey);
     if (cached) {
-      return cached;
+      return NextResponse.json(cached, { headers });
     }
 
     const filter = {};
@@ -34,6 +41,6 @@ export const GET = withRoute({
 
     await cacheService.set(cacheKey, formatted, 600); // cache for 10m
 
-    return formatted;
+    return NextResponse.json(formatted, { headers });
   }
 });

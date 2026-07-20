@@ -1,3 +1,4 @@
+import { revalidatePath } from 'next/cache';
 import { withRoute } from '@/lib/api/withRoute';
 import Product from '@/models/Product';
 import { createProductSchema } from '@/schemas/validation';
@@ -97,6 +98,11 @@ export const POST = withRoute({
     );
 
     await cacheService.invalidateMany([CACHE_KEYS.STATS_INVENTORY, CACHE_KEYS.PRODUCTS, CACHE_KEYS.PUBLIC_PRODUCTS]);
+    try {
+      revalidatePath('/');
+    } catch (e) {
+      console.warn('[ISR Revalidate] Failed to revalidate /:', e.message);
+    }
 
     const formattedProduct = product.toObject ? product.toObject() : product;
     if (formattedProduct._id) {

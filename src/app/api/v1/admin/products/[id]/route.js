@@ -1,3 +1,4 @@
+import { revalidatePath } from 'next/cache';
 import { withRoute, ApiError } from '@/lib/api/withRoute';
 import Product from '@/models/Product';
 import Inventory from '@/models/Inventory';
@@ -110,6 +111,11 @@ export const PATCH = withRoute({
       );
 
       await cacheService.invalidateMany([CACHE_KEYS.STATS_INVENTORY, CACHE_KEYS.PRODUCTS, CACHE_KEYS.PUBLIC_PRODUCTS]);
+      try {
+        revalidatePath('/');
+      } catch (e) {
+        console.warn('[ISR Revalidate] Failed to revalidate /:', e.message);
+      }
 
       const formattedProduct = product.toObject ? product.toObject() : product;
       if (formattedProduct._id) {
@@ -155,6 +161,11 @@ export const DELETE = withRoute({
     );
 
     await cacheService.invalidateMany([CACHE_KEYS.STATS_INVENTORY, CACHE_KEYS.PRODUCTS, CACHE_KEYS.PUBLIC_PRODUCTS]);
+    try {
+      revalidatePath('/');
+    } catch (e) {
+      console.warn('[ISR Revalidate] Failed to revalidate /:', e.message);
+    }
 
     return { message: 'Product removed' };
   }
