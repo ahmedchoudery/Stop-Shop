@@ -162,7 +162,7 @@ const getVariantImages = (product, color) => {
   return thumb ? [thumb] : null;
 };
 
-const ProductCard = ({ product, onImageLoad, variant = 'default' }) => {
+const ProductCard = ({ product, onImageLoad }) => {
   const navigate      = useNavigate();
   const { addToCart } = useCart();
   const { toggleWishlist, isWishlisted } = useWishlist();
@@ -316,12 +316,7 @@ const ProductCard = ({ product, onImageLoad, variant = 'default' }) => {
 
   return (
     <article
-      className={[
-        "group relative cursor-pointer select-none transition-all duration-500",
-        variant === 'editorial'
-          ? "bg-[#FAF9F6] border border-gray-150/70 p-4 hover:bg-white hover:shadow-[0_16px_40px_rgba(0,0,0,0.03)] hover:-translate-y-1"
-          : ""
-      ].join(' ')}
+      className="group relative cursor-pointer select-none"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={handleCardMouseLeave}
       onClick={handleCardClick}
@@ -452,41 +447,12 @@ const ProductCard = ({ product, onImageLoad, variant = 'default' }) => {
         </p>
 
         {/* Name */}
-        <h3 className="text-[11px] font-black uppercase tracking-[0.15em] text-gray-900 leading-snug mb-1 group-hover:text-cardinal transition-colors duration-300 line-clamp-1">
+        <h3 className="text-[11px] font-black uppercase tracking-[0.15em] text-gray-900 leading-snug mb-1.5 group-hover:text-cardinal transition-colors duration-300 line-clamp-1">
           {product.name}
         </h3>
 
-        {/* Color swatches (Dedicated Row) */}
-        {product.colors?.length > 1 && (
-          <div className="flex items-center gap-1.5 mb-2 mt-1">
-            {product.colors.slice(0, 5).map((color) => {
-              const isSelected = activeColor === color;
-              return (
-                <button
-                  key={color}
-                  type="button"
-                  onClick={(e) => { e.stopPropagation(); handleSelectColor(color); }}
-                  aria-label={`Select colour ${getColorName(color)}`}
-                  className={[
-                    'w-2.5 h-2.5 rounded-full border transition-all duration-200 focus:outline-none',
-                    isSelected
-                      ? 'border-black ring-1 ring-black ring-offset-1 ring-offset-white z-10 scale-110'
-                      : 'border-gray-300 hover:border-black/50',
-                  ].join(' ')}
-                  style={getBackgroundStyle(color)}
-                />
-              );
-            })}
-            {product.colors.length > 5 && (
-              <span className="text-[7px] text-gray-400 font-mono font-bold ml-1">
-                +{product.colors.length - 5}
-              </span>
-            )}
-          </div>
-        )}
-
-        {/* Price Row */}
-        <div className="flex items-center justify-between mt-1">
+        {/* Price + Colors */}
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             {hasDiscount ? (
               <>
@@ -503,6 +469,35 @@ const ProductCard = ({ product, onImageLoad, variant = 'default' }) => {
               </span>
             )}
           </div>
+
+          {/* Color swatches */}
+          {product.colors?.length > 0 && (
+            <div className="flex items-center gap-1.5">
+              {product.colors.slice(0, 4).map((color) => {
+                const isSelected = activeColor === color;
+                return (
+                  <button
+                    key={color}
+                    type="button"
+                    onClick={(e) => { e.stopPropagation(); handleSelectColor(color); }}
+                    aria-label={`Select colour ${getColorName(color)}`}
+                    className={[
+                      'w-3.5 h-3.5 rounded-[4px] border transition-all duration-200 focus:outline-none',
+                      isSelected
+                        ? 'border-black ring-2 ring-black ring-offset-2 ring-offset-white z-10'
+                        : 'border-gray-250 hover:border-black',
+                    ].join(' ')}
+                    style={getBackgroundStyle(color)}
+                  />
+                );
+              })}
+              {product.colors.length > 4 && (
+                <span className="text-[8px] text-gray-500 font-bold ml-0.5">
+                  +{product.colors.length - 4}
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Cart feedback */}
