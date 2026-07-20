@@ -163,7 +163,7 @@ export default function PiecesThatSpeak({ products: initialProducts = [] }) {
       setLoading(false);
       return;
     }
-    fetch('/api/public/featured?section=pieces')
+    fetch('/api/v1/public/featured?section=pieces')
       .then(res => {
         if (!res.ok) throw new Error('Failed to fetch');
         return res.json();

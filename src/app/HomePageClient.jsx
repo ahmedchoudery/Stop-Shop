@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useMemo, useCallback } from 'react';
+import React, { useEffect, useCallback } from 'react';
 import PowerOfChoiceHero from '../components/PowerOfChoiceHero.jsx';
 import CategoryTiles from '../components/CategoryTiles.jsx';
 import FeaturedDrop from '../components/FeaturedDrop.jsx';
@@ -32,23 +32,6 @@ export default function HomePageClient({ products = [], dropProducts = [], attit
     if (setActiveBucket) setActiveBucket(category);
   }, [setActiveBucket]);
 
-  // ── Derived product slices for carousels ──────────────────────────
-  // "Featured Drop" — newest 12 products
-  const featuredProducts = useMemo(
-    () => [...products].slice(0, 12),
-    [products]
-  );
-
-  // "Best Sellers" — highest rated 12 products
-  const bestSellers = useMemo(
-    () =>
-      [...products]
-        .filter((p) => p.rating >= 4)
-        .sort((a, b) => (b.rating ?? 0) - (a.rating ?? 0))
-        .slice(0, 12),
-    [products]
-  );
-
   return (
     <div>
       {/* 1 ─ Full-Screen Editorial Hero */}
@@ -61,13 +44,14 @@ export default function HomePageClient({ products = [], dropProducts = [], attit
       />
 
       {/* 4 ─ Featured Drop: "The Drop You've Been Waiting For" */}
-      <FeaturedDrop products={dropProducts} fallbackProducts={featuredProducts} />
+      <FeaturedDrop products={dropProducts} />
 
       {/* 5 ─ Lookbook Full-Bleed Strip */}
       <LookbookStrip products={attitudeProducts} onShopNow={handleCategorySelect} />
 
       {/* 6 ─ Pieces That Speak: "Pieces That Speak for Themselves" */}
-      <PiecesThatSpeak products={piecesProducts} fallbackProducts={bestSellers} />
+      <PiecesThatSpeak products={piecesProducts} />
+
 
       {/* 7 ─ Full Product Catalog Grid */}
       <ProductGrid

@@ -30,7 +30,7 @@ export default function LookbookStrip({ products: initialProducts = [], onShopNo
       setLoading(false);
       return;
     }
-    fetch('/api/public/featured?section=attitude')
+    fetch('/api/v1/public/featured?section=attitude')
       .then(res => {
         if (!res.ok) throw new Error('Failed to fetch');
         return res.json();

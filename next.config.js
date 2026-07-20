@@ -25,6 +25,21 @@ const nextConfig = {
     ],
   },
   transpilePackages: ['lucide-react', 'framer-motion'],
+  async rewrites() {
+    return [
+      // ── Shorthand API aliases → versioned routes ─────────────────
+      // Allows /api/public/* and /api/admin/* to resolve to /api/v1/public/* and /api/v1/admin/*
+      // without needing to update every fetch() call across the codebase.
+      {
+        source: '/api/public/:path*',
+        destination: '/api/v1/public/:path*',
+      },
+      {
+        source: '/api/admin/:path*',
+        destination: '/api/v1/admin/:path*',
+      },
+    ];
+  },
   async headers() {
     return [
       {

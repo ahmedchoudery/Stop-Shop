@@ -13,7 +13,7 @@ export default function FeaturedDrop({ products: initialProducts = [] }) {
       setLoading(false);
       return;
     }
-    fetch('/api/public/featured?section=drop')
+    fetch('/api/v1/public/featured?section=drop')
       .then(res => {
         if (!res.ok) throw new Error('Failed to fetch');
         return res.json();

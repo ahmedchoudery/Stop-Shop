@@ -4,16 +4,21 @@ import dbConnect from '../lib/db';
 import Product from '../models/Product';
 import HomePageClient from './HomePageClient.jsx';
 
-export const revalidate = 300; // Cache and revalidate pages every 300 seconds (Incremental Static Regeneration)
+export const dynamic = 'force-dynamic'; // Always fetch fresh data — no ISR cache
 
 export default async function Page() {
   await dbConnect();
   
   // Fetch products directly on the server (zero network roundtrips!)
   const [rawProducts, rawDrop, rawAttitude, rawPieces] = await Promise.all([
+    // Collection + Pieces + Drop all show in the ProductGrid ("Collection" section)
+    // Attitude products are editorial lookbook only — excluded from the main grid
     Product.find({ featuredSection: { $ne: 'attitude' } }).sort({ createdAt: -1 }).lean(),
+    // Drop carousel — ONLY 'drop' section products
     Product.find({ featuredSection: 'drop' }).sort({ displayOrder: 1, createdAt: -1 }).lean(),
+    // Lookbook strip — ONLY 'attitude' section products
     Product.find({ featuredSection: 'attitude' }).sort({ displayOrder: 1, createdAt: -1 }).lean(),
+    // Pieces That Speak carousel — ONLY 'pieces' section products
     Product.find({ featuredSection: 'pieces' }).sort({ displayOrder: 1, createdAt: -1 }).lean()
   ]);
   
