@@ -30,14 +30,30 @@ const PiecesCard = ({ product }) => {
   const cardImages = useMemo(() => {
     const list = [];
     if (product.image && typeof product.image === 'string' && product.image.trim()) {
-      list.push(product.image);
+      list.push(product.image.trim());
+    }
+    if (product.lifestyleImage && typeof product.lifestyleImage === 'string' && product.lifestyleImage.trim() && !list.includes(product.lifestyleImage.trim())) {
+      list.push(product.lifestyleImage.trim());
     }
     if (product.gallery && Array.isArray(product.gallery)) {
       product.gallery.forEach((img) => {
-        if (img && typeof img === 'string' && img.trim() && !list.includes(img)) {
-          list.push(img);
+        if (img && typeof img === 'string' && img.trim() && !list.includes(img.trim())) {
+          list.push(img.trim());
         }
       });
+    }
+    if (product.variantImages) {
+      const vObj = product.variantImages instanceof Map ? Object.fromEntries(product.variantImages) : product.variantImages;
+      if (typeof vObj === 'object') {
+        Object.values(vObj).forEach(val => {
+          const imgs = Array.isArray(val) ? val : [val];
+          imgs.forEach(i => {
+            if (i && typeof i === 'string' && i.trim() && !list.includes(i.trim())) {
+              list.push(i.trim());
+            }
+          });
+        });
+      }
     }
     return list.length > 0 ? list : [product.image];
   }, [product]);
@@ -134,26 +150,28 @@ const PiecesCard = ({ product }) => {
         />
         <div className="absolute inset-0 border border-black/5 pointer-events-none" />
 
-        {/* Gallery navigation arrows (Desktop hover & Mobile hold) */}
-        {cardImages.length > 1 && (isHovered || isHeld) && (
+        {/* Gallery navigation arrows (Always visible when 2+ photos exist) */}
+        {cardImages.length > 1 && (
           <>
             <button
+              type="button"
               onClick={handlePrevImage}
               onTouchStart={(e) => e.stopPropagation()}
-              onTouchEnd={(e) => e.stopPropagation()}
-              className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-7 h-7 flex items-center justify-center bg-white/95 hover:bg-black hover:text-white border border-gray-200/60 text-black transition-all duration-200 shadow-md rounded-none"
+              onTouchEnd={(e) => { e.stopPropagation(); handlePrevImage(e); }}
+              className="absolute left-2 top-1/2 -translate-y-1/2 z-30 w-8 h-8 flex items-center justify-center bg-white/90 hover:bg-black hover:text-white border border-gray-300 text-black shadow-md rounded-none transition-all active:scale-95 cursor-pointer"
               aria-label="Previous image"
             >
-              <ChevronLeft size={13} />
+              <ChevronLeft size={16} />
             </button>
             <button
+              type="button"
               onClick={handleNextImage}
               onTouchStart={(e) => e.stopPropagation()}
-              onTouchEnd={(e) => e.stopPropagation()}
-              className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-7 h-7 flex items-center justify-center bg-white/95 hover:bg-black hover:text-white border border-gray-200/60 text-black transition-all duration-200 shadow-md rounded-none"
+              onTouchEnd={(e) => { e.stopPropagation(); handleNextImage(e); }}
+              className="absolute right-2 top-1/2 -translate-y-1/2 z-30 w-8 h-8 flex items-center justify-center bg-white/90 hover:bg-black hover:text-white border border-gray-300 text-black shadow-md rounded-none transition-all active:scale-95 cursor-pointer"
               aria-label="Next image"
             >
-              <ChevronRight size={13} />
+              <ChevronRight size={16} />
             </button>
           </>
         )}
