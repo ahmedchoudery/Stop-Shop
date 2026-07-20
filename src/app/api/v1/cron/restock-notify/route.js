@@ -49,9 +49,19 @@ export async function GET(req) {
       const hasSizes = sizeStockObj && Object.keys(sizeStockObj).length > 0;
       const hasColors = colorStockObj && Object.keys(colorStockObj).length > 0;
 
-      if (hasMatrix && notif.selectedColor && notif.selectedSize) {
-        const qty = variantMatrixObj[`${notif.selectedColor}|${notif.selectedSize}`] ?? 0;
-        inStock = qty > 0;
+      if (hasMatrix) {
+        if (notif.selectedColor && notif.selectedSize) {
+          const qty = variantMatrixObj[`${notif.selectedColor}|${notif.selectedSize}`] ?? 0;
+          inStock = qty > 0;
+        } else if (notif.selectedSize) {
+          const qty = sizeStockObj?.[notif.selectedSize] ?? 0;
+          inStock = qty > 0;
+        } else if (notif.selectedColor) {
+          const qty = colorStockObj?.[notif.selectedColor] ?? 0;
+          inStock = qty > 0;
+        } else {
+          inStock = (product.quantity ?? 0) > 0;
+        }
       } else if (hasSizes && notif.selectedSize) {
         const qty = sizeStockObj[notif.selectedSize] ?? 0;
         inStock = qty > 0;

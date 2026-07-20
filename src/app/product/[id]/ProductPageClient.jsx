@@ -436,6 +436,46 @@ export default function ProductPageClient({ product, allProducts = [] }) {
   const isWished = isWishlisted(product.id);
   const category = product.subCategory && product.subCategory !== 'General' ? product.subCategory : product.bucket;
 
+  const hasAnyOutOfStockVariant = (() => {
+    if ((product.quantity ?? 0) === 0) return true;
+
+    const sizeStockObj = product.sizeStock
+      ? (product.sizeStock instanceof Map ? Object.fromEntries(product.sizeStock) : product.sizeStock)
+      : null;
+    const colorStockObj = product.colorStock
+      ? (product.colorStock instanceof Map ? Object.fromEntries(product.colorStock) : product.colorStock)
+      : null;
+    const variantMatrixObj = product.variantMatrix
+      ? (product.variantMatrix instanceof Map ? Object.fromEntries(product.variantMatrix) : product.variantMatrix)
+      : null;
+
+    const hasMatrix = variantMatrixObj && Object.keys(variantMatrixObj).length > 0;
+    const hasSizes = sizeStockObj && Object.keys(sizeStockObj).length > 0;
+    const hasColors = colorStockObj && Object.keys(colorStockObj).length > 0;
+
+    if (hasMatrix) {
+      const colors = product.colors || [];
+      const sizes = product.sizes || [];
+      for (const col of colors) {
+        for (const sz of sizes) {
+          const qty = variantMatrixObj[`${col}|${sz}`] ?? 0;
+          if (qty === 0) return true;
+        }
+      }
+    }
+    if (hasSizes && product.sizes?.length > 0) {
+      for (const sz of product.sizes) {
+        if ((sizeStockObj?.[sz] ?? 0) === 0) return true;
+      }
+    }
+    if (hasColors && product.colors?.length > 0) {
+      for (const col of product.colors) {
+        if ((colorStockObj?.[col] ?? 0) === 0) return true;
+      }
+    }
+    return false;
+  })();
+
   const handleAddToCart = () => {
     if (outOfStock) return;
     if (product.sizes?.length > 1 && !selectedSize) {
@@ -757,19 +797,7 @@ export default function ProductPageClient({ product, allProducts = [] }) {
               </div>
             )}
 
-            {/* Notify when Available — shown when selected variant combo is OOS but product isn't ENTIRELY sold out */}
-            {!outOfStock && stockQty === 0 && (
-              <div className="mb-6">
-                <button
-                  type="button"
-                  onClick={() => openNotifyModal()}
-                  className="flex items-center space-x-2 text-[9px] font-black uppercase tracking-widest text-cardinal hover:text-cardinal/80 transition-colors"
-                >
-                  <Bell size={12} />
-                  <span>Notify when Available</span>
-                </button>
-              </div>
-            )}
+
 
             {/* Quantity */}
             {!outOfStock && (
@@ -804,22 +832,35 @@ export default function ProductPageClient({ product, allProducts = [] }) {
                   <button
                     type="button"
                     onClick={() => openNotifyModal()}
-                    className="w-full flex items-center justify-center space-x-2 py-4 text-[10px] font-black uppercase tracking-[0.35em] bg-gray-900 text-white hover:bg-cardinal transition-all duration-300 rounded-[4px]"
+                    className="w-full flex items-center justify-center space-x-2 py-4 text-[10px] font-black uppercase tracking-[0.35em] bg-[#a41f22] text-white hover:bg-[#a41f22]/90 transition-all duration-300 rounded-[4px]"
                   >
                     <Bell size={13} />
                     <span>Notify when Available</span>
                   </button>
                 </div>
               ) : (
-                <button
-                  onClick={handleAddToCart}
-                  className={`w-full flex items-center justify-center space-x-3 py-4 text-[10px] font-black uppercase tracking-[0.35em] transition-all duration-300 ${
-                    cartAdded ? 'bg-cardinal text-white' : 'bg-gray-900 text-white hover:bg-cardinal'
-                  }`}
-                >
-                  <ShoppingBag size={13} />
-                  <span>{cartAdded ? '✓ Added to bag' : 'Add to Bag'}</span>
-                </button>
+                <>
+                  <button
+                    onClick={handleAddToCart}
+                    className={`w-full flex items-center justify-center space-x-3 py-4 text-[10px] font-black uppercase tracking-[0.35em] transition-all duration-300 ${
+                      cartAdded ? 'bg-cardinal text-white' : 'bg-gray-900 text-white hover:bg-cardinal'
+                    }`}
+                  >
+                    <ShoppingBag size={13} />
+                    <span>{cartAdded ? '✓ Added to bag' : 'Add to Bag'}</span>
+                  </button>
+
+                  {hasAnyOutOfStockVariant && (
+                    <button
+                      type="button"
+                      onClick={() => openNotifyModal()}
+                      className="w-full flex items-center justify-center space-x-2 py-4 text-[10px] font-black uppercase tracking-[0.35em] bg-[#a41f22] text-white hover:bg-[#a41f22]/90 transition-all duration-300 rounded-[4px]"
+                    >
+                      <Bell size={13} />
+                      <span>Notify when Available</span>
+                    </button>
+                  )}
+                </>
               )}
 
               <div className="grid grid-cols-2 gap-3">

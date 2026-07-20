@@ -115,9 +115,103 @@ export const syncInventory = async (product, moveType = 'ADMIN_UPDATE', note = '
     );
 
     console.info(`[Inventory] Synced: ${product.id} | ${product.name} | Stock: ${previousStock} → ${totalStock} | ${status}`);
+
+    // Trigger restock check if total stock has increased or it is a restock
+    if (quantityDelta > 0 || moveType === 'RESTOCK') {
+      processRestockNotifications(product).catch(err => {
+        console.error('[Inventory] Restock notification trigger failed:', err.message);
+      });
+    }
   } catch (err) {
     // Never let inventory sync crash the main operation
     console.error('[Inventory] Sync failed for product', product.id, ':', err.message);
   }
 };
+
+/**
+ * Check waitlist notifications for this product and queue emails for restocked variants.
+ */
+async function processRestockNotifications(product) {
+  try {
+    const ProductNotification = (await import('../models/ProductNotification.js')).default;
+    const EmailOutbox = (await import('../models/EmailOutbox.js')).default;
+
+    const pending = await ProductNotification.find({
+      productId: product.id,
+      notified: false
+    });
+
+    if (pending.length === 0) return;
+
+    // Resolve Maps
+    const sizeStockObj = product.sizeStock
+      ? (product.sizeStock instanceof Map ? Object.fromEntries(product.sizeStock) : product.sizeStock)
+      : null;
+    const colorStockObj = product.colorStock
+      ? (product.colorStock instanceof Map ? Object.fromEntries(product.colorStock) : product.colorStock)
+      : null;
+    const variantMatrixObj = product.variantMatrix
+      ? (product.variantMatrix instanceof Map ? Object.fromEntries(product.variantMatrix) : product.variantMatrix)
+      : null;
+
+    const hasMatrix = variantMatrixObj && Object.keys(variantMatrixObj).length > 0;
+    const hasSizes = sizeStockObj && Object.keys(sizeStockObj).length > 0;
+    const hasColors = colorStockObj && Object.keys(colorStockObj).length > 0;
+
+    for (const notif of pending) {
+      let inStock = false;
+
+      if (hasMatrix) {
+        if (notif.selectedColor && notif.selectedSize) {
+          const qty = variantMatrixObj[`${notif.selectedColor}|${notif.selectedSize}`] ?? 0;
+          inStock = qty > 0;
+        } else if (notif.selectedSize) {
+          const qty = sizeStockObj?.[notif.selectedSize] ?? 0;
+          inStock = qty > 0;
+        } else if (notif.selectedColor) {
+          const qty = colorStockObj?.[notif.selectedColor] ?? 0;
+          inStock = qty > 0;
+        } else {
+          inStock = (product.quantity ?? 0) > 0;
+        }
+      } else if (hasSizes && notif.selectedSize) {
+        const qty = sizeStockObj[notif.selectedSize] ?? 0;
+        inStock = qty > 0;
+      } else if (hasColors && notif.selectedColor) {
+        const qty = colorStockObj[notif.selectedColor] ?? 0;
+        inStock = qty > 0;
+      } else {
+        inStock = (product.quantity ?? 0) > 0;
+      }
+
+      if (inStock) {
+        const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://stop-shop-gamma.vercel.app';
+        const ctaUrl = `${appUrl}/product/${product.id}`;
+
+        await EmailOutbox.create({
+          to: notif.email,
+          template: 'restock-notification-customer',
+          data: {
+            customerName: notif.name || 'Valued Customer',
+            productName: product.name,
+            productImage: product.image,
+            selectedSize: notif.selectedSize,
+            selectedColor: notif.selectedColor,
+            productPrice: `Rs. ${product.price.toLocaleString('en-PK')}`,
+            ctaUrl,
+          },
+          status: 'pending',
+          attempts: 0,
+          idempotencyKey: `restock-${notif._id.toString()}`,
+        });
+
+        notif.notified = true;
+        await notif.save();
+        console.info(`[Restock Service] Auto-queued restock email for ${notif.email} - ${product.name}`);
+      }
+    }
+  } catch (err) {
+    console.error('[Restock Service] Error in processRestockNotifications:', err.message);
+  }
+}
 
