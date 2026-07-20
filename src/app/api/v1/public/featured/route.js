@@ -4,15 +4,23 @@ import { cacheService, CACHE_KEYS } from '@/services/cacheService';
 
 export const GET = withRoute({
   requiredRole: 'public',
-  handler: async () => {
-    const cached = await cacheService.get(CACHE_KEYS.PUBLIC_PRODUCTS + '_featured');
+  handler: async ({ query }) => {
+    const section = query?.section;
+    const cacheKey = CACHE_KEYS.PUBLIC_PRODUCTS + `_featured_${section || 'all'}`;
+
+    const cached = await cacheService.get(cacheKey);
     if (cached) {
       return cached;
     }
 
-    const featuredProducts = await Product.find({
-      featuredSection: { $in: ['drop', 'attitude', 'pieces'] }
-    })
+    const filter = {};
+    if (section) {
+      filter.featuredSection = section;
+    } else {
+      filter.featuredSection = { $in: ['drop', 'attitude', 'pieces'] };
+    }
+
+    const featuredProducts = await Product.find(filter)
       .select('id name price discount image colors sizes bucket subCategory quantity isNew createdAt specs sizeStock colorStock variantMatrix lifestyleImage variantImages gallery featuredSection displayOrder description careInstructions')
       .lean();
 
@@ -24,7 +32,7 @@ export const GET = withRoute({
       updatedAt: p.updatedAt ? new Date(p.updatedAt).toISOString() : null,
     }));
 
-    await cacheService.set(CACHE_KEYS.PUBLIC_PRODUCTS + '_featured', formatted, 600); // cache for 10m
+    await cacheService.set(cacheKey, formatted, 600); // cache for 10m
 
     return formatted;
   }

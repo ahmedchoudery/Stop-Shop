@@ -155,7 +155,14 @@ const del = async (key) => {
   if (!redis) return false;
 
   try {
-    await redis.del(key);
+    if (key === CACHE_KEYS.PUBLIC_PRODUCTS) {
+      const matchedKeys = await redis.keys(`${CACHE_KEYS.PUBLIC_PRODUCTS}*`);
+      if (matchedKeys.length > 0) {
+        await redis.del(...matchedKeys);
+      }
+    } else {
+      await redis.del(key);
+    }
     return true;
   } catch (err) {
     console.error(`[Cache] DEL error for key "${key}":`, err.message);
