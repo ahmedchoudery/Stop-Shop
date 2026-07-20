@@ -2,16 +2,90 @@
 
 /**
  * @fileoverview FeaturedCarousel.jsx — Horizontal Product Carousel
- * Theme: Minimalist editorial lookbook. White section, round actions, 1-line headline.
+ * Theme: Minimalist editorial lookbook. White/Dark section, standard size swatches, 1-line headline.
  */
 
-import React, { useRef, useState, useEffect, useCallback } from 'react';
-import { ArrowLeft, ArrowRight, Heart, ShoppingBag } from 'lucide-react';
+import React, { useRef, useState, useEffect, useCallback, useMemo } from 'react';
+import { ArrowLeft, ArrowRight, Heart, ShoppingBag, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate } from '../utils/router-compat.jsx';
 import { useCart } from '../context/CartContext.tsx';
 import { useWishlist } from '../context/WishlistContext.jsx';
 import { useCurrency } from '../context/CurrencyContext.jsx';
 import MediaRenderer from './MediaRenderer.jsx';
+
+const getBackgroundStyle = (color) => {
+  if (!color) return {};
+  if (color.includes('|')) {
+    const parts = color.split('|');
+    const part0 = parts[0].trim();
+    const part1 = parts[1].trim();
+    const isHex = (str) => /^#([0-9A-F]{3}|[0-9A-F]{6})$/i.test(str);
+    if (isHex(part0) && !isHex(part1)) {
+      return { backgroundColor: part0 };
+    } else {
+      return { background: `linear-gradient(135deg, ${part0} 50%, ${part1} 50%)` };
+    }
+  }
+  return { backgroundColor: color };
+};
+
+const getColorName = (color) => {
+  if (!color) return '';
+  if (color.includes('|')) {
+    const parts = color.split('|');
+    const part0 = parts[0].trim();
+    const part1 = parts[1].trim();
+    const isHex = (str) => /^#([0-9A-F]{3}|[0-9A-F]{6})$/i.test(str);
+    if (isHex(part0) && !isHex(part1)) {
+      return part1;
+    } else {
+      return parts.join(' / ');
+    }
+  }
+  return color;
+};
+
+const getVariantImages = (product, color) => {
+  if (!color) return null;
+  if (product.variantImages) {
+    const imagesObj = product.variantImages instanceof Map
+      ? Object.fromEntries(product.variantImages)
+      : product.variantImages;
+
+    if (typeof imagesObj === 'object') {
+      const searchColor = color.trim().toLowerCase();
+      const searchParts = searchColor.split('|').map(p => p.trim());
+      const searchHex = searchParts[0];
+      const searchName = searchParts[1] || '';
+
+      let matchedVal = null;
+      if (typeof color === 'string' && Object.prototype.hasOwnProperty.call(imagesObj, color)) {
+        matchedVal = Reflect.get(imagesObj, color) || null;
+      }
+
+      if (!matchedVal) {
+        for (const [key, val] of Object.entries(imagesObj)) {
+          const keyLower = key.trim().toLowerCase();
+          if (keyLower === searchColor) { matchedVal = val; break; }
+          const keyParts = keyLower.split('|').map(p => p.trim());
+          const keyHex = keyParts[0];
+          const keyName = keyParts[1] || '';
+          if (searchHex && keyHex === searchHex) { matchedVal = val; break; }
+          if (searchName && keyName && keyName === searchName) { matchedVal = val; break; }
+          if (keyLower === searchHex || keyLower === searchName) { matchedVal = val; break; }
+        }
+      }
+
+      if (Array.isArray(matchedVal) && matchedVal.length > 0) {
+        return matchedVal.filter(u => u && typeof u === 'string' && u.trim());
+      }
+      if (typeof matchedVal === 'string' && matchedVal.trim()) {
+        return [matchedVal];
+      }
+    }
+  }
+  return null;
+};
 
 /* ─── Carousel Card ─────────────────────────────────────────────────────── */
 
@@ -21,25 +95,100 @@ const CarouselCard = ({ product, theme, index = 0 }) => {
   const { toggleWishlist, isWishlisted } = useWishlist();
   const { formatPrice } = useCurrency();
 
+  const [selectedColor, setSelectedColor] = useState(null);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [cartAdded, setCartAdded] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isHeld, setIsHeld] = useState(false);
+  const touchTimeoutRef = useRef(null);
+
+  const activeColor = selectedColor || product.colors?.[0] || null;
+
+  const cardImages = useMemo(() => {
+    if (selectedColor) {
+      const colorImgs = getVariantImages(product, selectedColor);
+      if (colorImgs && colorImgs.length > 0) return colorImgs;
+    } else if (product.colors && product.colors.length > 0) {
+      const firstColor = product.colors[0];
+      const colorImgs = getVariantImages(product, firstColor);
+      if (colorImgs && colorImgs.length > 0) return colorImgs;
+    }
+
+    const list = [];
+    if (product.image && typeof product.image === 'string' && product.image.trim()) {
+      list.push(product.image.trim());
+    }
+    if (product.gallery && Array.isArray(product.gallery)) {
+      product.gallery.forEach((img) => {
+        if (img && typeof img === 'string' && img.trim() && !list.includes(img.trim())) {
+          list.push(img.trim());
+        }
+      });
+    }
+    return list.length > 0 ? list : [product.image];
+  }, [product, selectedColor]);
+
+  const displayImage = cardImages[currentImageIndex] || product.image;
   const wishlisted = isWishlisted(product.id);
   const outOfStock = product.stock === 0;
 
   const hasDiscount = product.discount > 0;
   const discountedPrice = hasDiscount ? product.price * (1 - product.discount / 100) : product.price;
 
+  const handleTouchStart = useCallback(() => {
+    if (touchTimeoutRef.current) clearTimeout(touchTimeoutRef.current);
+    setIsHeld(true);
+  }, []);
+
+  const handleTouchEnd = useCallback(() => {
+    if (touchTimeoutRef.current) clearTimeout(touchTimeoutRef.current);
+    touchTimeoutRef.current = setTimeout(() => setIsHeld(false), 2500);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (touchTimeoutRef.current) clearTimeout(touchTimeoutRef.current);
+    };
+  }, []);
+
+  const handlePrevImage = useCallback(
+    (e) => {
+      e.stopPropagation();
+      setCurrentImageIndex((prev) => (prev - 1 + cardImages.length) % cardImages.length);
+    },
+    [cardImages.length]
+  );
+
+  const handleNextImage = useCallback(
+    (e) => {
+      e.stopPropagation();
+      setCurrentImageIndex((prev) => (prev + 1) % cardImages.length);
+    },
+    [cardImages.length]
+  );
+
   const handleAddToCart = useCallback((e) => {
     e.stopPropagation();
     if (outOfStock) return;
-    addToCart({ ...product, selectedSize: product.sizes?.[0] ?? '', selectedColor: product.colors?.[0] ?? '', quantity: 1 });
+    addToCart({ 
+      ...product, 
+      selectedSize: product.sizes?.[0] ?? '', 
+      selectedColor: activeColor ?? '', 
+      quantity: 1 
+    });
     setCartAdded(true);
     setTimeout(() => setCartAdded(false), 1800);
-  }, [addToCart, product, outOfStock]);
+  }, [addToCart, product, outOfStock, activeColor]);
 
   const handleWishlist = useCallback((e) => {
     e.stopPropagation();
     toggleWishlist(product);
   }, [product, toggleWishlist]);
+
+  const handleSelectColor = useCallback((color) => {
+    setSelectedColor(color);
+    setCurrentImageIndex(0);
+  }, []);
 
   const category = product.subCategory && product.subCategory.toLowerCase() !== 'general'
     ? product.subCategory
@@ -47,14 +196,19 @@ const CarouselCard = ({ product, theme, index = 0 }) => {
 
   return (
     <article
-      className="group relative cursor-pointer flex-shrink-0 transition-all duration-500"
+      className="group relative cursor-pointer flex-shrink-0 transition-all duration-500 select-none"
       style={{ width: 'clamp(220px, 28vw, 290px)' }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchEnd}
       onClick={() => navigate(`/product/${product.id}`)}
     >
       {/* Image Wrapper */}
       <div className="relative aspect-[3/4] overflow-hidden bg-gray-50 mb-4 transition-all duration-500 group-hover:shadow-[0_20px_40px_rgba(0,0,0,0.3)]">
         <MediaRenderer
-          src={product.mediaType === 'embed' ? null : product.image}
+          src={product.mediaType === 'embed' ? null : displayImage}
           embedCode={product.mediaType === 'embed' ? product.embedCode : undefined}
           mediaType={product.mediaType}
           alt={product.name}
@@ -68,9 +222,36 @@ const CarouselCard = ({ product, theme, index = 0 }) => {
             : 'border-gray-100 group-hover:border-black/20'
         }`} />
 
+        {/* Gallery navigation arrows (Desktop hover & Mobile hold) */}
+        {cardImages.length > 1 && (isHovered || isHeld) && (
+          <>
+            <button
+              type="button"
+              onClick={handlePrevImage}
+              onTouchStart={(e) => e.stopPropagation()}
+              onTouchEnd={(e) => { e.stopPropagation(); handlePrevImage(e); }}
+              className="absolute left-2.5 top-1/2 -translate-y-1/2 z-20 w-7 h-7 flex items-center justify-center bg-white/95 hover:bg-black hover:text-white border border-gray-250/65 text-black transition-all duration-200 shadow-md rounded-[2px]"
+              aria-label="Previous image"
+            >
+              <ChevronLeft size={13} />
+            </button>
+            <button
+              type="button"
+              onClick={handleNextImage}
+              onTouchStart={(e) => e.stopPropagation()}
+              onTouchEnd={(e) => { e.stopPropagation(); handleNextImage(e); }}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 z-20 w-7 h-7 flex items-center justify-center bg-white/95 hover:bg-black hover:text-white border border-gray-250/65 text-black transition-all duration-200 shadow-md rounded-[2px]"
+              aria-label="Next image"
+            >
+              <ChevronRight size={13} />
+            </button>
+          </>
+        )}
+
         {/* Top-Right Wishlist Button - Transparent and Minimalist */}
         <button
           onClick={handleWishlist}
+          onTouchStart={(e) => e.stopPropagation()}
           className={`absolute top-3 right-3 w-8 h-8 rounded-none border backdrop-blur-sm shadow-sm flex items-center justify-center transition-all duration-300 group/wishlist z-20 ${
             theme === 'dark'
               ? 'bg-[#1a1a1a]/85 border-white/10 text-white hover:bg-white hover:text-black'
@@ -180,6 +361,44 @@ const CarouselCard = ({ product, theme, index = 0 }) => {
             </span>
           )}
         </div>
+
+        {/* Color variants section (Same size & layout functionality as Pieces card) */}
+        {product.colors?.length > 1 ? (
+          <div className={`flex items-center gap-1.5 mt-3.5 pt-2.5 border-t ${
+            theme === 'dark' ? 'border-white/10' : 'border-gray-150/40'
+          }`}>
+            {product.colors.slice(0, 6).map((color) => {
+              const isSelected = activeColor === color;
+              return (
+                <button
+                  key={color}
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); handleSelectColor(color); }}
+                  aria-label={`Select colour ${getColorName(color)}`}
+                  className={`w-3.5 h-3.5 rounded-[4px] border transition-all duration-200 focus:outline-none ${
+                    isSelected
+                      ? (theme === 'dark' 
+                          ? 'border-white ring-2 ring-white ring-offset-2 ring-offset-black z-10'
+                          : 'border-black ring-2 ring-black ring-offset-2 ring-offset-white z-10')
+                      : (theme === 'dark'
+                          ? 'border-white/20 hover:border-white'
+                          : 'border-gray-250 hover:border-black')
+                  }`}
+                  style={getBackgroundStyle(color)}
+                />
+              );
+            })}
+            {product.colors.length > 6 && (
+              <span className={`text-[8px] font-bold font-mono ml-0.5 ${
+                theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+              }`}>
+                +{product.colors.length - 6}
+              </span>
+            )}
+          </div>
+        ) : (
+          <div className={`h-[25px] mt-3.5 pt-2.5 border-t border-transparent`} />
+        )}
       </div>
     </article>
   );

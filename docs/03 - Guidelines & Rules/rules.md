@@ -83,6 +83,10 @@ This document serves as the source of truth for coding standards, libraries allo
   - Typography must match the original editorial look: category/sub-category on the left, star ratings (`★★★★★`) on the right, bold uppercase serif product title below, and spacious price.
   - Color swatches are styled in the original shape/size (`w-3.5 h-3.5 rounded-[4px]`) and positioned on a dedicated row below the price to avoid layout clutter, leaving enough space for up to **6 colors** cleanly.
   - Product photo switching arrows appear overlaying the image on laptop hover or mobile touch-hold.
+- **The Drop You've Been Waiting For Card Style (`CarouselCard`)**:
+  - Keeps its distinct existing dark theme layout (black-tinted background, white text typography, large background numbered indices `01`, `02`).
+  - Incorporates the exact same layout functionality as the Pieces card: photo-switching navigation arrows on laptop hover / mobile touch-hold, and a dedicated bottom row showing up to **6 color swatches** of size `w-3.5 h-3.5 rounded-[4px]`.
+  - Employs the transparent equal-height placeholder spacer to ensure all cards remain exactly aligned in height.
 - **Collection Section Card Style (`ProductCard`)**:
   - Remains a flat, transparent/borderless card flush with the main catalog grid.
   - Color swatches must be styled at the original size (`w-3.5 h-3.5 rounded-[4px]`) and positioned next to the price in the footer, with extra space allowed to prevent layout collisions.
