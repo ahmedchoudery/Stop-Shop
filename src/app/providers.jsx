@@ -126,11 +126,13 @@ export default function Providers({ children }) {
       <LocaleProvider>
         <CurrencyProvider>
           <RecentlyViewedProvider>
-            <WishlistProvider>
-              <CartProvider>
-                <CustomerProvider>{children}</CustomerProvider>
-              </CartProvider>
-            </WishlistProvider>
+            <CustomerProvider>
+              <WishlistProvider>
+                <CartProvider>
+                  {children}
+                </CartProvider>
+              </WishlistProvider>
+            </CustomerProvider>
           </RecentlyViewedProvider>
         </CurrencyProvider>
       </LocaleProvider>
