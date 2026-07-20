@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import mongoose from 'mongoose';
 import dbConnect from '@/lib/db';
 import ProductNotification from '@/models/ProductNotification';
 import Product from '@/models/Product';

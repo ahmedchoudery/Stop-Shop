@@ -1,4 +1,9 @@
+import React from 'react';
+import { render } from '@react-email/render';
 import Inventory from '../models/Inventory.js';
+import ProductNotification from '../models/ProductNotification.js';
+import { sendEmail } from './emailService.js';
+import RestockNotificationCustomerEmail from '../emails/restock-notification-customer.tsx';
 
 const LOW_STOCK_THRESHOLD = 3;
 
@@ -133,11 +138,6 @@ export const syncInventory = async (product, moveType = 'ADMIN_UPDATE', note = '
  */
 async function processRestockNotifications(product) {
   try {
-    const ProductNotification = (await import('../models/ProductNotification.js')).default;
-    const { sendEmail } = await import('./emailService.js');
-    const { render } = await import('@react-email/render');
-    const React = (await import('react')).default;
-    const RestockNotificationCustomerEmail = (await import('../emails/restock-notification-customer.tsx')).default;
 
     const productSku = (product.get && typeof product.get === 'function') ? product.get('id') : product.id;
     const productIdStr = product._id?.toString() || product.id;
