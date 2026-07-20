@@ -125,7 +125,7 @@ export default function PiecesThatSpeak({ products: initialProducts = [] }) {
                 flexShrink: 0
               }}
             >
-              <ProductCard product={product} />
+              <ProductCard product={product} variant="editorial" />
             </div>
           ))}
         </div>

@@ -162,7 +162,7 @@ const getVariantImages = (product, color) => {
   return thumb ? [thumb] : null;
 };
 
-const ProductCard = ({ product, onImageLoad }) => {
+const ProductCard = ({ product, onImageLoad, variant = 'default' }) => {
   const navigate      = useNavigate();
   const { addToCart } = useCart();
   const { toggleWishlist, isWishlisted } = useWishlist();
@@ -316,7 +316,12 @@ const ProductCard = ({ product, onImageLoad }) => {
 
   return (
     <article
-      className="group relative cursor-pointer select-none"
+      className={[
+        "group relative cursor-pointer select-none transition-all duration-500",
+        variant === 'editorial'
+          ? "bg-[#FAF9F6] border border-gray-150/70 p-4 hover:bg-white hover:shadow-[0_16px_40px_rgba(0,0,0,0.03)] hover:-translate-y-1"
+          : ""
+      ].join(' ')}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={handleCardMouseLeave}
       onClick={handleCardClick}
