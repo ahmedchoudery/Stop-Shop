@@ -97,6 +97,7 @@ This document tracks the current state of work, what tasks have been completed, 
 - **Sub-Category Recommendations**: Modified the recommended products database query (`page.jsx`) and client filters (`ProductPageClient.jsx`, `ProductPage.jsx`) to filter recommended items strictly by `subCategory` in addition to category (`bucket`), displaying the specific subcategory name in the header.
 - **Mobile Touch-Hold Card Navigation**: Implemented touch gestures (`onTouchStart`, `onTouchEnd`, `onTouchCancel`) inside `ProductCard.jsx` to toggle navigation arrows on mobile devices when cards are touched/held. Included a 2-second decay timer to ensure users have enough time to tap the arrows.
 - **Featured Section Query Isolation**: Updated `/api/public/featured` endpoint to read the `section` query parameter and strictly filter the MongoDB database query to only retrieve products assigned to that specific storefront strip. Upgraded `cacheService.js` to automatically invalidate all sub-featured keys (using wildcard prefix scans) whenever products are added or updated.
+- **CDN Caching Override and ISR Revalidation**: Added `no-store, no-cache, must-revalidate` `Cache-Control` header overrides in the public featured route handler to prevent Vercel CDN/Edge nodes from serving stale products, and integrated Next.js `revalidatePath('/')` inside admin product write endpoints (POST, PATCH, DELETE) to instantly refresh the static homepage cache upon product updates.
 
 ---
 
