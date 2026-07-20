@@ -129,12 +129,15 @@ export const syncInventory = async (product, moveType = 'ADMIN_UPDATE', note = '
 };
 
 /**
- * Check waitlist notifications for this product and queue emails for restocked variants.
+ * Check waitlist notifications for this product and send restock emails immediately.
  */
 async function processRestockNotifications(product) {
   try {
     const ProductNotification = (await import('../models/ProductNotification.js')).default;
-    const EmailOutbox = (await import('../models/EmailOutbox.js')).default;
+    const { sendEmail } = await import('./emailService.js');
+    const { render } = await import('@react-email/render');
+    const React = (await import('react')).default;
+    const RestockNotificationCustomerEmail = (await import('../emails/restock-notification-customer.tsx')).default;
 
     const pending = await ProductNotification.find({
       productId: product.id,
@@ -188,10 +191,9 @@ async function processRestockNotifications(product) {
         const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://stop-shop-gamma.vercel.app';
         const ctaUrl = `${appUrl}/product/${product.id}`;
 
-        await EmailOutbox.create({
-          to: notif.email,
-          template: 'restock-notification-customer',
-          data: {
+        // Render JSX template to HTML string
+        const emailHtml = render(
+          React.createElement(RestockNotificationCustomerEmail, {
             customerName: notif.name || 'Valued Customer',
             productName: product.name,
             productImage: product.image,
@@ -199,15 +201,19 @@ async function processRestockNotifications(product) {
             selectedColor: notif.selectedColor,
             productPrice: `Rs. ${product.price.toLocaleString('en-PK')}`,
             ctaUrl,
-          },
-          status: 'pending',
-          attempts: 0,
-          idempotencyKey: `restock-${notif._id.toString()}`,
+          })
+        );
+
+        // Send email immediately (or queue via outbox if in a transaction session)
+        await sendEmail({
+          to: notif.email,
+          subject: `🔥 BACK IN STOCK: ${product.name} is available!`,
+          html: emailHtml,
         });
 
         notif.notified = true;
         await notif.save();
-        console.info(`[Restock Service] Auto-queued restock email for ${notif.email} - ${product.name}`);
+        console.info(`[Restock Service] Instantly dispatched restock email to ${notif.email} for ${product.name}`);
       }
     }
   } catch (err) {
