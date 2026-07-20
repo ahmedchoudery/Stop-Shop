@@ -5,8 +5,8 @@
  * Personality: Bright, airy, sophisticated, gallery-like feel.
  */
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { ArrowLeft, ArrowRight, Heart, ShoppingBag } from 'lucide-react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { ArrowLeft, ArrowRight, Heart, ShoppingBag, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useNavigate } from '../utils/router-compat.jsx';
 import { useCart } from '../context/CartContext.tsx';
 import { useWishlist } from '../context/WishlistContext.jsx';
@@ -15,18 +15,71 @@ import MediaRenderer from './MediaRenderer.jsx';
 
 /* ─── Pieces Card ───────────────────────────────────────────────────────── */
 
-const PiecesCard = ({ product, index }) => {
+const PiecesCard = ({ product }) => {
   const navigate = useNavigate();
   const { addToCart } = useCart();
   const { toggleWishlist, isWishlisted } = useWishlist();
   const { formatPrice } = useCurrency();
 
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [cartAdded, setCartAdded] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
+  const [isHeld, setIsHeld] = useState(false);
+  const touchTimeoutRef = useRef(null);
+
+  const cardImages = useMemo(() => {
+    const list = [];
+    if (product.image && typeof product.image === 'string' && product.image.trim()) {
+      list.push(product.image);
+    }
+    if (product.gallery && Array.isArray(product.gallery)) {
+      product.gallery.forEach((img) => {
+        if (img && typeof img === 'string' && img.trim() && !list.includes(img)) {
+          list.push(img);
+        }
+      });
+    }
+    return list.length > 0 ? list : [product.image];
+  }, [product]);
+
+  const displayImage = cardImages[currentImageIndex] || product.image;
   const wishlisted = isWishlisted(product.id);
   const outOfStock = product.stock === 0;
 
   const hasDiscount = product.discount > 0;
   const discountedPrice = hasDiscount ? product.price * (1 - product.discount / 100) : product.price;
+
+  const handleTouchStart = useCallback(() => {
+    if (touchTimeoutRef.current) clearTimeout(touchTimeoutRef.current);
+    setIsHeld(true);
+  }, []);
+
+  const handleTouchEnd = useCallback(() => {
+    if (touchTimeoutRef.current) clearTimeout(touchTimeoutRef.current);
+    touchTimeoutRef.current = setTimeout(() => setIsHeld(false), 2500);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (touchTimeoutRef.current) clearTimeout(touchTimeoutRef.current);
+    };
+  }, []);
+
+  const handlePrevImage = useCallback(
+    (e) => {
+      e.stopPropagation();
+      setCurrentImageIndex((prev) => (prev - 1 + cardImages.length) % cardImages.length);
+    },
+    [cardImages.length]
+  );
+
+  const handleNextImage = useCallback(
+    (e) => {
+      e.stopPropagation();
+      setCurrentImageIndex((prev) => (prev + 1) % cardImages.length);
+    },
+    [cardImages.length]
+  );
 
   const handleAddToCart = useCallback((e) => {
     e.stopPropagation();
@@ -61,36 +114,73 @@ const PiecesCard = ({ product, index }) => {
 
   return (
     <article
-      className="group relative cursor-pointer flex-shrink-0 transition-all duration-500 bg-[#FAF9F6] border border-gray-150/70 p-4 hover:bg-white hover:shadow-[0_16px_40px_rgba(0,0,0,0.03)] hover:-translate-y-1"
+      className="group relative cursor-pointer flex-shrink-0 transition-all duration-500 bg-[#FAF9F6] border border-gray-150/70 p-4 hover:bg-white hover:shadow-[0_16px_40px_rgba(0,0,0,0.03)] hover:-translate-y-1 select-none"
       style={{ width: 'clamp(230px, 28vw, 300px)' }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onTouchStart={handleTouchStart}
+      onTouchEnd={handleTouchEnd}
+      onTouchCancel={handleTouchEnd}
       onClick={() => navigate(`/product/${product.id}`)}
     >
-      {/* Index Badge */}
-      <span className="absolute top-6 left-6 font-mono text-[8px] font-black text-gray-300 group-hover:text-black transition-colors duration-300 z-20">
-        TOP {String(index + 1).padStart(2, '0')}
-      </span>
-
-      {/* Wishlist Button */}
-      <button
-        onClick={handleWishlist}
-        className="absolute top-6 right-6 w-8 h-8 rounded-none border border-gray-100 bg-white/80 backdrop-blur-sm text-gray-500 hover:bg-black hover:text-white hover:border-black transition-all duration-300 z-20"
-      >
-        <Heart 
-          size={11} 
-          className={wishlisted ? 'fill-black text-black group-hover:fill-white group-hover:text-white' : 'text-gray-500'} 
-        />
-      </button>
-
       {/* Image Container with Inner Shadow/Border */}
-      <div className="relative aspect-[3/4] overflow-hidden bg-gray-50 mb-4 mt-6">
+      <div className="relative aspect-[3/4] overflow-hidden bg-gray-50 mb-4">
         <MediaRenderer
-          src={product.mediaType === 'embed' ? null : product.image}
+          src={product.mediaType === 'embed' ? null : displayImage}
           embedCode={product.mediaType === 'embed' ? product.embedCode : undefined}
           mediaType={product.mediaType}
           alt={product.name}
           className="w-full h-full object-cover transition-transform duration-1000 ease-out group-hover:scale-[1.03]"
         />
         <div className="absolute inset-0 border border-black/5 pointer-events-none" />
+
+        {/* Gallery navigation arrows (Desktop hover & Mobile hold) */}
+        {cardImages.length > 1 && (isHovered || isHeld) && (
+          <>
+            <button
+              onClick={handlePrevImage}
+              onTouchStart={(e) => e.stopPropagation()}
+              onTouchEnd={(e) => e.stopPropagation()}
+              className="absolute left-2 top-1/2 -translate-y-1/2 z-20 w-7 h-7 flex items-center justify-center bg-white/95 hover:bg-black hover:text-white border border-gray-200/60 text-black transition-all duration-200 shadow-md rounded-none"
+              aria-label="Previous image"
+            >
+              <ChevronLeft size={13} />
+            </button>
+            <button
+              onClick={handleNextImage}
+              onTouchStart={(e) => e.stopPropagation()}
+              onTouchEnd={(e) => e.stopPropagation()}
+              className="absolute right-2 top-1/2 -translate-y-1/2 z-20 w-7 h-7 flex items-center justify-center bg-white/95 hover:bg-black hover:text-white border border-gray-200/60 text-black transition-all duration-200 shadow-md rounded-none"
+              aria-label="Next image"
+            >
+              <ChevronRight size={13} />
+            </button>
+          </>
+        )}
+
+        {/* Image index indicator if multiple images */}
+        {cardImages.length > 1 && (isHovered || isHeld) && (
+          <div className="absolute bottom-3 left-3 z-20 px-2 py-0.5 bg-black/70 backdrop-blur-sm text-white font-mono text-[8px] font-bold uppercase tracking-wider">
+            {currentImageIndex + 1} / {cardImages.length}
+          </div>
+        )}
+
+        {/* Wishlist Button inside image top-right */}
+        <button
+          onClick={handleWishlist}
+          onTouchStart={(e) => e.stopPropagation()}
+          className={`absolute top-3 right-3 w-8 h-8 rounded-none border backdrop-blur-md flex items-center justify-center transition-all duration-300 z-20 ${
+            wishlisted
+              ? 'bg-black text-white border-black shadow-sm'
+              : 'bg-white/90 text-gray-700 border-gray-200/80 hover:bg-black hover:text-white hover:border-black'
+          }`}
+          aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
+        >
+          <Heart
+            size={12}
+            className={wishlisted ? 'fill-white text-white' : 'text-gray-700 hover:text-white transition-colors'}
+          />
+        </button>
 
         {/* Quick Add Overlay */}
         {!outOfStock && (
@@ -262,9 +352,9 @@ export default function PiecesThatSpeak({ products: initialProducts = [] }) {
             WebkitOverflowScrolling: 'touch',
           }}
         >
-          {displayProducts.map((product, idx) => (
+          {displayProducts.map((product) => (
             <div key={product.id} style={{ scrollSnapAlign: 'start' }}>
-              <PiecesCard product={product} index={idx} />
+              <PiecesCard product={product} />
             </div>
           ))}
         </div>
