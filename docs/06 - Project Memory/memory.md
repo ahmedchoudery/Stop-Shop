@@ -99,7 +99,14 @@ This document tracks the current state of work, what tasks have been completed, 
 - **Featured Section Query Isolation**: Updated `/api/public/featured` endpoint to read the `section` query parameter and strictly filter the MongoDB database query to only retrieve products assigned to that specific storefront strip. Upgraded `cacheService.js` to automatically invalidate all sub-featured keys (using wildcard prefix scans) whenever products are added or updated.
 - **CDN Caching Override and ISR Revalidation**: Added `no-store, no-cache, must-revalidate` `Cache-Control` header overrides in the public featured route handler to prevent Vercel CDN/Edge nodes from serving stale products, and integrated Next.js `revalidatePath('/')` inside admin product write endpoints (POST, PATCH, DELETE) to instantly refresh the static homepage cache upon product updates.
 
+## 11. What Has Been Completed (Prompt 15 - Storefront Section Isolation, API Rewrites, Upstash REST, and Pieces Card Design)
+- **Homepage ISR Removal**: Set `dynamic = 'force-dynamic'` on the homepage, preventing stale cached storefront data and ensuring MongoDB updates render instantly.
+- **Shorthand API Rewrites**: Integrated Next.js `rewrites()` in `next.config.js` mapping shorthand `/api/public/*` and `/api/admin/*` paths to real versioned routes.
+- **Vercel Native Upstash REST Cache**: Upgraded `cacheService.js` to support Upstash HTTP REST commands, eliminating serverless TCP connection timeout warnings.
+- **Pieces That Speak Card Redesign**: Restored the original editorial layout, star ratings, category headings, and bold serif titles for Pieces cards. Enabled interactive hover/hold image-switching arrows, and added a dedicated row for up to 6 colors using original `w-3.5 h-3.5 rounded-[4px]` swatches.
+
 ---
 
-## 11. What is Planned Next
+## 12. What is Planned Next
 - **Next Prompt / Alignment**: Ready for next requests from the user.
+

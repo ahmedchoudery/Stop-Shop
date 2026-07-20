@@ -73,6 +73,20 @@ This document serves as the source of truth for coding standards, libraries allo
 - **Sub-Category Recommendations**: Recommended product sections on details pages must strictly filter products matching the current product's `bucket` (category) AND `subCategory`. The section header must dynamically reflect this subcategory name (e.g., "From Polos"). No generic fallback categories should be displayed.
 - **Mobile Touch-Hold Card Navigation**: Product cards in mobile views must support dynamic touch-hold state transitions (`onTouchStart` and `onTouchEnd` callbacks). When a user presses/holds a card, the image slide navigation arrows must become visible immediately, remaining visible for 2 seconds after touch release to enable easy variant image switching on touch screens. Stop event propagation on arrow buttons to prevent routing clicks.
 - **Featured Section Isolation**: The public featured products API must strictly filter items using the incoming `section` query parameter (e.g., `?section=pieces`). Cache keys for featured sections must be isolated per-section (e.g., `public:products_featured_pieces`) and automatically invalidated alongside `public:products` on product updates using wildcard prefix-matched keys to avoid layout leakage. Override global next.config.js headers in Route Handlers by returning explicit `no-store, no-cache, must-revalidate` `Cache-Control` response headers to prevent CDN/Edge nodes from serving stale products, and trigger Next.js `revalidatePath('/')` on write endpoints (POST, PATCH, DELETE) to refresh static page caches.
+- **Storefront Placement & Routing Rules**:
+  - Products placed in *Pieces that speak for themselves* must display in both the *Pieces* section carousel and the main *Collection* catalog grid.
+  - Products placed in *The drop you've been waiting for* must display in both *The drop* section carousel and the main *Collection* catalog grid.
+  - Products placed in *Defined by Attitude* must display in the *Defined by Attitude* editorial strip ONLY.
+  - Products placed in *Collection* must display in the *Collection* catalog grid ONLY.
+- **Pieces That Speak Carousel Card Style (`PiecesCard`)**:
+  - The card features a distinct light editorial theme: a warm cream background (`bg-[#FAF9F6]`), subtle gray border (`border-gray-150/70`), and inner container padding (`p-4`).
+  - Typography must match the original editorial look: category/sub-category on the left, star ratings (`★★★★★`) on the right, bold uppercase serif product title below, and spacious price.
+  - Color swatches are styled in the original shape/size (`w-3.5 h-3.5 rounded-[4px]`) and positioned on a dedicated row below the price to avoid layout clutter, leaving enough space for up to **6 colors** cleanly.
+  - Product photo switching arrows appear overlaying the image on laptop hover or mobile touch-hold.
+- **Collection Section Card Style (`ProductCard`)**:
+  - Remains a flat, transparent/borderless card flush with the main catalog grid.
+  - Color swatches must be styled at the original size (`w-3.5 h-3.5 rounded-[4px]`) and positioned next to the price in the footer, with extra space allowed to prevent layout collisions.
+
 
 ---
 
