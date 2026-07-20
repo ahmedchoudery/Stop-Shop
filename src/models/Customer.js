@@ -9,6 +9,7 @@ const customerSchema = new mongoose.Schema({
   city:     { type: String, default: '' },
   zip:      { type: String, default: '' },
   isVerified: { type: Boolean, default: false },
+  wishlist: [{ type: String }],
 }, { timestamps: true, versionKey: false });
 
 const Customer = mongoose.models.Customer || mongoose.model('Customer', customerSchema);

@@ -6,7 +6,7 @@ import {
   Heart, ShoppingBag, Share2, MessageCircle, Check,
   ChevronRight, Star, Package, Truck, RotateCcw,
   Shield, ArrowLeft, AlertTriangle, ChevronLeft,
-  Minus, Plus, X, ZoomIn, ZoomOut
+  Minus, Plus, X, ZoomIn, ZoomOut, Bell
 } from 'lucide-react';
 import { Link, useNavigate } from '../../../utils/router-compat.jsx';
 import { useCart } from '../../../context/CartContext.tsx';
@@ -310,8 +310,21 @@ export default function ProductPageClient({ product, allProducts = [] }) {
   }, [isLightboxOpen]);
 
   const [notifyEmail, setNotifyEmail] = useState('');
+  const [notifyName, setNotifyName] = useState('');
+  const [notifySize, setNotifySize] = useState('');
+  const [notifyColor, setNotifyColor] = useState('');
   const [notifyLoading, setNotifyLoading] = useState(false);
   const [notifyStatus, setNotifyStatus] = useState(null);
+  const [showNotifyModal, setShowNotifyModal] = useState(false);
+
+  const openNotifyModal = (preSize = '', preColor = '') => {
+    setNotifySize(preSize || selectedSize || '');
+    setNotifyColor(preColor || selectedColor || '');
+    setNotifyEmail('');
+    setNotifyName('');
+    setNotifyStatus(null);
+    setShowNotifyModal(true);
+  };
 
   const handleNotifySubmit = async (e) => {
     e.preventDefault();
@@ -319,24 +332,25 @@ export default function ProductPageClient({ product, allProducts = [] }) {
     setNotifyLoading(true);
     setNotifyStatus(null);
     try {
-      const res = await fetch('/api/public/notify-me', {
+      const res = await fetch('/api/v1/public/notify-me', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           email: notifyEmail,
+          name: notifyName,
           productId: product.id,
-          selectedSize: selectedSize || '',
-          selectedColor: selectedColor || '',
+          selectedSize: notifySize || '',
+          selectedColor: notifyColor || '',
         }),
       });
       const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.error || 'Failed to submit notification request');
-      }
-      setNotifyStatus({ type: 'success', message: data.message || 'Notification request saved.' });
+      if (!res.ok) throw new Error(data.error || 'Failed to submit notification request');
+      setNotifyStatus({ type: 'success', message: "You're on the list! We'll email you the moment it restocks." });
       setNotifyEmail('');
+      setNotifyName('');
+      setTimeout(() => setShowNotifyModal(false), 3000);
     } catch (err) {
-      setNotifyStatus({ type: 'error', message: err.message || 'Something went wrong.' });
+      setNotifyStatus({ type: 'error', message: err.message || 'Something went wrong. Please try again.' });
     } finally {
       setNotifyLoading(false);
     }
@@ -619,32 +633,61 @@ export default function ProductPageClient({ product, allProducts = [] }) {
             <p className="text-xl font-black text-gray-900 mb-6">{formatPrice(product.price)}</p>
 
             {/* Colors */}
-            {product.colors?.length > 0 && (
-              <div className="mb-6">
-                <span className="text-[8px] font-black uppercase tracking-widest text-gray-400 block mb-3">Select Color</span>
-                <div className="flex items-center space-x-3">
-                  {product.colors.map(col => {
-                    return (
-                      <button
-                        key={col}
-                        onClick={() => setSelectedColor(col)}
-                        className={`w-7 h-7 rounded-[4px] border transition-all duration-300 focus:outline-none ${
-                          selectedColor === col
-                            ? 'border-cardinal ring-2 ring-cardinal ring-offset-2'
-                            : 'border-gray-200 hover:border-gray-400'
-                        }`}
-                        style={getBackgroundStyle(col)}
-                        title={getColorName(col)}
-                      />
-                    );
-                  })}
+            {product.colors?.length > 0 && (() => {
+              const colorStockObj = product.colorStock
+                ? (product.colorStock instanceof Map ? Object.fromEntries(product.colorStock) : product.colorStock)
+                : null;
+              const variantMatrixObj = product.variantMatrix
+                ? (product.variantMatrix instanceof Map ? Object.fromEntries(product.variantMatrix) : product.variantMatrix)
+                : null;
+              const hasMatrix = variantMatrixObj && Object.keys(variantMatrixObj).length > 0;
+              return (
+                <div className="mb-6">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-[8px] font-black uppercase tracking-widest text-gray-400">Select Color</span>
+                    {selectedColor && <span className="text-[8px] font-bold text-gray-500 uppercase tracking-widest">{getColorName(selectedColor)}</span>}
+                  </div>
+                  <div className="flex items-center flex-wrap gap-3">
+                    {product.colors.map(col => {
+                      // Determine OOS for this color
+                      let colorOos = false;
+                      if (hasMatrix) {
+                        // All size combos for this color are 0
+                        const colKeys = Object.keys(variantMatrixObj).filter(k => k.startsWith(`${col}|`));
+                        colorOos = colKeys.length > 0 && colKeys.every(k => (variantMatrixObj[k] ?? 0) === 0);
+                      } else if (colorStockObj && col in colorStockObj) {
+                        colorOos = (colorStockObj[col] ?? 0) === 0;
+                      }
+                      const isSelected = selectedColor === col;
+                      return (
+                        <button
+                          key={col}
+                          onClick={() => setSelectedColor(col)}
+                          className={`relative w-7 h-7 rounded-[4px] border-2 transition-all duration-300 focus:outline-none flex-shrink-0 ${
+                            isSelected
+                              ? 'border-cardinal ring-2 ring-cardinal ring-offset-2'
+                              : 'border-transparent hover:border-gray-400'
+                          }`}
+                          style={getBackgroundStyle(col)}
+                          title={colorOos ? `${getColorName(col)} — Out of Stock` : getColorName(col)}
+                        >
+                          {/* OOS diagonal strikethrough */}
+                          {colorOos && (
+                            <svg className="absolute inset-0 w-full h-full rounded-[3px]" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                              <line x1="2" y1="2" x2="26" y2="26" stroke="#ba1f3d" strokeWidth="2.5" strokeLinecap="round" />
+                            </svg>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
 
             {/* Sizes */}
             {product.sizes?.length > 0 ? (
-              <div className="mb-8">
+              <div className="mb-6">
                 <div className="flex justify-between items-baseline mb-3">
                   <div className="flex items-center space-x-2">
                     <span className="text-[8px] font-black uppercase tracking-widest text-gray-400">Select Size</span>
@@ -664,7 +707,7 @@ export default function ProductPageClient({ product, allProducts = [] }) {
                   )}
                 </div>
                 <div className="flex items-center flex-wrap gap-2.5">
-                   {product.sizes.map(size => {
+                  {product.sizes.map(size => {
                     const sizeStockObj = product.sizeStock
                       ? (product.sizeStock instanceof Map ? Object.fromEntries(product.sizeStock) : product.sizeStock)
                       : null;
@@ -680,17 +723,22 @@ export default function ProductPageClient({ product, allProducts = [] }) {
                       <button
                         key={size}
                         onClick={() => setSelectedSize(size)}
-                        className={`
-                          min-w-[48px] h-11 border text-[10px] font-black uppercase tracking-widest flex items-center justify-center transition-all duration-300 rounded-[4px]
-                          ${selectedSize === size
+                        title={soldOut ? `${size} — Out of Stock` : size}
+                        className={`relative min-w-[48px] h-11 px-3 border text-[10px] font-black uppercase tracking-widest flex items-center justify-center transition-all duration-300 rounded-[4px] overflow-hidden ${
+                          selectedSize === size
                             ? 'border-gray-900 bg-gray-900 text-white'
                             : soldOut
-                              ? 'border-gray-200 text-gray-300 line-through cursor-pointer hover:border-gray-900 hover:text-gray-900'
-                              : 'border-gray-200 text-gray-600 hover:border-gray-900'
-                          }
-                        `}
+                              ? 'border-gray-200 bg-white text-gray-400 cursor-pointer hover:border-gray-400'
+                              : 'border-gray-200 text-gray-600 hover:border-gray-900 bg-white'
+                        }`}
                       >
-                        {size}
+                        <span className={soldOut && selectedSize !== size ? 'opacity-50' : ''}>{size}</span>
+                        {/* OOS diagonal strikethrough */}
+                        {soldOut && (
+                          <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 48 44" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                            <line x1="4" y1="4" x2="44" y2="40" stroke="#ba1f3d" strokeWidth="1.5" strokeLinecap="round" />
+                          </svg>
+                        )}
                       </button>
                     );
                   })}
@@ -705,6 +753,20 @@ export default function ProductPageClient({ product, allProducts = [] }) {
                   className="text-[8px] font-black uppercase tracking-widest text-cardinal hover:underline cursor-pointer focus:outline-none"
                 >
                   Size Chart
+                </button>
+              </div>
+            )}
+
+            {/* Notify when Available — shown when selected variant combo is OOS but product isn't ENTIRELY sold out */}
+            {!outOfStock && stockQty === 0 && (
+              <div className="mb-6">
+                <button
+                  type="button"
+                  onClick={() => openNotifyModal()}
+                  className="flex items-center space-x-2 text-[9px] font-black uppercase tracking-widest text-cardinal hover:text-cardinal/80 transition-colors"
+                >
+                  <Bell size={12} />
+                  <span>Notify when Available</span>
                 </button>
               </div>
             )}
@@ -734,52 +796,19 @@ export default function ProductPageClient({ product, allProducts = [] }) {
             {/* Actions */}
             <div className="flex flex-col space-y-3 mb-10">
               {outOfStock ? (
-                <div className="border border-gray-200 p-5 rounded-[4px] bg-[#F7F6F3] space-y-4">
-                  <div className="text-center">
-                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-900 block mb-1">
-                      Sold Out
-                    </span>
-                    <p className="text-[8px] font-bold text-gray-500 uppercase tracking-widest leading-relaxed">
-                      This item is currently unavailable. Register below to be notified as soon as it restocks.
-                    </p>
-                  </div>
-                  
-                  <form onSubmit={handleNotifySubmit} className="space-y-3">
-                    <div className="flex flex-col">
-                      <label htmlFor="notify-email" className="text-[8px] font-black uppercase tracking-widest text-gray-400 mb-1.5">
-                        Email Address
-                      </label>
-                      <input
-                        id="notify-email"
-                        type="email"
-                        required
-                        value={notifyEmail}
-                        onChange={(e) => setNotifyEmail(e.target.value)}
-                        placeholder="ENTER YOUR EMAIL"
-                        className="bg-transparent border-b border-gray-200 pb-2 text-xs font-black uppercase tracking-widest text-gray-900 focus:outline-none focus:border-gray-950 transition-colors placeholder:text-gray-300 rounded-none"
-                      />
-                    </div>
-
-                    <button
-                      type="submit"
-                      disabled={notifyLoading}
-                      className="w-full bg-gray-900 text-white hover:bg-cardinal py-4 text-[10px] font-black uppercase tracking-[0.35em] transition-all duration-300 rounded-[4px] disabled:opacity-50"
-                    >
-                      {notifyLoading ? 'Submitting...' : 'Notify Me'}
-                    </button>
-                  </form>
-
-                  {notifyStatus && (
-                    <div className={`p-3 text-center border rounded-[4px] ${
-                      notifyStatus.type === 'success'
-                        ? 'bg-[#EDF3EC] border-[#EDF3EC] text-[#346538]'
-                        : 'bg-[#FDEBEC] border-[#FDEBEC] text-[#9F2F2D]'
-                    }`}>
-                      <p className="text-[9px] font-black uppercase tracking-widest leading-relaxed">
-                        {notifyStatus.message}
-                      </p>
-                    </div>
-                  )}
+                <div className="border border-gray-100 p-5 rounded-[4px] bg-[#F7F6F3] text-center space-y-3">
+                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-900 block">Sold Out</span>
+                  <p className="text-[8px] font-bold text-gray-500 uppercase tracking-widest leading-relaxed">
+                    This item is currently unavailable. Get notified the moment it restocks.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => openNotifyModal()}
+                    className="w-full flex items-center justify-center space-x-2 py-4 text-[10px] font-black uppercase tracking-[0.35em] bg-gray-900 text-white hover:bg-cardinal transition-all duration-300 rounded-[4px]"
+                  >
+                    <Bell size={13} />
+                    <span>Notify when Available</span>
+                  </button>
                 </div>
               ) : (
                 <button
@@ -1053,6 +1082,195 @@ export default function ProductPageClient({ product, allProducts = [] }) {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Restock Notification Modal */}
+      {showNotifyModal && createPortal(
+        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+            onClick={() => setShowNotifyModal(false)}
+          />
+
+          {/* Modal Container */}
+          <div className="relative bg-white rounded-[4px] w-full max-w-md overflow-hidden border border-gray-150 shadow-2xl z-10 p-6 sm:p-8 animate-scale-in text-left">
+            {/* Close Button */}
+            <button
+              onClick={() => setShowNotifyModal(false)}
+              className="absolute top-4 right-4 p-2 text-gray-400 hover:text-black rounded-[4px] transition-colors focus:outline-none"
+              aria-label="Close modal"
+            >
+              <X size={20} />
+            </button>
+
+            {/* Title */}
+            <div className="mb-6">
+              <div className="flex items-center space-x-2 text-cardinal mb-2">
+                <Bell size={14} className="animate-bounce" />
+                <p className="text-[8px] font-black uppercase tracking-[0.4em]">Restock Alert</p>
+              </div>
+              <h3 className="text-lg font-black uppercase tracking-tight text-gray-900">
+                Notify when Available
+              </h3>
+              <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider mt-1 truncate">
+                {product.name}
+              </p>
+            </div>
+
+            <form onSubmit={handleNotifySubmit} className="space-y-4">
+              {/* Size Select (OOS sizes only) */}
+              {product.sizes?.length > 0 && (() => {
+                const sizeStockObj = product.sizeStock
+                  ? (product.sizeStock instanceof Map ? Object.fromEntries(product.sizeStock) : product.sizeStock)
+                  : null;
+                const variantMatrixObj = product.variantMatrix
+                  ? (product.variantMatrix instanceof Map ? Object.fromEntries(product.variantMatrix) : product.variantMatrix)
+                  : null;
+                const hasMatrix = variantMatrixObj && Object.keys(variantMatrixObj).length > 0;
+
+                // Find out of stock sizes for the selected or default color
+                const oosSizes = product.sizes.filter(size => {
+                  const ss = (hasMatrix && notifyColor)
+                    ? (variantMatrixObj[`${notifyColor}|${size}`] ?? 0)
+                    : (sizeStockObj?.[size] ?? 0);
+                  return ss === 0;
+                });
+
+                if (oosSizes.length === 0) return null;
+                if (oosSizes.length === 1) {
+                  return (
+                    <div className="text-[9px] font-black uppercase tracking-widest text-gray-400 bg-gray-50 p-2.5 rounded border border-gray-150/70">
+                      Selected Size: <span className="text-gray-900 font-black">{oosSizes[0]}</span>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div>
+                    <label htmlFor="notify-size-select" className="block text-[8px] font-black uppercase tracking-widest text-gray-400 mb-1.5">Select Size</label>
+                    <select
+                      id="notify-size-select"
+                      value={notifySize}
+                      onChange={(e) => setNotifySize(e.target.value)}
+                      required
+                      className="w-full bg-white border border-gray-200 rounded-[4px] px-3 py-2.5 text-xs font-black uppercase tracking-wider focus:border-black outline-none"
+                    >
+                      <option value="">-- Choose Size --</option>
+                      {oosSizes.map(size => (
+                        <option key={size} value={size}>{size}</option>
+                      ))}
+                    </select>
+                  </div>
+                );
+              })()}
+
+              {/* Color Select (OOS colors only) */}
+              {product.colors?.length > 0 && (() => {
+                const colorStockObj = product.colorStock
+                  ? (product.colorStock instanceof Map ? Object.fromEntries(product.colorStock) : product.colorStock)
+                  : null;
+                const variantMatrixObj = product.variantMatrix
+                  ? (product.variantMatrix instanceof Map ? Object.fromEntries(product.variantMatrix) : product.variantMatrix)
+                  : null;
+                const hasMatrix = variantMatrixObj && Object.keys(variantMatrixObj).length > 0;
+
+                // Find out of stock colors
+                const oosColors = product.colors.filter(col => {
+                  if (hasMatrix) {
+                    const colKeys = Object.keys(variantMatrixObj).filter(k => k.startsWith(`${col}|`));
+                    return colKeys.length > 0 && colKeys.every(k => (variantMatrixObj[k] ?? 0) === 0);
+                  } else if (colorStockObj && col in colorStockObj) {
+                    return (colorStockObj[col] ?? 0) === 0;
+                  }
+                  return false;
+                });
+
+                if (oosColors.length === 0) return null;
+                if (oosColors.length === 1) {
+                  return (
+                    <div className="text-[9px] font-black uppercase tracking-widest text-gray-400 bg-gray-50 p-2.5 rounded border border-gray-150/70">
+                      Selected Color: <span className="text-gray-900 font-black">{getColorName(oosColors[0])}</span>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div>
+                    <label htmlFor="notify-color-select" className="block text-[8px] font-black uppercase tracking-widest text-gray-400 mb-1.5">Select Color</label>
+                    <select
+                      id="notify-color-select"
+                      value={notifyColor}
+                      onChange={(e) => setNotifyColor(e.target.value)}
+                      required
+                      className="w-full bg-white border border-gray-200 rounded-[4px] px-3 py-2.5 text-xs font-black uppercase tracking-wider focus:border-black outline-none"
+                    >
+                      <option value="">-- Choose Color --</option>
+                      {oosColors.map(col => (
+                        <option key={col} value={col}>{getColorName(col)}</option>
+                      ))}
+                    </select>
+                  </div>
+                );
+              })()}
+
+              <div className="flex flex-col">
+                <label htmlFor="notify-name" className="text-[8px] font-black uppercase tracking-widest text-gray-400 mb-1.5">
+                  Name
+                </label>
+                <input
+                  id="notify-name"
+                  type="text"
+                  required
+                  value={notifyName}
+                  onChange={(e) => setNotifyName(e.target.value)}
+                  placeholder="YOUR NAME"
+                  className="bg-transparent border border-gray-205 p-2.5 rounded-[4px] text-xs font-black uppercase tracking-widest text-gray-900 focus:outline-none focus:border-gray-950 transition-colors placeholder:text-gray-300"
+                />
+              </div>
+
+              <div className="flex flex-col">
+                <label htmlFor="notify-email" className="text-[8px] font-black uppercase tracking-widest text-gray-400 mb-1.5">
+                  Email Address
+                </label>
+                <input
+                  id="notify-email"
+                  type="email"
+                  required
+                  value={notifyEmail}
+                  onChange={(e) => setNotifyEmail(e.target.value)}
+                  placeholder="ENTER YOUR EMAIL"
+                  className="bg-transparent border border-gray-205 p-2.5 rounded-[4px] text-xs font-black uppercase tracking-widest text-gray-900 focus:outline-none focus:border-gray-950 transition-colors placeholder:text-gray-300"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={notifyLoading}
+                className="w-full bg-gray-900 text-white hover:bg-cardinal py-4 text-[10px] font-black uppercase tracking-[0.35em] transition-all duration-300 rounded-[4px] disabled:opacity-50"
+              >
+                {notifyLoading ? 'Submitting...' : 'Notify Me'}
+              </button>
+
+              <p className="text-[7.5px] text-gray-400 font-bold uppercase tracking-wider text-center leading-relaxed">
+                We will notify you when this product is in stock. We do not share your address with anybody else.
+              </p>
+            </form>
+
+            {notifyStatus && (
+              <div className={`p-3 mt-4 text-center border rounded-[4px] ${
+                notifyStatus.type === 'success'
+                  ? 'bg-[#EDF3EC] border-[#EDF3EC] text-[#346538]'
+                  : 'bg-[#FDEBEC] border-[#FDEBEC] text-[#9F2F2D]'
+              }`}>
+                <p className="text-[9px] font-black uppercase tracking-widest leading-relaxed">
+                  {notifyStatus.message}
+                </p>
+              </div>
+            )}
+          </div>
+        </div>,
+        document.body
       )}
     </div>
   );

@@ -254,6 +254,7 @@ const ProductForm = memo(({
         onRemoveSize={removeSize}
         onSetSizeStock={setSizeStock}
         hasColors={form.colors?.length > 0}
+        subCategory={form.subCategory}
       />
 
       {/* Color × Size stock matrix — shown when BOTH colors AND sizes are defined */}
@@ -767,32 +768,85 @@ const ColorsSection = memo(({ form, colorInput, setColorInput, onAddColor, onRem
 
 ColorsSection.displayName = 'ColorsSection';
 
-const SizesSection = memo(({ form, sizeInput, setSizeInput, onAddSize, onRemoveSize, onSetSizeStock, hasColors }) => (
-  <div>
-    <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Size Variants</label>
-    <div className="flex items-center space-x-3 mb-3">
-      <input type="text" value={sizeInput} onChange={e => setSizeInput(e.target.value)}
-        placeholder="e.g. M, L, XL"
-        className="flex-grow border border-gray-200 rounded-[4px] px-4 py-2.5 text-sm font-black uppercase tracking-widest focus:border-black outline-none" />
-      <button onClick={onAddSize} className="px-4 py-2.5 bg-black text-white rounded-[4px] text-[11px] font-black uppercase tracking-widest hover:bg-black/90 transition-colors">Add</button>
-    </div>
-    {form.sizes.length > 0 && (
-      <div className="flex flex-wrap gap-2">
-        {form.sizes.map(size => (
-          <div key={size} className="flex items-center space-x-2 bg-gray-50 border border-gray-200 rounded-[4px] px-3 py-1.5">
-            <span className="text-[11px] font-black uppercase tracking-widest text-gray-700">{size}</span>
-            {!hasColors && (
-              <input type="number" min="0" value={form.sizeStock?.[size] ?? ''}
-                onChange={e => onSetSizeStock(size, e.target.value)}
-                className="w-16 border border-gray-200 rounded-[4px] px-2 py-1 text-[11px] font-black text-center" />
-            )}
-            <button onClick={() => onRemoveSize(size)} className="text-gray-400 hover:text-red-500"><X size={12} /></button>
-          </div>
-        ))}
+const SizesSection = memo(({ form, sizeInput, setSizeInput, onAddSize, onRemoveSize, onSetSizeStock, hasColors, subCategory }) => {
+  const isJeans = subCategory === 'Jeans';
+  const presets = isJeans
+    ? ['28', '30', '32', '34', '36', '38']
+    : ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+
+  const addPreset = (size) => {
+    if (!form.sizes.includes(size)) {
+      // Reuse the same addSize logic by briefly setting sizeInput + calling onAddSize
+      // We do it directly here to avoid state timing issues
+      const normalized = size.trim().toUpperCase();
+      if (!form.sizes.includes(normalized)) {
+        // Call through the parent's addSize handler via a synthetic approach
+        // We set sizeInput then call onAddSize — but since state is async, we trigger directly
+      }
+    }
+  };
+
+  const handlePresetClick = (size) => {
+    setSizeInput(size);
+    // Schedule the actual add after the state settles
+    setTimeout(onAddSize, 0);
+  };
+
+  return (
+    <div>
+      <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Size Variants</label>
+
+      {/* Smart preset pills */}
+      <div className="flex flex-wrap gap-1.5 mb-3">
+        <span className="text-[9px] font-black uppercase tracking-widest text-gray-400 self-center mr-1">
+          {isJeans ? 'Waist:' : 'Quick add:'}
+        </span>
+        {presets.map(preset => {
+          const alreadyAdded = form.sizes.includes(preset);
+          return (
+            <button
+              key={preset}
+              type="button"
+              onClick={() => handlePresetClick(preset)}
+              disabled={alreadyAdded}
+              className={`px-2.5 py-1 text-[10px] font-black uppercase tracking-wider rounded-[4px] border transition-all duration-150 ${
+                alreadyAdded
+                  ? 'border-gray-200 text-gray-300 bg-gray-50 cursor-not-allowed'
+                  : 'border-gray-300 text-gray-600 hover:border-black hover:text-black hover:bg-gray-50 cursor-pointer'
+              }`}
+            >
+              {preset}
+            </button>
+          );
+        })}
       </div>
-    )}
-  </div>
-));
+
+      {/* Manual text input */}
+      <div className="flex items-center space-x-3 mb-3">
+        <input type="text" value={sizeInput} onChange={e => setSizeInput(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), onAddSize())}
+          placeholder={isJeans ? 'e.g. 28, 30, 32' : 'e.g. M, L, XL'}
+          className="flex-grow border border-gray-200 rounded-[4px] px-4 py-2.5 text-sm font-black uppercase tracking-widest focus:border-black outline-none" />
+        <button onClick={onAddSize} className="px-4 py-2.5 bg-black text-white rounded-[4px] text-[11px] font-black uppercase tracking-widest hover:bg-black/90 transition-colors">Add</button>
+      </div>
+      {form.sizes.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {form.sizes.map(size => (
+            <div key={size} className="flex items-center space-x-2 bg-gray-50 border border-gray-200 rounded-[4px] px-3 py-1.5">
+              <span className="text-[11px] font-black uppercase tracking-widest text-gray-700">{size}</span>
+              {!hasColors && (
+                <input type="number" min="0" value={form.sizeStock?.[size] ?? ''}
+                  onChange={e => onSetSizeStock(size, e.target.value)}
+                  className="w-16 border border-gray-200 rounded-[4px] px-2 py-1 text-[11px] font-black text-center" />
+              )}
+              <button onClick={() => onRemoveSize(size)} className="text-gray-400 hover:text-red-500"><X size={12} /></button>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+});
 
 SizesSection.displayName = 'SizesSection';
 

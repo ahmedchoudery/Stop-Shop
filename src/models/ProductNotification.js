@@ -2,6 +2,7 @@ import mongoose from 'mongoose';
 
 const productNotificationSchema = new mongoose.Schema({
   email: { type: String, required: true, lowercase: true, trim: true },
+  name: { type: String, default: '' },
   productId: { type: String, required: true },
   selectedSize: { type: String, default: '' },
   selectedColor: { type: String, default: '' },

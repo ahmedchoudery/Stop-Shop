@@ -22,6 +22,7 @@ import OrderPaymentFailedCustomer from '@/emails/order-payment-failed-customer';
 import OrderPaymentFailedAdmin from '@/emails/order-payment-failed-admin';
 import OrderRefundedCustomer from '@/emails/order-refunded-customer';
 import OrderRefundedAdmin from '@/emails/order-refunded-admin';
+import RestockNotificationCustomer from '@/emails/restock-notification-customer';
 
 const TEMPLATES = {
   'order-confirmed-customer': OrderConfirmedCustomer,
@@ -38,6 +39,7 @@ const TEMPLATES = {
   'order-payment-failed-admin': OrderPaymentFailedAdmin,
   'order-refunded-customer': OrderRefundedCustomer,
   'order-refunded-admin': OrderRefundedAdmin,
+  'restock-notification-customer': RestockNotificationCustomer,
 };
 
 const SUBJECT_MAPPING = {
@@ -55,6 +57,7 @@ const SUBJECT_MAPPING = {
   'order-payment-failed-admin': (data) => `[ADMIN] Order Payment Failed — ${data.order.orderID}`,
   'order-refunded-customer': (data) => `💵 Order Refunded — ${data.order.orderID}`,
   'order-refunded-admin': (data) => `[ADMIN] Order Refunded — ${data.order.orderID}`,
+  'restock-notification-customer': (data) => `🔥 BACK IN STOCK: ${data.productName} is available!`,
 };
 
 const BACKOFF_DELAY_MS = [

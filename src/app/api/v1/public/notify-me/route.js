@@ -12,6 +12,7 @@ export const POST = withRoute({
         .trim()
         .min(1, 'Email is required')
         .email('Enter a valid email address'),
+      name: z.string().optional(),
       productId: z.string({ required_error: 'Product ID is required' })
         .min(1, 'Product ID is required'),
       selectedSize: z.string().optional(),
@@ -19,7 +20,7 @@ export const POST = withRoute({
     })
   },
   handler: async ({ body }) => {
-    const { email, productId, selectedSize, selectedColor } = body;
+    const { email, name, productId, selectedSize, selectedColor } = body;
     const emailKey = email.toLowerCase().trim();
 
     const productExists = await Product.exists({ id: productId });
@@ -30,6 +31,7 @@ export const POST = withRoute({
     try {
       await ProductNotification.create({
         email: emailKey,
+        name: name || '',
         productId,
         selectedSize: selectedSize || '',
         selectedColor: selectedColor || '',
