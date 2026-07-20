@@ -1,274 +1,23 @@
 'use client';
 
 /**
- * @fileoverview PiecesThatSpeak.jsx — Dedicated Best Sellers Showcase
+ * @fileoverview PiecesThatSpeak.jsx — Curated Best Sellers Showcase Carousel
  * Personality: Bright, airy, sophisticated, gallery-like feel.
+ * Reuses the standard ProductCard for consistent UX, photo-switching, and animations.
  */
 
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
-import { ArrowLeft, ArrowRight, Heart, ShoppingBag, ChevronLeft, ChevronRight } from 'lucide-react';
-import { useNavigate } from '../utils/router-compat.jsx';
-import { useCart } from '../context/CartContext.tsx';
-import { useWishlist } from '../context/WishlistContext.jsx';
-import { useCurrency } from '../context/CurrencyContext.jsx';
-import MediaRenderer from './MediaRenderer.jsx';
-
-/* ─── Pieces Card ───────────────────────────────────────────────────────── */
-
-const PiecesCard = ({ product }) => {
-  const navigate = useNavigate();
-  const { addToCart } = useCart();
-  const { toggleWishlist, isWishlisted } = useWishlist();
-  const { formatPrice } = useCurrency();
-
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [cartAdded, setCartAdded] = useState(false);
-  const [isHovered, setIsHovered] = useState(false);
-  const [isHeld, setIsHeld] = useState(false);
-  const touchTimeoutRef = useRef(null);
-
-  const cardImages = useMemo(() => {
-    const list = [];
-    if (product.image && typeof product.image === 'string' && product.image.trim()) {
-      list.push(product.image.trim());
-    }
-    if (product.lifestyleImage && typeof product.lifestyleImage === 'string' && product.lifestyleImage.trim() && !list.includes(product.lifestyleImage.trim())) {
-      list.push(product.lifestyleImage.trim());
-    }
-    if (product.gallery && Array.isArray(product.gallery)) {
-      product.gallery.forEach((img) => {
-        if (img && typeof img === 'string' && img.trim() && !list.includes(img.trim())) {
-          list.push(img.trim());
-        }
-      });
-    }
-    if (product.variantImages) {
-      const vObj = product.variantImages instanceof Map ? Object.fromEntries(product.variantImages) : product.variantImages;
-      if (typeof vObj === 'object') {
-        Object.values(vObj).forEach(val => {
-          const imgs = Array.isArray(val) ? val : [val];
-          imgs.forEach(i => {
-            if (i && typeof i === 'string' && i.trim() && !list.includes(i.trim())) {
-              list.push(i.trim());
-            }
-          });
-        });
-      }
-    }
-    return list.length > 0 ? list : [product.image];
-  }, [product]);
-
-  const displayImage = cardImages[currentImageIndex] || product.image;
-  const wishlisted = isWishlisted(product.id);
-  const outOfStock = product.stock === 0;
-
-  const hasDiscount = product.discount > 0;
-  const discountedPrice = hasDiscount ? product.price * (1 - product.discount / 100) : product.price;
-
-  const handleTouchStart = useCallback(() => {
-    if (touchTimeoutRef.current) clearTimeout(touchTimeoutRef.current);
-    setIsHeld(true);
-  }, []);
-
-  const handleTouchEnd = useCallback(() => {
-    if (touchTimeoutRef.current) clearTimeout(touchTimeoutRef.current);
-    touchTimeoutRef.current = setTimeout(() => setIsHeld(false), 2500);
-  }, []);
-
-  useEffect(() => {
-    return () => {
-      if (touchTimeoutRef.current) clearTimeout(touchTimeoutRef.current);
-    };
-  }, []);
-
-  const handlePrevImage = useCallback(
-    (e) => {
-      e.stopPropagation();
-      setCurrentImageIndex((prev) => (prev - 1 + cardImages.length) % cardImages.length);
-    },
-    [cardImages.length]
-  );
-
-  const handleNextImage = useCallback(
-    (e) => {
-      e.stopPropagation();
-      setCurrentImageIndex((prev) => (prev + 1) % cardImages.length);
-    },
-    [cardImages.length]
-  );
-
-  const handleAddToCart = useCallback((e) => {
-    e.stopPropagation();
-    if (outOfStock) return;
-    addToCart({ 
-      ...product, 
-      selectedSize: product.sizes?.[0] ?? '', 
-      selectedColor: product.colors?.[0] ?? '', 
-      quantity: 1 
-    });
-    setCartAdded(true);
-    setTimeout(() => setCartAdded(false), 1800);
-  }, [addToCart, product, outOfStock]);
-
-  const handleWishlist = useCallback((e) => {
-    e.stopPropagation();
-    toggleWishlist(product);
-  }, [product, toggleWishlist]);
-
-  const renderStars = (rating = 5) => {
-    const rounded = Math.round(rating);
-    return (
-      <div className="flex gap-0.5 text-amber-500">
-        {[...Array(5)].map((_, i) => (
-          <span key={i} className="text-[10px]">
-            {i < rounded ? '★' : '☆'}
-          </span>
-        ))}
-      </div>
-    );
-  };
-
-  return (
-    <article
-      className="group relative cursor-pointer flex-shrink-0 transition-all duration-500 bg-[#FAF9F6] border border-gray-150/70 p-4 hover:bg-white hover:shadow-[0_16px_40px_rgba(0,0,0,0.03)] hover:-translate-y-1 select-none"
-      style={{ width: 'clamp(230px, 28vw, 300px)' }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
-      onTouchCancel={handleTouchEnd}
-      onClick={() => navigate(`/product/${product.id}`)}
-    >
-      {/* Image Container with Inner Shadow/Border */}
-      <div className="relative aspect-[3/4] overflow-hidden bg-gray-50 mb-4">
-        <MediaRenderer
-          src={product.mediaType === 'embed' ? null : displayImage}
-          embedCode={product.mediaType === 'embed' ? product.embedCode : undefined}
-          mediaType={product.mediaType}
-          alt={product.name}
-          className="w-full h-full object-cover transition-transform duration-1000 ease-out group-hover:scale-[1.03]"
-        />
-        <div className="absolute inset-0 border border-black/5 pointer-events-none" />
-
-        {/* Gallery navigation arrows (Always visible when 2+ photos exist) */}
-        {cardImages.length > 1 && (
-          <>
-            <button
-              type="button"
-              onClick={handlePrevImage}
-              onTouchStart={(e) => e.stopPropagation()}
-              onTouchEnd={(e) => { e.stopPropagation(); handlePrevImage(e); }}
-              className="absolute left-2 top-1/2 -translate-y-1/2 z-30 w-8 h-8 flex items-center justify-center bg-white/90 hover:bg-black hover:text-white border border-gray-300 text-black shadow-md rounded-none transition-all active:scale-95 cursor-pointer"
-              aria-label="Previous image"
-            >
-              <ChevronLeft size={16} />
-            </button>
-            <button
-              type="button"
-              onClick={handleNextImage}
-              onTouchStart={(e) => e.stopPropagation()}
-              onTouchEnd={(e) => { e.stopPropagation(); handleNextImage(e); }}
-              className="absolute right-2 top-1/2 -translate-y-1/2 z-30 w-8 h-8 flex items-center justify-center bg-white/90 hover:bg-black hover:text-white border border-gray-300 text-black shadow-md rounded-none transition-all active:scale-95 cursor-pointer"
-              aria-label="Next image"
-            >
-              <ChevronRight size={16} />
-            </button>
-          </>
-        )}
-
-        {/* Image index indicator if multiple images */}
-        {cardImages.length > 1 && (isHovered || isHeld) && (
-          <div className="absolute bottom-3 left-3 z-20 px-2 py-0.5 bg-black/70 backdrop-blur-sm text-white font-mono text-[8px] font-bold uppercase tracking-wider">
-            {currentImageIndex + 1} / {cardImages.length}
-          </div>
-        )}
-
-        {/* Wishlist Button inside image top-right */}
-        <button
-          onClick={handleWishlist}
-          onTouchStart={(e) => e.stopPropagation()}
-          className={`absolute top-3 right-3 w-8 h-8 rounded-none border backdrop-blur-md flex items-center justify-center transition-all duration-300 z-20 ${
-            wishlisted
-              ? 'bg-black text-white border-black shadow-sm'
-              : 'bg-white/90 text-gray-700 border-gray-200/80 hover:bg-black hover:text-white hover:border-black'
-          }`}
-          aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
-        >
-          <Heart
-            size={12}
-            className={wishlisted ? 'fill-white text-white' : 'text-gray-700 hover:text-white transition-colors'}
-          />
-        </button>
-
-        {/* Quick Add Overlay */}
-        {!outOfStock && (
-          <button
-            onClick={handleAddToCart}
-            className={`absolute bottom-3 right-3 w-9 h-9 rounded-none border backdrop-blur-md shadow-sm flex items-center justify-center transition-all duration-300 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 z-20 ${
-              cartAdded 
-                ? 'bg-white text-black border-white' 
-                : 'bg-white/95 text-black border-gray-200 hover:bg-black hover:text-white hover:border-black'
-            }`}
-          >
-            <ShoppingBag size={13} />
-          </button>
-        )}
-      </div>
-
-      {/* Metadata & Rating */}
-      <div className="px-0.5 relative">
-        <div className="flex items-center justify-between gap-2 mb-1">
-          <p className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-400">
-            {product.subCategory || product.bucket}
-          </p>
-          {renderStars(product.rating)}
-        </div>
-
-        <h3 className="text-[13px] font-bold uppercase tracking-tight text-gray-900 group-hover:text-black transition-colors duration-300 line-clamp-1 mb-2">
-          {product.name}
-        </h3>
-
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            {hasDiscount ? (
-              <>
-                <span className="text-sm font-black text-cardinal font-mono">
-                  {formatPrice(discountedPrice)}
-                </span>
-                <span className="text-xs text-gray-400 line-through font-mono">
-                  {formatPrice(product.price)}
-                </span>
-              </>
-            ) : (
-              <span className="text-sm font-bold tracking-wide font-mono text-black">
-                {formatPrice(product.price)}
-              </span>
-            )}
-          </div>
-          
-          {cartAdded && (
-            <span className="text-[9px] font-bold uppercase tracking-wider text-black animate-pulse">
-              Added
-            </span>
-          )}
-        </div>
-      </div>
-    </article>
-  );
-};
-
-/* ─── Main Component ────────────────────────────────────────────────────── */
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
+import ProductCard from './ProductCard.jsx';
 
 export default function PiecesThatSpeak({ products: initialProducts = [] }) {
   const scrollRef = useRef(null);
   const [products, setProducts] = useState(initialProducts);
-  const [loading, setLoading] = useState(initialProducts.length === 0);
   const [scrollProgress, setScrollProgress] = useState(0);
 
   useEffect(() => {
     if (initialProducts && initialProducts.length > 0) {
       setProducts(initialProducts);
-      setLoading(false);
       return;
     }
     fetch('/api/v1/public/featured?section=pieces')
@@ -282,11 +31,8 @@ export default function PiecesThatSpeak({ products: initialProducts = [] }) {
       .catch(err => {
         console.error('[PiecesThatSpeak] fetch failed:', err);
         setProducts([]);
-      })
-      .finally(() => setLoading(false));
+      });
   }, [initialProducts]);
-
-  const displayProducts = products;
 
   const handleScroll = useCallback(() => {
     const el = scrollRef.current;
@@ -303,7 +49,7 @@ export default function PiecesThatSpeak({ products: initialProducts = [] }) {
     // Initial compute
     setTimeout(handleScroll, 100);
     return () => el.removeEventListener('scroll', handleScroll);
-  }, [handleScroll, displayProducts]);
+  }, [handleScroll, products]);
 
   const scroll = useCallback((dir) => {
     const el = scrollRef.current;
@@ -312,7 +58,7 @@ export default function PiecesThatSpeak({ products: initialProducts = [] }) {
     el.scrollBy({ left: dir * cardWidth * 2, behavior: 'smooth' });
   }, []);
 
-  if (displayProducts.length === 0) {
+  if (products.length === 0) {
     return null;
   }
 
@@ -370,9 +116,16 @@ export default function PiecesThatSpeak({ products: initialProducts = [] }) {
             WebkitOverflowScrolling: 'touch',
           }}
         >
-          {displayProducts.map((product) => (
-            <div key={product.id} style={{ scrollSnapAlign: 'start' }}>
-              <PiecesCard product={product} />
+          {products.map((product) => (
+            <div 
+              key={product.id} 
+              style={{ 
+                scrollSnapAlign: 'start',
+                width: 'clamp(230px, 28vw, 300px)',
+                flexShrink: 0
+              }}
+            >
+              <ProductCard product={product} />
             </div>
           ))}
         </div>
