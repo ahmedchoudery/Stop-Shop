@@ -121,13 +121,13 @@ export const syncInventory = async (product, moveType = 'ADMIN_UPDATE', note = '
 
     console.info(`[Inventory] Synced: ${product.id} | ${product.name} | Stock: ${previousStock} → ${totalStock} | ${status}`);
 
-    // Trigger restock check if total stock has increased or it is a restock
-    if (quantityDelta > 0 || moveType === 'RESTOCK') {
+    // Trigger restock check whenever stock is available
+    if ((product.quantity ?? totalStock ?? 0) > 0) {
       setTimeout(() => {
         processRestockNotifications(product).catch(err => {
           console.error('[Inventory] Restock notification trigger failed:', err.message);
         });
-      }, 1000);
+      }, 500);
     }
   } catch (err) {
     // Never let inventory sync crash the main operation
@@ -136,61 +136,118 @@ export const syncInventory = async (product, moveType = 'ADMIN_UPDATE', note = '
 };
 
 /**
+ * Robust helper to check if a specific size/color variant is currently in stock.
+ */
+export function checkVariantInStock(product, selectedSize = '', selectedColor = '') {
+  const extractMap = (val) => {
+    if (!val) return {};
+    if (val instanceof Map) return Object.fromEntries(val);
+    if (typeof val.toObject === 'function') return val.toObject();
+    if (typeof val === 'object') return val;
+    return {};
+  };
+
+  const sizeStockObj = extractMap(product.sizeStock);
+  const colorStockObj = extractMap(product.colorStock);
+  const variantMatrixObj = extractMap(product.variantMatrix);
+
+  const hasMatrix = Object.keys(variantMatrixObj).length > 0;
+  const hasSizes = Object.keys(sizeStockObj).length > 0;
+  const hasColors = Object.keys(colorStockObj).length > 0;
+
+  const selSize = (selectedSize || '').trim();
+  const selColor = (selectedColor || '').trim();
+
+  if (hasMatrix) {
+    if (selColor && selSize) {
+      // 1. Direct exact key lookup
+      const exactKey = `${selColor}|${selSize}`;
+      let qty = Number(variantMatrixObj[exactKey] ?? 0);
+
+      // 2. Fuzzy key match (handling hex/name split colors like "#609ba0|white" vs "white")
+      if (qty === 0) {
+        const matchingKey = Object.keys(variantMatrixObj).find(k => {
+          const parts = k.split('|');
+          const kSize = parts.pop();
+          const kColor = parts.join('|');
+          const matchC = kColor.toLowerCase() === selColor.toLowerCase() ||
+                         kColor.toLowerCase().includes(selColor.toLowerCase()) ||
+                         selColor.toLowerCase().includes(kColor.toLowerCase());
+          const matchS = kSize.toLowerCase() === selSize.toLowerCase();
+          return matchC && matchS;
+        });
+        if (matchingKey) {
+          qty = Number(variantMatrixObj[matchingKey] ?? 0);
+        }
+      }
+      return qty > 0;
+    } else if (selSize) {
+      const matrixStock = Object.keys(variantMatrixObj)
+        .filter(k => k.split('|').pop().toLowerCase() === selSize.toLowerCase())
+        .reduce((sum, k) => sum + (Number(variantMatrixObj[k]) || 0), 0);
+      const directSizeStock = Number(sizeStockObj[selSize] ?? sizeStockObj[selSize.toUpperCase()] ?? 0);
+      return (matrixStock > 0) || (directSizeStock > 0);
+    } else if (selColor) {
+      const matrixStock = Object.keys(variantMatrixObj)
+        .filter(k => {
+          const kColor = k.split('|').slice(0, -1).join('|');
+          return kColor.toLowerCase() === selColor.toLowerCase() ||
+                 kColor.toLowerCase().includes(selColor.toLowerCase()) ||
+                 selColor.toLowerCase().includes(kColor.toLowerCase());
+        })
+        .reduce((sum, k) => sum + (Number(variantMatrixObj[k]) || 0), 0);
+      const directColorStock = Number(colorStockObj[selColor] ?? 0);
+      return (matrixStock > 0) || (directColorStock > 0);
+    } else {
+      return (Number(product.quantity) || 0) > 0;
+    }
+  } else {
+    let sizeOk = true;
+    let colorOk = true;
+
+    if (selSize && hasSizes) {
+      const matchedKey = Object.keys(sizeStockObj).find(k => k.toLowerCase() === selSize.toLowerCase());
+      const qty = matchedKey ? Number(sizeStockObj[matchedKey]) : Number(sizeStockObj[selSize] ?? 0);
+      sizeOk = qty > 0;
+    }
+
+    if (selColor && hasColors) {
+      const matchedKey = Object.keys(colorStockObj).find(k =>
+        k.toLowerCase() === selColor.toLowerCase() ||
+        k.toLowerCase().includes(selColor.toLowerCase()) ||
+        selColor.toLowerCase().includes(k.toLowerCase())
+      );
+      const qty = matchedKey ? Number(colorStockObj[matchedKey]) : Number(colorStockObj[selColor] ?? 0);
+      colorOk = qty > 0;
+    }
+
+    if (selSize && !hasSizes && !hasColors) {
+      sizeOk = (Number(product.quantity) || 0) > 0;
+    }
+
+    return sizeOk && colorOk && (Number(product.quantity) || 0) > 0;
+  }
+}
+
+/**
  * Check waitlist notifications for this product and send restock emails immediately.
  */
 async function processRestockNotifications(product) {
   try {
-
     const productSku = (product.get && typeof product.get === 'function') ? product.get('id') : product.id;
     const productIdStr = product._id?.toString() || product.id;
 
+    const validIds = Array.from(new Set([productSku, productIdStr, product.id, product._id?.toString()].filter(Boolean)));
+
     const pending = await ProductNotification.find({
-      productId: { $in: [productSku, productIdStr].filter(Boolean) },
+      productId: { $in: validIds },
       notified: false
     });
 
     if (pending.length === 0) return;
 
-    // Resolve Maps
-    const sizeStockObj = product.sizeStock
-      ? (product.sizeStock instanceof Map ? Object.fromEntries(product.sizeStock) : product.sizeStock)
-      : null;
-    const colorStockObj = product.colorStock
-      ? (product.colorStock instanceof Map ? Object.fromEntries(product.colorStock) : product.colorStock)
-      : null;
-    const variantMatrixObj = product.variantMatrix
-      ? (product.variantMatrix instanceof Map ? Object.fromEntries(product.variantMatrix) : product.variantMatrix)
-      : null;
-
-    const hasMatrix = variantMatrixObj && Object.keys(variantMatrixObj).length > 0;
-    const hasSizes = sizeStockObj && Object.keys(sizeStockObj).length > 0;
-    const hasColors = colorStockObj && Object.keys(colorStockObj).length > 0;
-
     for (const notif of pending) {
-      let inStock = false;
-
-      if (hasMatrix) {
-        if (notif.selectedColor && notif.selectedSize) {
-          const qty = variantMatrixObj[`${notif.selectedColor}|${notif.selectedSize}`] ?? 0;
-          inStock = qty > 0;
-        } else if (notif.selectedSize) {
-          const qty = sizeStockObj?.[notif.selectedSize] ?? 0;
-          inStock = qty > 0;
-        } else if (notif.selectedColor) {
-          const qty = colorStockObj?.[notif.selectedColor] ?? 0;
-          inStock = qty > 0;
-        } else {
-          inStock = (product.quantity ?? 0) > 0;
-        }
-      } else if (hasSizes && notif.selectedSize) {
-        const qty = sizeStockObj[notif.selectedSize] ?? 0;
-        inStock = qty > 0;
-      } else if (hasColors && notif.selectedColor) {
-        const qty = colorStockObj[notif.selectedColor] ?? 0;
-        inStock = qty > 0;
-      } else {
-        inStock = (product.quantity ?? 0) > 0;
-      }
+      const inStock = checkVariantInStock(product, notif.selectedSize, notif.selectedColor);
 
       if (inStock) {
         const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://stop-shop-gamma.vercel.app';
@@ -209,7 +266,7 @@ async function processRestockNotifications(product) {
           })
         );
 
-        // Send email immediately (or queue via outbox if in a transaction session)
+        // Send email immediately
         await sendEmail({
           to: notif.email,
           subject: `🔥 BACK IN STOCK: ${product.name} is available!`,

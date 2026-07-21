@@ -4,6 +4,7 @@ import dbConnect from '@/lib/db';
 import ProductNotification from '@/models/ProductNotification';
 import Product from '@/models/Product';
 import EmailOutbox from '@/models/EmailOutbox';
+import { checkVariantInStock } from '@/services/inventoryService';
 
 export const dynamic = 'force-dynamic';
 
@@ -39,43 +40,7 @@ export async function GET(req) {
       }
 
       // Check stock for this specific variant
-      let inStock = false;
-      const sizeStockObj = product.sizeStock
-        ? (product.sizeStock instanceof Map ? Object.fromEntries(product.sizeStock) : product.sizeStock)
-        : null;
-      const colorStockObj = product.colorStock
-        ? (product.colorStock instanceof Map ? Object.fromEntries(product.colorStock) : product.colorStock)
-        : null;
-      const variantMatrixObj = product.variantMatrix
-        ? (product.variantMatrix instanceof Map ? Object.fromEntries(product.variantMatrix) : product.variantMatrix)
-        : null;
-
-      const hasMatrix = variantMatrixObj && Object.keys(variantMatrixObj).length > 0;
-      const hasSizes = sizeStockObj && Object.keys(sizeStockObj).length > 0;
-      const hasColors = colorStockObj && Object.keys(colorStockObj).length > 0;
-
-      if (hasMatrix) {
-        if (notif.selectedColor && notif.selectedSize) {
-          const qty = variantMatrixObj[`${notif.selectedColor}|${notif.selectedSize}`] ?? 0;
-          inStock = qty > 0;
-        } else if (notif.selectedSize) {
-          const qty = sizeStockObj?.[notif.selectedSize] ?? 0;
-          inStock = qty > 0;
-        } else if (notif.selectedColor) {
-          const qty = colorStockObj?.[notif.selectedColor] ?? 0;
-          inStock = qty > 0;
-        } else {
-          inStock = (product.quantity ?? 0) > 0;
-        }
-      } else if (hasSizes && notif.selectedSize) {
-        const qty = sizeStockObj[notif.selectedSize] ?? 0;
-        inStock = qty > 0;
-      } else if (hasColors && notif.selectedColor) {
-        const qty = colorStockObj[notif.selectedColor] ?? 0;
-        inStock = qty > 0;
-      } else {
-        inStock = (product.quantity ?? 0) > 0;
-      }
+      const inStock = checkVariantInStock(product, notif.selectedSize, notif.selectedColor);
 
       if (inStock) {
         // Enqueue email into outbox
