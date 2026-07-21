@@ -230,13 +230,15 @@ export const sendEmail = async (options) => {
       }, { name: 'Resend Email Dispatch', retries: 3 });
 
       console.info(`📧 [Resend] Email dispatched successfully to ${options.to}. ID: ${resData.id}`);
-      return resData;
+      return true;
     }
 
     await transporter.sendMail(options);
     console.info(`📧 [Nodemailer] Email sent successfully to ${options.to}`);
+    return true;
   } catch (err) {
     console.error('[Email] Failed to send:', err.message);
+    return false;
   }
 };
 

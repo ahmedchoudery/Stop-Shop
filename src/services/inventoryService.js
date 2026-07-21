@@ -121,13 +121,13 @@ export const syncInventory = async (product, moveType = 'ADMIN_UPDATE', note = '
 
     console.info(`[Inventory] Synced: ${product.id} | ${product.name} | Stock: ${previousStock} → ${totalStock} | ${status}`);
 
-    // Trigger restock check whenever stock is available
+    // Trigger restock check whenever stock is available (wait 1.5s for transaction commit)
     if ((product.quantity ?? totalStock ?? 0) > 0) {
       setTimeout(() => {
         processRestockNotifications(product).catch(err => {
           console.error('[Inventory] Restock notification trigger failed:', err.message);
         });
-      }, 500);
+      }, 1500);
     }
   } catch (err) {
     // Never let inventory sync crash the main operation
@@ -141,8 +141,8 @@ export const syncInventory = async (product, moveType = 'ADMIN_UPDATE', note = '
 export function checkVariantInStock(product, selectedSize = '', selectedColor = '') {
   const extractMap = (val) => {
     if (!val) return {};
-    if (val instanceof Map) return Object.fromEntries(val);
     if (typeof val.toObject === 'function') return val.toObject();
+    if (val instanceof Map) return Object.fromEntries(val);
     if (typeof val === 'object') return val;
     return {};
   };
@@ -237,7 +237,19 @@ async function processRestockNotifications(product) {
     const productSku = (product.get && typeof product.get === 'function') ? product.get('id') : product.id;
     const productIdStr = product._id?.toString() || product.id;
 
-    const validIds = Array.from(new Set([productSku, productIdStr, product.id, product._id?.toString()].filter(Boolean)));
+    // Fetch the latest product from DB to ensure we have the committed transaction data
+    // import Product dynamically or use the mongoose model definition directly
+    const ProductModel = mongoose.models.Product || mongoose.model('Product');
+    const dbProduct = await ProductModel.findOne({
+      $or: [{ id: productSku }, { _id: productIdStr }]
+    });
+
+    if (!dbProduct) {
+      console.warn('[Restock Service] Product not found in DB:', productSku);
+      return;
+    }
+
+    const validIds = Array.from(new Set([productSku, productIdStr, dbProduct.id, dbProduct._id?.toString()].filter(Boolean)));
 
     const pending = await ProductNotification.find({
       productId: { $in: validIds },
@@ -247,35 +259,39 @@ async function processRestockNotifications(product) {
     if (pending.length === 0) return;
 
     for (const notif of pending) {
-      const inStock = checkVariantInStock(product, notif.selectedSize, notif.selectedColor);
+      const inStock = checkVariantInStock(dbProduct, notif.selectedSize, notif.selectedColor);
 
       if (inStock) {
         const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://stop-shop-gamma.vercel.app';
-        const ctaUrl = `${appUrl}/product/${product.id}`;
+        const ctaUrl = `${appUrl}/product/${dbProduct.id}`;
 
         // Render JSX template to HTML string
         const emailHtml = render(
           React.createElement(RestockNotificationCustomerEmail, {
             customerName: notif.name || 'Valued Customer',
-            productName: product.name,
-            productImage: product.image,
+            productName: dbProduct.name,
+            productImage: dbProduct.image,
             selectedSize: notif.selectedSize,
             selectedColor: notif.selectedColor,
-            productPrice: `Rs. ${product.price.toLocaleString('en-PK')}`,
+            productPrice: `Rs. ${dbProduct.price.toLocaleString('en-PK')}`,
             ctaUrl,
           })
         );
 
         // Send email immediately
-        await sendEmail({
+        const sent = await sendEmail({
           to: notif.email,
-          subject: `🔥 BACK IN STOCK: ${product.name} is available!`,
+          subject: `🔥 BACK IN STOCK: ${dbProduct.name} is available!`,
           html: emailHtml,
         });
 
-        notif.notified = true;
-        await notif.save();
-        console.info(`[Restock Service] Instantly dispatched restock email to ${notif.email} for ${product.name}`);
+        if (sent) {
+          notif.notified = true;
+          await notif.save();
+          console.info(`[Restock Service] Instantly dispatched restock email to ${notif.email} for ${dbProduct.name}`);
+        } else {
+          console.warn(`[Restock Service] Failed to send email to ${notif.email}. Keeping notification active for retry.`);
+        }
       }
     }
   } catch (err) {
