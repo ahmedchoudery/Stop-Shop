@@ -197,6 +197,20 @@ const ProductForm = memo(({
     setForm(f => ({ ...f, variantMatrix: { ...(f.variantMatrix || {}), [key]: val } }));
   };
 
+  // Auto-clear size variants if Category is Accessories
+  useEffect(() => {
+    if (form.bucket === 'Accessories') {
+      if ((form.sizes && form.sizes.length > 0) || (form.sizeStock && Object.keys(form.sizeStock).length > 0) || (form.variantMatrix && Object.keys(form.variantMatrix).length > 0)) {
+        setForm(f => ({
+          ...f,
+          sizes: [],
+          sizeStock: {},
+          variantMatrix: {}
+        }));
+      }
+    }
+  }, [form.bucket, form.sizes, form.sizeStock, form.variantMatrix, setForm]);
+
   return (
     <div className="space-y-7 text-left">
       {/* ① Hero media */}
@@ -246,16 +260,18 @@ const ProductForm = memo(({
         />
       )}
 
-      <SizesSection
-        form={form}
-        sizeInput={sizeInput}
-        setSizeInput={setSizeInput}
-        onAddSize={addSize}
-        onRemoveSize={removeSize}
-        onSetSizeStock={setSizeStock}
-        hasColors={form.colors?.length > 0}
-        subCategory={form.subCategory}
-      />
+      {form.bucket !== 'Accessories' && (
+        <SizesSection
+          form={form}
+          sizeInput={sizeInput}
+          setSizeInput={setSizeInput}
+          onAddSize={addSize}
+          onRemoveSize={removeSize}
+          onSetSizeStock={setSizeStock}
+          hasColors={form.colors?.length > 0}
+          subCategory={form.subCategory}
+        />
+      )}
 
       {/* Color × Size stock matrix — shown when BOTH colors AND sizes are defined */}
       {form.colors?.length > 0 && form.sizes?.length > 0 && (
