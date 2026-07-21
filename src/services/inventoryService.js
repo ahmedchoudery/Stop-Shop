@@ -1,6 +1,8 @@
 import React from 'react';
 import { render } from '@react-email/render';
+import mongoose from 'mongoose';
 import Inventory from '../models/Inventory.js';
+import Product from '../models/Product.js';
 import ProductNotification from '../models/ProductNotification.js';
 import { sendEmail } from './emailService.js';
 import RestockNotificationCustomerEmail from '../emails/restock-notification-customer.tsx';
@@ -238,9 +240,7 @@ async function processRestockNotifications(product) {
     const productIdStr = product._id?.toString() || product.id;
 
     // Fetch the latest product from DB to ensure we have the committed transaction data
-    // import Product dynamically or use the mongoose model definition directly
-    const ProductModel = mongoose.models.Product || mongoose.model('Product');
-    const dbProduct = await ProductModel.findOne({
+    const dbProduct = await Product.findOne({
       $or: [{ id: productSku }, { _id: productIdStr }]
     });
 
