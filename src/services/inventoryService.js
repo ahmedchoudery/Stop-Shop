@@ -1,6 +1,5 @@
 import React from 'react';
 import { render } from '@react-email/render';
-import mongoose from 'mongoose';
 import Inventory from '../models/Inventory.js';
 import Product from '../models/Product.js';
 import ProductNotification from '../models/ProductNotification.js';
@@ -149,6 +148,11 @@ export function checkVariantInStock(product, selectedSize = '', selectedColor = 
     return {};
   };
 
+  const getProp = (obj, key) => {
+    if (!obj || !key || key === '__proto__' || key === 'constructor' || key === 'prototype') return undefined;
+    return Object.prototype.hasOwnProperty.call(obj, key) ? Reflect.get(obj, key) : undefined;
+  };
+
   const sizeStockObj = extractMap(product.sizeStock);
   const colorStockObj = extractMap(product.colorStock);
   const variantMatrixObj = extractMap(product.variantMatrix);
@@ -164,7 +168,7 @@ export function checkVariantInStock(product, selectedSize = '', selectedColor = 
     if (selColor && selSize) {
       // 1. Direct exact key lookup
       const exactKey = `${selColor}|${selSize}`;
-      let qty = Number(variantMatrixObj[exactKey] ?? 0);
+      let qty = Number(getProp(variantMatrixObj, exactKey) ?? 0);
 
       // 2. Fuzzy key match (handling hex/name split colors like "#609ba0|white" vs "white")
       if (qty === 0) {
@@ -179,15 +183,15 @@ export function checkVariantInStock(product, selectedSize = '', selectedColor = 
           return matchC && matchS;
         });
         if (matchingKey) {
-          qty = Number(variantMatrixObj[matchingKey] ?? 0);
+          qty = Number(getProp(variantMatrixObj, matchingKey) ?? 0);
         }
       }
       return qty > 0;
     } else if (selSize) {
       const matrixStock = Object.keys(variantMatrixObj)
         .filter(k => k.split('|').pop().toLowerCase() === selSize.toLowerCase())
-        .reduce((sum, k) => sum + (Number(variantMatrixObj[k]) || 0), 0);
-      const directSizeStock = Number(sizeStockObj[selSize] ?? sizeStockObj[selSize.toUpperCase()] ?? 0);
+        .reduce((sum, k) => sum + (Number(getProp(variantMatrixObj, k)) || 0), 0);
+      const directSizeStock = Number(getProp(sizeStockObj, selSize) ?? getProp(sizeStockObj, selSize.toUpperCase()) ?? 0);
       return (matrixStock > 0) || (directSizeStock > 0);
     } else if (selColor) {
       const matrixStock = Object.keys(variantMatrixObj)
@@ -197,8 +201,8 @@ export function checkVariantInStock(product, selectedSize = '', selectedColor = 
                  kColor.toLowerCase().includes(selColor.toLowerCase()) ||
                  selColor.toLowerCase().includes(kColor.toLowerCase());
         })
-        .reduce((sum, k) => sum + (Number(variantMatrixObj[k]) || 0), 0);
-      const directColorStock = Number(colorStockObj[selColor] ?? 0);
+        .reduce((sum, k) => sum + (Number(getProp(variantMatrixObj, k)) || 0), 0);
+      const directColorStock = Number(getProp(colorStockObj, selColor) ?? 0);
       return (matrixStock > 0) || (directColorStock > 0);
     } else {
       return (Number(product.quantity) || 0) > 0;
@@ -209,7 +213,7 @@ export function checkVariantInStock(product, selectedSize = '', selectedColor = 
 
     if (selSize && hasSizes) {
       const matchedKey = Object.keys(sizeStockObj).find(k => k.toLowerCase() === selSize.toLowerCase());
-      const qty = matchedKey ? Number(sizeStockObj[matchedKey]) : Number(sizeStockObj[selSize] ?? 0);
+      const qty = matchedKey ? Number(getProp(sizeStockObj, matchedKey)) : Number(getProp(sizeStockObj, selSize) ?? 0);
       sizeOk = qty > 0;
     }
 
@@ -219,7 +223,7 @@ export function checkVariantInStock(product, selectedSize = '', selectedColor = 
         k.toLowerCase().includes(selColor.toLowerCase()) ||
         selColor.toLowerCase().includes(k.toLowerCase())
       );
-      const qty = matchedKey ? Number(colorStockObj[matchedKey]) : Number(colorStockObj[selColor] ?? 0);
+      const qty = matchedKey ? Number(getProp(colorStockObj, matchedKey)) : Number(getProp(colorStockObj, selColor) ?? 0);
       colorOk = qty > 0;
     }
 
