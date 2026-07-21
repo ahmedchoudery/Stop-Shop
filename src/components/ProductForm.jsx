@@ -770,9 +770,13 @@ ColorsSection.displayName = 'ColorsSection';
 
 const SizesSection = memo(({ form, sizeInput, setSizeInput, onAddSize, onRemoveSize, onSetSizeStock, hasColors, subCategory }) => {
   const isJeans = subCategory === 'Jeans';
+  const isFootwear = subCategory === 'Shoes' || subCategory === 'Slippers';
+  
   const presets = isJeans
     ? ['28', '30', '32', '34', '36', '38']
-    : ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
+    : isFootwear
+      ? ['7', '8', '9', '10', '11']
+      : ['XS', 'S', 'M', 'L', 'XL', 'XXL'];
 
   const addPreset = (size) => {
     if (!form.sizes.includes(size)) {
@@ -799,7 +803,7 @@ const SizesSection = memo(({ form, sizeInput, setSizeInput, onAddSize, onRemoveS
       {/* Smart preset pills */}
       <div className="flex flex-wrap gap-1.5 mb-3">
         <span className="text-[9px] font-black uppercase tracking-widest text-gray-400 self-center mr-1">
-          {isJeans ? 'Waist:' : 'Quick add:'}
+          {isJeans ? 'Waist:' : isFootwear ? 'Shoe Size:' : 'Quick add:'}
         </span>
         {presets.map(preset => {
           const alreadyAdded = form.sizes.includes(preset);
@@ -825,7 +829,7 @@ const SizesSection = memo(({ form, sizeInput, setSizeInput, onAddSize, onRemoveS
       <div className="flex items-center space-x-3 mb-3">
         <input type="text" value={sizeInput} onChange={e => setSizeInput(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), onAddSize())}
-          placeholder={isJeans ? 'e.g. 28, 30, 32' : 'e.g. M, L, XL'}
+          placeholder={isJeans ? 'e.g. 28, 30, 32' : isFootwear ? 'e.g. 8, 9, 10' : 'e.g. M, L, XL'}
           className="flex-grow border border-gray-200 rounded-[4px] px-4 py-2.5 text-sm font-black uppercase tracking-widest focus:border-black outline-none" />
         <button onClick={onAddSize} className="px-4 py-2.5 bg-black text-white rounded-[4px] text-[11px] font-black uppercase tracking-widest hover:bg-black/90 transition-colors">Add</button>
       </div>
