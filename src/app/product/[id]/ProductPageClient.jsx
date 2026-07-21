@@ -961,7 +961,7 @@ export default function ProductPageClient({ product, allProducts = [] }) {
         {/* Dynamic Editorial Content Tabs */}
         <div className="border-t border-gray-100 pt-16 mb-20">
           <div className="flex items-center space-x-8 border-b border-gray-100 mb-8 overflow-x-auto scrollbar-hide">
-            {['description', 'care instructions', 'sizing'].map(tab => (
+            {['description', 'care instructions', product.bucket !== 'Accessories' && 'sizing'].filter(Boolean).map(tab => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}
@@ -980,15 +980,19 @@ export default function ProductPageClient({ product, allProducts = [] }) {
           <div className="max-w-3xl">
             {activeTab === 'description' && (
               <div className="text-sm text-gray-600 leading-relaxed uppercase tracking-wider font-bold">
-                {product.description || 'Premium, custom-crafted apparel engineered with the finest detailing, offering an exceptional luxury structure.'}
+                {product.description || (product.bucket === 'Accessories'
+                  ? 'Premium, custom-crafted accessory engineered with the finest detailing, offering an exceptional luxury structure.'
+                  : 'Premium, custom-crafted apparel engineered with the finest detailing, offering an exceptional luxury structure.')}
               </div>
             )}
             {activeTab === 'care instructions' && (
               <div className="text-sm text-gray-600 leading-relaxed uppercase tracking-wider font-bold">
-                {product.careInstructions || 'Dry clean recommended. Alternately, hand wash cold inside out. Lay flat to dry.'}
+                {product.careInstructions || (product.bucket === 'Accessories'
+                  ? 'Handle with care. Avoid direct contact with water, perfume, and harsh chemicals. Store in a dry place.'
+                  : 'Dry clean recommended. Alternately, hand wash cold inside out. Lay flat to dry.')}
               </div>
             )}
-            {activeTab === 'sizing' && (
+            {activeTab === 'sizing' && product.bucket !== 'Accessories' && (
               <div className="text-xs text-gray-500 uppercase tracking-widest leading-relaxed">
                 Standard fitting. Fits true to size. We recommend selecting your standard waist/chest sizing. Refer to the size chart near the size options for exact measurements.
               </div>

@@ -197,40 +197,44 @@ export const sendEmail = async (options) => {
 
     const resendApiKey = getEnv('RESEND_API_KEY');
     if (resendApiKey) {
-      const defaultFrom = getEnv('RESEND_FROM_EMAIL') || 'Stop & Shop <onboarding@resend.dev>';
-      const from = options.from || defaultFrom;
-      const to = Array.isArray(options.to) ? options.to : [options.to];
+      try {
+        const defaultFrom = getEnv('RESEND_FROM_EMAIL') || 'Stop & Shop <onboarding@resend.dev>';
+        const from = options.from || defaultFrom;
+        const to = Array.isArray(options.to) ? options.to : [options.to];
 
-      const payload = {
-        from,
-        to,
-        subject: options.subject,
-        html: options.html,
-      };
-      if (options.text) {
-        payload.text = options.text;
-      }
-
-      const resData = await withRetry(async () => {
-        const response = await fetch('https://api.resend.com/emails', {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${resendApiKey}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(payload),
-        });
-
-        if (!response.ok) {
-          const errText = await response.text();
-          throw new Error(`Resend API error: ${response.status} - ${errText}`);
+        const payload = {
+          from,
+          to,
+          subject: options.subject,
+          html: options.html,
+        };
+        if (options.text) {
+          payload.text = options.text;
         }
 
-        return await response.json();
-      }, { name: 'Resend Email Dispatch', retries: 3 });
+        const resData = await withRetry(async () => {
+          const response = await fetch('https://api.resend.com/emails', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${resendApiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+          });
 
-      console.info(`📧 [Resend] Email dispatched successfully to ${options.to}. ID: ${resData.id}`);
-      return true;
+          if (!response.ok) {
+            const errText = await response.text();
+            throw new Error(`Resend API error: ${response.status} - ${errText}`);
+          }
+
+          return await response.json();
+        }, { name: 'Resend Email Dispatch', retries: 3 });
+
+        console.info(`📧 [Resend] Email dispatched successfully to ${options.to}. ID: ${resData.id}`);
+        return true;
+      } catch (resendError) {
+        console.warn(`⚠️ [Resend] Failed to send to ${options.to} via Resend (${resendError.message}). Falling back to Nodemailer SMTP...`);
+      }
     }
 
     await transporter.sendMail(options);
