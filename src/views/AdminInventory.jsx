@@ -22,10 +22,20 @@ const getBackgroundStyle = (color) => {
     const part0 = parts[0].trim();
     const part1 = parts[1].trim();
     const isHex = (str) => /^#([0-9A-F]{3}){1,2}$/i.test(str);
-    if (isHex(part0) && !isHex(part1)) {
+    const cssColors = [
+      'white', 'black', 'red', 'blue', 'green', 'yellow', 'orange', 'purple', 
+      'pink', 'brown', 'gray', 'grey', 'gold', 'silver', 'navy', 'teal', 
+      'olive', 'lime', 'aqua', 'cyan', 'magenta', 'maroon', 'beige', 'cream', 
+      'lavender', 'khaki', 'coral', 'indigo', 'violet', 'plum', 'ivory'
+    ];
+    const words = part1.toLowerCase().split(/[\s\-_/]+/);
+    const matchedColorName = words.find(w => cssColors.includes(w));
+    
+    if (isHex(part0) && !isHex(part1) && !matchedColorName) {
       return { backgroundColor: part0 };
     } else {
-      return { background: `linear-gradient(135deg, ${part0} 50%, ${part1} 50%)` };
+      const secondColor = isHex(part1) ? part1 : (matchedColorName || part0);
+      return { background: `linear-gradient(135deg, ${part0} 50%, ${secondColor} 50%)` };
     }
   }
   return { backgroundColor: color };
