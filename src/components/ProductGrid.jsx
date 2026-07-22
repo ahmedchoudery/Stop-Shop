@@ -7,7 +7,7 @@
 
 import React, { useState, useEffect, memo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { SlidersHorizontal, FolderOpen, RotateCcw } from 'lucide-react';
+import { SlidersHorizontal, FolderOpen, RotateCcw, ChevronDown } from 'lucide-react';
 import ProductCard from './ProductCard';
 import { useProducts } from '../hooks/useProducts.js';
 import { useCart } from '../context/CartContext.tsx';
@@ -60,7 +60,7 @@ const ProductGrid = ({ products, activeBucket = 'All', activeSubCategory = null 
       <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16">
 
         {/* ── Section Header ──────────────────────────────── */}
-        <div className="flex items-end justify-between mb-12">
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 sm:gap-4 mb-10 sm:mb-14">
           <motion.div
             key={activeBucket}
             initial={{ opacity: 0, x: -16 }}
@@ -68,11 +68,11 @@ const ProductGrid = ({ products, activeBucket = 'All', activeSubCategory = null 
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
           >
             {activeSubCategory && (
-              <p className="text-[8px] font-black uppercase tracking-[0.5em] text-gray-500 mb-2">
+              <p className="text-[9px] font-black uppercase tracking-[0.4em] text-gray-400 mb-1.5">
                 {activeBucket}
               </p>
             )}
-            <h2 className="text-3xl sm:text-4xl font-black uppercase tracking-tighter text-black leading-none">
+            <h2 className="text-2xl sm:text-4xl font-black uppercase tracking-tighter text-black leading-none">
               <SplitText>
                 {activeSubCategory ?? (activeBucket !== 'All' ? activeBucket : 'Collection')}
               </SplitText>
@@ -84,18 +84,25 @@ const ProductGrid = ({ products, activeBucket = 'All', activeSubCategory = null 
             )}
           </motion.div>
 
-          {/* Sort */}
-          <div className="flex items-center space-x-3">
-            <SlidersHorizontal size={13} className="text-gray-500" />
-            <select
-              value={sortBy}
-              onChange={e => setSortBy(e.target.value)}
-              className="bg-transparent border-b border-[var(--border-mid)] focus:border-black text-[9px] font-black uppercase tracking-[0.2em] text-gray-600 outline-none cursor-pointer py-1 pr-5 transition-colors duration-200 appearance-none"
-            >
-              {SORT_OPTIONS.map(opt => (
-                <option key={opt.value} value={opt.value} className="bg-white text-gray-900">{opt.label}</option>
-              ))}
-            </select>
+          {/* Sort Control */}
+          <div className="flex items-center justify-between sm:justify-end pt-3 sm:pt-0 border-t border-gray-100 sm:border-t-0 w-full sm:w-auto">
+            <div className="flex items-center space-x-2 text-gray-400">
+              <SlidersHorizontal size={12} className="text-gray-900" />
+              <span className="text-[9px] font-black uppercase tracking-[0.25em] text-gray-400">Sort</span>
+            </div>
+
+            <div className="relative inline-flex items-center ml-4">
+              <select
+                value={sortBy}
+                onChange={e => setSortBy(e.target.value)}
+                className="bg-transparent text-[10px] font-black uppercase tracking-[0.15em] text-gray-900 outline-none cursor-pointer py-1 pl-2 pr-5 border-b border-gray-900 focus:border-cardinal transition-colors duration-200 appearance-none text-right sm:text-left"
+              >
+                {SORT_OPTIONS.map(opt => (
+                  <option key={opt.value} value={opt.value} className="bg-white text-gray-900">{opt.label}</option>
+                ))}
+              </select>
+              <ChevronDown size={11} className="absolute right-0 pointer-events-none text-gray-900" />
+            </div>
           </div>
         </div>
 
