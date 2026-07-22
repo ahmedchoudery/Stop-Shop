@@ -1048,7 +1048,7 @@ export default function ProductPageClient({ product, allProducts = [], outfitPro
       </div>
 
       {/* Size Chart Modal */}
-      {showSizeChart && (
+      {showSizeChart && mounted && createPortal(
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
           {/* Backdrop */}
           <div
@@ -1214,11 +1214,12 @@ export default function ProductPageClient({ product, allProducts = [], outfitPro
               </p>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Restock Notification Modal */}
-      {showNotifyModal && createPortal(
+      {showNotifyModal && mounted && createPortal(
         <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
           {/* Backdrop */}
           <div
