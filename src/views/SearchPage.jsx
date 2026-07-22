@@ -12,11 +12,9 @@
  * - No results state
  */
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, Link, useNavigate } from '../utils/router-compat.jsx';
-import { Search, X, Filter, Package, ArrowLeft, SlidersHorizontal } from 'lucide-react';
-import { useCart } from '../context/CartContext.tsx';
-import { useCurrency } from '../context/CurrencyContext.jsx';
+import { Search, X, Package, ArrowLeft, SlidersHorizontal } from 'lucide-react';
 import { apiUrl } from '../config/api.js';
 import ProductCard from '../components/ProductCard.jsx';
 

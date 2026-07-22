@@ -14,6 +14,7 @@ import { useWishlist } from '../../../context/WishlistContext.jsx';
 import { useCurrency } from '../../../context/CurrencyContext.jsx';
 import MediaRenderer from '../../../components/MediaRenderer.jsx';
 import ProductReviews from '../../../components/ProductReviews.jsx';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import ProductCard from '../../../components/ProductCard.jsx';
 
 const TRUST = [
@@ -540,8 +541,7 @@ export default function ProductPageClient({ product, allProducts = [], outfitPro
   };
 
   return (
-    <>
-      <div className="bg-white min-h-screen pt-4 pb-24">
+    <div className="bg-white min-h-screen pt-4 pb-24">
       <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16">
         
         {/* Navigation Breadcrumb */}
@@ -1406,6 +1406,6 @@ export default function ProductPageClient({ product, allProducts = [], outfitPro
         </div>,
         document.body
       )}
-    </>
+    </div>
   );
 }
