@@ -28,12 +28,18 @@ const MobileDrawer = ({ isOpen, onClose }) => {
         setIsAnimating(true);
       });
       document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+      document.body.style.touchAction = 'none';
+
       return () => {
         cancelAnimationFrame(frame);
       };
     } else {
       setIsAnimating(false);
       document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+      document.body.style.touchAction = '';
+
       const timer = setTimeout(() => {
         setShouldRender(false);
         setActiveCategoryView(null);
@@ -47,6 +53,8 @@ const MobileDrawer = ({ isOpen, onClose }) => {
   useEffect(() => {
     return () => {
       document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+      document.body.style.touchAction = '';
     };
   }, []);
 
@@ -74,6 +82,7 @@ const MobileDrawer = ({ isOpen, onClose }) => {
           isAnimating ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`}
         onClick={onClose}
+        onTouchMove={(e) => e.preventDefault()}
       />
 
       {/* Drawer panel — premium iOS slide-up bottom sheet on mobile, side panel on tablet/desktop */}
@@ -117,7 +126,7 @@ const MobileDrawer = ({ isOpen, onClose }) => {
         </div>
 
         {/* Scroll area */}
-        <div className="flex-grow overflow-y-auto overflow-x-hidden relative -webkit-overflow-scrolling-touch">
+        <div className="flex-grow overflow-y-auto overflow-x-hidden relative overscroll-contain touch-pan-y -webkit-overflow-scrolling-touch">
 
           {/* Main Categories View */}
           <div className={`absolute inset-0 transition-transform duration-300 ${activeCategoryView ? '-translate-x-full' : 'translate-x-0'}`}>
