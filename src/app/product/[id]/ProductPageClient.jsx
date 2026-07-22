@@ -1,14 +1,14 @@
 'use client';
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import {
-  Heart, ShoppingBag, Share2, MessageCircle, Check,
-  ChevronRight, Star, Package, Truck, RotateCcw,
+  Heart, ShoppingBag, Share2,
+  ChevronRight, Package, Truck, RotateCcw,
   Shield, ArrowLeft, AlertTriangle, ChevronLeft,
   Minus, Plus, X, ZoomIn, ZoomOut, Bell
 } from 'lucide-react';
-import { Link, useNavigate } from '../../../utils/router-compat.jsx';
+import { Link } from '../../../utils/router-compat.jsx';
 import { useCart } from '../../../context/CartContext.tsx';
 import { useWishlist } from '../../../context/WishlistContext.jsx';
 import { useCurrency } from '../../../context/CurrencyContext.jsx';
@@ -88,36 +88,7 @@ const getVariantImage = (prod, col) => {
   return null;
 };
 
-const resolveVariantGallery = (product, color) => {
-  if (!product) return [];
-  
-  const vImgs = product.variantImages instanceof Map 
-    ? product.variantImages.get(color) 
-    : (product.variantImages?.[color] ?? null);
 
-  if (Array.isArray(vImgs) && vImgs.length > 0) {
-    return vImgs;
-  }
-  if (typeof vImgs === 'string' && vImgs.trim()) {
-    return [vImgs];
-  }
-
-  if (Array.isArray(product.colors) && product.colors.length > 0) {
-    const colorIndex = product.colors.findIndex(c => c === color);
-    if (colorIndex === 0) {
-      return [product.image, ...(product.gallery ?? [])].filter(Boolean);
-    }
-    if (colorIndex > 0 && Array.isArray(product.gallery) && product.gallery[colorIndex - 1]) {
-      const matchImg = product.gallery[colorIndex - 1];
-      const restGallery = product.gallery.filter((_, idx) => idx !== colorIndex - 1);
-      return [matchImg, product.image, ...restGallery].filter(Boolean);
-    }
-  }
-
-  // Fallback: single image derived from gallery index
-  const thumb = getVariantImage(product, color);
-  return thumb ? [thumb] : null;
-};
 
 const RelatedProducts = ({ currentId, category, subCategory, allProducts = [] }) => {
   const { formatPrice } = useCurrency();
