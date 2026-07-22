@@ -64,7 +64,6 @@ export default async function Page() {
 
   return (
     <>
-      <link rel="preload" as="image" href="/Hero-Mobile.jpeg" fetchPriority="high" />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }}

@@ -167,7 +167,7 @@ export async function middleware(request: NextRequest) {
     ? `script-src 'self' 'nonce-${nonce}' https://www.googletagmanager.com https://connect.facebook.net`
     : `script-src 'self' 'unsafe-eval' 'nonce-${nonce}' https://www.googletagmanager.com https://connect.facebook.net`;
 
-  const styleSrc = `style-src 'self' 'unsafe-inline'`;
+  const styleSrc = `style-src 'self' 'unsafe-inline' https://fonts.googleapis.com`;
 
   const cspHeader = [
     "default-src 'self'",
