@@ -29,7 +29,7 @@ const getBackgroundStyle = (color) => {
     const parts = color.split('|');
     const part0 = parts[0].trim();
     const part1 = parts[1].trim();
-    const isHex = (str) => /^#([0-9A-F]{3}){1,2}$/i.test(str);
+    const isHex = (str) => /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(str);
     const cssColors = [
       'white', 'black', 'red', 'blue', 'green', 'yellow', 'orange', 'purple', 
       'pink', 'brown', 'gray', 'grey', 'gold', 'silver', 'navy', 'teal', 
@@ -55,7 +55,7 @@ const getColorName = (color) => {
     const parts = color.split('|');
     const part0 = parts[0].trim();
     const part1 = parts[1].trim();
-    const isHex = (str) => /^#([0-9A-F]{3}){1,2}$/i.test(str);
+    const isHex = (str) => /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(str);
     if (isHex(part0) && !isHex(part1)) {
       return part1;
     } else {
@@ -203,8 +203,13 @@ export default function ProductPageClient({ product, allProducts = [], outfitPro
   const [activeTab, setActiveTab] = useState(availableTabs[0] || 'Description');
 
   useEffect(() => {
-    if (availableTabs.length > 0 && !availableTabs.includes(activeTab)) {
-      setActiveTab(availableTabs[0]);
+    const tabs = [
+      product?.description?.trim() && 'Description',
+      product?.materials?.trim() && 'Materials',
+      product?.careInstructions?.trim() && 'Care'
+    ].filter(Boolean);
+    if (tabs.length > 0 && !tabs.includes(activeTab)) {
+      setActiveTab(tabs[0]);
     }
   }, [product?.description, product?.materials, product?.careInstructions, activeTab]);
 
