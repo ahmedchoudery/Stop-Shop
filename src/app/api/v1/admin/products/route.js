@@ -23,7 +23,7 @@ export const GET = withRoute({
 
     const totalCount = await Product.countDocuments({});
     const products = await Product.find({})
-      .select('id name price discount image colors sizes bucket subCategory quantity isNew createdAt updatedAt specs sizeStock colorStock variantMatrix lifestyleImage variantImages gallery featuredSection displayOrder description materials careInstructions mediaType embedCode rating lowStockThreshold slug categories')
+      .select('id name price discount image colors sizes bucket subCategory quantity isNew createdAt updatedAt specs sizeStock colorStock variantMatrix lifestyleImage variantImages gallery featuredSection displayOrder description materials careInstructions outfitProductIds mediaType embedCode rating lowStockThreshold slug categories')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit)

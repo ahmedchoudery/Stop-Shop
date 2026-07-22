@@ -70,6 +70,7 @@ export const createProductSchema = z.object({
   description:     z.string().max(10000).optional().default(''),
   materials:       z.string().max(10000).optional().default(''),
   careInstructions: z.string().max(10000).optional().default(''),
+  outfitProductIds: z.array(z.string()).optional().default([]),
 });
 
 /** @typedef {z.infer<typeof createProductSchema>} CreateProductInput */

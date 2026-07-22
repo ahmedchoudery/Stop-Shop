@@ -55,6 +55,7 @@ const productSchema = new mongoose.Schema({
   description:     { type: String, default: '' },
   materials:       { type: String, default: '' },
   careInstructions: { type: String, default: '' },
+  outfitProductIds: [{ type: String }],
   slug:             { type: String, unique: true, sparse: true, index: true },
   categories:       [{ type: String, index: true }],
   lowStockThreshold: { type: Number, min: 0 },

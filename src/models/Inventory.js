@@ -48,6 +48,7 @@ const inventorySchema = new mongoose.Schema({
   description:         { type: String, default: '' },
   materials:           { type: String, default: '' },
   careInstructions:    { type: String, default: '' },
+  outfitProductIds:    [{ type: String }],
 
   // ── Status (computed from totalStock) ─────────────────────────
   status: {

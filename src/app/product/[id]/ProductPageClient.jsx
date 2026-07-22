@@ -14,6 +14,7 @@ import { useWishlist } from '../../../context/WishlistContext.jsx';
 import { useCurrency } from '../../../context/CurrencyContext.jsx';
 import MediaRenderer from '../../../components/MediaRenderer.jsx';
 import ProductReviews from '../../../components/ProductReviews.jsx';
+import ProductCard from '../../../components/ProductCard.jsx';
 
 const TRUST = [
   { Icon: Truck,     label: 'Delivery',  sub: 'Orders over Rs. 2,000' },
@@ -62,6 +63,60 @@ const getColorName = (color) => {
     }
   }
   return color;
+};
+
+const getVariantImage = (prod, col) => {
+  if (!prod || !col) return null;
+  
+  // 1. Check explicit variantImages mapping
+  const vImgs = prod.variantImages instanceof Map 
+    ? prod.variantImages.get(col) 
+    : (prod.variantImages?.[col] ?? null);
+    
+  if (Array.isArray(vImgs) && vImgs.length > 0) return vImgs[0];
+  if (typeof vImgs === 'string' && vImgs.trim()) return vImgs;
+
+  // 2. Index position fallback into gallery array
+  if (Array.isArray(prod.colors) && prod.colors.length > 0) {
+    const colorIndex = prod.colors.findIndex(c => c === col);
+    if (colorIndex === 0) return prod.image;
+    if (colorIndex > 0 && Array.isArray(prod.gallery) && prod.gallery.length >= colorIndex) {
+      return prod.gallery[colorIndex - 1];
+    }
+  }
+
+  return null;
+};
+
+const resolveVariantGallery = (product, color) => {
+  if (!product) return [];
+  
+  const vImgs = product.variantImages instanceof Map 
+    ? product.variantImages.get(color) 
+    : (product.variantImages?.[color] ?? null);
+
+  if (Array.isArray(vImgs) && vImgs.length > 0) {
+    return vImgs;
+  }
+  if (typeof vImgs === 'string' && vImgs.trim()) {
+    return [vImgs];
+  }
+
+  if (Array.isArray(product.colors) && product.colors.length > 0) {
+    const colorIndex = product.colors.findIndex(c => c === color);
+    if (colorIndex === 0) {
+      return [product.image, ...(product.gallery ?? [])].filter(Boolean);
+    }
+    if (colorIndex > 0 && Array.isArray(product.gallery) && product.gallery[colorIndex - 1]) {
+      const matchImg = product.gallery[colorIndex - 1];
+      const restGallery = product.gallery.filter((_, idx) => idx !== colorIndex - 1);
+      return [matchImg, product.image, ...restGallery].filter(Boolean);
+    }
+  }
+
+  // Fallback: single image derived from gallery index
+  const thumb = getVariantImage(product, color);
+  return thumb ? [thumb] : null;
 };
 
 const RelatedProducts = ({ currentId, category, subCategory, allProducts = [] }) => {
@@ -216,7 +271,8 @@ const getVariantImages = (product, color) => {
   return thumb ? [thumb] : null;
 };
 
-export default function ProductPageClient({ product, allProducts = [] }) {
+export default function ProductPageClient({ product, allProducts = [], outfitProducts = [] }) {
+  const isAttitudeProduct = product?.featuredSection === 'attitude' || product?.bucket === 'Outfit';
   const { addToCart, openDrawer } = useCart();
   const { toggleWishlist, isWishlisted } = useWishlist();
   const { formatPrice } = useCurrency();
@@ -736,69 +792,143 @@ export default function ProductPageClient({ product, allProducts = [] }) {
             <p className="text-[9px] font-black uppercase tracking-[0.4em] text-cardinal mb-3">{category}</p>
             <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tighter text-gray-900 leading-tight mb-4">{product.name}</h1>
             
-            {/* Price */}
-            <p className="text-xl font-black text-gray-900 mb-6">{formatPrice(product.price)}</p>
-
-            {/* Colors */}
-            {product.colors?.length > 0 && (() => {
-              const colorStockObj = product.colorStock
-                ? (product.colorStock instanceof Map ? Object.fromEntries(product.colorStock) : product.colorStock)
-                : null;
-              const variantMatrixObj = product.variantMatrix
-                ? (product.variantMatrix instanceof Map ? Object.fromEntries(product.variantMatrix) : product.variantMatrix)
-                : null;
-              const hasMatrix = variantMatrixObj && Object.keys(variantMatrixObj).length > 0;
-              return (
-                <div className="mb-6">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-[8px] font-black uppercase tracking-widest text-gray-400">Select Color</span>
-                    {selectedColor && <span className="text-[8px] font-bold text-gray-500 uppercase tracking-widest">{getColorName(selectedColor)}</span>}
-                  </div>
-                  <div className="flex items-center flex-wrap gap-3">
-                    {product.colors.map(col => {
-                      // Determine OOS for this color
-                      let colorOos = false;
-                      if (hasMatrix) {
-                        // All size combos for this color are 0
-                        const colKeys = Object.keys(variantMatrixObj).filter(k => k.startsWith(`${col}|`));
-                        colorOos = colKeys.length > 0 && colKeys.every(k => (variantMatrixObj[k] ?? 0) === 0);
-                      } else if (colorStockObj && col in colorStockObj) {
-                        colorOos = (colorStockObj[col] ?? 0) === 0;
-                      }
-                      const isSelected = selectedColor === col;
-                      return (
-                        <button
-                          key={col}
-                          onClick={() => setSelectedColor(col)}
-                          className={`relative w-7 h-7 rounded-[4px] border-2 transition-all duration-300 focus:outline-none flex-shrink-0 ${
-                            isSelected
-                              ? 'border-cardinal ring-2 ring-cardinal ring-offset-2'
-                              : 'border-transparent hover:border-gray-400'
-                          }`}
-                          style={getBackgroundStyle(col)}
-                          title={colorOos ? `${getColorName(col)} — Out of Stock` : getColorName(col)}
-                        >
-                          {/* OOS diagonal strikethrough */}
-                          {colorOos && (
-                            <svg className="absolute inset-0 w-full h-full rounded-[3px]" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                              <line x1="2" y1="2" x2="26" y2="26" stroke="#ba1f3d" strokeWidth="2.5" strokeLinecap="round" />
-                            </svg>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
+            {/* Price & Options (or Outfit info box if Defined by Attitude) */}
+            {isAttitudeProduct ? (
+              <div className="border border-gray-200 bg-[#F7F6F3] p-6 rounded-xl space-y-4 mb-8">
+                <div className="flex items-center space-x-2">
+                  <span className="text-[9px] font-black uppercase tracking-[0.3em] bg-gray-900 text-white px-3 py-1 rounded-full">
+                    Defined by Attitude · Lookbook Outfit
+                  </span>
                 </div>
-              );
-            })()}
+                <p className="text-xs text-gray-700 font-bold uppercase tracking-wider leading-relaxed">
+                  This complete outfit features individual catalog items. Explore and shop the pieces used in this look below!
+                </p>
+                <button
+                  onClick={() => {
+                    const outfitEl = document.getElementById('outfit-items-section');
+                    if (outfitEl) outfitEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }}
+                  className="w-full py-3.5 bg-gray-900 text-white text-[10px] font-black uppercase tracking-[0.25em] rounded-lg hover:bg-cardinal transition-all"
+                >
+                  Shop Items in this Outfit ↓
+                </button>
+              </div>
+            ) : (
+              <>
+                {/* Price */}
+                <p className="text-xl font-black text-gray-900 mb-6">{formatPrice(product.price)}</p>
 
-            {/* Sizes */}
-            {product.sizes?.length > 0 ? (
-              <div className="mb-6">
-                <div className="flex justify-between items-baseline mb-3">
-                  <div className="flex items-center space-x-2">
-                    <span className="text-[8px] font-black uppercase tracking-widest text-gray-400">Select Size</span>
-                    <span className="text-gray-300">|</span>
+                {/* Colors */}
+                {product.colors?.length > 0 && (() => {
+                  const colorStockObj = product.colorStock
+                    ? (product.colorStock instanceof Map ? Object.fromEntries(product.colorStock) : product.colorStock)
+                    : null;
+                  const variantMatrixObj = product.variantMatrix
+                    ? (product.variantMatrix instanceof Map ? Object.fromEntries(product.variantMatrix) : product.variantMatrix)
+                    : null;
+                  const hasMatrix = variantMatrixObj && Object.keys(variantMatrixObj).length > 0;
+                  return (
+                    <div className="mb-6">
+                      <div className="flex items-center justify-between mb-3">
+                        <span className="text-[8px] font-black uppercase tracking-widest text-gray-400">Select Color</span>
+                        {selectedColor && <span className="text-[8px] font-bold text-gray-500 uppercase tracking-widest">{getColorName(selectedColor)}</span>}
+                      </div>
+                      <div className="flex items-center flex-wrap gap-3">
+                        {product.colors.map(col => {
+                          let colorOos = false;
+                          if (hasMatrix) {
+                            const colKeys = Object.keys(variantMatrixObj).filter(k => k.startsWith(`${col}|`));
+                            colorOos = colKeys.length > 0 && colKeys.every(k => (variantMatrixObj[k] ?? 0) === 0);
+                          } else if (colorStockObj && col in colorStockObj) {
+                            colorOos = (colorStockObj[col] ?? 0) === 0;
+                          }
+                          const isSelected = selectedColor === col;
+                          return (
+                            <button
+                              key={col}
+                              onClick={() => setSelectedColor(col)}
+                              className={`relative w-7 h-7 rounded-[4px] border-2 transition-all duration-300 focus:outline-none flex-shrink-0 ${
+                                isSelected
+                                  ? 'border-cardinal ring-2 ring-cardinal ring-offset-2'
+                                  : 'border-transparent hover:border-gray-400'
+                              }`}
+                              style={getBackgroundStyle(col)}
+                              title={colorOos ? `${getColorName(col)} — Out of Stock` : getColorName(col)}
+                            >
+                              {colorOos && (
+                                <svg className="absolute inset-0 w-full h-full rounded-[3px]" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                  <line x1="2" y1="2" x2="26" y2="26" stroke="#ba1f3d" strokeWidth="2.5" strokeLinecap="round" />
+                                </svg>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })()}
+
+                {/* Sizes */}
+                {product.sizes?.length > 0 ? (
+                  <div className="mb-6">
+                    <div className="flex justify-between items-baseline mb-3">
+                      <div className="flex items-center space-x-2">
+                        <span className="text-[8px] font-black uppercase tracking-widest text-gray-400">Select Size</span>
+                        <span className="text-gray-300">|</span>
+                        <button
+                          type="button"
+                          onClick={() => setShowSizeChart(true)}
+                          className="text-[8px] font-black uppercase tracking-widest text-cardinal hover:underline cursor-pointer focus:outline-none"
+                        >
+                          Size Chart
+                        </button>
+                      </div>
+                      {sizeError && (
+                        <span className="text-[8px] font-black uppercase text-cardinal tracking-widest animate-pulse">
+                          Please select a size first
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center flex-wrap gap-2.5">
+                      {product.sizes.map(size => {
+                        const sizeStockObj = product.sizeStock
+                          ? (product.sizeStock instanceof Map ? Object.fromEntries(product.sizeStock) : product.sizeStock)
+                          : null;
+                        const variantMatrixObj = product.variantMatrix
+                          ? (product.variantMatrix instanceof Map ? Object.fromEntries(product.variantMatrix) : product.variantMatrix)
+                          : null;
+                        const hasMatrix = variantMatrixObj && Object.keys(variantMatrixObj).length > 0;
+                        const ss = (hasMatrix && selectedColor)
+                          ? (variantMatrixObj[`${selectedColor}|${size}`] ?? 0)
+                          : (sizeStockObj?.[size] ?? 0);
+                        const soldOut = ss === 0;
+                        return (
+                          <button
+                            key={size}
+                            onClick={() => setSelectedSize(size)}
+                            title={soldOut ? `${size} — Out of Stock` : size}
+                            className={`relative min-w-[48px] h-11 px-3 border text-[10px] font-black uppercase tracking-widest flex items-center justify-center transition-all duration-300 rounded-[4px] overflow-hidden ${
+                              selectedSize === size
+                                ? 'border-gray-900 bg-gray-900 text-white'
+                                : soldOut
+                                  ? 'border-gray-200 bg-white text-gray-400 cursor-pointer hover:border-gray-400'
+                                  : 'border-gray-200 text-gray-600 hover:border-gray-900 bg-white'
+                            }`}
+                          >
+                            <span className={soldOut && selectedSize !== size ? 'opacity-50' : ''}>{size}</span>
+                            {soldOut && (
+                              <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 48 44" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                <line x1="4" y1="4" x2="44" y2="40" stroke="#ba1f3d" strokeWidth="1.5" strokeLinecap="round" />
+                              </svg>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="mb-6 flex items-center justify-between">
+                    <span className="text-[8px] font-black uppercase tracking-widest text-gray-400">One Size</span>
                     <button
                       type="button"
                       onClick={() => setShowSizeChart(true)}
@@ -807,128 +937,74 @@ export default function ProductPageClient({ product, allProducts = [] }) {
                       Size Chart
                     </button>
                   </div>
-                  {sizeError && (
-                    <span className="text-[8px] font-black uppercase text-cardinal tracking-widest animate-pulse">
-                      Please select a size first
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center flex-wrap gap-2.5">
-                  {product.sizes.map(size => {
-                    const sizeStockObj = product.sizeStock
-                      ? (product.sizeStock instanceof Map ? Object.fromEntries(product.sizeStock) : product.sizeStock)
-                      : null;
-                    const variantMatrixObj = product.variantMatrix
-                      ? (product.variantMatrix instanceof Map ? Object.fromEntries(product.variantMatrix) : product.variantMatrix)
-                      : null;
-                    const hasMatrix = variantMatrixObj && Object.keys(variantMatrixObj).length > 0;
-                    const ss = (hasMatrix && selectedColor)
-                      ? (variantMatrixObj[`${selectedColor}|${size}`] ?? 0)
-                      : (sizeStockObj?.[size] ?? 0);
-                    const soldOut = ss === 0;
-                    return (
+                )}
+
+                {/* Quantity */}
+                {!outOfStock && (
+                  <div className="mb-8">
+                    <span className="text-[8px] font-black uppercase tracking-widest text-gray-400 block mb-3">Quantity</span>
+                    <div className="inline-flex items-center border border-gray-200">
                       <button
-                        key={size}
-                        onClick={() => setSelectedSize(size)}
-                        title={soldOut ? `${size} — Out of Stock` : size}
-                        className={`relative min-w-[48px] h-11 px-3 border text-[10px] font-black uppercase tracking-widest flex items-center justify-center transition-all duration-300 rounded-[4px] overflow-hidden ${
-                          selectedSize === size
-                            ? 'border-gray-900 bg-gray-900 text-white'
-                            : soldOut
-                              ? 'border-gray-200 bg-white text-gray-400 cursor-pointer hover:border-gray-400'
-                              : 'border-gray-200 text-gray-600 hover:border-gray-900 bg-white'
+                        onClick={() => setQty(q => Math.max(1, q - 1))}
+                        className="w-11 h-11 flex items-center justify-center text-gray-400 hover:text-gray-900 hover:bg-gray-50 transition-colors"
+                      >
+                        <Minus size={12} />
+                      </button>
+                      <span className="w-12 text-center text-xs font-black text-gray-900 select-none">{qty}</span>
+                      <button
+                        onClick={() => setQty(q => Math.min(stockQty, q + 1))}
+                        className="w-11 h-11 flex items-center justify-center text-gray-400 hover:text-gray-900 hover:bg-gray-50 transition-colors"
+                      >
+                        <Plus size={12} />
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Actions */}
+                <div className="flex flex-col space-y-3 mb-10">
+                  {outOfStock ? (
+                    <div className="border border-gray-100 p-5 rounded-[4px] bg-[#F7F6F3] text-center space-y-3">
+                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-900 block">Sold Out</span>
+                      <p className="text-[8px] font-bold text-gray-500 uppercase tracking-widest leading-relaxed">
+                        This item is currently unavailable. Get notified the moment it restocks.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => openNotifyModal()}
+                        className="w-full flex items-center justify-center space-x-2 py-4 text-[10px] font-black uppercase tracking-[0.35em] bg-[#a41f22] text-white hover:bg-[#a41f22]/90 transition-all duration-300 rounded-[4px]"
+                      >
+                        <Bell size={13} />
+                        <span>Notify when Available</span>
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <button
+                        onClick={handleAddToCart}
+                        className={`w-full flex items-center justify-center space-x-3 py-4 text-[10px] font-black uppercase tracking-[0.35em] transition-all duration-300 ${
+                          cartAdded ? 'bg-cardinal text-white' : 'bg-gray-900 text-white hover:bg-cardinal'
                         }`}
                       >
-                        <span className={soldOut && selectedSize !== size ? 'opacity-50' : ''}>{size}</span>
-                        {/* OOS diagonal strikethrough */}
-                        {soldOut && (
-                          <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 48 44" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                            <line x1="4" y1="4" x2="44" y2="40" stroke="#ba1f3d" strokeWidth="1.5" strokeLinecap="round" />
-                          </svg>
-                        )}
+                        <ShoppingBag size={13} />
+                        <span>{cartAdded ? '✓ Added to bag' : 'Add to Bag'}</span>
                       </button>
-                    );
-                  })}
-                </div>
-              </div>
-            ) : (
-              <div className="mb-6 flex items-center justify-between">
-                <span className="text-[8px] font-black uppercase tracking-widest text-gray-400">One Size</span>
-                <button
-                  type="button"
-                  onClick={() => setShowSizeChart(true)}
-                  className="text-[8px] font-black uppercase tracking-widest text-cardinal hover:underline cursor-pointer focus:outline-none"
-                >
-                  Size Chart
-                </button>
-              </div>
-            )}
 
-
-
-            {/* Quantity */}
-            {!outOfStock && (
-              <div className="mb-8">
-                <span className="text-[8px] font-black uppercase tracking-widest text-gray-400 block mb-3">Quantity</span>
-                <div className="inline-flex items-center border border-gray-200">
-                  <button
-                    onClick={() => setQty(q => Math.max(1, q - 1))}
-                    className="w-11 h-11 flex items-center justify-center text-gray-400 hover:text-gray-900 hover:bg-gray-50 transition-colors"
-                  >
-                    <Minus size={12} />
-                  </button>
-                  <span className="w-12 text-center text-xs font-black text-gray-900 select-none">{qty}</span>
-                  <button
-                    onClick={() => setQty(q => Math.min(stockQty, q + 1))}
-                    className="w-11 h-11 flex items-center justify-center text-gray-400 hover:text-gray-900 hover:bg-gray-50 transition-colors"
-                  >
-                    <Plus size={12} />
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* Actions */}
-            <div className="flex flex-col space-y-3 mb-10">
-              {outOfStock ? (
-                <div className="border border-gray-100 p-5 rounded-[4px] bg-[#F7F6F3] text-center space-y-3">
-                  <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-900 block">Sold Out</span>
-                  <p className="text-[8px] font-bold text-gray-500 uppercase tracking-widest leading-relaxed">
-                    This item is currently unavailable. Get notified the moment it restocks.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => openNotifyModal()}
-                    className="w-full flex items-center justify-center space-x-2 py-4 text-[10px] font-black uppercase tracking-[0.35em] bg-[#a41f22] text-white hover:bg-[#a41f22]/90 transition-all duration-300 rounded-[4px]"
-                  >
-                    <Bell size={13} />
-                    <span>Notify when Available</span>
-                  </button>
-                </div>
-              ) : (
-                <>
-                  <button
-                    onClick={handleAddToCart}
-                    className={`w-full flex items-center justify-center space-x-3 py-4 text-[10px] font-black uppercase tracking-[0.35em] transition-all duration-300 ${
-                      cartAdded ? 'bg-cardinal text-white' : 'bg-gray-900 text-white hover:bg-cardinal'
-                    }`}
-                  >
-                    <ShoppingBag size={13} />
-                    <span>{cartAdded ? '✓ Added to bag' : 'Add to Bag'}</span>
-                  </button>
-
-                  {hasAnyOutOfStockVariant && (
-                    <button
-                      type="button"
-                      onClick={() => openNotifyModal()}
-                      className="w-full flex items-center justify-center space-x-2 py-4 text-[10px] font-black uppercase tracking-[0.35em] bg-[#a41f22] text-white hover:bg-[#a41f22]/90 transition-all duration-300 rounded-[4px]"
-                    >
-                      <Bell size={13} />
-                      <span>Notify when Available</span>
-                    </button>
+                      {hasAnyOutOfStockVariant && (
+                        <button
+                          type="button"
+                          onClick={() => openNotifyModal()}
+                          className="w-full flex items-center justify-center space-x-2 py-4 text-[10px] font-black uppercase tracking-[0.35em] bg-[#a41f22] text-white hover:bg-[#a41f22]/90 transition-all duration-300 rounded-[4px]"
+                        >
+                          <Bell size={13} />
+                          <span>Notify when Available</span>
+                        </button>
+                      )}
+                    </>
                   )}
-                </>
-              )}
+                </div>
+              </>
+            )}
 
               <div className="grid grid-cols-2 gap-3">
                 <button
@@ -1008,6 +1084,35 @@ export default function ProductPageClient({ product, allProducts = [] }) {
                 </div>
               )}
             </div>
+          </div>
+        )}
+
+        {/* Items in this Outfit — for Defined by Attitude outfits */}
+        {(isAttitudeProduct || (outfitProducts && outfitProducts.length > 0)) && (
+          <div id="outfit-items-section" className="border-t border-gray-100 pt-16 mb-20 scroll-mt-20">
+            <div className="text-center max-w-xl mx-auto mb-12 space-y-2">
+              <span className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400">
+                Complete the Look
+              </span>
+              <h2 className="text-xl md:text-2xl font-black uppercase tracking-tight text-gray-900">
+                Items in this Outfit
+              </h2>
+              <p className="text-xs text-gray-500 font-bold uppercase tracking-wider">
+                Select and shop any piece from this Lookbook outfit directly.
+              </p>
+            </div>
+
+            {outfitProducts.length > 0 ? (
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                {outfitProducts.map(item => (
+                  <ProductCard key={item.id || item._id} product={item} />
+                ))}
+              </div>
+            ) : (
+              <p className="text-center text-xs font-bold text-gray-400 uppercase tracking-widest py-8">
+                No outfit items linked to this look yet.
+              </p>
+            )}
           </div>
         )}
 

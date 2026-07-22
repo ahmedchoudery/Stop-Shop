@@ -236,52 +236,63 @@ const ProductForm = memo(({
         uploading={uploading}
       />
 
-      {/* ② Color variants — each color gets its own image gallery */}
-      <ColorsSection
-        form={form}
-        colorInput={colorInput}
-        setColorInput={setColorInput}
-        onAddColor={addColor}
-        onRemoveColor={removeColor}
-        onVariantImageUpload={handleVariantImageUpload}
-        onRemoveVariantImage={removeVariantImage}
-        onSetColorStock={setColorStock}
-        uploading={uploading}
-        hasSizes={form.sizes?.length > 0}
-      />
-
-      {/* ③ Gallery — only shown when the product has NO color variants */}
-      {form.colors?.length === 0 && (
-        <GallerySection
+      {/* Outfit Items selection for Defined by Attitude products */}
+      {form.featuredSection === 'attitude' && (
+        <OutfitItemsSection
           form={form}
-          onGalleryUpload={handleGalleryUpload}
-          onRemoveGallery={removeGalleryItem}
-          uploading={uploading}
+          setForm={setForm}
+          allProducts={allProducts}
         />
       )}
 
-      {form.bucket !== 'Accessories' && (
-        <SizesSection
-          form={form}
-          sizeInput={sizeInput}
-          setSizeInput={setSizeInput}
-          onAddSize={addSize}
-          onRemoveSize={removeSize}
-          onSetSizeStock={setSizeStock}
-          hasColors={form.colors?.length > 0}
-          subCategory={form.subCategory}
-        />
-      )}
+      {/* Standard Product Variant & Inventory sections (Hidden for Defined by Attitude outfits) */}
+      {form.featuredSection !== 'attitude' && (
+        <>
+          <ColorsSection
+            form={form}
+            colorInput={colorInput}
+            setColorInput={setColorInput}
+            onAddColor={addColor}
+            onRemoveColor={removeColor}
+            onVariantImageUpload={handleVariantImageUpload}
+            onRemoveVariantImage={removeVariantImage}
+            onSetColorStock={setColorStock}
+            uploading={uploading}
+            hasSizes={form.sizes?.length > 0}
+          />
 
-      {/* Color × Size stock matrix — shown when BOTH colors AND sizes are defined */}
-      {form.colors?.length > 0 && form.sizes?.length > 0 && (
-        <VariantMatrixSection
-          form={form}
-          onSetMatrixStock={setMatrixStock}
-        />
-      )}
+          {form.colors?.length === 0 && (
+            <GallerySection
+              form={form}
+              onGalleryUpload={handleGalleryUpload}
+              onRemoveGallery={removeGalleryItem}
+              uploading={uploading}
+            />
+          )}
 
-      <RatingSection form={form} setForm={setForm} />
+          {form.bucket !== 'Accessories' && (
+            <SizesSection
+              form={form}
+              sizeInput={sizeInput}
+              setSizeInput={setSizeInput}
+              onAddSize={addSize}
+              onRemoveSize={removeSize}
+              onSetSizeStock={setSizeStock}
+              hasColors={form.colors?.length > 0}
+              subCategory={form.subCategory}
+            />
+          )}
+
+          {form.colors?.length > 0 && form.sizes?.length > 0 && (
+            <VariantMatrixSection
+              form={form}
+              onSetMatrixStock={setMatrixStock}
+            />
+          )}
+
+          <RatingSection form={form} setForm={setForm} />
+        </>
+      )}
     </div>
   );
 });
@@ -464,95 +475,135 @@ const GallerySection = memo(({ form, onGalleryUpload, onRemoveGallery, uploading
 GallerySection.displayName = 'GallerySection';
 
 
-const BasicInfoSection = memo(({ form, setForm }) => (
-  <div className="grid grid-cols-3 gap-4">
-    <div>
-      <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Product Name *</label>
-      <input type="text" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-        placeholder="e.g. Classic Red Polo"
-        className="w-full border border-gray-200 rounded-[4px] px-4 py-3 text-sm font-bold focus:border-black outline-none transition-colors" />
-    </div>
-    <div>
-      <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Price (PKR) *</label>
-      <div className="relative">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-xs">Rs.</span>
-        <input type="number" step="0.01" value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))}
-          placeholder="0.00"
-          className="w-full border border-gray-200 rounded-[4px] pl-10 pr-4 py-3 text-sm font-bold focus:border-black outline-none transition-colors" />
+const BasicInfoSection = memo(({ form, setForm }) => {
+  const isAttitude = form.featuredSection === 'attitude';
+
+  if (isAttitude) {
+    return (
+      <div>
+        <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Outfit Name *</label>
+        <input
+          type="text"
+          value={form.name}
+          onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+          placeholder="e.g. Summer Linen & Pleated Trousers Outfit"
+          className="w-full border border-gray-200 rounded-[4px] px-4 py-3 text-sm font-bold focus:border-black outline-none transition-colors"
+        />
+        <p className="text-[9px] text-gray-400 font-bold mt-1 uppercase tracking-wider">
+          Defined by Attitude outfits display individual item cards on client page (No outfit price/variants needed).
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-3 gap-4">
+      <div>
+        <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Product Name *</label>
+        <input type="text" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+          placeholder="e.g. Classic Red Polo"
+          className="w-full border border-gray-200 rounded-[4px] px-4 py-3 text-sm font-bold focus:border-black outline-none transition-colors" />
+      </div>
+      <div>
+        <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Price (PKR) *</label>
+        <div className="relative">
+          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-xs">Rs.</span>
+          <input type="number" step="0.01" value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))}
+            placeholder="0.00"
+            className="w-full border border-gray-200 rounded-[4px] pl-10 pr-4 py-3 text-sm font-bold focus:border-black outline-none transition-colors" />
+        </div>
+      </div>
+      <div>
+        <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Discount %</label>
+        <input type="number" min="0" max="100" value={form.discount ?? 0} onChange={e => setForm(f => ({ ...f, discount: Math.min(100, Math.max(0, parseInt(e.target.value) || 0)) }))}
+          placeholder="0"
+          className="w-full border border-gray-200 rounded-[4px] px-4 py-3 text-sm font-bold focus:border-black outline-none transition-colors" />
       </div>
     </div>
-    <div>
-      <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Discount %</label>
-      <input type="number" min="0" max="100" value={form.discount ?? 0} onChange={e => setForm(f => ({ ...f, discount: Math.min(100, Math.max(0, parseInt(e.target.value) || 0)) }))}
-        placeholder="0"
-        className="w-full border border-gray-200 rounded-[4px] px-4 py-3 text-sm font-bold focus:border-black outline-none transition-colors" />
-    </div>
-  </div>
-));
+  );
+});
 
 BasicInfoSection.displayName = 'BasicInfoSection';
 
-const DescriptionSection = memo(({ form, setForm }) => (
-  <div className="bg-gray-50/50 border border-gray-200/80 rounded-xl p-5 space-y-4">
-    <div className="flex items-center space-x-2 border-b border-gray-200/60 pb-3">
-      <span className="text-[10px] font-black uppercase tracking-[0.25em] text-gray-900">
-        Editorial Tabs (Description, Materials, Care)
-      </span>
-    </div>
+const DescriptionSection = memo(({ form, setForm }) => {
+  const isAttitude = form.featuredSection === 'attitude';
 
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-      {/* 1. Description */}
-      <div>
-        <label className="block text-[10px] font-black uppercase tracking-widest text-gray-700 mb-2">
-          {form.featuredSection === 'attitude' ? 'Short Description (Lookbook) *' : 'Description'}
+  if (isAttitude) {
+    return (
+      <div className="bg-gray-50/50 border border-gray-200/80 rounded-xl p-5 space-y-3">
+        <label className="block text-[10px] font-black uppercase tracking-widest text-gray-700 mb-1">
+          Outfit Description / Editorial Overview
         </label>
         <textarea
           value={form.description || ''}
           onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-          placeholder={form.featuredSection === 'attitude'
-            ? "e.g. Lightweight linen shirt paired with pleated sand-colored trousers."
-            : "Enter custom product description..."}
+          placeholder="e.g. Lightweight linen shirt paired with pleated sand-colored trousers."
           className="w-full border border-gray-200 rounded-lg px-3.5 py-3 text-xs font-semibold focus:border-black outline-none transition-all h-28 resize-none bg-white leading-relaxed"
         />
-        <p className="text-[9px] text-gray-400 font-bold mt-1 uppercase tracking-wider">
-          Tab: Description
+        <p className="text-[9px] text-gray-400 font-bold uppercase tracking-wider">
+          Shown on outfit page above the items list.
         </p>
       </div>
+    );
+  }
 
-      {/* 2. Materials */}
-      <div>
-        <label className="block text-[10px] font-black uppercase tracking-widest text-gray-700 mb-2">
-          Materials & Composition
-        </label>
-        <textarea
-          value={form.materials || ''}
-          onChange={e => setForm(f => ({ ...f, materials: e.target.value }))}
-          placeholder="e.g. 100% Organic Heavyweight Cotton / 18K Gold Plated"
-          className="w-full border border-gray-200 rounded-lg px-3.5 py-3 text-xs font-semibold focus:border-black outline-none transition-all h-28 resize-none bg-white leading-relaxed"
-        />
-        <p className="text-[9px] text-gray-400 font-bold mt-1 uppercase tracking-wider">
-          Tab: Materials
-        </p>
+  return (
+    <div className="bg-gray-50/50 border border-gray-200/80 rounded-xl p-5 space-y-4">
+      <div className="flex items-center space-x-2 border-b border-gray-200/60 pb-3">
+        <span className="text-[10px] font-black uppercase tracking-[0.25em] text-gray-900">
+          Editorial Tabs (Description, Materials, Care)
+        </span>
       </div>
 
-      {/* 3. Care */}
-      <div>
-        <label className="block text-[10px] font-black uppercase tracking-widest text-gray-700 mb-2">
-          Care Instructions
-        </label>
-        <textarea
-          value={form.careInstructions || ''}
-          onChange={e => setForm(f => ({ ...f, careInstructions: e.target.value }))}
-          placeholder="e.g. Machine wash cold with like colors. Do not tumble dry."
-          className="w-full border border-gray-200 rounded-lg px-3.5 py-3 text-xs font-semibold focus:border-black outline-none transition-all h-28 resize-none bg-white leading-relaxed"
-        />
-        <p className="text-[9px] text-gray-400 font-bold mt-1 uppercase tracking-wider">
-          Tab: Care
-        </p>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div>
+          <label className="block text-[10px] font-black uppercase tracking-widest text-gray-700 mb-2">
+            Description
+          </label>
+          <textarea
+            value={form.description || ''}
+            onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+            placeholder="Enter custom product description..."
+            className="w-full border border-gray-200 rounded-lg px-3.5 py-3 text-xs font-semibold focus:border-black outline-none transition-all h-28 resize-none bg-white leading-relaxed"
+          />
+          <p className="text-[9px] text-gray-400 font-bold mt-1 uppercase tracking-wider">
+            Tab: Description
+          </p>
+        </div>
+
+        <div>
+          <label className="block text-[10px] font-black uppercase tracking-widest text-gray-700 mb-2">
+            Materials & Composition
+          </label>
+          <textarea
+            value={form.materials || ''}
+            onChange={e => setForm(f => ({ ...f, materials: e.target.value }))}
+            placeholder="e.g. 100% Organic Heavyweight Cotton / 18K Gold Plated"
+            className="w-full border border-gray-200 rounded-lg px-3.5 py-3 text-xs font-semibold focus:border-black outline-none transition-all h-28 resize-none bg-white leading-relaxed"
+          />
+          <p className="text-[9px] text-gray-400 font-bold mt-1 uppercase tracking-wider">
+            Tab: Materials
+          </p>
+        </div>
+
+        <div>
+          <label className="block text-[10px] font-black uppercase tracking-widest text-gray-700 mb-2">
+            Care Instructions
+          </label>
+          <textarea
+            value={form.careInstructions || ''}
+            onChange={e => setForm(f => ({ ...f, careInstructions: e.target.value }))}
+            placeholder="e.g. Machine wash cold with like colors. Do not tumble dry."
+            className="w-full border border-gray-200 rounded-lg px-3.5 py-3 text-xs font-semibold focus:border-black outline-none transition-all h-28 resize-none bg-white leading-relaxed"
+          />
+          <p className="text-[9px] text-gray-400 font-bold mt-1 uppercase tracking-wider">
+            Tab: Care
+          </p>
+        </div>
       </div>
     </div>
-  </div>
-));
+  );
+});
 
 DescriptionSection.displayName = 'DescriptionSection';
 
@@ -1051,6 +1102,171 @@ const VariantMatrixSection = memo(({ form, onSetMatrixStock }) => {
 
 VariantMatrixSection.displayName = 'VariantMatrixSection';
 
+const OutfitItemsSection = memo(({ form, setForm, allProducts = [] }) => {
+  const [selectedProductId, setSelectedProductId] = useState('');
+  const [customIdOrUrl, setCustomIdOrUrl] = useState('');
+
+  const outfitList = form.outfitProductIds || [];
+
+  // Exclude attitude outfits from selectable products
+  const availableProducts = (allProducts || []).filter(
+    p => p.featuredSection !== 'attitude'
+  );
+
+  const handleAddProduct = (prodId) => {
+    if (!prodId) return;
+    if (outfitList.includes(prodId)) return;
+    setForm(f => ({
+      ...f,
+      outfitProductIds: [...(f.outfitProductIds || []), prodId]
+    }));
+    setSelectedProductId('');
+  };
+
+  const handleAddCustom = () => {
+    let clean = customIdOrUrl.trim();
+    if (!clean) return;
+    if (clean.includes('/product/')) {
+      clean = clean.split('/product/')[1]?.split('?')[0]?.split('#')[0] || clean;
+    }
+    if (outfitList.includes(clean)) return;
+    setForm(f => ({
+      ...f,
+      outfitProductIds: [...(f.outfitProductIds || []), clean]
+    }));
+    setCustomIdOrUrl('');
+  };
+
+  const handleRemove = (idToRemove) => {
+    setForm(f => ({
+      ...f,
+      outfitProductIds: (f.outfitProductIds || []).filter(id => id !== idToRemove)
+    }));
+  };
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-4 shadow-xs">
+      <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+        <div>
+          <h3 className="text-xs font-black uppercase tracking-[0.2em] text-gray-900 flex items-center space-x-2">
+            <Link2 size={14} className="text-[#85110e]" />
+            <span>Items in this Outfit (Lookbook Catalog)</span>
+          </h3>
+          <p className="text-[10px] text-gray-500 font-medium mt-0.5">
+            Attach the individual products used in this outfit. Customers will see these product cards on the outfit page.
+          </p>
+        </div>
+        <span className="text-[10px] font-black uppercase tracking-widest bg-[#85110e]/10 text-[#85110e] px-2.5 py-1 rounded-full">
+          {outfitList.length} Items Attached
+        </span>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+        <div>
+          <label className="block text-[9px] font-black uppercase tracking-widest text-gray-500 mb-1.5">
+            Select from Catalogue
+          </label>
+          <div className="flex space-x-2">
+            <select
+              value={selectedProductId}
+              onChange={e => setSelectedProductId(e.target.value)}
+              className="flex-grow border border-gray-200 rounded-lg px-3 py-2.5 text-xs font-semibold focus:border-black outline-none bg-gray-50/50"
+            >
+              <option value="">-- Choose a product --</option>
+              {availableProducts.map(p => (
+                <option key={p.id || p._id} value={p.id || p._id}>
+                  {p.name} ({p.bucket} - Rs. {p.price})
+                </option>
+              ))}
+            </select>
+            <button
+              type="button"
+              onClick={() => handleAddProduct(selectedProductId)}
+              disabled={!selectedProductId}
+              className="px-4 py-2.5 bg-black text-white text-[10px] font-black uppercase tracking-wider rounded-lg hover:bg-black/90 disabled:opacity-40 transition-all"
+            >
+              Add
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label className="block text-[9px] font-black uppercase tracking-widest text-gray-500 mb-1.5">
+            Or Paste Product URL / ID
+          </label>
+          <div className="flex space-x-2">
+            <input
+              type="text"
+              value={customIdOrUrl}
+              onChange={e => setCustomIdOrUrl(e.target.value)}
+              placeholder="e.g. PRD-OWB4LL10A or https://.../product/PRD-123"
+              className="flex-grow border border-gray-200 rounded-lg px-3 py-2.5 text-xs font-semibold focus:border-black outline-none bg-gray-50/50"
+            />
+            <button
+              type="button"
+              onClick={handleAddCustom}
+              disabled={!customIdOrUrl.trim()}
+              className="px-4 py-2.5 bg-black text-white text-[10px] font-black uppercase tracking-wider rounded-lg hover:bg-black/90 disabled:opacity-40 transition-all"
+            >
+              Add
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {outfitList.length > 0 ? (
+        <div className="space-y-2 pt-2">
+          <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+            Attached Outfit Products:
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            {outfitList.map(itemKey => {
+              const matched = (allProducts || []).find(p => (p.id === itemKey || p._id === itemKey || p.slug === itemKey));
+              return (
+                <div key={itemKey} className="flex items-center justify-between p-2.5 bg-gray-50 border border-gray-200/80 rounded-lg">
+                  <div className="flex items-center space-x-3 min-w-0">
+                    <div className="w-9 h-9 rounded bg-gray-200 overflow-hidden flex-shrink-0">
+                      {matched?.image ? (
+                        <img src={matched.image} alt={matched.name} className="w-full h-full object-cover" />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-[7px] font-bold text-gray-400">NO IMG</div>
+                      )}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-black uppercase text-gray-900 truncate">
+                        {matched?.name || itemKey}
+                      </p>
+                      <p className="text-[9px] font-bold text-gray-400 font-mono">
+                        {matched ? `Rs. ${matched.price} · ${matched.bucket}` : `#${itemKey}`}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleRemove(itemKey)}
+                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-all"
+                    title="Remove item from outfit"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ) : (
+        <div className="p-4 bg-gray-50 border border-dashed border-gray-200 rounded-lg text-center">
+          <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+            No products attached to this outfit yet. Select products above to build the lookbook outfit!
+          </p>
+        </div>
+      )}
+    </div>
+  );
+});
+
+OutfitItemsSection.displayName = 'OutfitItemsSection';
+
 const RatingSection = memo(({ form, setForm }) => (
   <div>
     <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Rating (1–5)</label>
@@ -1243,7 +1459,9 @@ export const EMPTY_FORM = {
   displayOrder: 0,
   discount: 0,
   description: '',
+  materials: '',
   careInstructions: '',
+  outfitProductIds: [],
 };
 
 export { ProductForm };

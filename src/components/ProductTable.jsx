@@ -5,8 +5,8 @@
  * Edit opens the product form pre-filled.
  */
 
-import React, { memo } from 'react';
-import { Edit3, Trash2, AlertTriangle } from 'lucide-react';
+import React, { memo, useState } from 'react';
+import { Edit3, Trash2, AlertTriangle, Link2, Check } from 'lucide-react';
 import MediaRenderer from './MediaRenderer.jsx';
 
 const getBackgroundStyle = (color) => {
@@ -75,6 +75,7 @@ const StockBadge = ({ qty }) => {
 };
 
 const ProductTable = memo(({ products = [], onEdit, onDelete }) => {
+  const [copiedId, setCopiedId] = useState(null);
   if (!products.length) return null;
 
   return (
@@ -295,6 +296,20 @@ const ProductTable = memo(({ products = [], onEdit, onDelete }) => {
                 {/* Actions */}
                 <td className="px-5 py-4 align-top">
                   <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <button
+                      onClick={() => {
+                        const targetId = product.id || product.slug || product._id;
+                        const url = typeof window !== 'undefined' ? `${window.location.origin}/product/${targetId}` : `/product/${targetId}`;
+                        navigator.clipboard?.writeText(url);
+                        setCopiedId(targetId);
+                        setTimeout(() => setCopiedId(null), 2000);
+                      }}
+                      title="Copy product link"
+                      className="flex items-center space-x-1.5 px-2.5 py-2 bg-gray-50 border border-gray-200 text-gray-700 text-[9px] font-black uppercase tracking-widest rounded-[4px] hover:bg-black hover:text-white transition-all duration-200"
+                    >
+                      {copiedId === (product.id || product.slug || product._id) ? <Check size={11} className="text-green-500" /> : <Link2 size={11} />}
+                      <span>{copiedId === (product.id || product.slug || product._id) ? 'Copied!' : 'Link'}</span>
+                    </button>
                     <button
                       onClick={() => onEdit(product)}
                       title="Edit product — updates MongoDB"

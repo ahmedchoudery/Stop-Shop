@@ -57,6 +57,7 @@ const DEFAULT_FORM = {
   description:    '',
   materials:      '',
   careInstructions: '',
+  outfitProductIds: [],
 };
 
 // ─────────────────────────────────────────────────────────────────
@@ -190,15 +191,21 @@ const AdminProducts = () => {
 
   React.useEffect(() => { refetch(); }, [refetch]);
 
-  // Lock body scroll when Add/Edit Product drawer is open
+  // Lock body & documentElement scroll when Add/Edit Product drawer is open
   React.useEffect(() => {
     if (showForm) {
       document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+      document.body.style.touchAction = 'none';
     } else {
       document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+      document.body.style.touchAction = '';
     }
     return () => {
       document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+      document.body.style.touchAction = '';
     };
   }, [showForm]);
 
@@ -283,6 +290,7 @@ const AdminProducts = () => {
       description:    product.description    ?? '',
       materials:      product.materials      ?? '',
       careInstructions: product.careInstructions ?? '',
+      outfitProductIds: product.outfitProductIds ?? [],
     });
     setColorInput('');
     setSizeInput('');

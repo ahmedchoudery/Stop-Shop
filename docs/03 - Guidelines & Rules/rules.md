@@ -76,7 +76,7 @@ This document serves as the source of truth for coding standards, libraries allo
 - **Storefront Placement & Routing Rules**:
   - Products placed in *Pieces that speak for themselves* must display in both the *Pieces* section carousel and the main *Collection* catalog grid.
   - Products placed in *The drop you've been waiting for* must display in both *The drop* section carousel and the main *Collection* catalog grid.
-  - Products placed in *Defined by Attitude* must display in the *Defined by Attitude* editorial strip ONLY.
+  - Products placed in *Defined by Attitude* are complete outfit displays ONLY. They have NO color variants, NO size variants, NO price/discount, NO materials/care tabs, and NO base stock inputs in the admin form. Admins link individual catalog products (`outfitProductIds`) to build the outfit. On the product detail page, individual `ProductCard` components for each item in the outfit are displayed under "ITEMS IN THIS OUTFIT", allowing customers to view and purchase individual outfit items.
   - Products placed in *Collection* must display in the *Collection* catalog grid ONLY.
 - **Pieces That Speak Carousel Card Style (`PiecesCard`)**:
   - The card features a distinct light editorial theme: a warm cream background (`bg-[#FAF9F6]`), subtle gray border (`border-gray-150/70`), and inner container padding (`p-4`).

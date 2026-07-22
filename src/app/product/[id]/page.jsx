@@ -57,7 +57,8 @@ export default async function Page({ params }) {
 
   const rawProduct = await Product.findOne(query).lean();
   let rawAllProducts = [];
-  
+  let outfitProducts = [];
+
   if (rawProduct) {
     const relatedQuery = {
       bucket: rawProduct.bucket,
@@ -69,9 +70,28 @@ export default async function Page({ params }) {
       relatedQuery.featuredSection = { $ne: 'attitude' };
     }
     rawAllProducts = await Product.find(relatedQuery)
-    .select('id name price discount image bucket subCategory quantity')
-    .limit(12)
-    .lean();
+      .select('id name price discount image bucket subCategory quantity')
+      .limit(12)
+      .lean();
+
+    if (rawProduct.outfitProductIds?.length > 0 || rawProduct.featuredSection === 'attitude') {
+      let outfitQuery = {};
+      if (rawProduct.outfitProductIds?.length > 0) {
+        const ids = rawProduct.outfitProductIds;
+        const validObjectIds = ids.filter(i => mongoose.isValidObjectId(i)).map(i => new mongoose.Types.ObjectId(i));
+        outfitQuery = {
+          $or: [
+            { id: { $in: ids } },
+            { slug: { $in: ids } },
+            ...(validObjectIds.length ? [{ _id: { $in: validObjectIds } }] : [])
+          ]
+        };
+      } else {
+        outfitQuery = { featuredSection: { $ne: 'attitude' } };
+      }
+      const rawOutfitItems = await Product.find(outfitQuery).limit(8).lean();
+      outfitProducts = rawOutfitItems.map(serialize);
+    }
   }
 
   if (!rawProduct) {
@@ -128,7 +148,7 @@ export default async function Page({ params }) {
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <ProductPageClient product={product} allProducts={allProducts} />
+      <ProductPageClient product={product} allProducts={allProducts} outfitProducts={outfitProducts} />
     </>
   );
 }
