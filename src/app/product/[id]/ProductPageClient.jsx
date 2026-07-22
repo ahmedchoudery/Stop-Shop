@@ -226,18 +226,18 @@ export default function ProductPageClient({ product, allProducts = [] }) {
   const [qty, setQty] = useState(1);
 
   const availableTabs = [
-    product?.description?.trim() && 'description',
-    product?.careInstructions?.trim() && 'care instructions',
-    product?.bucket !== 'Accessories' && 'sizing'
+    product?.description?.trim() && 'Description',
+    product?.materials?.trim() && 'Materials',
+    product?.careInstructions?.trim() && 'Care'
   ].filter(Boolean);
 
-  const [activeTab, setActiveTab] = useState(availableTabs[0] || 'description');
+  const [activeTab, setActiveTab] = useState(availableTabs[0] || 'Description');
 
   useEffect(() => {
     if (availableTabs.length > 0 && !availableTabs.includes(activeTab)) {
       setActiveTab(availableTabs[0]);
     }
-  }, [product?.description, product?.careInstructions, product?.bucket, activeTab]);
+  }, [product?.description, product?.materials, product?.careInstructions, activeTab]);
 
   const [showSizeChart, setShowSizeChart] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
@@ -971,7 +971,7 @@ export default function ProductPageClient({ product, allProducts = [] }) {
 
         </div>
 
-        {/* Dynamic Editorial Content Tabs — strictly render only when admin has provided content */}
+        {/* Dynamic Editorial Content Tabs — Description, Materials, Care (strictly only when admin has provided content) */}
         {availableTabs.length > 0 && (
           <div className="border-t border-gray-100 pt-16 mb-20">
             <div className="flex items-center space-x-8 border-b border-gray-100 mb-8 overflow-x-auto scrollbar-hide">
@@ -992,19 +992,19 @@ export default function ProductPageClient({ product, allProducts = [] }) {
             </div>
 
             <div className="max-w-3xl">
-              {activeTab === 'description' && product.description?.trim() && (
+              {activeTab === 'Description' && product.description?.trim() && (
                 <div className="text-sm text-gray-600 leading-relaxed uppercase tracking-wider font-bold">
                   {product.description}
                 </div>
               )}
-              {activeTab === 'care instructions' && product.careInstructions?.trim() && (
+              {activeTab === 'Materials' && product.materials?.trim() && (
                 <div className="text-sm text-gray-600 leading-relaxed uppercase tracking-wider font-bold">
-                  {product.careInstructions}
+                  {product.materials}
                 </div>
               )}
-              {activeTab === 'sizing' && product.bucket !== 'Accessories' && (
-                <div className="text-xs text-gray-500 uppercase tracking-widest leading-relaxed">
-                  Standard fitting. Fits true to size. We recommend selecting your standard waist/chest sizing. Refer to the size chart near the size options for exact measurements.
+              {activeTab === 'Care' && product.careInstructions?.trim() && (
+                <div className="text-sm text-gray-600 leading-relaxed uppercase tracking-wider font-bold">
+                  {product.careInstructions}
                 </div>
               )}
             </div>

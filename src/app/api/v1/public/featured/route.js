@@ -28,7 +28,7 @@ export const GET = withRoute({
     }
 
     const featuredProducts = await Product.find(filter)
-      .select('id name price discount image colors sizes bucket subCategory quantity isNew createdAt specs sizeStock colorStock variantMatrix lifestyleImage variantImages gallery featuredSection displayOrder description careInstructions')
+      .select('id name price discount image colors sizes bucket subCategory quantity isNew createdAt specs sizeStock colorStock variantMatrix lifestyleImage variantImages gallery featuredSection displayOrder description materials careInstructions')
       .lean();
 
     const formatted = featuredProducts.map((p) => ({

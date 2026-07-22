@@ -106,6 +106,7 @@ export const syncInventory = async (product, moveType = 'ADMIN_UPDATE', note = '
           displayOrder:    product.displayOrder ?? 0,
           sectionName:  product.sectionName || 'Collection',
           description:  product.description || '',
+          materials:    product.materials || '',
           careInstructions: product.careInstructions || '',
           ...timeFields,
         },

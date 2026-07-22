@@ -53,6 +53,7 @@ const productSchema = new mongoose.Schema({
   displayOrder:    { type: Number, default: 0, min: 0 },
   discount:        { type: Number, default: 0, min: 0, max: 100 },
   description:     { type: String, default: '' },
+  materials:       { type: String, default: '' },
   careInstructions: { type: String, default: '' },
   slug:             { type: String, unique: true, sparse: true, index: true },
   categories:       [{ type: String, index: true }],

@@ -55,6 +55,7 @@ const DEFAULT_FORM = {
   displayOrder:    0,
   discount:       0,
   description:    '',
+  materials:      '',
   careInstructions: '',
 };
 
@@ -280,6 +281,7 @@ const AdminProducts = () => {
       displayOrder:    product.displayOrder    ?? 0,
       discount:        product.discount        ?? 0,
       description:    product.description    ?? '',
+      materials:      product.materials      ?? '',
       careInstructions: product.careInstructions ?? '',
     });
     setColorInput('');

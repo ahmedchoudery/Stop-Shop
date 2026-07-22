@@ -68,6 +68,7 @@ export const createProductSchema = z.object({
   sectionName:     z.string().optional(),
   displayOrder:    z.number().int().nonnegative().optional().default(0),
   description:     z.string().max(10000).optional().default(''),
+  materials:       z.string().max(10000).optional().default(''),
   careInstructions: z.string().max(10000).optional().default(''),
 });
 

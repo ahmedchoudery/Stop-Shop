@@ -493,30 +493,63 @@ const BasicInfoSection = memo(({ form, setForm }) => (
 BasicInfoSection.displayName = 'BasicInfoSection';
 
 const DescriptionSection = memo(({ form, setForm }) => (
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-    <div>
-      <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">
-        {form.featuredSection === 'attitude' ? 'Short Description (Lookbook Editorial) *' : 'Product Description'}
-      </label>
-      <textarea
-        value={form.description || ''}
-        onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-        placeholder={form.featuredSection === 'attitude'
-          ? "e.g. Lightweight linen shirt paired with pleated sand-colored trousers."
-          : "Enter product description details..."}
-        className="w-full border border-gray-200 rounded-[4px] px-4 py-3 text-sm font-bold focus:border-black outline-none transition-colors h-28 resize-none"
-      />
+  <div className="bg-gray-50/50 border border-gray-200/80 rounded-xl p-5 space-y-4">
+    <div className="flex items-center space-x-2 border-b border-gray-200/60 pb-3">
+      <span className="text-[10px] font-black uppercase tracking-[0.25em] text-gray-900">
+        Editorial Tabs (Description, Materials, Care)
+      </span>
     </div>
-    <div>
-      <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">
-        Care Instructions (optional)
-      </label>
-      <textarea
-        value={form.careInstructions || ''}
-        onChange={e => setForm(f => ({ ...f, careInstructions: e.target.value }))}
-        placeholder="e.g. Dry clean recommended. Machine wash cold with like colors."
-        className="w-full border border-gray-200 rounded-[4px] px-4 py-3 text-sm font-bold focus:border-black outline-none transition-colors h-28 resize-none"
-      />
+
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+      {/* 1. Description */}
+      <div>
+        <label className="block text-[10px] font-black uppercase tracking-widest text-gray-700 mb-2">
+          {form.featuredSection === 'attitude' ? 'Short Description (Lookbook) *' : 'Description'}
+        </label>
+        <textarea
+          value={form.description || ''}
+          onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+          placeholder={form.featuredSection === 'attitude'
+            ? "e.g. Lightweight linen shirt paired with pleated sand-colored trousers."
+            : "Enter custom product description..."}
+          className="w-full border border-gray-200 rounded-lg px-3.5 py-3 text-xs font-semibold focus:border-black outline-none transition-all h-28 resize-none bg-white leading-relaxed"
+        />
+        <p className="text-[9px] text-gray-400 font-bold mt-1 uppercase tracking-wider">
+          Tab: Description
+        </p>
+      </div>
+
+      {/* 2. Materials */}
+      <div>
+        <label className="block text-[10px] font-black uppercase tracking-widest text-gray-700 mb-2">
+          Materials & Composition
+        </label>
+        <textarea
+          value={form.materials || ''}
+          onChange={e => setForm(f => ({ ...f, materials: e.target.value }))}
+          placeholder="e.g. 100% Organic Heavyweight Cotton / 18K Gold Plated"
+          className="w-full border border-gray-200 rounded-lg px-3.5 py-3 text-xs font-semibold focus:border-black outline-none transition-all h-28 resize-none bg-white leading-relaxed"
+        />
+        <p className="text-[9px] text-gray-400 font-bold mt-1 uppercase tracking-wider">
+          Tab: Materials
+        </p>
+      </div>
+
+      {/* 3. Care */}
+      <div>
+        <label className="block text-[10px] font-black uppercase tracking-widest text-gray-700 mb-2">
+          Care Instructions
+        </label>
+        <textarea
+          value={form.careInstructions || ''}
+          onChange={e => setForm(f => ({ ...f, careInstructions: e.target.value }))}
+          placeholder="e.g. Machine wash cold with like colors. Do not tumble dry."
+          className="w-full border border-gray-200 rounded-lg px-3.5 py-3 text-xs font-semibold focus:border-black outline-none transition-all h-28 resize-none bg-white leading-relaxed"
+        />
+        <p className="text-[9px] text-gray-400 font-bold mt-1 uppercase tracking-wider">
+          Tab: Care
+        </p>
+      </div>
     </div>
   </div>
 ));
