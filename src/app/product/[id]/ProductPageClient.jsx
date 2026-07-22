@@ -168,64 +168,6 @@ const RelatedProducts = ({ currentId, category, subCategory, allProducts = [] })
   );
 };
 
-/** Returns the single thumbnail URL for a color (first image in the array, or legacy string). */
-const getVariantImage = (product, color) => {
-  if (!color) return null;
-
-  if (product.variantImages) {
-    const imagesObj = product.variantImages instanceof Map
-      ? Object.fromEntries(product.variantImages)
-      : product.variantImages;
-
-    if (typeof imagesObj === 'object') {
-      const searchColor = color.trim().toLowerCase();
-      const searchParts = searchColor.split('|').map(p => p.trim());
-      const searchHex = searchParts[0];
-      const searchName = searchParts[1] || '';
-
-      let matchedVal = null;
-      if (imagesObj[color]) matchedVal = imagesObj[color];
-
-      if (!matchedVal) {
-        for (const [key, val] of Object.entries(imagesObj)) {
-          const keyLower = key.trim().toLowerCase();
-          if (keyLower === searchColor) { matchedVal = val; break; }
-
-          const keyParts = keyLower.split('|').map(p => p.trim());
-          const keyHex = keyParts[0];
-          const keyName = keyParts[1] || '';
-
-          if (searchHex && keyHex === searchHex) { matchedVal = val; break; }
-          if (searchName && keyName && keyName === searchName) { matchedVal = val; break; }
-          if (keyLower === searchHex || keyLower === searchName) { matchedVal = val; break; }
-        }
-      }
-
-      // matchedVal may be an array (new) or a string (legacy)
-      const img = Array.isArray(matchedVal) ? matchedVal[0] : matchedVal;
-      if (img && typeof img === 'string' && img.trim() !== '') {
-        return img;
-      }
-    }
-  }
-
-  // Sequential fallback to gallery images based on color index
-  if (product.colors && Array.isArray(product.colors)) {
-    const colorIndex = product.colors.findIndex(c => c.trim().toLowerCase() === color.trim().toLowerCase());
-    if (colorIndex === 0) {
-      return product.image;
-    }
-    if (colorIndex > 0 && product.gallery && Array.isArray(product.gallery)) {
-      const galleryImg = product.gallery[colorIndex - 1];
-      if (galleryImg && typeof galleryImg === 'string' && galleryImg.trim() !== '') {
-        return galleryImg;
-      }
-    }
-  }
-
-  return null;
-};
-
 /** Returns the full image array for a color (for detail-page gallery). */
 const getVariantImages = (product, color) => {
   if (!color) return null;
@@ -622,7 +564,8 @@ export default function ProductPageClient({ product, allProducts = [], outfitPro
   };
 
   return (
-    <div className="bg-white min-h-screen pt-4 pb-24">
+    <>
+      <div className="bg-white min-h-screen pt-4 pb-24">
       <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16">
         
         {/* Navigation Breadcrumb */}
@@ -1487,6 +1430,6 @@ export default function ProductPageClient({ product, allProducts = [], outfitPro
         </div>,
         document.body
       )}
-    </div>
+    </>
   );
 }
