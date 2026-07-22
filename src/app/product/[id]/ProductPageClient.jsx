@@ -220,12 +220,25 @@ export default function ProductPageClient({ product, allProducts = [] }) {
   const { addToCart, openDrawer } = useCart();
   const { toggleWishlist, isWishlisted } = useWishlist();
   const { formatPrice } = useCurrency();
-  const navigate = useNavigate();
 
   const [selectedColor, setSelectedColor] = useState(product?.colors?.[0] ?? '');
   const [selectedSize, setSelectedSize] = useState(product?.sizes?.length === 1 ? product.sizes[0] : '');
   const [qty, setQty] = useState(1);
-  const [activeTab, setActiveTab] = useState('description');
+
+  const availableTabs = [
+    product?.description?.trim() && 'description',
+    product?.careInstructions?.trim() && 'care instructions',
+    product?.bucket !== 'Accessories' && 'sizing'
+  ].filter(Boolean);
+
+  const [activeTab, setActiveTab] = useState(availableTabs[0] || 'description');
+
+  useEffect(() => {
+    if (availableTabs.length > 0 && !availableTabs.includes(activeTab)) {
+      setActiveTab(availableTabs[0]);
+    }
+  }, [product?.description, product?.careInstructions, product?.bucket, activeTab]);
+
   const [showSizeChart, setShowSizeChart] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
 
@@ -958,47 +971,45 @@ export default function ProductPageClient({ product, allProducts = [] }) {
 
         </div>
 
-        {/* Dynamic Editorial Content Tabs */}
-        <div className="border-t border-gray-100 pt-16 mb-20">
-          <div className="flex items-center space-x-8 border-b border-gray-100 mb-8 overflow-x-auto scrollbar-hide">
-            {['description', 'care instructions', product.bucket !== 'Accessories' && 'sizing'].filter(Boolean).map(tab => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={`pb-4 text-[10px] font-black uppercase tracking-[0.3em] relative transition-colors duration-300 ${
-                  activeTab === tab ? 'text-gray-900' : 'text-gray-400 hover:text-gray-600'
-                }`}
-              >
-                <span>{tab}</span>
-                {activeTab === tab && (
-                  <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-cardinal" />
-                )}
-              </button>
-            ))}
-          </div>
+        {/* Dynamic Editorial Content Tabs — strictly render only when admin has provided content */}
+        {availableTabs.length > 0 && (
+          <div className="border-t border-gray-100 pt-16 mb-20">
+            <div className="flex items-center space-x-8 border-b border-gray-100 mb-8 overflow-x-auto scrollbar-hide">
+              {availableTabs.map(tab => (
+                <button
+                  key={tab}
+                  onClick={() => setActiveTab(tab)}
+                  className={`pb-4 text-[10px] font-black uppercase tracking-[0.3em] relative transition-colors duration-300 ${
+                    activeTab === tab ? 'text-gray-900' : 'text-gray-400 hover:text-gray-600'
+                  }`}
+                >
+                  <span>{tab}</span>
+                  {activeTab === tab && (
+                    <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-cardinal" />
+                  )}
+                </button>
+              ))}
+            </div>
 
-          <div className="max-w-3xl">
-            {activeTab === 'description' && (
-              <div className="text-sm text-gray-600 leading-relaxed uppercase tracking-wider font-bold">
-                {product.description || (product.bucket === 'Accessories'
-                  ? 'Premium, custom-crafted accessory engineered with the finest detailing, offering an exceptional luxury structure.'
-                  : 'Premium, custom-crafted apparel engineered with the finest detailing, offering an exceptional luxury structure.')}
-              </div>
-            )}
-            {activeTab === 'care instructions' && (
-              <div className="text-sm text-gray-600 leading-relaxed uppercase tracking-wider font-bold">
-                {product.careInstructions || (product.bucket === 'Accessories'
-                  ? 'Handle with care. Avoid direct contact with water, perfume, and harsh chemicals. Store in a dry place.'
-                  : 'Dry clean recommended. Alternately, hand wash cold inside out. Lay flat to dry.')}
-              </div>
-            )}
-            {activeTab === 'sizing' && product.bucket !== 'Accessories' && (
-              <div className="text-xs text-gray-500 uppercase tracking-widest leading-relaxed">
-                Standard fitting. Fits true to size. We recommend selecting your standard waist/chest sizing. Refer to the size chart near the size options for exact measurements.
-              </div>
-            )}
+            <div className="max-w-3xl">
+              {activeTab === 'description' && product.description?.trim() && (
+                <div className="text-sm text-gray-600 leading-relaxed uppercase tracking-wider font-bold">
+                  {product.description}
+                </div>
+              )}
+              {activeTab === 'care instructions' && product.careInstructions?.trim() && (
+                <div className="text-sm text-gray-600 leading-relaxed uppercase tracking-wider font-bold">
+                  {product.careInstructions}
+                </div>
+              )}
+              {activeTab === 'sizing' && product.bucket !== 'Accessories' && (
+                <div className="text-xs text-gray-500 uppercase tracking-widest leading-relaxed">
+                  Standard fitting. Fits true to size. We recommend selecting your standard waist/chest sizing. Refer to the size chart near the size options for exact measurements.
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Product Reviews */}
         <ProductReviews productId={product.id} />
