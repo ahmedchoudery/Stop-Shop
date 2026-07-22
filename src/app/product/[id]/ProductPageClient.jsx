@@ -925,7 +925,7 @@ export default function ProductPageClient({ product, allProducts = [], outfitPro
               </>
             )}
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-3 mb-6">
                 <button
                   onClick={() => toggleWishlist(product)}
                   className={`border py-3.5 text-[9px] font-black uppercase tracking-[0.25em] flex items-center justify-center space-x-2 transition-all duration-300 ${
@@ -945,22 +945,21 @@ export default function ProductPageClient({ product, allProducts = [], outfitPro
                   <span>{copied ? 'Copied' : 'Share Link'}</span>
                 </button>
               </div>
-            </div>
 
-            {/* Trust Features */}
-            <div className="grid grid-cols-2 gap-y-4 gap-x-6 border-t border-gray-100 pt-8">
-              {TRUST.map(({ Icon, label, sub }) => (
-                <div key={label} className="flex items-start space-x-3">
-                  <div className="w-8 h-8 border border-gray-100 flex items-center justify-center flex-shrink-0">
-                    <Icon size={12} className="text-cardinal" />
+              {/* Trust Features */}
+              <div className="grid grid-cols-2 gap-y-4 gap-x-6 border-t border-gray-100 pt-8 mt-2">
+                {TRUST.map(({ Icon, label, sub }) => (
+                  <div key={label} className="flex items-start space-x-3">
+                    <div className="w-8 h-8 border border-gray-100 flex items-center justify-center flex-shrink-0">
+                      <Icon size={12} className="text-cardinal" />
+                    </div>
+                    <div>
+                      <h4 className="text-[10px] font-black uppercase tracking-wide text-gray-800">{label}</h4>
+                      <p className="text-[8px] text-gray-400 font-bold tracking-wider mt-0.5 uppercase">{sub}</p>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="text-[10px] font-black uppercase tracking-wide text-gray-800">{label}</h4>
-                    <p className="text-[8px] text-gray-400 font-bold tracking-wider mt-0.5 uppercase">{sub}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
 
           </div>
 
@@ -988,17 +987,17 @@ export default function ProductPageClient({ product, allProducts = [], outfitPro
 
             <div className="max-w-3xl">
               {activeTab === 'Description' && product.description?.trim() && (
-                <div className="text-sm text-gray-600 leading-relaxed uppercase tracking-wider font-bold">
+                <div className="text-sm text-gray-700 leading-relaxed tracking-normal font-normal whitespace-pre-line">
                   {product.description}
                 </div>
               )}
               {activeTab === 'Materials' && product.materials?.trim() && (
-                <div className="text-sm text-gray-600 leading-relaxed uppercase tracking-wider font-bold">
+                <div className="text-sm text-gray-700 leading-relaxed tracking-normal font-normal whitespace-pre-line">
                   {product.materials}
                 </div>
               )}
               {activeTab === 'Care' && product.careInstructions?.trim() && (
-                <div className="text-sm text-gray-600 leading-relaxed uppercase tracking-wider font-bold">
+                <div className="text-sm text-gray-700 leading-relaxed tracking-normal font-normal whitespace-pre-line">
                   {product.careInstructions}
                 </div>
               )}
