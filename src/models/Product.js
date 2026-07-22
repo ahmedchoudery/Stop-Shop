@@ -25,7 +25,7 @@ const productSchema = new mongoose.Schema({
           Tops:        ['Shirts', 'T-Shirts', 'Polos', 'Sweatshirts', 'Hoodies', 'Jackets', 'Tank-Tops'],
           Bottoms:     ['Jeans', 'Trousers', 'Shorts'],
           Footwear:    ['Shoes', 'Slippers', 'Socks'],
-          Accessories: ['Watches', 'Chains', 'Bags', 'Caps'],
+          Accessories: ['Watches', 'Chains', 'Rings', 'Bracelets', 'Cuffs', 'Wallets', 'Bags', 'Caps', 'Shawls', 'Mufflers'],
           Outfit:      ['Outfit'],
         };
         // If there's a bucket defined, validate against that bucket's options, otherwise allow any from all buckets
