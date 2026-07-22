@@ -1,12 +1,12 @@
 "use client";
 
 /**
- * @fileoverview MobileDrawer.jsx — Premium iOS-Native & Editorial Edition
- * Theme: Warm Bone background, clean typography, 44px touch targets, momentum scroll, and spring scaling active states.
+ * @fileoverview MobileDrawer.jsx — Ultra-Luxury Editorial Edition
+ * Focuses exclusively on Collections navigation and Customer Login button.
  */
 
 import React, { useEffect, useState } from 'react';
-import { X, MapPin, ChevronRight, ChevronLeft, Search, Package, RotateCcw, MessageCircle, User, LogOut } from 'lucide-react';
+import { X, ChevronRight, ChevronLeft, User, LogOut } from 'lucide-react';
 import { Link, useNavigate } from '../utils/router-compat.jsx';
 import { useCart } from '../context/CartContext.tsx';
 import { useCustomer } from '../context/CustomerContext.jsx';
@@ -64,20 +64,13 @@ const MobileDrawer = ({ isOpen, onClose }) => {
     }, 300);
   };
 
-  const QUICK_LINKS = [
-    { label: 'Search Products',   icon: Search,        action: () => { navigate('/search'); onClose(); } },
-    { label: 'Track My Order',    icon: Package,        action: () => { navigate('/track'); onClose(); } },
-    { label: 'Returns & Exchange',icon: RotateCcw,      action: () => { navigate('/returns'); onClose(); } },
-    { label: 'WhatsApp Us',       icon: MessageCircle,  action: () => { window.open('https://wa.me/923068458655', '_blank'); onClose(); } },
-  ];
-
   if (!shouldRender) return null;
 
   return (
     <>
       {/* Backdrop */}
       <div
-        className={`fixed inset-0 bg-black/30 backdrop-blur-xs z-[150] transition-opacity duration-300 ${
+        className={`fixed inset-0 bg-black/40 backdrop-blur-xs z-[150] transition-opacity duration-300 ${
           isAnimating ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`}
         onClick={onClose}
@@ -86,7 +79,7 @@ const MobileDrawer = ({ isOpen, onClose }) => {
       {/* Drawer panel — premium iOS slide-up bottom sheet on mobile, side panel on tablet/desktop */}
       <div
         className={`fixed z-[151] bg-[#F7F6F3] shadow-2xl transition-transform duration-500 ease-out flex flex-col pointer-events-auto
-          bottom-0 left-0 w-full h-[82vh] border-t border-gray-200 rounded-t-[30px] pb-safe
+          bottom-0 left-0 w-full h-[80vh] border-t border-gray-200 rounded-t-[30px] pb-safe
           sm:top-0 sm:left-0 sm:h-full sm:w-[380px] sm:border-r sm:border-t-0 sm:rounded-none sm:pb-0
           ${isAnimating ? 'translate-y-0 sm:translate-x-0' : 'translate-y-full sm:-translate-x-full sm:translate-y-0'}`}
         style={{
@@ -102,14 +95,14 @@ const MobileDrawer = ({ isOpen, onClose }) => {
           {activeCategoryView ? (
             <button
               onClick={() => setActiveCategoryView(null)}
-              className="flex items-center space-x-2 text-gray-600 hover:text-black transition-colors font-black uppercase tracking-tighter active-scale min-h-[44px] px-2"
+              className="flex items-center space-x-2 text-gray-700 hover:text-black transition-colors font-black uppercase tracking-tight active-scale min-h-[44px] px-2"
             >
               <ChevronLeft size={18} />
               <span className="text-sm">Back</span>
             </button>
           ) : (
             <Link to="/" onClick={onClose} className="flex items-center space-x-2.5 min-h-[44px] px-2">
-              <span className="text-lg font-black italic uppercase tracking-tighter text-cardinal">
+              <span className="text-lg font-black italic uppercase tracking-tighter text-[#85110e]">
                 Stop<span className="not-italic text-black/80">&</span>Shop
               </span>
             </Link>
@@ -129,17 +122,17 @@ const MobileDrawer = ({ isOpen, onClose }) => {
           {/* Main Categories View */}
           <div className={`absolute inset-0 transition-transform duration-300 ${activeCategoryView ? '-translate-x-full' : 'translate-x-0'}`}>
             <div className="px-6 py-6">
-              <p className="text-[9px] font-black uppercase tracking-[0.5em] text-gray-400 mb-4 px-2">
+              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400 mb-4 px-2">
                 Collections
               </p>
-              <ul className="space-y-1">
+              <ul className="space-y-1.5">
                 <li>
                   <button
                     onClick={() => handleSubCategoryClick('All')}
-                    className="w-full flex items-center justify-between min-h-[44px] py-3.5 px-4 text-sm font-black uppercase tracking-tight text-gray-800 hover:text-black hover:bg-black/5 active-scale transition-all duration-200 text-left group rounded-xl"
+                    className="w-full flex items-center justify-between min-h-[48px] py-3.5 px-4 text-sm font-black uppercase tracking-wider text-gray-900 hover:bg-gray-200/50 active-scale transition-all duration-200 text-left group rounded-xl border border-transparent hover:border-gray-200"
                   >
                     <span>All Products</span>
-                    <ChevronRight size={15} className="text-gray-400 group-hover:text-black group-hover:translate-x-0.5 transition-all" />
+                    <ChevronRight size={16} className="text-gray-400 group-hover:text-black group-hover:translate-x-0.5 transition-all" />
                   </button>
                 </li>
 
@@ -147,34 +140,11 @@ const MobileDrawer = ({ isOpen, onClose }) => {
                   <li key={cat}>
                     <button
                       onClick={() => handleCategorySelect(cat)}
-                      className="w-full flex items-center justify-between min-h-[44px] py-3.5 px-4 text-sm font-black uppercase tracking-tight text-gray-500 hover:text-black hover:bg-black/5 active-scale transition-all duration-200 text-left group rounded-xl"
-                      style={{ transitionDelay: `${i * 20}ms` }}
+                      className="w-full flex items-center justify-between min-h-[48px] py-3.5 px-4 text-sm font-black uppercase tracking-wider text-gray-600 hover:text-gray-900 hover:bg-gray-200/50 active-scale transition-all duration-200 text-left group rounded-xl border border-transparent hover:border-gray-200"
+                      style={{ transitionDelay: `${i * 25}ms` }}
                     >
                       <span>{cat}</span>
-                      <ChevronRight size={15} className="text-gray-400 group-hover:text-black group-hover:translate-x-0.5 transition-all" />
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            </div>
-
-            {/* Divider */}
-            <div className="mx-8 h-px bg-gray-200/60" />
-
-            {/* Quick links */}
-            <div className="px-6 py-6">
-              <p className="text-[9px] font-black uppercase tracking-[0.5em] text-gray-400 mb-4 px-2">
-                Quick Links
-              </p>
-              <ul className="space-y-1">
-                {QUICK_LINKS.map(({ label, icon: Icon, action }) => (
-                  <li key={label}>
-                    <button
-                      onClick={action}
-                      className="w-full flex items-center space-x-3.5 min-h-[44px] py-3.5 px-4 text-xs font-black uppercase tracking-tight text-gray-500 hover:text-black hover:bg-black/5 active-scale transition-all duration-200 text-left group rounded-xl"
-                    >
-                      <Icon size={15} className="text-gray-400 group-hover:text-black transition-colors flex-shrink-0" />
-                      <span>{label}</span>
+                      <ChevronRight size={16} className="text-gray-400 group-hover:text-black group-hover:translate-x-0.5 transition-all" />
                     </button>
                   </li>
                 ))}
@@ -185,14 +155,14 @@ const MobileDrawer = ({ isOpen, onClose }) => {
           {/* Sub-Categories View */}
           <div className={`absolute inset-0 transition-transform duration-300 ${activeCategoryView ? 'translate-x-0' : 'translate-x-full'}`}>
             <div className="px-6 py-6">
-              <p className="text-[9px] font-black uppercase tracking-[0.5em] text-gray-400 mb-4 px-2">
+              <p className="text-[10px] font-black uppercase tracking-[0.4em] text-gray-400 mb-4 px-2">
                 {activeCategoryView}
               </p>
-              <ul className="space-y-1">
+              <ul className="space-y-1.5">
                 <li>
                   <button
                     onClick={() => handleSubCategoryClick(activeCategoryView)}
-                    className="w-full flex items-center justify-between min-h-[44px] py-3.5 px-4 text-sm font-black uppercase tracking-tight text-gray-800 hover:bg-black/5 active-scale transition-all duration-200 text-left rounded-xl"
+                    className="w-full flex items-center justify-between min-h-[48px] py-3.5 px-4 text-sm font-black uppercase tracking-wider text-gray-900 hover:bg-gray-200/50 active-scale transition-all duration-200 text-left rounded-xl border border-transparent hover:border-gray-200"
                   >
                     <span>Shop All {activeCategoryView}</span>
                   </button>
@@ -201,7 +171,7 @@ const MobileDrawer = ({ isOpen, onClose }) => {
                   <li key={sub}>
                     <button
                       onClick={() => handleSubCategoryClick(activeCategoryView, sub)}
-                      className="w-full flex items-center justify-between min-h-[44px] py-3.5 px-4 text-sm font-black uppercase tracking-tight text-gray-500 hover:text-black hover:bg-black/5 active-scale transition-all duration-200 text-left rounded-xl"
+                      className="w-full flex items-center justify-between min-h-[48px] py-3.5 px-4 text-sm font-black uppercase tracking-wider text-gray-600 hover:text-gray-900 hover:bg-gray-200/50 active-scale transition-all duration-200 text-left rounded-xl border border-transparent hover:border-gray-200"
                       style={{ transitionDelay: `${i * 20}ms` }}
                     >
                       <span>{sub}</span>
@@ -214,71 +184,46 @@ const MobileDrawer = ({ isOpen, onClose }) => {
         </div>
 
         {/* Footer */}
-        <div className="flex-shrink-0 border-t border-gray-200/60 px-6 py-5 bg-[#F7F6F3] z-10 space-y-4 rounded-t-xl">
-
-          {/* Account */}
-          <div className="border-b border-gray-200/60 pb-4">
-            {isLoggedIn ? (
-              <div className="flex items-center justify-between min-h-[44px]">
-                <Link
-                  to="/account"
-                  onClick={onClose}
-                  className="flex items-center space-x-3 group active-scale"
-                >
-                  <div className="w-11 h-11 bg-gray-200/60 border border-gray-300/40 text-gray-600 flex items-center justify-center rounded-full group-hover:border-black/30 group-hover:text-black transition-all">
-                    <User size={16} strokeWidth={2.5} />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-900 truncate max-w-[130px] group-hover:text-black transition-colors">
-                      {customer?.name}
-                    </p>
-                    <p className="text-[8px] text-gray-400 font-bold tracking-wider mt-0.5 uppercase">
-                      My Account
-                    </p>
-                  </div>
-                </Link>
-                <button
-                  onClick={() => { logout(); onClose(); }}
-                  className="flex items-center space-x-1.5 min-h-[44px] px-4 py-2 border border-gray-200 text-gray-500 text-[9px] font-black uppercase tracking-widest hover:text-black hover:border-black/30 hover:bg-black/5 active-scale rounded-xl transition-all"
-                >
-                  <LogOut size={11} strokeWidth={2.5} />
-                  <span>Sign Out</span>
-                </button>
-              </div>
-            ) : (
-              <button
-                onClick={() => { navigate('/account/login'); onClose(); }}
-                className="w-full flex items-center justify-center space-x-2 bg-black text-white min-h-[44px] py-3.5 text-[10px] font-black uppercase tracking-[0.25em] active-scale rounded-xl transition-all hover:bg-black/90"
+        <div className="flex-shrink-0 border-t border-gray-200/80 px-6 py-6 bg-[#F7F6F3] z-10 space-y-4">
+          {isLoggedIn ? (
+            <div className="flex items-center justify-between min-h-[48px]">
+              <Link
+                to="/account"
+                onClick={onClose}
+                className="flex items-center space-x-3 group active-scale"
               >
-                <User size={13} strokeWidth={2.5} />
-                <span>Customer Login</span>
+                <div className="w-11 h-11 bg-[#85110e]/10 border border-[#85110e]/20 text-[#85110e] flex items-center justify-center rounded-full group-hover:bg-[#85110e] group-hover:text-white transition-all">
+                  <User size={16} strokeWidth={2.5} />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-900 truncate max-w-[130px] group-hover:text-[#85110e] transition-colors">
+                    {customer?.name}
+                  </p>
+                  <p className="text-[8px] text-gray-400 font-bold tracking-wider mt-0.5 uppercase">
+                    My Account
+                  </p>
+                </div>
+              </Link>
+              <button
+                onClick={() => { logout(); onClose(); }}
+                className="flex items-center space-x-1.5 min-h-[44px] px-4 py-2 border border-gray-300 text-gray-600 text-[9px] font-black uppercase tracking-widest hover:text-[#85110e] hover:border-[#85110e]/40 hover:bg-[#85110e]/5 active-scale rounded-xl transition-all"
+              >
+                <LogOut size={11} strokeWidth={2.5} />
+                <span>Sign Out</span>
               </button>
-            )}
-          </div>
-
-          {/* Location */}
-          <a
-            href="https://www.google.com/maps/search/Zaib+Market+Gujrat+Punjab"
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={onClose}
-            className="flex items-center space-x-3 group min-h-[44px] py-2 px-3 rounded-xl hover:bg-black/5 active-scale transition-all duration-300"
-          >
-            <div className="p-2 border border-gray-200 rounded-lg group-hover:border-black/30 group-hover:bg-black/5 transition-all duration-300">
-              <MapPin size={16} className="text-gray-500 group-hover:text-black transition-colors" />
             </div>
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-gray-600 group-hover:text-black transition-colors">
-                Find Our Store
-              </p>
-              <p className="text-[9px] font-bold text-gray-400 mt-0.5">
-                Zaib Market, Gujrat
-              </p>
-            </div>
-          </a>
+          ) : (
+            <button
+              onClick={() => { navigate('/account/login'); onClose(); }}
+              className="w-full flex items-center justify-center space-x-2.5 bg-[#85110e] hover:bg-[#6e0e0b] text-white min-h-[48px] py-4 text-[10px] font-black uppercase tracking-[0.25em] active-scale rounded-xl shadow-md hover:shadow-lg transition-all"
+            >
+              <User size={14} strokeWidth={2.5} />
+              <span>Customer Login</span>
+            </button>
+          )}
 
-          <p className="text-[8px] font-black uppercase tracking-[0.4em] text-gray-300 text-center pt-2">
-            Stop & Shop · Pakistan Edition · 2026
+          <p className="text-[8px] font-black uppercase tracking-[0.4em] text-gray-400 text-center pt-1">
+            Stop & Shop · Pakistan Edition
           </p>
         </div>
       </div>
