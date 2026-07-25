@@ -14,7 +14,6 @@ import { useWishlist } from '../../../context/WishlistContext.jsx';
 import { useCurrency } from '../../../context/CurrencyContext.jsx';
 import MediaRenderer from '../../../components/MediaRenderer.jsx';
 import ProductReviews from '../../../components/ProductReviews.jsx';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import ProductCard from '../../../components/ProductCard.jsx';
 
 const TRUST = [
