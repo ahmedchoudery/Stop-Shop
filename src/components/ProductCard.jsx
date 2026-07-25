@@ -18,6 +18,7 @@ import { useCurrency } from '../context/CurrencyContext.jsx';
 import MediaRenderer from './MediaRenderer.jsx';
 import { playPremiumChime } from '../utils/audio.js';
 import MagneticElement from './MagneticElement.jsx';
+import { getColorName } from '../utils/color-namer.js';
 const getBackgroundStyle = (color) => {
   if (!color) return {};
   if (color.includes('|')) {
@@ -44,21 +45,7 @@ const getBackgroundStyle = (color) => {
   return { backgroundColor: color };
 };
 
-const getColorName = (color) => {
-  if (!color) return '';
-  if (color.includes('|')) {
-    const parts = color.split('|');
-    const part0 = parts[0].trim();
-    const part1 = parts[1].trim();
-    const isHex = (str) => /^#([0-9A-F]{3}|[0-9A-F]{6})$/i.test(str);
-    if (isHex(part0) && !isHex(part1)) {
-      return part1;
-    } else {
-      return parts.join(' / ');
-    }
-  }
-  return color;
-};
+
 
 const getVariantImage = (product, color) => {
   if (!color) return null;

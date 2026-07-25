@@ -16,6 +16,7 @@ import { useCurrency } from '../../../context/CurrencyContext.jsx';
 import MediaRenderer from '../../../components/MediaRenderer.jsx';
 import ProductReviews from '../../../components/ProductReviews.jsx';
 import ProductCard from '../../../components/ProductCard.jsx';
+import { getColorName } from '../../../utils/color-namer.js';
 
 const getBackgroundStyle = (color) => {
   if (!color) return {};
@@ -43,21 +44,7 @@ const getBackgroundStyle = (color) => {
   return { backgroundColor: color };
 };
 
-const getColorName = (color) => {
-  if (!color) return '';
-  if (color.includes('|')) {
-    const parts = color.split('|');
-    const part0 = parts[0].trim();
-    const part1 = parts[1].trim();
-    const isHex = (str) => /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(str);
-    if (isHex(part0) && !isHex(part1)) {
-      return part1;
-    } else {
-      return parts.join(' / ');
-    }
-  }
-  return color;
-};
+
 
 const RelatedProducts = ({ currentId, category, subCategory, allProducts = [] }) => {
   // 1. Filter matching category and subCategory first
