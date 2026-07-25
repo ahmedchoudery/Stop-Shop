@@ -116,7 +116,7 @@ const ProductForm = memo(({
   };
 
   const addColor = (explicitColor) => {
-    const color = (typeof explicitColor === 'string' ? explicitColor : colorInput).trim();
+    const color = (typeof explicitColor === 'string' && explicitColor.trim() ? explicitColor : colorInput).trim();
     if (!color) return;
     if (!form.colors.includes(color)) {
       setForm(f => {
@@ -753,10 +753,8 @@ const ColorsSection = memo(({ form, colorInput, setColorInput, onAddColor, onRem
     }
 
     setColorInput(finalColorStr);
-    setTimeout(() => {
-      onAddColor();
-      setColorName('');
-    }, 0);
+    onAddColor(finalColorStr);
+    setColorName('');
   };
 
   return (
