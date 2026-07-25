@@ -12,48 +12,7 @@ import { useCart } from '../context/CartContext.tsx';
 import { useWishlist } from '../context/WishlistContext.jsx';
 import { useCurrency } from '../context/CurrencyContext.jsx';
 import MediaRenderer from './MediaRenderer.jsx';
-
-const getBackgroundStyle = (color) => {
-  if (!color) return {};
-  if (color.includes('|')) {
-    const parts = color.split('|');
-    const part0 = parts[0].trim();
-    const part1 = parts[1].trim();
-    const isHex = (str) => /^#([0-9A-F]{3}|[0-9A-F]{6})$/i.test(str);
-    const cssColors = [
-      'white', 'black', 'red', 'blue', 'green', 'yellow', 'orange', 'purple', 
-      'pink', 'brown', 'gray', 'grey', 'gold', 'silver', 'navy', 'teal', 
-      'olive', 'lime', 'aqua', 'cyan', 'magenta', 'maroon', 'beige', 'cream', 
-      'lavender', 'khaki', 'coral', 'indigo', 'violet', 'plum', 'ivory'
-    ];
-    const words = part1.toLowerCase().split(/[\s\-_/]+/);
-    const matchedColorName = words.find(w => cssColors.includes(w));
-    
-    if (isHex(part0) && !isHex(part1) && !matchedColorName) {
-      return { backgroundColor: part0 };
-    } else {
-      const secondColor = isHex(part1) ? part1 : (matchedColorName || part0);
-      return { background: `linear-gradient(135deg, ${part0} 50%, ${secondColor} 50%)` };
-    }
-  }
-  return { backgroundColor: color };
-};
-
-const getColorName = (color) => {
-  if (!color) return '';
-  if (color.includes('|')) {
-    const parts = color.split('|');
-    const part0 = parts[0].trim();
-    const part1 = parts[1].trim();
-    const isHex = (str) => /^#([0-9A-F]{3}|[0-9A-F]{6})$/i.test(str);
-    if (isHex(part0) && !isHex(part1)) {
-      return part1;
-    } else {
-      return parts.join(' / ');
-    }
-  }
-  return color;
-};
+import { getColorName, getBackgroundStyle } from '../utils/color-namer.js';
 
 const getVariantImages = (product, color) => {
   if (!color) return null;

@@ -207,4 +207,34 @@ export const getColorName = (color) => {
   return color;
 };
 
+export const getBackgroundStyle = (color) => {
+  if (!color) return {};
+
+  const isColorCode = (str) => {
+    const s = str.trim();
+    return /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(s) ||
+           /^rgba?\(|\bhsla?\(/i.test(s);
+  };
+
+  if (color.includes('|')) {
+    const parts = color.split('|');
+    const part0 = parts[0].trim();
+    const part1 = parts[1].trim();
+
+    const isCode0 = isColorCode(part0);
+    const isCode1 = isColorCode(part1);
+
+    if (isCode0 && !isCode1) return { backgroundColor: part0 };
+    if (!isCode0 && isCode1) return { backgroundColor: part1 };
+
+    if (isCode0 && isCode1) {
+      return { background: `linear-gradient(135deg, ${part0} 50%, ${part1} 50%)` };
+    }
+
+    return { background: `linear-gradient(135deg, ${part0} 50%, ${part1} 50%)` };
+  }
+
+  return { backgroundColor: color };
+};
+
 export default getColorName;

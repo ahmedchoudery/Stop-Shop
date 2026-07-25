@@ -3,7 +3,7 @@ import { X, Image, Upload, Link2, Code2 } from 'lucide-react';
 import { CATEGORIES, CATEGORY_MAP, getDefaultSubCategory } from '../utils/categories.js';
 import { authFetch } from '../lib/auth.js';
 import { apiUrl } from '../config/api.js';
-import { getColorName } from '../utils/color-namer.js';
+import { getColorName, getBackgroundStyle } from '../utils/color-namer.js';
 
 
 
@@ -115,8 +115,8 @@ const ProductForm = memo(({
     });
   };
 
-  const addColor = () => {
-    const color = colorInput.trim();
+  const addColor = (explicitColor) => {
+    const color = (typeof explicitColor === 'string' ? explicitColor : colorInput).trim();
     if (!color) return;
     if (!form.colors.includes(color)) {
       setForm(f => {
@@ -836,17 +836,15 @@ const ColorsSection = memo(({ form, colorInput, setColorInput, onAddColor, onRem
                   <div className="flex items-center gap-3">
                     <div
                       className="w-7 h-7 rounded-full border-2 border-white ring-1 ring-gray-300 flex-shrink-0"
-                      style={
-                        c.includes('|')
-                          ? { background: `linear-gradient(135deg, ${c.split('|')[0]} 50%, ${c.split('|')[1]} 50%)` }
-                          : { backgroundColor: c }
-                      }
+                      style={getBackgroundStyle(c)}
                     />
                     <div>
-                      <p className="text-[11px] font-black font-mono text-gray-800 leading-none">
-                        {c.includes('|') && !c.split('|')[0].startsWith('#') ? c : c.split('|')[1] || c}
+                      <p className="text-[12px] font-black text-gray-900 leading-none">
+                        {getColorName(c)}
                       </p>
-                      <p className="text-[9px] text-gray-400 font-mono mt-0.5">{c}</p>
+                      <p className="text-[9px] text-gray-400 font-mono mt-0.5 font-bold">
+                        {c.includes('|') ? c.split('|')[0] : c}
+                      </p>
                     </div>
                     {!hasSizes && (
                       <div className="flex items-center gap-1.5 bg-white border border-gray-200 rounded-[4px] px-2.5 py-1 ml-2">
