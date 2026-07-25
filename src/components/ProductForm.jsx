@@ -497,29 +497,37 @@ const BasicInfoSection = memo(({ form, setForm }) => {
     );
   }
 
+  const isAttitude = form.featuredSection === 'attitude';
+
   return (
-    <div className="grid grid-cols-3 gap-4">
+    <div className={`grid ${isAttitude ? 'grid-cols-1' : 'grid-cols-3'} gap-4`}>
       <div>
-        <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Product Name *</label>
+        <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">
+          {isAttitude ? 'Outfit / Lookbook Title *' : 'Product Name *'}
+        </label>
         <input type="text" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-          placeholder="e.g. Classic Red Polo"
+          placeholder={isAttitude ? 'e.g. Summer Editorial Outfit #1' : 'e.g. Classic Red Polo'}
           className="w-full border border-gray-200 rounded-[4px] px-4 py-3 text-sm font-bold focus:border-black outline-none transition-colors" />
       </div>
-      <div>
-        <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Price (PKR) *</label>
-        <div className="relative">
-          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-xs">Rs.</span>
-          <input type="number" step="0.01" value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))}
-            placeholder="0.00"
-            className="w-full border border-gray-200 rounded-[4px] pl-10 pr-4 py-3 text-sm font-bold focus:border-black outline-none transition-colors" />
-        </div>
-      </div>
-      <div>
-        <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Discount %</label>
-        <input type="number" min="0" max="100" value={form.discount ?? 0} onChange={e => setForm(f => ({ ...f, discount: Math.min(100, Math.max(0, parseInt(e.target.value) || 0)) }))}
-          placeholder="0"
-          className="w-full border border-gray-200 rounded-[4px] px-4 py-3 text-sm font-bold focus:border-black outline-none transition-colors" />
-      </div>
+      {!isAttitude && (
+        <>
+          <div>
+            <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Price (PKR) *</label>
+            <div className="relative">
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 font-bold text-xs">Rs.</span>
+              <input type="number" step="0.01" value={form.price} onChange={e => setForm(f => ({ ...f, price: e.target.value }))}
+                placeholder="0.00"
+                className="w-full border border-gray-200 rounded-[4px] pl-10 pr-4 py-3 text-sm font-bold focus:border-black outline-none transition-colors" />
+            </div>
+          </div>
+          <div>
+            <label className="block text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">Discount %</label>
+            <input type="number" min="0" max="100" value={form.discount ?? 0} onChange={e => setForm(f => ({ ...f, discount: Math.min(100, Math.max(0, parseInt(e.target.value) || 0)) }))}
+              placeholder="0"
+              className="w-full border border-gray-200 rounded-[4px] px-4 py-3 text-sm font-bold focus:border-black outline-none transition-colors" />
+          </div>
+        </>
+      )}
     </div>
   );
 });

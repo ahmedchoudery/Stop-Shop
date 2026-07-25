@@ -313,17 +313,20 @@ const AdminProducts = () => {
   // ─────────────────────────────────────────────────────────────────
 
   const handleSave = async () => {
+    const isAttitude = form.featuredSection === 'attitude';
     if (!form.name?.trim()) return showToast('Product name is required.', 'error');
-    if (!form.price || isNaN(parseFloat(form.price))) return showToast('Valid price is required.', 'error');
+    if (!isAttitude && (!form.price || isNaN(parseFloat(form.price)))) {
+      return showToast('Valid price is required.', 'error');
+    }
 
     setSaving(true);
     try {
       const payload = {
         ...form,
-        price:    parseFloat(form.price),
+        price:    isAttitude ? 0 : (parseFloat(form.price) || 0),
         quantity: parseInt(form.quantity) || 0,
         stock:    parseInt(form.quantity) || 0,  // Always mirrors quantity
-        discount: parseInt(form.discount) || 0,
+        discount: isAttitude ? 0 : (parseInt(form.discount) || 0),
         specs:    (form.specs || []).map(s => s.trim()).filter(Boolean),
         // Ensure sizeStock values are numbers (0 is valid)
         sizeStock: Object.fromEntries(
