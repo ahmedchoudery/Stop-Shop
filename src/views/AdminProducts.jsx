@@ -12,9 +12,8 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import {
-  Plus, Trash2, Edit3, Search, Package,
-  RefreshCw, AlertTriangle, CheckCircle, X,
-  ChevronDown, Filter
+  Plus, Trash2, Package,
+  RefreshCw, AlertTriangle, CheckCircle, X
 } from 'lucide-react';
 import { AsyncContent } from '../components/ErrorBoundary.tsx';
 import ProductForm from '../components/ProductForm.jsx';
