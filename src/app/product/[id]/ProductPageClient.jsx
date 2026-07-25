@@ -6,7 +6,8 @@ import {
   Heart, ShoppingBag, Share2,
   ChevronRight, Package, Truck, RotateCcw,
   Shield, ArrowLeft, AlertTriangle, ChevronLeft,
-  Minus, Plus, X, ZoomIn, ZoomOut, Bell
+  Minus, Plus, X, ZoomIn, ZoomOut, Bell,
+  ChevronUp, ChevronDown, Ruler
 } from 'lucide-react';
 import { Link } from '../../../utils/router-compat.jsx';
 import { useCart } from '../../../context/CartContext.tsx';
@@ -212,6 +213,17 @@ export default function ProductPageClient({ product, allProducts = [], outfitPro
       setActiveTab(tabs[0]);
     }
   }, [product?.description, product?.materials, product?.careInstructions, activeTab]);
+
+  const [openAccordions, setOpenAccordions] = useState({
+    description: true,
+    care: false,
+    materials: false,
+    delivery: false,
+  });
+
+  const toggleAccordion = (key) => {
+    setOpenAccordions(prev => ({ ...prev, [key]: !prev[key] }));
+  };
 
   const [showSizeChart, setShowSizeChart] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
@@ -562,48 +574,118 @@ export default function ProductPageClient({ product, allProducts = [], outfitPro
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-x-12 gap-y-12 mb-20">
           
           {/* Media/Gallery Area - Left Column */}
-          <div className="lg:col-span-7 space-y-4">
-            {/* Main image */}
-            <div
-              className="relative aspect-[3/4] bg-[#F8F7F5] overflow-hidden group cursor-zoom-in"
-              onClick={() => gallery.length > 0 && setIsLightboxOpen(true)}
-            >
-              {gallery.length > 0 ? (
-                <MediaRenderer
-                  src={product.mediaType === 'embed' ? null : gallery[galleryIndex]}
-                  embedCode={product.mediaType === 'embed' ? product.embedCode : undefined}
-                  mediaType={product.mediaType}
-                  alt={product.name}
-                  width={1000}
-                  priority={true}
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.03]"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center">
-                  <Package size={48} className="text-gray-200" />
-                </div>
-              )}
+          <div className="lg:col-span-7 flex flex-col-reverse lg:flex-row gap-4">
+            
+            {/* Left Vertical Thumbnail Strip (Desktop) */}
+            {gallery.length > 1 && (
+              <div className="hidden lg:flex flex-col items-center justify-between w-20 flex-shrink-0 relative max-h-[640px]">
+                {/* Scroll Up Arrow */}
+                {gallery.length > 4 && (
+                  <button
+                    type="button"
+                    onClick={() => setGalleryIndex(prev => Math.max(0, prev - 1))}
+                    className="w-full py-1 text-gray-400 hover:text-black flex items-center justify-center transition-colors mb-1 cursor-pointer"
+                    aria-label="Previous thumbnail"
+                  >
+                    <ChevronUp size={16} />
+                  </button>
+                )}
 
-              {/* Gallery nav arrows */}
+                {/* Thumbnail List */}
+                <div className="flex-1 w-full overflow-y-auto scrollbar-hide space-y-2 py-1">
+                  {gallery.map((img, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => setGalleryIndex(i)}
+                      className={`w-full aspect-[3/4] bg-[#F7F7F7] overflow-hidden transition-all duration-200 cursor-pointer ${
+                        i === galleryIndex
+                          ? 'border border-black ring-1 ring-black opacity-100'
+                          : 'border border-gray-200 opacity-70 hover:opacity-100'
+                      }`}
+                    >
+                      <img src={img} alt="" className="w-full h-full object-cover" loading="lazy" />
+                    </button>
+                  ))}
+                </div>
+
+                {/* Scroll Down Arrow */}
+                {gallery.length > 4 && (
+                  <button
+                    type="button"
+                    onClick={() => setGalleryIndex(prev => Math.min(gallery.length - 1, prev + 1))}
+                    className="w-full py-1 text-gray-400 hover:text-black flex items-center justify-center transition-colors mt-1 cursor-pointer"
+                    aria-label="Next thumbnail"
+                  >
+                    <ChevronDown size={16} />
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* Main Image Container */}
+            <div className="flex-1 space-y-4 min-w-0">
+              <div
+                className="relative aspect-[3/4] bg-[#F7F7F7] overflow-hidden group cursor-zoom-in border border-gray-100"
+                onClick={() => gallery.length > 0 && setIsLightboxOpen(true)}
+              >
+                {gallery.length > 0 ? (
+                  <MediaRenderer
+                    src={product.mediaType === 'embed' ? null : gallery[galleryIndex]}
+                    embedCode={product.mediaType === 'embed' ? product.embedCode : undefined}
+                    mediaType={product.mediaType}
+                    alt={product.name}
+                    width={1000}
+                    priority={true}
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-[1.02]"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center">
+                    <Package size={48} className="text-gray-200" />
+                  </div>
+                )}
+
+                {/* Gallery nav arrows */}
+                {gallery.length > 1 && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); setGalleryIndex(i => (i - 1 + gallery.length) % gallery.length); }}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-white/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-black hover:text-white border border-gray-200 shadow-sm rounded-[2px]"
+                      aria-label="Previous image"
+                    >
+                      <ChevronLeft size={16} />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => { e.stopPropagation(); setGalleryIndex(i => (i + 1) % gallery.length); }}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 bg-white/90 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-black hover:text-white border border-gray-200 shadow-sm rounded-[2px]"
+                      aria-label="Next image"
+                    >
+                      <ChevronRight size={16} />
+                    </button>
+                  </>
+                )}
+              </div>
+
+              {/* Mobile Horizontal Thumbnails */}
               {gallery.length > 1 && (
-                <>
-                  <button
-                    type="button"
-                    onClick={(e) => { e.stopPropagation(); setGalleryIndex(i => (i - 1 + gallery.length) % gallery.length); }}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/95 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-black hover:text-white border border-gray-200 shadow-md active-scale rounded-[2px]"
-                    aria-label="Previous image"
-                  >
-                    <ChevronLeft size={16} />
-                  </button>
-                  <button
-                    type="button"
-                    onClick={(e) => { e.stopPropagation(); setGalleryIndex(i => (i + 1) % gallery.length); }}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 w-8 h-8 bg-white/95 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 hover:bg-black hover:text-white border border-gray-200 shadow-md active-scale rounded-[2px]"
-                    aria-label="Next image"
-                  >
-                    <ChevronRight size={16} />
-                  </button>
-                </>
+                <div className="flex lg:hidden overflow-x-auto scrollbar-hide gap-2 py-1">
+                  {gallery.map((img, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={() => setGalleryIndex(i)}
+                      className={`w-16 aspect-[3/4] bg-[#F7F7F7] overflow-hidden transition-all duration-200 flex-shrink-0 cursor-pointer ${
+                        i === galleryIndex
+                          ? 'border border-black ring-1 ring-black opacity-100'
+                          : 'border border-gray-200 opacity-60 hover:opacity-100'
+                      }`}
+                    >
+                      <img src={img} alt="" className="w-full h-full object-cover" loading="lazy" />
+                    </button>
+                  ))}
+                </div>
               )}
             </div>
 
@@ -685,34 +767,24 @@ export default function ProductPageClient({ product, allProducts = [], outfitPro
               </div>,
               document.body
             )}
-
-            {/* Thumbnails */}
-            {gallery.length > 1 && (
-              <div className="grid grid-cols-6 gap-2">
-                {gallery.slice(0, 12).map((img, i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() => setGalleryIndex(i)}
-                    className={`aspect-square bg-[#F8F7F5] overflow-hidden border transition-all duration-200 rounded-[2px] ${
-                      i === galleryIndex ? 'border-black ring-1 ring-black' : 'border-gray-200 opacity-60 hover:opacity-100'
-                    }`}
-                  >
-                    <img src={img} alt="" className="w-full h-full object-cover" loading="lazy" />
-                  </button>
-                ))}
-              </div>
-            )}
           </div>
 
           {/* Details Form Area - Right Column */}
-          <div className="lg:col-span-5 lg:sticky lg:top-28 self-start">
-            <p className="text-[9px] font-black uppercase tracking-[0.4em] text-cardinal mb-3">{category}</p>
-            <h1 className="text-2xl sm:text-3xl font-black uppercase tracking-tighter text-gray-900 leading-tight mb-4">{product.name}</h1>
+          <div className="lg:col-span-5 lg:sticky lg:top-28 self-start space-y-5">
             
+            {/* Title & SKU */}
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-medium uppercase tracking-[0.1em] text-gray-900 leading-snug mb-1 font-serif">
+                {product.name}
+              </h1>
+              <p className="text-[10px] font-mono tracking-[0.2em] text-gray-400 uppercase">
+                {product.sku || product.id}
+              </p>
+            </div>
+
             {/* Price & Options (or Outfit info box if Defined by Attitude) */}
             {isAttitudeProduct ? (
-              <div className="border border-gray-200 bg-[#F7F6F3] p-6 rounded-xl space-y-4 mb-8">
+              <div className="border border-gray-200 bg-[#F7F6F3] p-6 rounded-xl space-y-4">
                 <div className="flex items-center space-x-2">
                   <span className="text-[9px] font-black uppercase tracking-[0.3em] bg-gray-900 text-white px-3 py-1 rounded-full">
                     Defined by Attitude · Lookbook Outfit
@@ -733,8 +805,23 @@ export default function ProductPageClient({ product, allProducts = [], outfitPro
               </div>
             ) : (
               <>
-                {/* Price */}
-                <p className="text-xl font-black text-gray-900 mb-6">{formatPrice(product.price)}</p>
+                <div className="space-y-3 border-b border-gray-150 pb-5">
+                  <p className="text-xl font-semibold tracking-wider text-gray-900">
+                    {formatPrice(product.price)}
+                  </p>
+
+                  {/* Baadmay / Installment Pill (Screenshot 1 Match) */}
+                  {product.price > 0 && (
+                    <div className="inline-flex items-center space-x-2 bg-gray-50 border border-purple-200/60 px-3 py-1.5 rounded-[4px]">
+                      <span className="bg-[#8000FF] text-white text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-[3px]">
+                        baadmay
+                      </span>
+                      <span className="text-[11px] font-medium text-gray-700">
+                        Pay in 3 Installments of <span className="font-bold text-[#8000FF]">{formatPrice(Math.round(product.price / 3))}</span>
+                      </span>
+                    </div>
+                  )}
+                </div>
 
                 {/* Colors */}
                 {product.colors?.length > 0 && (() => {
@@ -746,12 +833,16 @@ export default function ProductPageClient({ product, allProducts = [], outfitPro
                     : null;
                   const hasMatrix = variantMatrixObj && Object.keys(variantMatrixObj).length > 0;
                   return (
-                    <div className="mb-6">
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="text-[8px] font-black uppercase tracking-widest text-gray-400">Select Color</span>
-                        {selectedColor && <span className="text-[8px] font-bold text-gray-500 uppercase tracking-widest">{getColorName(selectedColor)}</span>}
+                    <div className="space-y-2 pt-1">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-900">Color</span>
+                        {selectedColor && (
+                          <span className="text-[10px] font-medium text-gray-500 uppercase tracking-widest">
+                            {getColorName(selectedColor)}
+                          </span>
+                        )}
                       </div>
-                      <div className="flex items-center flex-wrap gap-3">
+                      <div className="flex items-center flex-wrap gap-2.5">
                         {product.colors.map(col => {
                           let colorOos = false;
                           if (hasMatrix) {
@@ -765,16 +856,16 @@ export default function ProductPageClient({ product, allProducts = [], outfitPro
                             <button
                               key={col}
                               onClick={() => setSelectedColor(col)}
-                              className={`relative w-7 h-7 rounded-[4px] border-2 transition-all duration-300 focus:outline-none flex-shrink-0 ${
+                              className={`relative w-8 h-8 rounded-[2px] border transition-all duration-200 focus:outline-none flex-shrink-0 cursor-pointer ${
                                 isSelected
-                                  ? 'border-cardinal ring-2 ring-cardinal ring-offset-2'
-                                  : 'border-transparent hover:border-gray-400'
+                                  ? 'border-black ring-1 ring-black'
+                                  : 'border-gray-300 hover:border-gray-600'
                               }`}
                               style={getBackgroundStyle(col)}
                               title={colorOos ? `${getColorName(col)} — Out of Stock` : getColorName(col)}
                             >
                               {colorOos && (
-                                <svg className="absolute inset-0 w-full h-full rounded-[3px]" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                <svg className="absolute inset-0 w-full h-full rounded-[1px]" viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                                   <line x1="2" y1="2" x2="26" y2="26" stroke="#ba1f3d" strokeWidth="2.5" strokeLinecap="round" />
                                 </svg>
                               )}
@@ -786,28 +877,18 @@ export default function ProductPageClient({ product, allProducts = [], outfitPro
                   );
                 })()}
 
-                {/* Sizes */}
+                {/* Size Selection */}
                 {product.sizes?.length > 0 ? (
-                  <div className="mb-6">
-                    <div className="flex justify-between items-baseline mb-3">
-                      <div className="flex items-center space-x-2">
-                        <span className="text-[8px] font-black uppercase tracking-widest text-gray-400">Select Size</span>
-                        <span className="text-gray-300">|</span>
-                        <button
-                          type="button"
-                          onClick={() => setShowSizeChart(true)}
-                          className="text-[8px] font-black uppercase tracking-widest text-cardinal hover:underline cursor-pointer focus:outline-none"
-                        >
-                          Size Chart
-                        </button>
-                      </div>
+                  <div className="space-y-2 pt-2">
+                    <div className="flex justify-between items-baseline">
+                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-900">Size</span>
                       {sizeError && (
-                        <span className="text-[8px] font-black uppercase text-cardinal tracking-widest animate-pulse">
+                        <span className="text-[9px] font-black uppercase text-cardinal tracking-widest animate-pulse">
                           Please select a size first
                         </span>
                       )}
                     </div>
-                    <div className="flex items-center flex-wrap gap-2.5">
+                    <div className="flex items-center flex-wrap gap-2">
                       {product.sizes.map(size => {
                         const sizeStockObj = product.sizeStock
                           ? (product.sizeStock instanceof Map ? Object.fromEntries(product.sizeStock) : product.sizeStock)
@@ -825,72 +906,71 @@ export default function ProductPageClient({ product, allProducts = [], outfitPro
                             key={size}
                             onClick={() => setSelectedSize(size)}
                             title={soldOut ? `${size} — Out of Stock` : size}
-                            className={`relative min-w-[48px] h-11 px-3 border text-[10px] font-black uppercase tracking-widest flex items-center justify-center transition-all duration-300 rounded-[4px] overflow-hidden ${
+                            className={`relative min-w-[44px] h-10 px-3 border text-xs font-medium uppercase tracking-wider flex items-center justify-center transition-all duration-200 cursor-pointer ${
                               selectedSize === size
-                                ? 'border-gray-900 bg-gray-900 text-white'
+                                ? 'border-black bg-black text-white font-semibold'
                                 : soldOut
-                                  ? 'border-gray-200 bg-white text-gray-400 cursor-pointer hover:border-gray-400'
-                                  : 'border-gray-200 text-gray-600 hover:border-gray-900 bg-white'
+                                  ? 'border-gray-200 bg-white text-gray-300 cursor-not-allowed'
+                                  : 'border-gray-200 text-gray-800 hover:border-black bg-white'
                             }`}
                           >
-                            <span className={soldOut && selectedSize !== size ? 'opacity-50' : ''}>{size}</span>
-                            {soldOut && (
-                              <svg className="absolute inset-0 w-full h-full pointer-events-none" viewBox="0 0 48 44" preserveAspectRatio="none" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                                <line x1="4" y1="4" x2="44" y2="40" stroke="#ba1f3d" strokeWidth="1.5" strokeLinecap="round" />
-                              </svg>
-                            )}
+                            <span className={soldOut && selectedSize !== size ? 'opacity-40 line-through' : ''}>{size}</span>
                           </button>
                         );
                       })}
                     </div>
                   </div>
                 ) : (
-                  <div className="mb-6 flex items-center justify-between">
-                    <span className="text-[8px] font-black uppercase tracking-widest text-gray-400">One Size</span>
-                    <button
-                      type="button"
-                      onClick={() => setShowSizeChart(true)}
-                      className="text-[8px] font-black uppercase tracking-widest text-cardinal hover:underline cursor-pointer focus:outline-none"
-                    >
-                      Size Chart
-                    </button>
+                  <div className="pt-2 flex items-center justify-between">
+                    <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-900">One Size</span>
                   </div>
                 )}
 
-                {/* Quantity */}
-                {!outOfStock && (
-                  <div className="mb-8">
-                    <span className="text-[8px] font-black uppercase tracking-widest text-gray-400 block mb-3">Quantity</span>
-                    <div className="inline-flex items-center border border-gray-200">
-                      <button
-                        onClick={() => setQty(q => Math.max(1, q - 1))}
-                        className="w-11 h-11 flex items-center justify-center text-gray-400 hover:text-gray-900 hover:bg-gray-50 transition-colors"
-                      >
-                        <Minus size={12} />
-                      </button>
-                      <span className="w-12 text-center text-xs font-black text-gray-900 select-none">{qty}</span>
-                      <button
-                        onClick={() => setQty(q => Math.min(stockQty, q + 1))}
-                        className="w-11 h-11 flex items-center justify-center text-gray-400 hover:text-gray-900 hover:bg-gray-50 transition-colors"
-                      >
-                        <Plus size={12} />
-                      </button>
+                {/* Quantity & Size Chart Link */}
+                <div className="flex items-end justify-between pt-2 pb-1">
+                  {!outOfStock && (
+                    <div>
+                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-900 block mb-2">Quantity</span>
+                      <div className="inline-flex items-center border border-gray-300 bg-white">
+                        <button
+                          onClick={() => setQty(q => Math.max(1, q - 1))}
+                          className="w-10 h-10 flex items-center justify-center text-gray-500 hover:text-black hover:bg-gray-50 transition-colors cursor-pointer"
+                        >
+                          <Minus size={13} />
+                        </button>
+                        <span className="w-11 text-center text-xs font-bold text-gray-900 select-none">{qty}</span>
+                        <button
+                          onClick={() => setQty(q => Math.min(stockQty, q + 1))}
+                          className="w-10 h-10 flex items-center justify-center text-gray-500 hover:text-black hover:bg-gray-50 transition-colors cursor-pointer"
+                        >
+                          <Plus size={13} />
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
 
-                {/* Actions */}
-                <div className="flex flex-col space-y-3 mb-10">
+                  <button
+                    type="button"
+                    onClick={() => setShowSizeChart(true)}
+                    className="inline-flex items-center space-x-2 text-[10px] font-black uppercase tracking-[0.2em] text-gray-900 hover:text-cardinal transition-colors cursor-pointer group pb-2"
+                  >
+                    <Ruler size={14} className="text-gray-700 group-hover:text-cardinal" />
+                    <span className="underline underline-offset-4">Size Chart</span>
+                  </button>
+                </div>
+
+                {/* Action Buttons (Exact Match to Screenshot 2) */}
+                <div className="space-y-2.5 pt-2">
                   {outOfStock ? (
-                    <div className="border border-gray-100 p-5 rounded-[4px] bg-[#F7F6F3] text-center space-y-3">
-                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-900 block">Sold Out</span>
-                      <p className="text-[8px] font-bold text-gray-500 uppercase tracking-widest leading-relaxed">
+                    <div className="border border-gray-200 p-5 bg-[#F7F6F3] text-center space-y-3">
+                      <span className="text-[11px] font-black uppercase tracking-[0.25em] text-gray-900 block">Sold Out</span>
+                      <p className="text-[9px] font-bold text-gray-500 uppercase tracking-widest leading-relaxed">
                         This item is currently unavailable. Get notified the moment it restocks.
                       </p>
                       <button
                         type="button"
                         onClick={() => openNotifyModal()}
-                        className="w-full flex items-center justify-center space-x-2 py-4 text-[10px] font-black uppercase tracking-[0.35em] bg-[#a41f22] text-white hover:bg-[#a41f22]/90 transition-all duration-300 rounded-[4px]"
+                        className="w-full flex items-center justify-center space-x-2 py-4 text-[10px] font-black uppercase tracking-[0.35em] bg-black text-white hover:bg-gray-800 transition-all cursor-pointer"
                       >
                         <Bell size={13} />
                         <span>Notify when Available</span>
@@ -898,23 +978,47 @@ export default function ProductPageClient({ product, allProducts = [], outfitPro
                     </div>
                   ) : (
                     <>
+                      {/* Top Row: Add to Cart + Wishlist */}
+                      <div className="flex items-center space-x-2.5">
+                        <button
+                          onClick={handleAddToCart}
+                          className={`flex-1 py-3.5 text-xs font-semibold uppercase tracking-[0.25em] border border-black transition-all duration-300 cursor-pointer ${
+                            cartAdded
+                              ? 'bg-black text-white'
+                              : 'bg-white text-black hover:bg-black hover:text-white'
+                          }`}
+                        >
+                          {cartAdded ? '✓ Added to Cart' : 'ADD TO CART'}
+                        </button>
+
+                        <button
+                          onClick={() => toggleWishlist(product)}
+                          className={`w-12 h-[46px] border border-black flex items-center justify-center transition-all duration-300 cursor-pointer ${
+                            isWished ? 'bg-black text-white' : 'bg-white text-black hover:bg-gray-50'
+                          }`}
+                          title={isWished ? 'Saved' : 'Save Item'}
+                        >
+                          <Heart size={16} className={isWished ? 'fill-white text-white' : 'text-black'} />
+                        </button>
+                      </div>
+
+                      {/* Bottom Row: BUY IT NOW */}
                       <button
-                        onClick={handleAddToCart}
-                        className={`w-full flex items-center justify-center space-x-3 py-4 text-[10px] font-black uppercase tracking-[0.35em] transition-all duration-300 ${
-                          cartAdded ? 'bg-cardinal text-white' : 'bg-gray-900 text-white hover:bg-cardinal'
-                        }`}
+                        onClick={() => {
+                          handleAddToCart();
+                        }}
+                        className="w-full py-4 text-xs font-semibold uppercase tracking-[0.25em] bg-black text-white hover:bg-gray-800 transition-all duration-300 shadow-sm cursor-pointer"
                       >
-                        <ShoppingBag size={13} />
-                        <span>{cartAdded ? '✓ Added to bag' : 'Add to Bag'}</span>
+                        BUY IT NOW
                       </button>
 
                       {hasAnyOutOfStockVariant && (
                         <button
                           type="button"
                           onClick={() => openNotifyModal()}
-                          className="w-full flex items-center justify-center space-x-2 py-4 text-[10px] font-black uppercase tracking-[0.35em] bg-[#a41f22] text-white hover:bg-[#a41f22]/90 transition-all duration-300 rounded-[4px]"
+                          className="w-full flex items-center justify-center space-x-2 py-3 text-[10px] font-black uppercase tracking-[0.3em] border border-gray-300 text-gray-700 hover:border-black hover:text-black transition-all mt-1 cursor-pointer"
                         >
-                          <Bell size={13} />
+                          <Bell size={12} />
                           <span>Notify when Available</span>
                         </button>
                       )}
@@ -924,85 +1028,110 @@ export default function ProductPageClient({ product, allProducts = [], outfitPro
               </>
             )}
 
-              <div className="grid grid-cols-2 gap-3 mb-6">
-                <button
-                  onClick={() => toggleWishlist(product)}
-                  className={`border py-3.5 text-[9px] font-black uppercase tracking-[0.25em] flex items-center justify-center space-x-2 transition-all duration-300 ${
-                    isWished
-                      ? 'border-cardinal bg-cardinal/5 text-cardinal'
-                      : 'border-gray-200 text-gray-600 hover:border-gray-900'
-                  }`}
-                >
-                  <Heart size={12} className={isWished ? 'fill-cardinal' : ''} />
-                  <span>{isWished ? 'Saved' : 'Save Item'}</span>
-                </button>
-                <button
-                  onClick={handleCopyLink}
-                  className="border border-gray-200 text-gray-600 py-3.5 text-[9px] font-black uppercase tracking-[0.25em] flex items-center justify-center space-x-2 hover:border-gray-900 transition-all duration-300"
-                >
-                  <Share2 size={12} />
-                  <span>{copied ? 'Copied' : 'Share Link'}</span>
-                </button>
-              </div>
-
-              {/* Trust Features */}
-              <div className="grid grid-cols-2 gap-y-4 gap-x-6 border-t border-gray-100 pt-8 mt-2">
-                {TRUST.map(({ Icon, label, sub }) => (
-                  <div key={label} className="flex items-start space-x-3">
-                    <div className="w-8 h-8 border border-gray-100 flex items-center justify-center flex-shrink-0">
-                      <Icon size={12} className="text-cardinal" />
+            {/* Luxury Accordions (Description, Care, Materials, Delivery & Returns) */}
+            <div className="border-t border-gray-200 pt-2">
+              {/* Description Accordion */}
+              {product.description?.trim() && (
+                <div className="border-b border-gray-200">
+                  <button
+                    type="button"
+                    onClick={() => toggleAccordion('description')}
+                    className="w-full py-4 flex items-center justify-between text-left text-xs font-bold uppercase tracking-[0.2em] text-gray-900 hover:text-gray-600 transition-colors cursor-pointer"
+                  >
+                    <span>Description</span>
+                    <ChevronDown
+                      size={14}
+                      className={`transition-transform duration-300 ${openAccordions.description ? 'rotate-180' : ''}`}
+                    />
+                  </button>
+                  {openAccordions.description && (
+                    <div className="pb-5 text-xs text-gray-600 leading-relaxed font-normal whitespace-pre-line tracking-normal">
+                      {product.description}
                     </div>
-                    <div>
-                      <h4 className="text-[10px] font-black uppercase tracking-wide text-gray-800">{label}</h4>
-                      <p className="text-[8px] text-gray-400 font-bold tracking-wider mt-0.5 uppercase">{sub}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-          </div>
-
-        </div>
-
-        {/* Dynamic Editorial Content Tabs — Description, Materials, Care (strictly only when admin has provided content) */}
-        {availableTabs.length > 0 && (
-          <div className="border-t border-gray-100 pt-16 mb-20">
-            <div className="flex items-center space-x-8 border-b border-gray-100 mb-8 overflow-x-auto scrollbar-hide">
-              {availableTabs.map(tab => (
-                <button
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={`pb-4 text-[10px] font-black uppercase tracking-[0.3em] relative transition-colors duration-300 ${
-                    activeTab === tab ? 'text-gray-900' : 'text-gray-400 hover:text-gray-600'
-                  }`}
-                >
-                  <span>{tab}</span>
-                  {activeTab === tab && (
-                    <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-cardinal" />
                   )}
+                </div>
+              )}
+
+              {/* Care Instructions Accordion */}
+              {product.careInstructions?.trim() && (
+                <div className="border-b border-gray-200">
+                  <button
+                    type="button"
+                    onClick={() => toggleAccordion('care')}
+                    className="w-full py-4 flex items-center justify-between text-left text-xs font-bold uppercase tracking-[0.2em] text-gray-900 hover:text-gray-600 transition-colors cursor-pointer"
+                  >
+                    <span>Care Instructions</span>
+                    <ChevronDown
+                      size={14}
+                      className={`transition-transform duration-300 ${openAccordions.care ? 'rotate-180' : ''}`}
+                    />
+                  </button>
+                  {openAccordions.care && (
+                    <div className="pb-5 text-xs text-gray-600 leading-relaxed font-normal whitespace-pre-line tracking-normal">
+                      {product.careInstructions}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Materials Accordion */}
+              {product.materials?.trim() && (
+                <div className="border-b border-gray-200">
+                  <button
+                    type="button"
+                    onClick={() => toggleAccordion('materials')}
+                    className="w-full py-4 flex items-center justify-between text-left text-xs font-bold uppercase tracking-[0.2em] text-gray-900 hover:text-gray-600 transition-colors cursor-pointer"
+                  >
+                    <span>Materials</span>
+                    <ChevronDown
+                      size={14}
+                      className={`transition-transform duration-300 ${openAccordions.materials ? 'rotate-180' : ''}`}
+                    />
+                  </button>
+                  {openAccordions.materials && (
+                    <div className="pb-5 text-xs text-gray-600 leading-relaxed font-normal whitespace-pre-line tracking-normal">
+                      {product.materials}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Delivery & Returns Accordion */}
+              <div className="border-b border-gray-200">
+                <button
+                  type="button"
+                  onClick={() => toggleAccordion('delivery')}
+                  className="w-full py-4 flex items-center justify-between text-left text-xs font-bold uppercase tracking-[0.2em] text-gray-900 hover:text-gray-600 transition-colors cursor-pointer"
+                >
+                  <span>Delivery & Returns</span>
+                  <ChevronDown
+                    size={14}
+                    className={`transition-transform duration-300 ${openAccordions.delivery ? 'rotate-180' : ''}`}
+                  />
                 </button>
-              ))}
+                {openAccordions.delivery && (
+                  <div className="pb-5 text-xs text-gray-600 space-y-1.5 leading-relaxed">
+                    <p>• Free express delivery on all orders over Rs. 2,000.</p>
+                    <p>• 7-day easy returns & exchanges policy.</p>
+                    <p>• 100% authentic products with SSL encrypted checkout.</p>
+                  </div>
+                )}
+              </div>
             </div>
 
-            <div className="max-w-3xl">
-              {activeTab === 'Description' && product.description?.trim() && (
-                <div className="text-sm text-gray-700 leading-relaxed tracking-normal font-normal whitespace-pre-line">
-                  {product.description}
-                </div>
-              )}
-              {activeTab === 'Materials' && product.materials?.trim() && (
-                <div className="text-sm text-gray-700 leading-relaxed tracking-normal font-normal whitespace-pre-line">
-                  {product.materials}
-                </div>
-              )}
-              {activeTab === 'Care' && product.careInstructions?.trim() && (
-                <div className="text-sm text-gray-700 leading-relaxed tracking-normal font-normal whitespace-pre-line">
-                  {product.careInstructions}
-                </div>
-              )}
+            {/* Share & Copy Link */}
+            <div className="pt-2">
+              <button
+                onClick={handleCopyLink}
+                className="inline-flex items-center space-x-2 text-[10px] font-black uppercase tracking-[0.25em] text-gray-500 hover:text-black transition-colors cursor-pointer"
+              >
+                <Share2 size={12} />
+                <span>{copied ? 'Link Copied!' : 'Share Product Link'}</span>
+              </button>
             </div>
+
           </div>
-        )}
+        </div>
 
         {/* Items in this Outfit — for Defined by Attitude outfits */}
         {(isAttitudeProduct || (outfitProducts && outfitProducts.length > 0)) && (
