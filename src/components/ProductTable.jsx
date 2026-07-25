@@ -31,6 +31,8 @@ const StockBadge = ({ qty }) => {
       In Stock · {qty}
     </span>
   );
+};
+
 const renderStockBadge = (product, productsList = []) => {
   const isAttitude = product.featuredSection === 'attitude' || product.bucket === 'Outfit';
   
