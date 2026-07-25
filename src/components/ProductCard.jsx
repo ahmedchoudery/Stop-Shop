@@ -412,14 +412,17 @@ const ProductCard = ({ product, initialColor = null, onImageLoad }) => {
       </div>
 
       {/* ── Product Info ────────────────────────────────────── */}
-      <div className="px-0.5">
+      <div className="px-3 pb-3 pt-1">
         {/* Category */}
-        <p className="text-[8px] font-black text-gray-400 uppercase tracking-[0.45em] mb-1">
+        <p className="text-[8px] font-black text-gray-400 uppercase tracking-[0.35em] mb-1 truncate">
           {category}
         </p>
 
         {/* Name */}
-        <h3 className="text-[11px] font-black uppercase tracking-[0.15em] text-gray-900 leading-snug mb-1.5 group-hover:text-cardinal transition-colors duration-300 line-clamp-1">
+        <h3
+          title={product.name}
+          className="text-[11px] font-black uppercase tracking-[0.12em] text-gray-900 leading-snug mb-1.5 group-hover:text-cardinal transition-colors duration-300 block w-full truncate"
+        >
           {product.name}
         </h3>
 

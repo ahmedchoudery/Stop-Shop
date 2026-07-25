@@ -257,15 +257,18 @@ const PiecesCard = ({ product }) => {
       </div>
 
       {/* Metadata & Rating */}
-      <div className="px-0.5 relative">
+      <div className="px-3 pb-3 pt-1 relative">
         <div className="flex items-center justify-between gap-2 mb-1">
-          <p className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-400">
+          <p className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-400 truncate">
             {category}
           </p>
           {renderStars(product.rating)}
         </div>
 
-        <h3 className="text-[13px] font-bold uppercase tracking-tight text-gray-900 group-hover:text-black transition-colors duration-300 line-clamp-1 mb-2">
+        <h3
+          title={product.name}
+          className="text-[13px] font-bold uppercase tracking-tight text-gray-900 group-hover:text-black transition-colors duration-300 block w-full truncate mb-2"
+        >
           {product.name}
         </h3>
 
