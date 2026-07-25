@@ -6,6 +6,7 @@ import {
 import { CATEGORIES, CATEGORY_MAP, getDefaultSubCategory } from '../utils/categories.js';
 import { authFetch } from '../lib/auth.js';
 import { apiUrl } from '../config/api.js';
+import { getColorName } from '../utils/color-namer.js';
 
 
 
@@ -753,8 +754,16 @@ const ColorsSection = memo(({ form, colorInput, setColorInput, onAddColor, onRem
 
       {/* Color picker row */}
       <div className="flex items-center space-x-3 mb-4">
-        <input type="color" value={colorInput} onChange={e => setColorInput(e.target.value)}
-          className="w-12 h-10 rounded-[4px] border border-gray-200 cursor-pointer" />
+        <input
+          type="color"
+          value={colorInput.includes('|') ? colorInput.split('|')[0] : (colorInput || '#000000')}
+          onChange={e => {
+            const hex = e.target.value;
+            const name = getColorName(hex);
+            setColorInput(`${hex}|${name}`);
+          }}
+          className="w-12 h-10 rounded-[4px] border border-gray-200 cursor-pointer"
+        />
         <input type="text" value={colorInput} onChange={e => setColorInput(e.target.value)}
           placeholder="#FF0000 or #FF0000|ColorName"
           className="flex-grow border border-gray-200 rounded-[4px] px-4 py-2.5 text-sm font-mono font-bold focus:border-black outline-none" />

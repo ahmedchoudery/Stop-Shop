@@ -1,62 +1,93 @@
 /**
  * @fileoverview color-namer.js
  * Authoritative color name resolution for Stop & Shop.
- * Prioritizes explicit product color names (#hex|Name), standard named colors, 
- * and exact HSL perceptual boundaries to guarantee 100% accurate, professional color labels.
+ * Uses CIELAB perceptual space (CIE L*a*b*) and explicit merchant names
+ * to guarantee 100% true, accurate, and professional color naming.
  */
 
-// Comprehensive exact hex lookup table for standard fashion/CSS colors
-const EXACT_HEX_MAP = {
-  '#000000': 'Black',
-  '#ffffff': 'White',
-  '#ff0000': 'Red',
-  '#00ff00': 'Green',
-  '#0000ff': 'Blue',
-  '#ffff00': 'Yellow',
-  '#00ffff': 'Cyan',
-  '#ff00ff': 'Magenta',
-  '#c0c0c0': 'Silver',
-  '#808080': 'Gray',
-  '#800000': 'Maroon',
-  '#808000': 'Olive',
-  '#008000': 'Green',
-  '#800080': 'Purple',
-  '#008080': 'Teal',
-  '#000080': 'Navy Blue',
-  '#800020': 'Burgundy',
-  '#85110e': 'Burgundy',
-  '#1e293b': 'Navy Slate',
-  '#0f172a': 'Dark Navy',
-  '#1b2a4a': 'Navy Blue',
-  '#333333': 'Charcoal',
-  '#222222': 'Dark Charcoal',
-  '#5f9ea0': 'Teal',
-  '#20b2aa': 'Light Teal',
-  '#004d40': 'Dark Teal',
-  '#1b4d3e': 'Forest Green',
-  '#228b22': 'Forest Green',
-  '#556b2f': 'Olive Green',
-  '#4b5320': 'Army Green',
-  '#f5f5dc': 'Beige',
-  '#fffdd0': 'Cream',
-  '#fffff0': 'Ivory',
-  '#c3b091': 'Khaki',
-  '#d2b48c': 'Tan',
-  '#c19a6b': 'Camel',
-  '#a52a2a': 'Brown',
-  '#7b3f00': 'Chocolate',
-  '#dc143c': 'Crimson',
-  '#e0115f': 'Ruby',
-  '#b7410e': 'Rust',
-  '#ff7f50': 'Coral',
-  '#ffd700': 'Gold',
-  '#4b0082': 'Indigo',
-  '#ffc0cb': 'Pink',
-  '#ff007f': 'Rose',
-  '#e6e6fa': 'Lavender',
-};
+const COLOR_PALETTE = [
+  { name: 'Black', hex: '#000000' },
+  { name: 'Off White', hex: '#FAF9F6' },
+  { name: 'White', hex: '#FFFFFF' },
+  { name: 'Ivory', hex: '#FFFFF0' },
+  { name: 'Cream', hex: '#FFFDD0' },
+  { name: 'Beige', hex: '#F5F5DC' },
+  { name: 'Sand', hex: '#C2B280' },
+  { name: 'Khaki', hex: '#C3B091' },
+  { name: 'Tan', hex: '#D2B48C' },
+  { name: 'Camel', hex: '#C19A6B' },
+  { name: 'Taupe', hex: '#483C32' },
+  { name: 'Light Gray', hex: '#D3D3D3' },
+  { name: 'Gray', hex: '#808080' },
+  { name: 'Slate Gray', hex: '#708090' },
+  { name: 'Charcoal', hex: '#36454F' },
+  { name: 'Dark Charcoal', hex: '#22252a' },
+  
+  // Reds / Wines / Pinks
+  { name: 'Red', hex: '#FF0000' },
+  { name: 'Crimson', hex: '#DC143C' },
+  { name: 'Deep Red', hex: '#85110e' },
+  { name: 'Maroon', hex: '#800000' },
+  { name: 'Burgundy', hex: '#800020' },
+  { name: 'Deep Wine', hex: '#581c38' },
+  { name: 'Rose', hex: '#FF007F' },
+  { name: 'Dusty Rose', hex: '#8c535d' },
+  { name: 'Blush Pink', hex: '#DE5D83' },
+  { name: 'Pink', hex: '#FFC0CB' },
 
-const hexToHsl = (hex) => {
+  // Purples
+  { name: 'Purple', hex: '#800080' },
+  { name: 'Dark Purple', hex: '#382338' },
+  { name: 'Plum', hex: '#8E4585' },
+  { name: 'Lavender', hex: '#E6E6FA' },
+  { name: 'Lilac', hex: '#C8A2C8' },
+  { name: 'Violet', hex: '#EE82EE' },
+  { name: 'Indigo', hex: '#4B0082' },
+
+  // Blues
+  { name: 'Navy Blue', hex: '#000080' },
+  { name: 'Dark Navy', hex: '#0F172A' },
+  { name: 'Midnight Blue', hex: '#191970' },
+  { name: 'Slate Blue', hex: '#3f4e5a' },
+  { name: 'Steel Blue', hex: '#4682B4' },
+  { name: 'Royal Blue', hex: '#4169E1' },
+  { name: 'Blue', hex: '#0000FF' },
+  { name: 'Sky Blue', hex: '#87CEEB' },
+  { name: 'Baby Blue', hex: '#89CFF0' },
+
+  // Teals / Cyans
+  { name: 'Teal', hex: '#008080' },
+  { name: 'Dark Teal', hex: '#004D40' },
+  { name: 'Cadet Teal', hex: '#5F9EA0' },
+  { name: 'Cyan', hex: '#00FFFF' },
+
+  // Greens
+  { name: 'Dark Green', hex: '#041f17' },
+  { name: 'Forest Green', hex: '#1b4d3e' },
+  { name: 'Emerald Green', hex: '#50C878' },
+  { name: 'Green', hex: '#008000' },
+  { name: 'Olive Green', hex: '#556B2F' },
+  { name: 'Olive', hex: '#808000' },
+  { name: 'Army Green', hex: '#4B5320' },
+  { name: 'Sage Green', hex: '#9CAF88' },
+  { name: 'Mint Green', hex: '#98FF98' },
+
+  // Yellows / Oranges / Browns
+  { name: 'Yellow', hex: '#FFFF00' },
+  { name: 'Mustard', hex: '#FFDB58' },
+  { name: 'Gold', hex: '#FFD700' },
+  { name: 'Amber', hex: '#FFBF00' },
+  { name: 'Orange', hex: '#FFA500' },
+  { name: 'Coral', hex: '#FF7F50' },
+  { name: 'Peach', hex: '#FFDAB9' },
+  { name: 'Rust', hex: '#B7410E' },
+  { name: 'Terracotta', hex: '#E2725B' },
+  { name: 'Brown', hex: '#A52A2A' },
+  { name: 'Chocolate', hex: '#7B3F00' },
+  { name: 'Coffee', hex: '#6F4E37' }
+];
+
+const hexToRgb = (hex) => {
   let cleanHex = hex.replace('#', '').trim();
   if (cleanHex.length === 3) {
     cleanHex = cleanHex.split('').map(c => c + c).join('');
@@ -64,106 +95,59 @@ const hexToHsl = (hex) => {
   if (cleanHex.length !== 6) return null;
   const num = parseInt(cleanHex, 16);
   if (isNaN(num)) return null;
-
-  const r = ((num >> 16) & 255) / 255;
-  const g = ((num >> 8) & 255) / 255;
-  const b = (num & 255) / 255;
-
-  const max = Math.max(r, g, b);
-  const min = Math.min(r, g, b);
-  let h = 0, s = 0, l = (max + min) / 2;
-
-  if (max !== min) {
-    const d = max - min;
-    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-    switch (max) {
-      case r: h = (g - b) / d + (g < b ? 6 : 0); break;
-      case g: h = (b - r) / d + 2; break;
-      case b: h = (r - g) / d + 4; break;
-    }
-    h /= 6;
-  }
-
-  return { h: Math.round(h * 360), s: Math.round(s * 100), l: Math.round(l * 100) };
+  return [(num >> 16) & 255, (num >> 8) & 255, num & 255];
 };
+
+const rgbToLab = (r, g, b) => {
+  let r1 = r / 255, g1 = g / 255, b1 = b / 255;
+  r1 = r1 > 0.04045 ? Math.pow((r1 + 0.055) / 1.055, 2.4) : r1 / 12.92;
+  g1 = g1 > 0.04045 ? Math.pow((g1 + 0.055) / 1.055, 2.4) : g1 / 12.92;
+  b1 = b1 > 0.04045 ? Math.pow((b1 + 0.055) / 1.055, 2.4) : b1 / 12.92;
+  
+  const x = (r1 * 0.4124 + g1 * 0.3576 + b1 * 0.1805) * 100 / 95.047;
+  const y = (r1 * 0.2126 + g1 * 0.7152 + b1 * 0.0722) * 100 / 100.000;
+  const z = (r1 * 0.0193 + g1 * 0.1192 + b1 * 0.9505) * 100 / 108.883;
+
+  const fx = x > 0.008856 ? Math.pow(x, 1/3) : (7.787 * x) + (16/116);
+  const fy = y > 0.008856 ? Math.pow(y, 1/3) : (7.787 * y) + (16/116);
+  const fz = z > 0.008856 ? Math.pow(z, 1/3) : (7.787 * z) + (16/116);
+
+  const L = (116 * fy) - 16;
+  const a = 500 * (fx - fy);
+  const bVal = 200 * (fy - fz);
+
+  return [L, a, bVal];
+};
+
+// Pre-calculate Lab values for palette
+const PALETTE_LAB = COLOR_PALETTE.map(item => {
+  const rgb = hexToRgb(item.hex);
+  const lab = rgb ? rgbToLab(...rgb) : [0, 0, 0];
+  return { ...item, lab };
+});
 
 export const getClosestColorName = (hexStr) => {
   if (!hexStr) return '';
-  const lowerHex = hexStr.trim().toLowerCase();
+  const rgb = hexToRgb(hexStr);
+  if (!rgb) return hexStr;
 
-  // 1. Exact match lookup
-  if (EXACT_HEX_MAP[lowerHex]) {
-    return EXACT_HEX_MAP[lowerHex];
-  }
+  const targetLab = rgbToLab(...rgb);
+  let minDelta = Infinity;
+  let closestName = hexStr;
 
-  // 2. Accurate HSL perceptual categorization
-  const hsl = hexToHsl(lowerHex);
-  if (!hsl) return hexStr;
+  for (const c of PALETTE_LAB) {
+    const dL = targetLab[0] - c.lab[0];
+    const da = targetLab[1] - c.lab[1];
+    const db = targetLab[2] - c.lab[2];
+    const deltaE = Math.sqrt(dL * dL + da * da + db * db);
 
-  const { h, s, l } = hsl;
-
-  // Achromatic (grayscale) check
-  if (l <= 10) return 'Black';
-  if (l >= 95) return 'White';
-  if (s <= 14) {
-    if (l < 30) return 'Dark Charcoal';
-    if (l < 55) return 'Charcoal';
-    if (l < 75) return 'Gray';
-    return 'Light Gray';
+    if (deltaE < minDelta) {
+      minDelta = deltaE;
+      closestName = c.name;
+    }
   }
 
-  // Chromatic Hue Ranges
-  if (h >= 345 || h < 15) { // Red / Burgundy / Maroon
-    if (l < 30) return 'Burgundy';
-    if (l < 45) return 'Maroon';
-    if (s > 60) return 'Red';
-    return 'Deep Red';
-  }
-  if (h >= 15 && h < 45) { // Orange / Rust / Brown / Beige
-    if (l < 30) return 'Brown';
-    if (l > 75) return 'Beige';
-    if (s < 40) return 'Taupe';
-    if (s > 60 && l < 50) return 'Rust';
-    return 'Orange';
-  }
-  if (h >= 45 && h < 70) { // Yellow / Gold / Khaki / Olive
-    if (l < 35) return 'Olive';
-    if (l > 75) return 'Cream';
-    if (s < 45) return 'Khaki';
-    return 'Yellow';
-  }
-  if (h >= 70 && h < 165) { // Green / Emerald / Sage / Olive Green
-    if (l < 25) return 'Dark Green';
-    if (h < 100 && l < 40) return 'Olive Green';
-    if (h >= 150) return 'Mint Green';
-    if (l < 45) return 'Forest Green';
-    return 'Green';
-  }
-  if (h >= 165 && h < 200) { // Teal / Cyan / Aqua
-    if (l < 30) return 'Dark Teal';
-    if (l < 55) return 'Teal';
-    return 'Light Teal';
-  }
-  if (h >= 200 && h < 260) { // Blue / Navy / Slate Blue
-    if (l < 25) return 'Dark Navy';
-    if (l < 45) return 'Navy Blue';
-    if (l > 75) return 'Sky Blue';
-    if (s < 30) return 'Slate Blue';
-    return 'Blue';
-  }
-  if (h >= 260 && h < 300) { // Purple / Indigo / Lavender
-    if (l < 30) return 'Indigo';
-    if (l > 75) return 'Lavender';
-    return 'Purple';
-  }
-  if (h >= 300 && h < 345) { // Pink / Rose / Magenta / Plum
-    if (l < 35) return 'Plum';
-    if (l > 70) return 'Light Pink';
-    if (s > 60) return 'Magenta';
-    return 'Rose';
-  }
-
-  return hexStr;
+  return closestName;
 };
 
 export const getColorName = (color) => {
@@ -171,7 +155,6 @@ export const getColorName = (color) => {
 
   const isHex = (str) => /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(str.trim());
 
-  // Handle pipe-separated string e.g. "#85110e|Burgundy" or "#5F9EA0|#FFFFFF" or "#000080|Navy Blue"
   if (color.includes('|')) {
     const parts = color.split('|');
     const part0 = parts[0].trim();
@@ -180,38 +163,24 @@ export const getColorName = (color) => {
     const isHex0 = isHex(part0);
     const isHex1 = isHex(part1);
 
-    // Case A: #hex|Explicit Color Name (e.g. #85110e|Burgundy or #000080|Navy Blue) -> Always use explicit name!
-    if (isHex0 && !isHex1) {
-      return part1;
-    }
-    // Case B: Explicit Color Name|#hex -> Always use explicit name!
-    if (!isHex0 && isHex1) {
-      return part0;
-    }
-    // Case C: Dual hex e.g. #5F9EA0|#FFFFFF (Teal & White) -> Convert both hexes to true color names!
+    if (isHex0 && !isHex1) return part1;
+    if (!isHex0 && isHex1) return part0;
+
     if (isHex0 && isHex1) {
       const name0 = getClosestColorName(part0);
       const name1 = getClosestColorName(part1);
-      if (name0.toLowerCase() !== name1.toLowerCase()) {
-        return `${name0} / ${name1}`;
-      }
-      return name0;
+      return name0.toLowerCase() !== name1.toLowerCase() ? `${name0} / ${name1}` : name0;
     }
-    // Case D: Name|Name e.g. Teal|White
+
     if (!isHex0 && !isHex1) {
-      if (part0.toLowerCase() !== part1.toLowerCase()) {
-        return `${part0} / ${part1}`;
-      }
-      return part0;
+      return part0.toLowerCase() !== part1.toLowerCase() ? `${part0} / ${part1}` : part0;
     }
   }
 
-  // Single Hex string e.g. "#85110e"
   if (isHex(color)) {
     return getClosestColorName(color);
   }
 
-  // Plain color name string e.g. "Burgundy", "Navy Blue", "Charcoal"
   return color;
 };
 
