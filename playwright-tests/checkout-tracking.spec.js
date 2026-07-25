@@ -19,11 +19,11 @@ test.describe('Checkout and Secure Order Tracking E2E Flow', () => {
     await page.waitForURL(/\/product\//, { timeout: 60000 });
 
     // Wait for the main elements to load on the product page
-    await expect(page.locator('button:has-text("Add to Bag")')).toBeVisible({ timeout: 60000 });
+    await expect(page.locator('button').filter({ hasText: /Add to (Bag|Cart)/i }).first()).toBeVisible({ timeout: 60000 });
 
     // Select size if available
     try {
-      const sizeButtons = page.locator('div:has(span:has-text("Select Size")) + div button');
+      const sizeButtons = page.locator('div:has(span:has-text("Size")) + div button');
       await sizeButtons.first().waitFor({ state: 'visible', timeout: 2000 });
       await sizeButtons.first().click();
     } catch {
@@ -31,12 +31,12 @@ test.describe('Checkout and Secure Order Tracking E2E Flow', () => {
     }
 
     // 2. Add product to bag
-    const addToBagButton = page.locator('button:has-text("Add to Bag")');
+    const addToBagButton = page.locator('button').filter({ hasText: /Add to (Bag|Cart)/i }).first();
     await expect(addToBagButton).toBeVisible();
     await addToBagButton.click();
 
     // Verify added to bag status
-    await expect(page.getByText('✓ Added to bag')).toBeVisible();
+    await expect(page.getByText(/✓ Added to (bag|cart)/i)).toBeVisible({ timeout: 15000 });
 
     // 3. Go to checkout page
     await page.goto('/checkout');

@@ -942,7 +942,7 @@ export default function ProductPageClient({ product, allProducts = [], outfitPro
                               : 'bg-white text-black hover:bg-black hover:text-white'
                           }`}
                         >
-                          {cartAdded ? '✓ Added to Cart' : 'ADD TO CART'}
+                          {cartAdded ? '✓ Added to Bag' : 'ADD TO BAG'}
                         </button>
 
                         <button
