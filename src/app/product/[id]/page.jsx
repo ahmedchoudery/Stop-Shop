@@ -88,13 +88,23 @@ export default async function Page({ params }) {
 
     if (rawProduct.outfitProductIds?.length > 0 || rawProduct.featuredSection === 'attitude') {
       let outfitQuery = {};
+      const colorMap = {};
       if (rawProduct.outfitProductIds?.length > 0) {
-        const ids = rawProduct.outfitProductIds;
-        const validObjectIds = ids.filter(i => mongoose.isValidObjectId(i)).map(i => new mongoose.Types.ObjectId(i));
+        const rawEntries = rawProduct.outfitProductIds;
+        const cleanIds = [];
+        rawEntries.forEach(entry => {
+          const [rawId, selColor] = String(entry).split('::');
+          cleanIds.push(rawId);
+          if (selColor) {
+            colorMap[rawId] = selColor;
+          }
+        });
+
+        const validObjectIds = cleanIds.filter(i => mongoose.isValidObjectId(i)).map(i => new mongoose.Types.ObjectId(i));
         outfitQuery = {
           $or: [
-            { id: { $in: ids } },
-            { slug: { $in: ids } },
+            { id: { $in: cleanIds } },
+            { slug: { $in: cleanIds } },
             ...(validObjectIds.length ? [{ _id: { $in: validObjectIds } }] : [])
           ]
         };
@@ -102,7 +112,13 @@ export default async function Page({ params }) {
         outfitQuery = { featuredSection: { $ne: 'attitude' } };
       }
       const rawOutfitItems = await Product.find(outfitQuery).limit(8).lean();
-      outfitProducts = rawOutfitItems.map(serialize).filter(Boolean);
+      outfitProducts = rawOutfitItems.map(item => {
+        const serialized = serialize(item);
+        if (!serialized) return null;
+        const matchedKey = [serialized.id, serialized.slug, serialized._id].find(k => k && colorMap[k]);
+        const featuredColor = matchedKey ? colorMap[matchedKey] : null;
+        return { ...serialized, featuredColor };
+      }).filter(Boolean);
     }
   }
 

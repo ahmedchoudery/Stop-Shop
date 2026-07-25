@@ -134,13 +134,13 @@ const getVariantImages = (product, color) => {
   return thumb ? [thumb] : null;
 };
 
-const ProductCard = ({ product, onImageLoad }) => {
+const ProductCard = ({ product, initialColor = null, onImageLoad }) => {
   const navigate      = useNavigate();
   const { addToCart } = useCart();
   const { toggleWishlist, isWishlisted } = useWishlist();
   const { formatPrice } = useCurrency();
 
-  const [selectedColor, setSelectedColor] = useState(null);
+  const [selectedColor, setSelectedColor] = useState(initialColor || null);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [cartAdded,   setCartAdded]   = useState(false);
   const [isHovered,   setIsHovered]   = useState(false);

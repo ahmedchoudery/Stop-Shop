@@ -1161,6 +1161,7 @@ VariantMatrixSection.displayName = 'VariantMatrixSection';
 
 const OutfitItemsSection = memo(({ form, setForm, allProducts = [] }) => {
   const [selectedProductId, setSelectedProductId] = useState('');
+  const [selectedColorForProduct, setSelectedColorForProduct] = useState('');
   const [customIdOrUrl, setCustomIdOrUrl] = useState('');
 
   const outfitList = form.outfitProductIds || [];
@@ -1170,14 +1171,23 @@ const OutfitItemsSection = memo(({ form, setForm, allProducts = [] }) => {
     p => p.featuredSection !== 'attitude'
   );
 
-  const handleAddProduct = (prodId) => {
-    if (!prodId) return;
-    if (outfitList.includes(prodId)) return;
+  const selectedProductObj = availableProducts.find(
+    p => String(p.id || p._id) === String(selectedProductId)
+  );
+
+  const handleAddProduct = () => {
+    if (!selectedProductId) return;
+    const entryKey = selectedColorForProduct
+      ? `${selectedProductId}::${selectedColorForProduct}`
+      : selectedProductId;
+
+    if (outfitList.includes(entryKey)) return;
     setForm(f => ({
       ...f,
-      outfitProductIds: [...(f.outfitProductIds || []), prodId]
+      outfitProductIds: [...(f.outfitProductIds || []), entryKey]
     }));
     setSelectedProductId('');
+    setSelectedColorForProduct('');
   };
 
   const handleAddCustom = () => {
@@ -1201,6 +1211,15 @@ const OutfitItemsSection = memo(({ form, setForm, allProducts = [] }) => {
     }));
   };
 
+  const handleColorChangeOnCard = (oldEntryKey, newColor) => {
+    const [rawId] = oldEntryKey.split('::');
+    const newEntryKey = newColor ? `${rawId}::${newColor}` : rawId;
+    setForm(f => ({
+      ...f,
+      outfitProductIds: (f.outfitProductIds || []).map(k => k === oldEntryKey ? newEntryKey : k)
+    }));
+  };
+
   return (
     <div className="bg-gray-50/60 border border-gray-200 rounded-xl p-5 space-y-4 shadow-2xs">
       <div className="flex flex-wrap items-center justify-between border-b border-gray-200/80 pb-3 gap-2">
@@ -1210,7 +1229,7 @@ const OutfitItemsSection = memo(({ form, setForm, allProducts = [] }) => {
             <span>Items in this Outfit (Lookbook Catalog)</span>
           </h3>
           <p className="text-[11px] text-gray-500 font-medium mt-0.5">
-            Attach individual catalog products featured in this lookbook outfit.
+            Attach individual catalog products and choose featured color variants for this lookbook outfit.
           </p>
         </div>
         <span className="text-[10px] font-bold uppercase tracking-widest bg-[#85110e]/10 text-[#85110e] px-3 py-1 rounded-full shrink-0">
@@ -1224,11 +1243,14 @@ const OutfitItemsSection = memo(({ form, setForm, allProducts = [] }) => {
           <label className="block text-[9px] font-black uppercase tracking-widest text-gray-500">
             Select from Catalogue
           </label>
-          <div className="flex items-center space-x-2 min-w-0">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 min-w-0">
             <select
               value={selectedProductId}
-              onChange={e => setSelectedProductId(e.target.value)}
-              className="min-w-0 flex-1 border border-gray-200 rounded-lg px-3 py-2 text-xs font-semibold text-gray-900 focus:border-black focus:ring-1 focus:ring-black outline-none bg-white transition-all truncate"
+              onChange={e => {
+                setSelectedProductId(e.target.value);
+                setSelectedColorForProduct('');
+              }}
+              className="min-w-0 flex-1 border border-gray-200 rounded-lg px-3 py-2 text-xs font-semibold text-gray-900 focus:border-black outline-none bg-white transition-all truncate"
             >
               <option value="">-- Choose a product --</option>
               {availableProducts.map(p => (
@@ -1237,9 +1259,26 @@ const OutfitItemsSection = memo(({ form, setForm, allProducts = [] }) => {
                 </option>
               ))}
             </select>
+
+            {/* Optional Color Selection for Chosen Product */}
+            {selectedProductObj?.colors?.length > 0 && (
+              <select
+                value={selectedColorForProduct}
+                onChange={e => setSelectedColorForProduct(e.target.value)}
+                className="border border-gray-200 rounded-lg px-2.5 py-2 text-xs font-semibold text-gray-900 focus:border-black outline-none bg-white transition-all shrink-0 max-w-[140px] truncate"
+              >
+                <option value="">-- Featured Color --</option>
+                {selectedProductObj.colors.map(col => (
+                  <option key={col} value={col}>
+                    {getColorName(col)}
+                  </option>
+                ))}
+              </select>
+            )}
+
             <button
               type="button"
-              onClick={() => handleAddProduct(selectedProductId)}
+              onClick={handleAddProduct}
               disabled={!selectedProductId}
               className="shrink-0 px-3.5 py-2 bg-black text-white text-[10px] font-black uppercase tracking-wider rounded-lg hover:bg-black/80 disabled:opacity-30 disabled:cursor-not-allowed transition-all whitespace-nowrap"
             >
@@ -1259,7 +1298,7 @@ const OutfitItemsSection = memo(({ form, setForm, allProducts = [] }) => {
               value={customIdOrUrl}
               onChange={e => setCustomIdOrUrl(e.target.value)}
               placeholder="e.g. PRD-123 or product URL"
-              className="min-w-0 flex-1 border border-gray-200 rounded-lg px-3 py-2 text-xs font-semibold text-gray-900 focus:border-black focus:ring-1 focus:ring-black outline-none bg-white transition-all truncate"
+              className="min-w-0 flex-1 border border-gray-200 rounded-lg px-3 py-2 text-xs font-semibold text-gray-900 focus:border-black outline-none bg-white transition-all truncate"
             />
             <button
               type="button"
@@ -1281,7 +1320,12 @@ const OutfitItemsSection = memo(({ form, setForm, allProducts = [] }) => {
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {outfitList.map(itemKey => {
-              const matched = (allProducts || []).find(p => (p.id === itemKey || p._id === itemKey || p.slug === itemKey));
+              const [rawId, itemColor] = itemKey.split('::');
+              const matched = (allProducts || []).find(p => (
+                String(p.id) === String(rawId) ||
+                String(p._id) === String(rawId) ||
+                p.slug === rawId
+              ));
               return (
                 <div key={itemKey} className="flex items-center justify-between p-2.5 bg-white border border-gray-200 rounded-lg shadow-2xs group hover:border-gray-300 transition-all">
                   <div className="flex items-center space-x-3 min-w-0">
@@ -1294,17 +1338,35 @@ const OutfitItemsSection = memo(({ form, setForm, allProducts = [] }) => {
                     </div>
                     <div className="min-w-0">
                       <p className="text-xs font-black uppercase text-gray-900 truncate">
-                        {matched?.name || itemKey}
+                        {matched?.name || rawId}
                       </p>
                       <p className="text-[10px] font-bold text-gray-500 font-mono">
-                        {matched ? `Rs. ${matched.price?.toLocaleString()} · ${matched.bucket}` : `#${itemKey}`}
+                        {matched ? `Rs. ${matched.price?.toLocaleString()} · ${matched.bucket}` : `#${rawId}`}
                       </p>
+                      {/* Color Variant Selector on Card */}
+                      {matched?.colors?.length > 0 && (
+                        <div className="flex items-center space-x-1.5 mt-1">
+                          <span className="w-2.5 h-2.5 rounded-full border border-gray-200 shrink-0" style={getBackgroundStyle(itemColor || matched.colors[0])} />
+                          <select
+                            value={itemColor || ''}
+                            onChange={e => handleColorChangeOnCard(itemKey, e.target.value)}
+                            className="text-[9px] font-bold border border-gray-200 rounded px-1.5 py-0.5 bg-gray-50 text-gray-800 focus:border-black outline-none"
+                          >
+                            <option value="">Default Color</option>
+                            {matched.colors.map(col => (
+                              <option key={col} value={col}>
+                                {getColorName(col)}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
                     </div>
                   </div>
                   <button
                     type="button"
                     onClick={() => handleRemove(itemKey)}
-                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
+                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all shrink-0"
                     title="Remove item from outfit"
                   >
                     <X size={14} />

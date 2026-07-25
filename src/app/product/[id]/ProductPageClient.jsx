@@ -1083,7 +1083,7 @@ export default function ProductPageClient({ product, allProducts = [], outfitPro
             {outfitProducts.length > 0 ? (
               <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 {outfitProducts.map(item => (
-                  <ProductCard key={item.id || item._id} product={item} />
+                  <ProductCard key={item.id || item._id} product={item} initialColor={item.featuredColor || null} />
                 ))}
               </div>
             ) : (
