@@ -1028,7 +1028,7 @@ export default function ProductPageClient({ product, allProducts = [], outfitPro
               </>
             )}
 
-            {/* Luxury Accordions (Description, Care, Materials, Delivery & Returns) */}
+            {/* Luxury Accordions (Description, Materials, Care) */}
             <div className="border-t border-gray-200 pt-2">
               {/* Description Accordion */}
               {product.description?.trim() && (
@@ -1047,28 +1047,6 @@ export default function ProductPageClient({ product, allProducts = [], outfitPro
                   {openAccordions.description && (
                     <div className="pb-5 text-xs text-gray-600 leading-relaxed font-normal whitespace-pre-line tracking-normal">
                       {product.description}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Care Instructions Accordion */}
-              {product.careInstructions?.trim() && (
-                <div className="border-b border-gray-200">
-                  <button
-                    type="button"
-                    onClick={() => toggleAccordion('care')}
-                    className="w-full py-4 flex items-center justify-between text-left text-xs font-bold uppercase tracking-[0.2em] text-gray-900 hover:text-gray-600 transition-colors cursor-pointer"
-                  >
-                    <span>Care Instructions</span>
-                    <ChevronDown
-                      size={14}
-                      className={`transition-transform duration-300 ${openAccordions.care ? 'rotate-180' : ''}`}
-                    />
-                  </button>
-                  {openAccordions.care && (
-                    <div className="pb-5 text-xs text-gray-600 leading-relaxed font-normal whitespace-pre-line tracking-normal">
-                      {product.careInstructions}
                     </div>
                   )}
                 </div>
@@ -1096,27 +1074,27 @@ export default function ProductPageClient({ product, allProducts = [], outfitPro
                 </div>
               )}
 
-              {/* Delivery & Returns Accordion */}
-              <div className="border-b border-gray-200">
-                <button
-                  type="button"
-                  onClick={() => toggleAccordion('delivery')}
-                  className="w-full py-4 flex items-center justify-between text-left text-xs font-bold uppercase tracking-[0.2em] text-gray-900 hover:text-gray-600 transition-colors cursor-pointer"
-                >
-                  <span>Delivery & Returns</span>
-                  <ChevronDown
-                    size={14}
-                    className={`transition-transform duration-300 ${openAccordions.delivery ? 'rotate-180' : ''}`}
-                  />
-                </button>
-                {openAccordions.delivery && (
-                  <div className="pb-5 text-xs text-gray-600 space-y-1.5 leading-relaxed">
-                    <p>• Free express delivery on all orders over Rs. 2,000.</p>
-                    <p>• 7-day easy returns & exchanges policy.</p>
-                    <p>• 100% authentic products with SSL encrypted checkout.</p>
-                  </div>
-                )}
-              </div>
+              {/* Care Accordion */}
+              {product.careInstructions?.trim() && (
+                <div className="border-b border-gray-200">
+                  <button
+                    type="button"
+                    onClick={() => toggleAccordion('care')}
+                    className="w-full py-4 flex items-center justify-between text-left text-xs font-bold uppercase tracking-[0.2em] text-gray-900 hover:text-gray-600 transition-colors cursor-pointer"
+                  >
+                    <span>Care</span>
+                    <ChevronDown
+                      size={14}
+                      className={`transition-transform duration-300 ${openAccordions.care ? 'rotate-180' : ''}`}
+                    />
+                  </button>
+                  {openAccordions.care && (
+                    <div className="pb-5 text-xs text-gray-600 leading-relaxed font-normal whitespace-pre-line tracking-normal">
+                      {product.careInstructions}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Share & Copy Link */}
