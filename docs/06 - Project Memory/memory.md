@@ -107,6 +107,23 @@ This document tracks the current state of work, what tasks have been completed, 
 
 ---
 
-## 12. What is Planned Next
+## 13. What Has Been Completed (Prompt 16 - Defined by Attitude Lookbook System & Product Card UI Overhaul)
+- **Defined by Attitude Outfit Admin Validation**:
+  - Removed required price input validation for attitude outfits (`featuredSection === 'attitude'`) when submitting product forms, defaulting price to 0 since outfits navigate directly to linked catalog items.
+- **Dynamic Outfit Stock Evaluation**:
+  - Updated admin product table stock badges to render `Outfit · Active (X/Y Items)` and only mark an outfit as `SOLD OUT` if all attached catalog items are out of stock.
+- **Featured Color Variants for Lookbook Items**:
+  - Added a color variant dropdown in the admin outfit items catalog builder (`OutfitItemsSection`), allowing admins to pick specific featured colors (`productId::selectedColor`).
+  - Updated server-side route (`page.jsx`) and client product page (`ProductPageClient.jsx`) to pass `initialColor` to `ProductCard`, rendering attached outfit items pre-selected in the exact featured color with corresponding variant images.
+- **Multi-Picture Gallery for Attitude Outfits**:
+  - Unblocked `GallerySection` in `ProductForm.jsx` for attitude outfit products (`featuredSection === 'attitude'`), enabling admins to upload multiple lookbook photos/angles to Cloudinary.
+- **Inventory Tracking Bypass for Attitude Outfits**:
+  - Bypassed physical stock tracking in `inventoryService.js` and `inventory/route.js` for Defined by Attitude outfits, purging legacy inventory records and excluding lookbook outfits from stock control tables and inventory health chart calculations.
+- **Product Title Left-Edge Character Clipping Fix**:
+  - Replaced `-webkit-line-clamp: 1` with CSS `block w-full truncate` and upgraded info container padding to `px-3 pb-3 pt-1` across `ProductCard.jsx` and `PiecesThatSpeak.jsx`, resolving left-character truncation on names starting with numbers/symbols (e.g. `1 OF 1 NIKE...`).
+
+---
+
+## 14. What is Planned Next
 - **Next Prompt / Alignment**: Ready for next requests from the user.
 
