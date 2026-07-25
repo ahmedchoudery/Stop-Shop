@@ -1,55 +1,25 @@
 /**
  * @fileoverview WhatsAppButton.jsx
- * Floating WhatsApp button — visible only when viewing the homepage hero section.
- * Vanishes when the user scrolls past the hero section.
+ * Floating WhatsApp button — visible on all storefront pages and continuously on scroll.
  *
  * Applies: design-spells (spring entrance, pulse ring, tooltip on hover, active-scale tap response)
  */
 
 import React, { useState, useEffect } from 'react';
-import { useLocation } from '../utils/router-compat.jsx';
 
 // ── Config — country code + number, no + or spaces ────────────────
 const WHATSAPP_NUMBER = '923068458655';
 const DEFAULT_MESSAGE = "Hi! I'm shopping at Stop & Shop and need some help. 🛍️";
 
 const WhatsAppButton = () => {
-  const location = useLocation();
   const [visible, setVisible] = useState(false);
-  const [isInHero, setIsInHero] = useState(true);
   const [tooltip, setTooltip] = useState(false);
 
-  const isHomePage = location.pathname === '/';
-
-  // Delayed entrance — appear shortly after homepage loads
+  // Smooth entrance shortly after load
   useEffect(() => {
-    if (!isHomePage) return;
-    const t1 = setTimeout(() => setVisible(true), 500);
-    return () => { clearTimeout(t1); };
-  }, [isHomePage]);
-
-  // Track scroll position compared to hero section height
-  useEffect(() => {
-    if (!isHomePage) return;
-
-    const handleScroll = () => {
-      const hero = document.getElementById('hero-section');
-      const heroHeight = hero ? hero.offsetHeight : window.innerHeight;
-
-      // The button stays visible only within the hero section height
-      if (window.scrollY < heroHeight - 80) {
-        setIsInHero(true);
-      } else {
-        setIsInHero(false);
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll(); // Initial check
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [isHomePage]);
-
-  if (!isHomePage) return null;
+    const timer = setTimeout(() => setVisible(true), 300);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleClick = () => {
     const encoded = encodeURIComponent(DEFAULT_MESSAGE);
@@ -63,7 +33,7 @@ const WhatsAppButton = () => {
         className={`
           fixed bottom-6 md:bottom-8 right-4 md:right-8 z-[999]
           transition-all duration-500 ease-in-out active-scale
-          ${visible && isInHero
+          ${visible
             ? 'opacity-100 translate-y-0'
             : 'opacity-0 translate-y-12 pointer-events-none'
           }
