@@ -66,6 +66,67 @@ const getColorName = (color) => {
   return color;
 };
 
+const RelatedProducts = ({ currentId, category, subCategory, allProducts = [] }) => {
+  // 1. Filter matching category and subCategory first
+  let related = (allProducts || []).filter(p =>
+    (p.id || p._id) !== currentId &&
+    (p.quantity ?? 1) > 0 &&
+    p.bucket === category &&
+    (subCategory && subCategory !== 'General' ? p.subCategory === subCategory : true)
+  );
+
+  // 2. Fallback: match same category (bucket)
+  if (related.length < 4) {
+    const additional = (allProducts || []).filter(p =>
+      (p.id || p._id) !== currentId &&
+      (p.quantity ?? 1) > 0 &&
+      p.bucket === category &&
+      !related.some(r => (r.id || r._id) === (p.id || p._id))
+    );
+    related = [...related, ...additional];
+  }
+
+  // 3. Fallback: any available catalog items
+  if (related.length < 4) {
+    const globalFallback = (allProducts || []).filter(p =>
+      (p.id || p._id) !== currentId &&
+      (p.quantity ?? 1) > 0 &&
+      !related.some(r => (r.id || r._id) === (p.id || p._id))
+    );
+    related = [...related, ...globalFallback];
+  }
+
+  const finalItems = related.slice(0, 4);
+  if (!finalItems.length) return null;
+
+  return (
+    <section className="border-t border-gray-200 pt-16 pb-8 mt-16">
+      <div className="flex items-end justify-between mb-10">
+        <div>
+          <span className="text-[10px] font-bold uppercase tracking-[0.3em] text-gray-400 block mb-1">
+            Curated Recommendations
+          </span>
+          <h2 className="text-xl sm:text-2xl font-medium uppercase tracking-[0.1em] text-gray-900 font-serif">
+            You May Also Like
+          </h2>
+        </div>
+        <Link
+          to="/"
+          className="text-[10px] font-black uppercase tracking-[0.25em] text-black border-b border-black pb-0.5 hover:opacity-70 transition-opacity hidden sm:inline-block"
+        >
+          View Full Catalog →
+        </Link>
+      </div>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+        {finalItems.map(item => (
+          <ProductCard key={item.id || item._id} product={item} />
+        ))}
+      </div>
+    </section>
+  );
+};
+
 const getVariantImage = (prod, col) => {
   if (!prod || !col) return null;
   
@@ -805,22 +866,10 @@ export default function ProductPageClient({ product, allProducts = [], outfitPro
               </div>
             ) : (
               <>
-                <div className="space-y-3 border-b border-gray-150 pb-5">
+                <div className="pb-4 border-b border-gray-200">
                   <p className="text-xl font-semibold tracking-wider text-gray-900">
                     {formatPrice(product.price)}
                   </p>
-
-                  {/* Baadmay / Installment Pill (Screenshot 1 Match) */}
-                  {product.price > 0 && (
-                    <div className="inline-flex items-center space-x-2 bg-gray-50 border border-purple-200/60 px-3 py-1.5 rounded-[4px]">
-                      <span className="bg-[#8000FF] text-white text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-[3px]">
-                        baadmay
-                      </span>
-                      <span className="text-[11px] font-medium text-gray-700">
-                        Pay in 3 Installments of <span className="font-bold text-[#8000FF]">{formatPrice(Math.round(product.price / 3))}</span>
-                      </span>
-                    </div>
-                  )}
                 </div>
 
                 {/* Colors */}
