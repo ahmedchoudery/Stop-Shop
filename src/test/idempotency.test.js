@@ -30,9 +30,13 @@ class MockRequest {
 
 describe('Idempotency Key Concurrent Race-Condition tests', () => {
   beforeAll(async () => {
-    const uri = process.env.MONGO_URI || process.env.MONGODB_URI;
+    const uri = process.env.MONGO_URI || process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/stopshop_test?replicaSet=rs0';
     if (mongoose.connection.readyState === 0) {
-      await mongoose.connect(uri, { dbName: 'stopshop' });
+      const connStrWithoutParams = uri.split('?')[0];
+      const pathSegments = connStrWithoutParams.split('/');
+      const extractedDbName = pathSegments.slice(3).join('/').split('#')[0];
+      const dbName = extractedDbName || 'stopshop_test';
+      await mongoose.connect(uri, { dbName });
     }
 
     const prdId = 'PRD-Z5KCUVEHE';
