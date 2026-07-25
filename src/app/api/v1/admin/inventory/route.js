@@ -71,6 +71,16 @@ export const GET = withRoute({
       });
     }
 
+    // Clean up any legacy inventory records belonging to attitude outfits
+    const attitudeProducts = await Product.find({
+      $or: [{ featuredSection: 'attitude' }, { bucket: 'Outfit' }]
+    }).select('id').lean();
+    
+    if (attitudeProducts.length > 0) {
+      const attitudeIds = attitudeProducts.map(p => p.id).filter(Boolean);
+      await Inventory.deleteMany({ productId: { $in: attitudeIds } });
+    }
+
     const totalCount = await Inventory.countDocuments({});
     const inventory = await Inventory.find({})
       .select('productId sku name category totalStock sizeStock colorStock status updatedAt')

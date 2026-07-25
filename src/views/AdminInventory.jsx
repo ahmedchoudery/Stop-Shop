@@ -211,7 +211,9 @@ const AdminInventory = () => {
     ));
   };
 
-  const filtered = products.filter(p => {
+  const inventoryProducts = products.filter(p => p.featuredSection !== 'attitude' && p.bucket !== 'Outfit');
+
+  const filtered = inventoryProducts.filter(p => {
     const q = searchTerm.toLowerCase();
     const matchSearch = !searchTerm 
       || p.name?.toLowerCase().includes(q) 
@@ -235,7 +237,7 @@ const AdminInventory = () => {
 
       {/* Chart */}
       <div className="mb-8">
-        <InventoryHealthChart products={products} />
+        <InventoryHealthChart products={inventoryProducts} />
       </div>
 
       {/* View Switcher Tabs */}

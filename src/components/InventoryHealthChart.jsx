@@ -11,9 +11,10 @@ import { useIntersectionObserver } from '../hooks/useUtils.js';
 import { EASING } from '../hooks/useAnime.js';
 
 const InventoryHealthChart = ({ products = [] }) => {
-  const soldOut = products.filter(p => p.quantity === 0).length;
-  const inStock = products.length - soldOut;
-  const percentage = products.length > 0 ? Math.round((soldOut / products.length) * 100) : 0;
+  const eligibleProducts = products.filter(p => p.featuredSection !== 'attitude' && p.bucket !== 'Outfit');
+  const soldOut = eligibleProducts.filter(p => p.quantity === 0).length;
+  const inStock = eligibleProducts.length - soldOut;
+  const percentage = eligibleProducts.length > 0 ? Math.round((soldOut / eligibleProducts.length) * 100) : 0;
   const healthScore = 100 - percentage;
 
   const percentRef = useRef(null);

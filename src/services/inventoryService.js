@@ -20,6 +20,12 @@ const LOW_STOCK_THRESHOLD = 3;
  */
 export const syncInventory = async (product, moveType = 'ADMIN_UPDATE', note = '', orderId = null, meta = {}, session = null) => {
   try {
+    // Defined by Attitude outfits are lookbook outfits linking to catalog items; they do not hold physical stock.
+    if (product.featuredSection === 'attitude' || product.bucket === 'Outfit') {
+      await Inventory.deleteOne({ productId: product.id });
+      return null;
+    }
+
     const totalStock = product.quantity ?? 0;
 
     // Determine status
