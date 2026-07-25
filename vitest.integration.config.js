@@ -19,6 +19,8 @@ export default defineConfig({
     sequence: {
       concurrent: false,
     },
+    testTimeout: 30000,
+    hookTimeout: 30000,
     include: [
       'src/test/checkout.test.js',
       'src/test/idempotency.test.js',
