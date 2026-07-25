@@ -728,11 +728,35 @@ StockCategorySection.displayName = 'StockCategorySection';
  * - Admin can upload as many images as they want per color.
  */
 const ColorsSection = memo(({ form, colorInput, setColorInput, onAddColor, onRemoveColor, onVariantImageUpload, onRemoveVariantImage, onSetColorStock, uploading, hasSizes }) => {
+  const [colorCode, setColorCode] = useState('#85110e');
+  const [colorName, setColorName] = useState('');
+
   const getColorImages = (color) => {
     const raw = form.variantImages?.[color];
     if (Array.isArray(raw)) return raw;
     if (raw && typeof raw === 'string' && raw.trim()) return [raw]; // backward compat
     return [];
+  };
+
+  const handleAddColorClick = () => {
+    const code = colorCode.trim() || '#000000';
+    const name = colorName.trim();
+
+    let finalColorStr = '';
+    if (code.includes('|')) {
+      finalColorStr = code;
+    } else if (name) {
+      finalColorStr = `${code}|${name}`;
+    } else {
+      const suggestedName = getColorName(code);
+      finalColorStr = `${code}|${suggestedName}`;
+    }
+
+    setColorInput(finalColorStr);
+    setTimeout(() => {
+      onAddColor();
+      setColorName('');
+    }, 0);
   };
 
   return (
@@ -749,24 +773,55 @@ const ColorsSection = memo(({ form, colorInput, setColorInput, onAddColor, onRem
         )}
       </div>
 
-      {/* Color picker row */}
-      <div className="flex items-center space-x-3 mb-4">
-        <input
-          type="color"
-          value={colorInput.includes('|') ? colorInput.split('|')[0] : (colorInput || '#000000')}
-          onChange={e => {
-            const hex = e.target.value;
-            const name = getColorName(hex);
-            setColorInput(`${hex}|${name}`);
-          }}
-          className="w-12 h-10 rounded-[4px] border border-gray-200 cursor-pointer"
-        />
-        <input type="text" value={colorInput} onChange={e => setColorInput(e.target.value)}
-          placeholder="#FF0000 or #FF0000|ColorName"
-          className="flex-grow border border-gray-200 rounded-[4px] px-4 py-2.5 text-sm font-mono font-bold focus:border-black outline-none" />
-        <button onClick={onAddColor} className="px-4 py-2.5 bg-black text-white rounded-[4px] text-[11px] font-black uppercase tracking-widest hover:bg-black/90 transition-colors">
-          Add Color
-        </button>
+      {/* Dual Color Input Fields */}
+      <div className="grid grid-cols-1 sm:grid-cols-[auto_1fr_1fr_auto] gap-3 items-center mb-4 bg-gray-50/80 p-3 rounded-[6px] border border-gray-200/80">
+        <div className="flex items-center space-x-2">
+          <input
+            type="color"
+            value={colorCode.startsWith('#') && (colorCode.length === 4 || colorCode.length === 7) ? colorCode : '#85110e'}
+            onChange={e => {
+              const hex = e.target.value;
+              setColorCode(hex);
+              if (!colorName.trim()) {
+                setColorName(getColorName(hex));
+              }
+            }}
+            className="w-10 h-10 rounded-[4px] border border-gray-200 cursor-pointer shrink-0"
+            title="Pick color"
+          />
+        </div>
+
+        <div>
+          <label className="block text-[9px] font-black uppercase tracking-widest text-gray-500 mb-1">Color Code (Hex / RGB / HSL)</label>
+          <input
+            type="text"
+            value={colorCode}
+            onChange={e => setColorCode(e.target.value)}
+            placeholder="#85110e, rgb(133,17,14)"
+            className="w-full border border-gray-200 rounded-[4px] px-3 py-2 text-xs font-mono font-bold focus:border-black outline-none bg-white"
+          />
+        </div>
+
+        <div>
+          <label className="block text-[9px] font-black uppercase tracking-widest text-gray-500 mb-1">Display Color Name *</label>
+          <input
+            type="text"
+            value={colorName}
+            onChange={e => setColorName(e.target.value)}
+            placeholder="e.g. Burgundy, Dusty Rose, Slate Blue"
+            className="w-full border border-gray-200 rounded-[4px] px-3 py-2 text-xs font-bold focus:border-black outline-none bg-white"
+          />
+        </div>
+
+        <div className="sm:self-end">
+          <button
+            type="button"
+            onClick={handleAddColorClick}
+            className="w-full sm:w-auto px-4 py-2 bg-black text-white rounded-[4px] text-[11px] font-black uppercase tracking-widest hover:bg-black/90 transition-colors"
+          >
+            Add Color
+          </button>
+        </div>
       </div>
 
       {/* Per-color image gallery cards */}

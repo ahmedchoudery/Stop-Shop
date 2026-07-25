@@ -1,8 +1,8 @@
 /**
  * @fileoverview color-namer.js
  * Authoritative e-commerce color name resolution engine for Stop & Shop.
- * Uses NTC (Name That Color) CIELAB 1976 perceptual color space (CIE L*a*b*)
- * and smart dual-swatch decomposition to guarantee 100% true color labels.
+ * Prioritizes merchant-specified display names (#code|Name) and uses
+ * NTC CIELAB 1976 perceptual color space for unlabelled code fallbacks.
  */
 
 const NTC_PALETTE = [
@@ -167,30 +167,40 @@ export const getClosestColorName = (hexStr) => {
 export const getColorName = (color) => {
   if (!color) return '';
 
-  const isHex = (str) => /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(str.trim());
+  const isColorCode = (str) => {
+    const s = str.trim();
+    return /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/.test(s) ||
+           /^rgba?\(|\bhsla?\(/i.test(s);
+  };
 
   if (color.includes('|')) {
     const parts = color.split('|');
     const part0 = parts[0].trim();
     const part1 = parts[1].trim();
 
-    const isHex0 = isHex(part0);
-    const isHex1 = isHex(part1);
+    const isCode0 = isColorCode(part0);
+    const isCode1 = isColorCode(part1);
 
-    // Resolve both halves of the split swatch
-    const name0 = isHex0 ? getClosestColorName(part0) : part0;
-    const name1 = isHex1 ? getClosestColorName(part1) : part1;
+    // If part0 is a color code (#hex / rgb / hsl) and part1 is an explicit merchant name (e.g. #85110e|Burgundy)
+    if (isCode0 && !isCode1) return part1;
 
-    if (name0 && name1) {
-      if (name0.toLowerCase() !== name1.toLowerCase()) {
-        return `${name0} / ${name1}`;
-      }
-      return name0;
+    // If part1 is a color code and part0 is an explicit merchant name (e.g. Burgundy|#85110e)
+    if (!isCode0 && isCode1) return part0;
+
+    // If both are color codes (e.g. #5F9EA0|#FFFFFF)
+    if (isCode0 && isCode1) {
+      const name0 = getClosestColorName(part0);
+      const name1 = getClosestColorName(part1);
+      return name0.toLowerCase() !== name1.toLowerCase() ? `${name0} / ${name1}` : name0;
     }
-    return name0 || name1;
+
+    // If both are text names (e.g. Teal|White)
+    if (!isCode0 && !isCode1) {
+      return part0.toLowerCase() !== part1.toLowerCase() ? `${part0} / ${part1}` : part0;
+    }
   }
 
-  if (isHex(color)) {
+  if (isColorCode(color)) {
     return getClosestColorName(color);
   }
 
