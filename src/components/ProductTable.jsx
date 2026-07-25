@@ -31,6 +31,51 @@ const StockBadge = ({ qty }) => {
       In Stock · {qty}
     </span>
   );
+const renderStockBadge = (product, productsList = []) => {
+  const isAttitude = product.featuredSection === 'attitude' || product.bucket === 'Outfit';
+  
+  if (isAttitude) {
+    const linkedIds = product.outfitProductIds || [];
+    if (!linkedIds.length) {
+      return (
+        <span className="inline-flex px-2.5 py-1 rounded-[4px] text-[8px] font-black uppercase tracking-widest bg-green-50 border border-green-150 text-green-700">
+          Outfit · Active
+        </span>
+      );
+    }
+
+    const linkedProducts = productsList.filter(p => {
+      const pId = String(p.id ?? p._id ?? '');
+      return linkedIds.some(id => String(id) === pId || (p.slug && p.slug === id));
+    });
+
+    if (!linkedProducts.length) {
+      return (
+        <span className="inline-flex px-2.5 py-1 rounded-[4px] text-[8px] font-black uppercase tracking-widest bg-green-50 border border-green-150 text-green-700">
+          Outfit · Active
+        </span>
+      );
+    }
+
+    const inStockLinked = linkedProducts.filter(p => (p.quantity ?? p.stock ?? 0) > 0);
+    const allSoldOut = linkedProducts.length > 0 && inStockLinked.length === 0;
+
+    if (allSoldOut) {
+      return (
+        <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-[4px] text-[8px] font-black uppercase tracking-widest bg-black text-white">
+          <span>Sold Out</span>
+        </span>
+      );
+    }
+
+    return (
+      <span className="inline-flex px-2.5 py-1 rounded-[4px] text-[8px] font-black uppercase tracking-widest bg-green-50 border border-green-150 text-green-700">
+        Outfit · Active ({inStockLinked.length}/{linkedProducts.length} Items)
+      </span>
+    );
+  }
+
+  return <StockBadge qty={product.quantity ?? 0} />;
 };
 
 const ProductTable = memo(({ products = [], onEdit, onDelete }) => {
@@ -153,7 +198,7 @@ const ProductTable = memo(({ products = [], onEdit, onDelete }) => {
                 {/* Stock Breakdown (S, M, L, XL of each color) */}
                 <td className="px-5 py-4 align-top">
                   <div className="space-y-2">
-                    <StockBadge qty={product.quantity ?? 0} />
+                    {renderStockBadge(product, products)}
                     
                     {/* Matrix View: Both colors AND sizes exist */}
                     {hasMatrix && hasColors && hasSizes && (

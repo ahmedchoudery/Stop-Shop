@@ -7,6 +7,18 @@ import ProductPageClient from './ProductPageClient.jsx';
 
 export const revalidate = 300; // Cache and revalidate pages every 300 seconds
 
+// Plain JSON serialization helper function
+const serialize = (p) => {
+  if (!p) return null;
+  return {
+    ...p,
+    _id: p._id?.toString() || null,
+    id: p.id || p._id?.toString() || null,
+    createdAt: p.createdAt ? new Date(p.createdAt).toISOString() : null,
+    updatedAt: p.updatedAt ? new Date(p.updatedAt).toISOString() : null,
+  };
+};
+
 // ── Dynamic Metadata Generation (Preserving e-commerce SEO rules exactly) ──
 export async function generateMetadata({ params }) {
   await dbConnect();
@@ -90,7 +102,7 @@ export default async function Page({ params }) {
         outfitQuery = { featuredSection: { $ne: 'attitude' } };
       }
       const rawOutfitItems = await Product.find(outfitQuery).limit(8).lean();
-      outfitProducts = rawOutfitItems.map(serialize);
+      outfitProducts = rawOutfitItems.map(serialize).filter(Boolean);
     }
   }
 
@@ -98,17 +110,8 @@ export default async function Page({ params }) {
     return <ProductPageClient product={null} />;
   }
 
-  // Plain JSON serialization helper function
-  const serialize = (p) => ({
-    ...p,
-    _id: p._id?.toString() || null,
-    id: p.id || p._id?.toString() || null,
-    createdAt: p.createdAt ? new Date(p.createdAt).toISOString() : null,
-    updatedAt: p.updatedAt ? new Date(p.updatedAt).toISOString() : null,
-  });
-
   const product = serialize(rawProduct);
-  const allProducts = rawAllProducts.map(serialize);
+  const allProducts = rawAllProducts.map(serialize).filter(Boolean);
 
   // Dynamic host detection for JSON-LD URLs
   const headersList = headers();
@@ -120,8 +123,8 @@ export default async function Page({ params }) {
     "@context": "https://schema.org/",
     "@type": "Product",
     "name": product.name,
-    "image": product.image,
-    "description": product.description || `${product.name} premium clothing item.`,
+    "image": product.image ? [product.image] : [],
+    "description": product.description || product.name,
     "sku": product.id,
     "mpn": product.id,
     "brand": {
