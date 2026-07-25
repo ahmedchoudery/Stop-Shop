@@ -65,7 +65,11 @@ const ProductForm = memo(({
   };
 
   const removeGalleryItem = (item) => {
-    setForm(f => ({ ...f, gallery: (f.gallery || []).filter(g => g !== item) }));
+    setForm(f => {
+      const nextGallery = (f.gallery || []).filter(g => g !== item);
+      const nextImage = f.image === item ? (nextGallery[0] || '') : f.image;
+      return { ...f, gallery: nextGallery, image: nextImage };
+    });
   };
 
   const handleGalleryUpload = async (e) => {
@@ -74,7 +78,11 @@ const ProductForm = memo(({
     try {
       setUploading(true);
       const url = await uploadFileToCloudinary(file);
-      setForm(f => ({ ...f, gallery: [...(f.gallery || []), url] }));
+      setForm(f => ({
+        ...f,
+        image: f.image ? f.image : url,
+        gallery: [...(f.gallery || []), url]
+      }));
     } catch (err) {
       alert('Failed to upload gallery image: ' + err.message);
     } finally {
@@ -234,13 +242,21 @@ const ProductForm = memo(({
         uploading={uploading}
       />
 
-      {/* Outfit Items selection for Defined by Attitude products */}
+      {/* Outfit Items selection & Lookbook Pictures for Defined by Attitude products */}
       {form.featuredSection === 'attitude' && (
-        <OutfitItemsSection
-          form={form}
-          setForm={setForm}
-          allProducts={allProducts}
-        />
+        <>
+          <OutfitItemsSection
+            form={form}
+            setForm={setForm}
+            allProducts={allProducts}
+          />
+          <GallerySection
+            form={form}
+            onGalleryUpload={handleGalleryUpload}
+            onRemoveGallery={removeGalleryItem}
+            uploading={uploading}
+          />
+        </>
       )}
 
       {/* Standard Product Variant & Inventory sections (Hidden for Defined by Attitude outfits) */}
