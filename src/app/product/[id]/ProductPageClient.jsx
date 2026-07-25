@@ -3,9 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import {
-  Heart, ShoppingBag, Share2,
-  ChevronRight, Package, Truck, RotateCcw,
-  Shield, ArrowLeft, AlertTriangle, ChevronLeft,
+  Heart, Share2,
+  ChevronRight, Package,
+  ArrowLeft, AlertTriangle, ChevronLeft,
   Minus, Plus, X, ZoomIn, ZoomOut, Bell,
   ChevronUp, ChevronDown, Ruler
 } from 'lucide-react';
@@ -16,13 +16,6 @@ import { useCurrency } from '../../../context/CurrencyContext.jsx';
 import MediaRenderer from '../../../components/MediaRenderer.jsx';
 import ProductReviews from '../../../components/ProductReviews.jsx';
 import ProductCard from '../../../components/ProductCard.jsx';
-
-const TRUST = [
-  { Icon: Truck,     label: 'Delivery',  sub: 'Orders over Rs. 2,000' },
-  { Icon: RotateCcw, label: 'Returns',   sub: '7-day easy returns' },
-  { Icon: Shield,    label: 'Secure',    sub: 'SSL encrypted checkout' },
-  { Icon: Package,   label: 'Authentic', sub: 'Original Stop & Shop' },
-];
 
 const getBackgroundStyle = (color) => {
   if (!color) return {};
@@ -151,55 +144,6 @@ const getVariantImage = (prod, col) => {
 };
 
 
-
-const RelatedProducts = ({ currentId, category, subCategory, allProducts = [] }) => {
-  const { formatPrice } = useCurrency();
-  const related = allProducts
-    .filter(p => p.bucket === category && p.subCategory === subCategory && (p.id !== currentId && p._id !== currentId) && p.quantity > 0)
-    .slice(0, 4);
-  
-  if (!related.length) return null;
-
-  return (
-    <section className="border-t border-gray-100 py-16">
-      <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16">
-        <div className="flex items-baseline justify-between mb-10">
-          <div>
-            <p className="text-[8px] font-black uppercase tracking-[0.5em] text-cardinal mb-2">You May Also Like</p>
-            <h2 className="text-2xl font-black uppercase tracking-tighter text-gray-900">From {subCategory || category}</h2>
-          </div>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-5">
-          {related.map(product => (
-            <Link
-              key={product.id}
-              to={`/product/${product.id}`}
-              className="group block"
-            >
-              <div className="aspect-[3/4] bg-[#F8F7F5] overflow-hidden mb-3">
-                {product.image ? (
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    loading="lazy"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center">
-                    <Package size={20} className="text-gray-200" />
-                  </div>
-                )}
-              </div>
-              <p className="text-[8px] font-bold text-gray-400 uppercase tracking-widest mb-1">{product.bucket}</p>
-              <h3 className="text-[10px] font-black uppercase tracking-tight text-gray-900 group-hover:text-cardinal transition-colors truncate">{product.name}</h3>
-              <p className="text-xs font-black text-gray-900 mt-1">{formatPrice(product.price)}</p>
-            </Link>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-};
 
 /** Returns the full image array for a color (for detail-page gallery). */
 const getVariantImages = (product, color) => {
