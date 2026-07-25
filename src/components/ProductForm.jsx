@@ -1145,32 +1145,33 @@ const OutfitItemsSection = memo(({ form, setForm, allProducts = [] }) => {
   };
 
   return (
-    <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-4 shadow-xs">
-      <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+    <div className="bg-gray-50/60 border border-gray-200 rounded-xl p-5 space-y-4 shadow-2xs">
+      <div className="flex flex-wrap items-center justify-between border-b border-gray-200/80 pb-3 gap-2">
         <div>
           <h3 className="text-xs font-black uppercase tracking-[0.2em] text-gray-900 flex items-center space-x-2">
             <Link2 size={14} className="text-[#85110e]" />
             <span>Items in this Outfit (Lookbook Catalog)</span>
           </h3>
-          <p className="text-[10px] text-gray-500 font-medium mt-0.5">
-            Attach the individual products used in this outfit. Customers will see these product cards on the outfit page.
+          <p className="text-[11px] text-gray-500 font-medium mt-0.5">
+            Attach individual catalog products featured in this lookbook outfit.
           </p>
         </div>
-        <span className="text-[10px] font-black uppercase tracking-widest bg-[#85110e]/10 text-[#85110e] px-2.5 py-1 rounded-full">
-          {outfitList.length} Items Attached
+        <span className="text-[10px] font-bold uppercase tracking-widest bg-[#85110e]/10 text-[#85110e] px-3 py-1 rounded-full shrink-0">
+          {outfitList.length} {outfitList.length === 1 ? 'Item' : 'Items'} Attached
         </span>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
-        <div>
-          <label className="block text-[9px] font-black uppercase tracking-widest text-gray-500 mb-1.5">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Option 1: Catalogue Dropdown */}
+        <div className="space-y-1.5 min-w-0">
+          <label className="block text-[9px] font-black uppercase tracking-widest text-gray-500">
             Select from Catalogue
           </label>
-          <div className="flex space-x-2">
+          <div className="flex items-center space-x-2 min-w-0">
             <select
               value={selectedProductId}
               onChange={e => setSelectedProductId(e.target.value)}
-              className="flex-grow border border-gray-200 rounded-lg px-3 py-2.5 text-xs font-semibold focus:border-black outline-none bg-gray-50/50"
+              className="min-w-0 flex-1 border border-gray-200 rounded-lg px-3 py-2 text-xs font-semibold text-gray-900 focus:border-black focus:ring-1 focus:ring-black outline-none bg-white transition-all truncate"
             >
               <option value="">-- Choose a product --</option>
               {availableProducts.map(p => (
@@ -1183,68 +1184,70 @@ const OutfitItemsSection = memo(({ form, setForm, allProducts = [] }) => {
               type="button"
               onClick={() => handleAddProduct(selectedProductId)}
               disabled={!selectedProductId}
-              className="px-4 py-2.5 bg-black text-white text-[10px] font-black uppercase tracking-wider rounded-lg hover:bg-black/90 disabled:opacity-40 transition-all"
+              className="shrink-0 px-3.5 py-2 bg-black text-white text-[10px] font-black uppercase tracking-wider rounded-lg hover:bg-black/80 disabled:opacity-30 disabled:cursor-not-allowed transition-all whitespace-nowrap"
             >
-              Add
+              + Add
             </button>
           </div>
         </div>
 
-        <div>
-          <label className="block text-[9px] font-black uppercase tracking-widest text-gray-500 mb-1.5">
-            Or Paste Product URL / ID
+        {/* Option 2: Paste Product ID / URL */}
+        <div className="space-y-1.5 min-w-0">
+          <label className="block text-[9px] font-black uppercase tracking-widest text-gray-500">
+            Or Paste Product ID / URL
           </label>
-          <div className="flex space-x-2">
+          <div className="flex items-center space-x-2 min-w-0">
             <input
               type="text"
               value={customIdOrUrl}
               onChange={e => setCustomIdOrUrl(e.target.value)}
-              placeholder="e.g. PRD-OWB4LL10A or https://.../product/PRD-123"
-              className="flex-grow border border-gray-200 rounded-lg px-3 py-2.5 text-xs font-semibold focus:border-black outline-none bg-gray-50/50"
+              placeholder="e.g. PRD-123 or product URL"
+              className="min-w-0 flex-1 border border-gray-200 rounded-lg px-3 py-2 text-xs font-semibold text-gray-900 focus:border-black focus:ring-1 focus:ring-black outline-none bg-white transition-all truncate"
             />
             <button
               type="button"
               onClick={handleAddCustom}
               disabled={!customIdOrUrl.trim()}
-              className="px-4 py-2.5 bg-black text-white text-[10px] font-black uppercase tracking-wider rounded-lg hover:bg-black/90 disabled:opacity-40 transition-all"
+              className="shrink-0 px-3.5 py-2 bg-black text-white text-[10px] font-black uppercase tracking-wider rounded-lg hover:bg-black/80 disabled:opacity-30 disabled:cursor-not-allowed transition-all whitespace-nowrap"
             >
-              Add
+              + Add
             </button>
           </div>
         </div>
       </div>
 
+      {/* Attached List */}
       {outfitList.length > 0 ? (
-        <div className="space-y-2 pt-2">
+        <div className="space-y-2 pt-2 border-t border-gray-200/80">
           <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-            Attached Outfit Products:
+            Attached Outfit Products ({outfitList.length}):
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {outfitList.map(itemKey => {
               const matched = (allProducts || []).find(p => (p.id === itemKey || p._id === itemKey || p.slug === itemKey));
               return (
-                <div key={itemKey} className="flex items-center justify-between p-2.5 bg-gray-50 border border-gray-200/80 rounded-lg">
+                <div key={itemKey} className="flex items-center justify-between p-2.5 bg-white border border-gray-200 rounded-lg shadow-2xs group hover:border-gray-300 transition-all">
                   <div className="flex items-center space-x-3 min-w-0">
-                    <div className="w-9 h-9 rounded bg-gray-200 overflow-hidden flex-shrink-0">
+                    <div className="w-10 h-10 rounded bg-gray-100 overflow-hidden flex-shrink-0 border border-gray-100">
                       {matched?.image ? (
                         <img src={matched.image} alt={matched.name} className="w-full h-full object-cover" />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-[7px] font-bold text-gray-400">NO IMG</div>
+                        <div className="w-full h-full flex items-center justify-center text-[8px] font-bold text-gray-400">NO IMG</div>
                       )}
                     </div>
                     <div className="min-w-0">
                       <p className="text-xs font-black uppercase text-gray-900 truncate">
                         {matched?.name || itemKey}
                       </p>
-                      <p className="text-[9px] font-bold text-gray-400 font-mono">
-                        {matched ? `Rs. ${matched.price} · ${matched.bucket}` : `#${itemKey}`}
+                      <p className="text-[10px] font-bold text-gray-500 font-mono">
+                        {matched ? `Rs. ${matched.price?.toLocaleString()} · ${matched.bucket}` : `#${itemKey}`}
                       </p>
                     </div>
                   </div>
                   <button
                     type="button"
                     onClick={() => handleRemove(itemKey)}
-                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-all"
+                    className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all"
                     title="Remove item from outfit"
                   >
                     <X size={14} />
@@ -1255,9 +1258,12 @@ const OutfitItemsSection = memo(({ form, setForm, allProducts = [] }) => {
           </div>
         </div>
       ) : (
-        <div className="p-4 bg-gray-50 border border-dashed border-gray-200 rounded-lg text-center">
-          <p className="text-[10px] font-black uppercase tracking-widest text-gray-400">
-            No products attached to this outfit yet. Select products above to build the lookbook outfit!
+        <div className="p-5 bg-white border border-dashed border-gray-200 rounded-xl text-center">
+          <p className="text-xs font-bold uppercase tracking-wider text-gray-400">
+            No products attached yet
+          </p>
+          <p className="text-[10px] text-gray-400 mt-1">
+            Select catalog items above to build the editorial lookbook outfit.
           </p>
         </div>
       )}
