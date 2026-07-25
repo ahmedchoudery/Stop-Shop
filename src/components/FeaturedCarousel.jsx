@@ -377,6 +377,7 @@ const CarouselCard = ({ product, theme, index = 0 }) => {
 
 export default function FeaturedCarousel({ products = [], headline, subline, theme = 'light' }) {
   const scrollRef = useRef(null);
+  const [scrollProgress, setScrollProgress] = useState(0);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
 
@@ -385,8 +386,16 @@ export default function FeaturedCarousel({ products = [], headline, subline, the
   const updateScrollState = useCallback(() => {
     const el = scrollRef.current;
     if (!el) return;
+    const maxScroll = el.scrollWidth - el.clientWidth;
+    if (maxScroll <= 0) {
+      setScrollProgress(100);
+      setCanScrollLeft(false);
+      setCanScrollRight(false);
+      return;
+    }
     setCanScrollLeft(el.scrollLeft > 8);
-    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 8);
+    setCanScrollRight(el.scrollLeft < maxScroll - 8);
+    setScrollProgress((el.scrollLeft / maxScroll) * 100);
   }, []);
 
   useEffect(() => {
@@ -417,7 +426,7 @@ export default function FeaturedCarousel({ products = [], headline, subline, the
       <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16">
 
         {/* Section Header */}
-        <div className="flex items-end justify-between mb-10 sm:mb-14 gap-4">
+        <div className="flex flex-row items-end justify-between mb-8 sm:mb-14 gap-4">
           <div>
             <p className="text-[9px] font-black uppercase tracking-[0.5em] text-gray-500 mb-2">
               {subline}
@@ -428,28 +437,30 @@ export default function FeaturedCarousel({ products = [], headline, subline, the
           </div>
 
           {/* Navigation Arrows */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={() => scroll(-1)}
               disabled={!canScrollLeft}
-              className={`w-10 h-10 rounded-none border flex items-center justify-center transition-all duration-300 disabled:opacity-20 disabled:cursor-not-allowed group ${
+              className={`w-10 h-10 rounded-[2px] border flex items-center justify-center transition-all duration-300 disabled:opacity-20 disabled:cursor-not-allowed group shadow-2xs ${
                 theme === 'dark'
-                  ? 'border-white/10 hover:border-white hover:bg-white text-white hover:text-black'
-                  : 'border-gray-200 hover:border-black hover:bg-black text-black hover:text-white'
+                  ? 'border-white/15 bg-white/5 hover:border-white hover:bg-white text-white hover:text-black'
+                  : 'border-gray-200 bg-white hover:border-black hover:bg-black text-black hover:text-white'
               }`}
+              aria-label="Previous items"
             >
-              <ArrowLeft size={16} className="transition-colors duration-300" />
+              <ArrowLeft size={15} strokeWidth={1.8} className="transition-colors duration-300" />
             </button>
             <button
               onClick={() => scroll(1)}
               disabled={!canScrollRight}
-              className={`w-10 h-10 rounded-none border flex items-center justify-center transition-all duration-300 disabled:opacity-20 disabled:cursor-not-allowed group ${
+              className={`w-10 h-10 rounded-[2px] border flex items-center justify-center transition-all duration-300 disabled:opacity-20 disabled:cursor-not-allowed group shadow-2xs ${
                 theme === 'dark'
-                  ? 'border-white/10 hover:border-white hover:bg-white text-white hover:text-black'
-                  : 'border-gray-200 hover:border-black hover:bg-black text-black hover:text-white'
+                  ? 'border-white/15 bg-white/5 hover:border-white hover:bg-white text-white hover:text-black'
+                  : 'border-gray-200 bg-white hover:border-black hover:bg-black text-black hover:text-white'
               }`}
+              aria-label="Next items"
             >
-              <ArrowRight size={16} className="transition-colors duration-300" />
+              <ArrowRight size={15} strokeWidth={1.8} className="transition-colors duration-300" />
             </button>
           </div>
         </div>
@@ -462,6 +473,7 @@ export default function FeaturedCarousel({ products = [], headline, subline, the
             scrollSnapType: 'x mandatory',
             scrollbarWidth: 'none',
             msOverflowStyle: 'none',
+            WebkitOverflowScrolling: 'touch',
           }}
         >
           {products.map((product, idx) => (
@@ -471,23 +483,23 @@ export default function FeaturedCarousel({ products = [], headline, subline, the
           ))}
         </div>
 
-        {/* Scroll indicator dots */}
-        <div className="flex items-center gap-1.5 mt-6">
-          <div className={`h-px transition-all duration-300 ${
-            theme === 'dark'
-              ? (canScrollLeft ? 'w-6 bg-white' : 'w-3 bg-white/10')
-              : (canScrollLeft ? 'w-6 bg-black' : 'w-3 bg-gray-200')
-          }`} />
-          <div className={`h-px transition-all duration-300 ${
-            theme === 'dark'
-              ? (!canScrollLeft && !canScrollRight ? 'w-6 bg-white' : 'w-3 bg-white/10')
-              : (!canScrollLeft && !canScrollRight ? 'w-6 bg-black' : 'w-3 bg-gray-200')
-          }`} />
-          <div className={`h-px transition-all duration-300 ${
-            theme === 'dark'
-              ? (!canScrollRight ? 'w-6 bg-white' : 'w-3 bg-white/10')
-              : (!canScrollRight ? 'w-6 bg-black' : 'w-3 bg-gray-200')
-          }`} />
+        {/* Sleek Luxury Progress Bar */}
+        <div className={`flex items-center justify-between mt-8 pt-4 border-t gap-4 ${
+          theme === 'dark' ? 'border-white/10' : 'border-gray-150/70'
+        }`}>
+          <div className={`relative w-32 sm:w-48 h-[2px] overflow-hidden rounded-full ${
+            theme === 'dark' ? 'bg-white/15' : 'bg-gray-200/80'
+          }`}>
+            <div 
+              className={`absolute top-0 left-0 h-full transition-all duration-300 ease-out rounded-full ${
+                theme === 'dark' ? 'bg-white' : 'bg-black'
+              }`}
+              style={{ width: `${Math.max(10, scrollProgress)}%` }}
+            />
+          </div>
+          <p className="text-[9px] font-mono font-bold uppercase tracking-[0.25em] text-gray-400">
+            {Math.round(scrollProgress)}%
+          </p>
         </div>
       </div>
     </section>

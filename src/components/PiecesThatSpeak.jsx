@@ -389,37 +389,30 @@ export default function PiecesThatSpeak({ products: initialProducts = [] }) {
       <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16">
         
         {/* Editorial Header */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 lg:mb-16 gap-6">
+        <div className="flex flex-row items-end justify-between mb-8 sm:mb-12 gap-4">
           <div>
-            <p className="text-[8px] font-black uppercase tracking-[0.55em] text-gray-400 mb-3">
+            <p className="text-[8px] font-black uppercase tracking-[0.55em] text-gray-400 mb-2.5">
               Best Sellers · Fan Favourites
             </p>
-            <h2 className="text-3xl sm:text-4xl font-black uppercase tracking-tighter text-black leading-none">
+            <h2 className="text-2xl sm:text-4xl font-black uppercase tracking-tighter text-black leading-none">
               Pieces That Speak for Themselves.
             </h2>
           </div>
 
-          {/* Timeline progress line & navigation */}
-          <div className="flex items-center gap-4">
-            {/* Timeline Progress */}
-            <div className="relative w-24 sm:w-32 h-0.5 bg-gray-250/60 mr-2 overflow-hidden">
-              <div 
-                className="absolute top-0 left-0 h-full bg-black transition-all duration-300 ease-out"
-                style={{ width: `${scrollProgress}%` }}
-              />
-            </div>
-
-            {/* Arrows */}
+          {/* Navigation Arrows */}
+          <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={() => scroll(-1)}
-              className="w-10 h-10 border border-gray-200 flex items-center justify-center text-gray-500 hover:border-black hover:text-black transition-all duration-200 active:scale-95 rounded-none"
+              disabled={scrollProgress <= 2}
+              className="w-10 h-10 border border-gray-200 bg-white flex items-center justify-center text-black hover:text-white hover:bg-black hover:border-black disabled:opacity-20 disabled:cursor-not-allowed transition-all duration-300 shadow-2xs rounded-[2px]"
               aria-label="Previous items"
             >
               <ArrowLeft size={15} strokeWidth={1.8} />
             </button>
             <button
               onClick={() => scroll(1)}
-              className="w-10 h-10 border border-gray-200 flex items-center justify-center text-gray-500 hover:border-black hover:text-black transition-all duration-200 active:scale-95 rounded-none"
+              disabled={scrollProgress >= 98}
+              className="w-10 h-10 border border-gray-200 bg-white flex items-center justify-center text-black hover:text-white hover:bg-black hover:border-black disabled:opacity-20 disabled:cursor-not-allowed transition-all duration-300 shadow-2xs rounded-[2px]"
               aria-label="Next items"
             >
               <ArrowRight size={15} strokeWidth={1.8} />
@@ -452,6 +445,18 @@ export default function PiecesThatSpeak({ products: initialProducts = [] }) {
           ))}
         </div>
 
+        {/* Sleek Luxury Progress Indicator */}
+        <div className="flex items-center justify-between mt-8 pt-4 border-t border-gray-150/70 gap-4">
+          <div className="relative w-32 sm:w-48 h-[2px] bg-gray-200/80 overflow-hidden rounded-full">
+            <div 
+              className="absolute top-0 left-0 h-full bg-black transition-all duration-300 ease-out rounded-full"
+              style={{ width: `${Math.max(10, scrollProgress)}%` }}
+            />
+          </div>
+          <p className="text-[9px] font-mono font-bold uppercase tracking-[0.25em] text-gray-400">
+            {Math.round(scrollProgress)}%
+          </p>
+        </div>
       </div>
     </section>
   );
