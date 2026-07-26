@@ -209,6 +209,29 @@ export default async function Page({ params }) {
     ]
   };
 
+  const pdpFaqSchema = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": `How long does delivery take for ${product.name} in Karachi, Lahore, or Gujrat?`,
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": `Orders for ${product.name} dispatched from our Gujrat hub arrive in 1 to 2 days in Gujrat, Lahore, and Islamabad, and 2 to 3 business days in Karachi, Peshawar, and Quetta.`
+        }
+      },
+      {
+        "@type": "Question",
+        "name": `What is the price and return policy for ${product.name} at Stop & Shop?`,
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": `${product.name} is priced at Rs. ${Number(product.price).toLocaleString('en-PK')} PKR with nationwide Cash on Delivery. Every purchase comes with a 7-day hassle-free return and size exchange guarantee.`
+        }
+      }
+    ]
+  };
+
   return (
     <>
       <script
@@ -218,6 +241,10 @@ export default async function Page({ params }) {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(pdpFaqSchema) }}
       />
       <ProductPageClient product={product} allProducts={allProducts} outfitProducts={outfitProducts} />
     </>

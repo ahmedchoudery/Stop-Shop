@@ -982,6 +982,27 @@ export default function ProductPageClient({ product, allProducts = [], outfitPro
               </>
             )}
 
+            {/* AI-Lift Summary & City Delivery Specifications Box */}
+            <div className="bg-gray-50 border border-gray-200 rounded-md p-4 my-4 space-y-3 text-xs">
+              <p className="font-extrabold text-gray-900 leading-snug">
+                Stop & Shop {product.name} is a luxury {product.bucket?.toLowerCase() || 'clothing'} item crafted for premium comfort and style in Pakistan.
+              </p>
+              <ul className="space-y-1.5 text-[11px] font-bold text-gray-700">
+                <li className="flex items-center space-x-2">
+                  <span className="text-black font-black">⚡</span>
+                  <span><strong>Express Shipping</strong>: 1–2 days (Gujrat, Lahore, Islamabad) | 2–3 days (Karachi, Peshawar, Quetta).</span>
+                </li>
+                <li className="flex items-center space-x-2">
+                  <span className="text-black font-black">💳</span>
+                  <span><strong>Price & COD</strong>: Rs. {Number(product.price || 0).toLocaleString('en-PK')} PKR (Cash on Delivery available).</span>
+                </li>
+                <li className="flex items-center space-x-2">
+                  <span className="text-black font-black">🔄</span>
+                  <span><strong>7-Day Policy</strong>: 100% hassle-free nationwide size exchange & cash returns.</span>
+                </li>
+              </ul>
+            </div>
+
             {/* Luxury Accordions (Description, Materials, Care) */}
             <div className="border-t border-gray-200 pt-2">
               {/* Description Accordion */}
