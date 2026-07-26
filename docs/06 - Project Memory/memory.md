@@ -141,9 +141,25 @@ This document tracks the current state of work, what tasks have been completed, 
 - **Snooze & Unsnooze 7-Day Actions**:
   - Updated Snooze actions to toggle alert statuses between `snoozed` and `active`, updating `snoozedUntil` timestamps and instantly refreshing UI state.
 
+## 15. What Has Been Completed (Prompt 10 - Technical SEO for Pakistan Ranking)
+- **Per-Route Metadata & Hreflangs**: Injected unique titles, descriptions, canonicals, and `en-PK`/`ur-PK` hreflang alternate tags across `/`, `/category/[slug]`, `/product/[id]`, `/returns`, `/track`, and `/search`.
+- **Sitewide & Page JSON-LD Schemas**: Added `Organization`, `WebSite` (with `SearchAction`), `LocalBusiness` / `ClothingStore` (Gujrat physical store address, geo coordinates `32.5742, 74.0754`, phone, opening hours), `Product`, `Offer`, `BreadcrumbList`, and `FAQPage` schemas.
+- **Dynamic XML Sitemap & Robots**: Created `src/app/sitemap.xml/route.js` with `<image:image>` loc/title extensions and `src/app/robots.js` metadata handler.
+- **Search Console & Bing Verification**: Added verification anchors in root layout metadata and documented environment variables in `.env.example`.
+- **Google Business Profile Checklist**: Created [`docs/SEO.md`](file:///c:/Users/JAPAN%20COMPUTERS/OneDrive/Desktop/Stop-Shop/docs/SEO.md) covering physical store postcard verification steps for Gujrat, Punjab, local citations, and structured data validation.
+
 ---
 
-## 15. What is Planned Next
+## 16. What Has Been Completed (Prompt 11 - Answer Engine Optimization Layer)
+- **LLM Specification Standards**: Built `/llms.txt` route handler defining brand overview, canonical category URLs, shipping timetables, and support contacts for ChatGPT, Perplexity, Gemini, and Claude.
+- **Full Text Stream Index**: Built `/llms-full.txt` route handler dynamically serving plain-text catalog specifications for top 50 pages and products.
+- **AI-Lift Summary Blocks**: Embedded 1-sentence definitions + 3 bullet summaries across PDPs, `/shipping`, and `/help` pages.
+- **City Delivery Timetable & FAQ Accordions**: Rendered readable delivery matrices by city (Gujrat/Lahore/Islamabad: 1–2 days; Karachi/Peshawar: 2–3 days) and injected `FAQPage` JSON-LD schemas across PDPs, `/shipping`, `/help`, and `/returns`.
+
+---
+
+## 17. What is Planned Next
 - **Next User Requirements**: Stand ready to analyze, implement, and verify any additional features, UI refinements, backend APIs, or security enhancements.
+
 
 
