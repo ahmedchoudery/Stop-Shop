@@ -488,30 +488,8 @@ const AdminInventory = () => {
 
                         {/* Actions */}
                         <td className="p-4">
-                          <div className="flex flex-col gap-1.5">
-                            {/* Quick Restock Input & Button */}
-                            <div className="flex items-center space-x-1">
-                              <input
-                                type="number"
-                                min="1"
-                                placeholder="Qty"
-                                value={restockInput[alert._id] ?? 50}
-                                onChange={e => {
-                                  const val = parseInt(e.target.value) || 1;
-                                  setRestockInput(prev => ({ ...prev, [alert._id]: val }));
-                                }}
-                                className="w-14 bg-white border border-gray-200 rounded px-2 py-1 text-xs font-black font-mono text-center outline-none focus:border-black shadow-2xs"
-                              />
-                              <button
-                                onClick={() => handleRestock(alert._id, restockInput[alert._id] ?? 50)}
-                                className="px-2.5 py-1 bg-black text-white text-[8px] font-black uppercase tracking-widest rounded-[3px] hover:bg-gray-800 transition-all cursor-pointer shadow-2xs whitespace-nowrap"
-                                title="Add typed quantity to product stock"
-                              >
-                                Restock
-                              </button>
-                            </div>
-
-                            {/* Detailed Variant Restock Button */}
+                          <div className="flex items-center space-x-2">
+                            {/* Restock Button (opens Restock Modal) */}
                             <button
                               onClick={() => {
                                 setRestockModalAlert(alert);
@@ -519,24 +497,24 @@ const AdminInventory = () => {
                                 setRestockSize(alert.sizes?.[0] || '');
                                 setRestockQty(50);
                               }}
-                              className="px-2.5 py-1 bg-gray-100 border border-gray-200 text-gray-800 text-[8px] font-black uppercase tracking-widest rounded-[3px] hover:bg-black hover:text-white transition-all cursor-pointer shadow-2xs whitespace-nowrap"
+                              className="px-3 py-1.5 bg-black text-white text-[9px] font-black uppercase tracking-widest rounded hover:bg-gray-800 transition-all cursor-pointer shadow-2xs whitespace-nowrap"
                             >
-                              Configure Variant Restock
+                              Restock
                             </button>
 
                             {/* Snooze 7d / Unsnooze Button */}
                             {isSnoozed ? (
                               <button
                                 onClick={() => handleUnsnooze(alert._id)}
-                                className="px-2.5 py-1 bg-yellow-100 border border-yellow-300 text-yellow-800 text-[8px] font-black uppercase tracking-widest rounded-[3px] hover:bg-yellow-200 transition-all cursor-pointer shadow-2xs whitespace-nowrap"
+                                className="px-3 py-1.5 bg-yellow-100 border border-yellow-300 text-yellow-800 text-[9px] font-black uppercase tracking-widest rounded hover:bg-yellow-200 transition-all cursor-pointer shadow-2xs whitespace-nowrap"
                                 title="Click to reactivate alert"
                               >
-                                Snoozed (Unsnooze)
+                                Snoozed
                               </button>
                             ) : (
                               <button
                                 onClick={() => handleSnooze(alert._id)}
-                                className="px-2.5 py-1 bg-white border border-gray-200 text-gray-600 text-[8px] font-black uppercase tracking-widest rounded-[3px] hover:border-black hover:text-black transition-all cursor-pointer shadow-2xs whitespace-nowrap"
+                                className="px-3 py-1.5 bg-white border border-gray-200 text-gray-600 text-[9px] font-black uppercase tracking-widest rounded hover:border-black hover:text-black transition-all cursor-pointer shadow-2xs whitespace-nowrap"
                                 title="Snooze alert for 7 days"
                               >
                                 Snooze 7d

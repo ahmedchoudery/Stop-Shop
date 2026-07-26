@@ -35,7 +35,7 @@ export const GET = withRoute({
         .sort({ createdAt: -1 })
         .lean();
 
-      const enriched = await Promise.all(alerts.map(async (alert) => {
+      const enrichedResults = await Promise.all(alerts.map(async (alert) => {
         const rawSku = alert.sku || '';
         const cleanSku = rawSku.replace(/^#/, '').trim();
 
@@ -53,33 +53,30 @@ export const GET = withRoute({
         })
           .select('name image gallery variantMatrix sizeStock colorStock quantity stock lowStockThreshold sizes colors')
           .lean();
-        
+
+        if (!product) {
+          // Delete orphan alert referencing non-existent product
+          await LowStockAlert.deleteOne({ _id: alert._id }).catch(() => {});
+          return null;
+        }
+
         let currentStock = 0;
-        let threshold = 5;
-        let colorStock = {};
-        let sizeStock = {};
-        let variantMatrix = {};
-        let colors = [];
-        let sizes = [];
+        let threshold = product.lowStockThreshold ?? 5;
+        const colors = product.colors || [];
+        const sizes = product.sizes || [];
+        const colorStock = product.colorStock ? (product.colorStock instanceof Map ? Object.fromEntries(product.colorStock) : product.colorStock) : {};
+        const sizeStock = product.sizeStock ? (product.sizeStock instanceof Map ? Object.fromEntries(product.sizeStock) : product.sizeStock) : {};
+        const variantMatrix = product.variantMatrix ? (product.variantMatrix instanceof Map ? Object.fromEntries(product.variantMatrix) : product.variantMatrix) : {};
 
-        if (product) {
-          threshold = product.lowStockThreshold ?? 5;
-          colors = product.colors || [];
-          sizes = product.sizes || [];
-          colorStock = product.colorStock ? (product.colorStock instanceof Map ? Object.fromEntries(product.colorStock) : product.colorStock) : {};
-          sizeStock = product.sizeStock ? (product.sizeStock instanceof Map ? Object.fromEntries(product.sizeStock) : product.sizeStock) : {};
-          variantMatrix = product.variantMatrix ? (product.variantMatrix instanceof Map ? Object.fromEntries(product.variantMatrix) : product.variantMatrix) : {};
-
-          const colorAndSize = alert.variantId;
-          if (colorAndSize === 'default') {
-            currentStock = product.quantity ?? product.stock ?? 0;
-          } else if (colorAndSize.includes('|')) {
-            currentStock = safeGet(variantMatrix, colorAndSize);
-          } else if (sizes.includes(colorAndSize)) {
-            currentStock = safeGet(sizeStock, colorAndSize);
-          } else if (colors.includes(colorAndSize)) {
-            currentStock = safeGet(colorStock, colorAndSize);
-          }
+        const colorAndSize = alert.variantId;
+        if (colorAndSize === 'default') {
+          currentStock = product.quantity ?? product.stock ?? 0;
+        } else if (colorAndSize.includes('|')) {
+          currentStock = safeGet(variantMatrix, colorAndSize);
+        } else if (sizes.includes(colorAndSize)) {
+          currentStock = safeGet(sizeStock, colorAndSize);
+        } else if (colors.includes(colorAndSize)) {
+          currentStock = safeGet(colorStock, colorAndSize);
         }
 
         const salesVelocity = await getSalesVelocity(cleanSku || rawSku, alert.variantId);
@@ -87,19 +84,21 @@ export const GET = withRoute({
         return {
           ...alert,
           _id: alert._id?.toString() || null,
-          productName: product?.name || (cleanSku !== rawSku ? cleanSku : alert.sku),
-          productImage: product?.image || (product?.gallery?.[0]) || '',
+          productName: product.name,
+          productImage: product.image || (product.gallery?.[0]) || '',
           colors,
           sizes,
           colorStock,
           sizeStock,
           variantMatrix,
-          totalProductStock: product?.quantity ?? product?.stock ?? 0,
+          totalProductStock: product.quantity ?? product.stock ?? 0,
           currentStock: typeof currentStock === 'number' ? currentStock : 0,
           threshold,
           salesVelocity,
         };
       }));
+
+      const enriched = enrichedResults.filter(Boolean);
 
       return new Response(JSON.stringify(enriched), {
         status: 200,
