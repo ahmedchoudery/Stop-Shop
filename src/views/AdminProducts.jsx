@@ -81,7 +81,10 @@ const useToast = () => {
 // ─────────────────────────────────────────────────────────────────
 
 const DeleteConfirmModal = ({ product, onConfirm, onCancel, deleting }) => {
+  const [typedConfirm, setTypedConfirm] = useState('');
   if (!product) return null;
+
+  const isConfirmed = typedConfirm.trim().toUpperCase() === 'DELETE';
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
@@ -93,8 +96,8 @@ const DeleteConfirmModal = ({ product, onConfirm, onCancel, deleting }) => {
 
       {/* Modal */}
       <div className="relative bg-white rounded-[4px] w-full max-w-md animate-scale-in overflow-hidden border border-gray-150">
-        {/* Black top accent */}
-        <div className="h-1 bg-black w-full" />
+        {/* Red top accent */}
+        <div className="h-1 bg-red-600 w-full" />
 
         <div className="p-8">
           {/* Icon */}
@@ -103,7 +106,7 @@ const DeleteConfirmModal = ({ product, onConfirm, onCancel, deleting }) => {
           </div>
 
           {/* Text */}
-          <div className="text-center mb-8">
+          <div className="text-center mb-6">
             <h3 className="text-lg font-black uppercase tracking-tight text-gray-900 mb-2">
               Delete Product?
             </h3>
@@ -113,10 +116,19 @@ const DeleteConfirmModal = ({ product, onConfirm, onCancel, deleting }) => {
             <p className="text-sm font-black text-gray-900 mt-1 uppercase tracking-tight">
               "{product.name}"
             </p>
-            <p className="text-xs text-gray-400 mt-3 font-bold">
-              This will also remove it from the Inventory collection.<br />
-              This action <span className="text-red-600">cannot be undone</span>.
+            <p className="text-xs text-red-600 mt-3 font-bold uppercase tracking-wider">
+              Irreversible action. Type "DELETE" below to confirm:
             </p>
+          </div>
+
+          <div className="mb-6">
+            <input
+              type="text"
+              value={typedConfirm}
+              onChange={(e) => setTypedConfirm(e.target.value)}
+              placeholder='Type "DELETE"'
+              className="w-full text-center font-black uppercase tracking-widest text-xs py-3 border-2 border-red-200 focus:border-red-600 outline-none rounded-[4px]"
+            />
           </div>
 
           {/* Actions */}
@@ -130,8 +142,8 @@ const DeleteConfirmModal = ({ product, onConfirm, onCancel, deleting }) => {
             </button>
             <button
               onClick={onConfirm}
-              disabled={deleting}
-              className="flex-1 px-5 py-3 bg-black text-white text-[10px] font-black uppercase tracking-widest rounded-[4px] hover:bg-black/90 transition-all disabled:opacity-50 flex items-center justify-center space-x-2"
+              disabled={deleting || !isConfirmed}
+              className="flex-1 px-5 py-3 bg-red-600 text-white text-[10px] font-black uppercase tracking-widest rounded-[4px] hover:bg-red-700 transition-all disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
             >
               {deleting ? (
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
