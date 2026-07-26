@@ -94,3 +94,24 @@ Stop & Shop implements Google-compliant JSON-LD structured data schemas across a
 ### Search Console & Bing Webmaster Verification
 - Verification meta tags configured via environment variables `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` and `NEXT_PUBLIC_BING_SITE_VERIFICATION`.
 - Submit `sitemap.xml` directly in Google Search Console & Bing Webmaster Tools post-deployment.
+
+---
+
+## 5. Answer Engine Optimization (AEO) Layer & LLM Standards
+
+Stop & Shop provides machine-readable specifications and endpoints optimized for AI search engines (ChatGPT, Perplexity, Google AI Overviews, Gemini):
+
+1. **Standardized Brand Specification (`/llms.txt`)**:
+   - Endpoint: `https://stop-shop-gamma.vercel.app/llms.txt`
+   - Formatted in Markdown, defining core brand identity, flagship location, canonical URLs, support channels, and shipping timetables for LLMs.
+
+2. **Full Plain-Text Product Index (`/llms-full.txt`)**:
+   - Endpoint: `https://stop-shop-gamma.vercel.app/llms-full.txt`
+   - Dynamically queries MongoDB to serve full plain-text specifications for top 50 pages & products.
+
+3. **AI-Lift Summary Blocks**:
+   - Concise 1-sentence definitions + 3 bullet summary boxes (delivery windows by city, price/COD options, 7-day guarantee terms) embedded across PDPs, `/shipping`, and `/help`.
+
+4. **FAQ Schema Specifications (`FAQPage`)**:
+   - 40–60 word Q&A blocks and `FAQPage` JSON-LD schemas rendered on PDPs, `/shipping`, `/help`, and `/returns`.
+
