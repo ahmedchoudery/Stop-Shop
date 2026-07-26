@@ -30,6 +30,7 @@ const AdminInventory = () => {
   const [alertsLoading, setAlertsLoading] = useState(false);
   const [viewMode, setViewMode] = useState('inventory'); // 'inventory' | 'alerts'
   const [globalThreshold, setGlobalThreshold] = useState(5);
+  const [restockInput, setRestockInput] = useState({});
   
   const searchTerm = useDebounce(searchRaw, 250);
   const flashTimeout = useTimeout();
@@ -346,15 +347,20 @@ const AdminInventory = () => {
 
                         {/* Stock */}
                         <td className="p-4 font-mono text-xs font-black">
-                          <span className={`px-2 py-1 rounded ${
-                            alert.currentStock === 0 
-                              ? 'text-red-700 bg-red-100' 
-                              : alert.currentStock <= alert.threshold 
-                                ? 'text-amber-700 bg-amber-100' 
-                                : 'text-gray-900 bg-gray-100'
-                          }`}>
-                            {alert.currentStock} units
-                          </span>
+                          {(() => {
+                            const count = typeof alert.currentStock === 'number' ? alert.currentStock : 0;
+                            return (
+                              <span className={`px-2.5 py-1 rounded font-bold ${
+                                count === 0 
+                                  ? 'text-red-700 bg-red-100 border border-red-200' 
+                                  : count <= alert.threshold 
+                                    ? 'text-amber-700 bg-amber-100 border border-amber-200' 
+                                    : 'text-gray-900 bg-gray-100 border border-gray-200'
+                              }`}>
+                                {count} units
+                              </span>
+                            );
+                          })()}
                         </td>
 
                         {/* Threshold */}
@@ -392,31 +398,42 @@ const AdminInventory = () => {
 
                         {/* Actions */}
                         <td className="p-4">
-                          {isActive ? (
-                            <div className="flex items-center space-x-2">
+                          <div className="flex items-center space-x-2">
+                            {/* Custom Restock Input + Submit Button */}
+                            <div className="flex items-center space-x-1">
+                              <input
+                                type="number"
+                                min="1"
+                                placeholder="Qty"
+                                value={restockInput[alert._id] ?? 50}
+                                onChange={e => {
+                                  const val = parseInt(e.target.value) || 1;
+                                  setRestockInput(prev => ({ ...prev, [alert._id]: val }));
+                                }}
+                                className="w-14 bg-white border border-gray-200 rounded px-2 py-1 text-xs font-black font-mono text-center outline-none focus:border-black shadow-2xs"
+                              />
                               <button
-                                onClick={() => handleRestock(alert._id, 50)}
-                                className="px-2.5 py-1 bg-black text-white text-[8px] font-black uppercase tracking-widest rounded-[3px] hover:bg-gray-800 transition-all cursor-pointer shadow-2xs"
+                                onClick={() => handleRestock(alert._id, restockInput[alert._id] ?? 50)}
+                                className="px-2.5 py-1 bg-black text-white text-[8px] font-black uppercase tracking-widest rounded-[3px] hover:bg-gray-800 transition-all cursor-pointer shadow-2xs whitespace-nowrap"
+                                title="Add typed quantity to product stock"
                               >
-                                Restock 50
-                              </button>
-                              <button
-                                onClick={() => handleSnooze(alert._id)}
-                                className="px-2.5 py-1 bg-white border border-gray-200 text-gray-600 text-[8px] font-black uppercase tracking-widest rounded-[3px] hover:border-black hover:text-black transition-all cursor-pointer shadow-2xs"
-                              >
-                                Snooze 7d
-                              </button>
-                            </div>
-                          ) : (
-                            <div className="flex items-center space-x-2">
-                              <button
-                                onClick={() => handleRestock(alert._id, 50)}
-                                className="px-2.5 py-1 bg-gray-100 border border-gray-200 text-gray-700 text-[8px] font-black uppercase tracking-widest rounded-[3px] hover:bg-black hover:text-white transition-all cursor-pointer shadow-2xs"
-                              >
-                                Restock +50
+                                Restock
                               </button>
                             </div>
-                          )}
+
+                            {/* Snooze 7d Button (Always Available) */}
+                            <button
+                              onClick={() => handleSnooze(alert._id)}
+                              className={`px-2.5 py-1 border text-[8px] font-black uppercase tracking-widest rounded-[3px] transition-all cursor-pointer shadow-2xs whitespace-nowrap ${
+                                isSnoozed 
+                                  ? 'bg-yellow-50 border-yellow-300 text-yellow-800 hover:bg-yellow-100'
+                                  : 'bg-white border-gray-200 text-gray-600 hover:border-black hover:text-black'
+                              }`}
+                              title={isSnoozed ? 'Alert is currently snoozed for 7 days. Click to re-snooze.' : 'Snooze alert notifications for 7 days'}
+                            >
+                              {isSnoozed ? 'Snoozed (7d)' : 'Snooze 7d'}
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );

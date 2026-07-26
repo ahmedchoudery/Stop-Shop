@@ -36,11 +36,19 @@ export const GET = withRoute({
         .lean();
 
       const enriched = await Promise.all(alerts.map(async (alert) => {
+        const rawSku = alert.sku || '';
+        const cleanSku = rawSku.replace(/^#/, '').trim();
+
         const product = await Product.findOne({
           $or: [
-            { id: alert.sku },
-            { sku: alert.sku },
-            ...(alert.sku?.length === 24 ? [{ _id: alert.sku }] : [])
+            { id: rawSku },
+            { id: cleanSku },
+            { sku: rawSku },
+            { sku: cleanSku },
+            { slug: rawSku },
+            { slug: cleanSku },
+            ...(rawSku.length === 24 ? [{ _id: rawSku }] : []),
+            ...(cleanSku.length === 24 ? [{ _id: cleanSku }] : [])
           ]
         })
           .select('name image variantMatrix sizeStock colorStock quantity stock lowStockThreshold sizes colors')
@@ -52,7 +60,7 @@ export const GET = withRoute({
           threshold = product.lowStockThreshold ?? 5;
           const colorAndSize = alert.variantId;
           if (colorAndSize === 'default') {
-            currentStock = product.quantity ?? 0;
+            currentStock = product.quantity ?? product.stock ?? 0;
           } else if (colorAndSize.includes('|')) {
             currentStock = safeGet(product.variantMatrix, colorAndSize);
           } else if (product.sizes?.includes(colorAndSize)) {
@@ -62,14 +70,14 @@ export const GET = withRoute({
           }
         }
 
-        const salesVelocity = await getSalesVelocity(alert.sku, alert.variantId);
+        const salesVelocity = await getSalesVelocity(cleanSku || rawSku, alert.variantId);
 
         return {
           ...alert,
           _id: alert._id?.toString() || null,
-          productName: product?.name || alert.sku,
+          productName: product?.name || (cleanSku !== rawSku ? cleanSku : alert.sku),
           productImage: product?.image || '',
-          currentStock,
+          currentStock: typeof currentStock === 'number' ? currentStock : 0,
           threshold,
           salesVelocity,
         };
