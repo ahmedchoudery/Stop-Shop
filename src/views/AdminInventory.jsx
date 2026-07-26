@@ -303,15 +303,34 @@ const AdminInventory = () => {
                   {alerts.map(alert => {
                     const isActive = alert.status === 'active';
                     const isSnoozed = alert.status === 'snoozed';
+
+                    // Format variant nicely (e.g. #85110e | Khaki green|M -> Khaki green · M)
+                    const formatVariant = (rawId) => {
+                      if (!rawId || rawId === 'default') return 'All Variants';
+                      if (rawId.includes('|')) {
+                        const parts = rawId.split('|');
+                        const cleanColor = parts.length > 1 && parts[0].startsWith('#') ? parts[1] : parts[0];
+                        const cleanSize = parts.length > 2 ? parts[2] : (parts.length === 2 && !parts[0].startsWith('#') ? parts[1] : '');
+                        return [cleanColor, cleanSize].filter(Boolean).join(' · ');
+                      }
+                      return rawId;
+                    };
+
                     return (
                       <tr key={alert._id} className={`hover:bg-gray-50/60 ${isActive ? 'bg-red-50/10' : ''}`}>
                         {/* Product */}
                         <td className="p-4">
                           <div className="flex items-center space-x-3">
-                            {alert.productImage && (
+                            {alert.productImage ? (
                               <img src={alert.productImage} alt={alert.productName} className="w-9 h-9 object-cover rounded-[4px] border border-gray-150 flex-shrink-0" />
+                            ) : (
+                              <div className="w-9 h-9 bg-gray-100 rounded-[4px] border border-gray-200 flex items-center justify-center text-gray-400 text-xs font-bold">
+                                IMG
+                              </div>
                             )}
-                            <span className="text-sm font-black uppercase tracking-tight text-gray-900">{alert.productName}</span>
+                            <span className="text-xs font-black uppercase tracking-tight text-gray-900 line-clamp-1">
+                              {alert.productName || alert.sku}
+                            </span>
                           </div>
                         </td>
 
@@ -320,26 +339,39 @@ const AdminInventory = () => {
 
                         {/* Variant */}
                         <td className="p-4">
-                          <span className="px-2 py-0.5 rounded bg-gray-100 text-[10px] font-black uppercase tracking-wider text-gray-600">
-                            {alert.variantId}
+                          <span className="px-2 py-1 rounded bg-gray-100 border border-gray-200/60 text-[10px] font-black uppercase tracking-wider text-gray-700">
+                            {formatVariant(alert.variantId)}
                           </span>
                         </td>
 
                         {/* Stock */}
-                        <td className="p-4 font-mono text-sm font-black text-gray-900">{alert.currentStock}</td>
+                        <td className="p-4 font-mono text-xs font-black">
+                          <span className={`px-2 py-1 rounded ${
+                            alert.currentStock === 0 
+                              ? 'text-red-700 bg-red-100' 
+                              : alert.currentStock <= alert.threshold 
+                                ? 'text-amber-700 bg-amber-100' 
+                                : 'text-gray-900 bg-gray-100'
+                          }`}>
+                            {alert.currentStock} units
+                          </span>
+                        </td>
 
                         {/* Threshold */}
                         <td className="p-4">
-                          <input
-                            type="number"
-                            value={alert.threshold}
-                            onChange={e => {
-                              const val = parseInt(e.target.value) || 0;
-                              setAlerts(prev => prev.map(a => a._id === alert._id ? { ...a, threshold: val } : a));
-                            }}
-                            onBlur={e => handleSaveThreshold(alert.sku, e.target.value)}
-                            className="w-16 bg-transparent border-b border-transparent focus:border-black outline-none text-sm font-black font-mono text-center"
-                          />
+                          <div className="flex items-center space-x-1">
+                            <input
+                              type="number"
+                              value={alert.threshold}
+                              onChange={e => {
+                                const val = parseInt(e.target.value) || 0;
+                                setAlerts(prev => prev.map(a => a._id === alert._id ? { ...a, threshold: val } : a));
+                              }}
+                              onBlur={e => handleSaveThreshold(alert.sku, e.target.value)}
+                              className="w-14 bg-white border border-gray-200 rounded px-2 py-1 text-xs font-black font-mono text-center outline-none focus:border-black transition-all shadow-2xs"
+                            />
+                            <span className="text-[9px] font-bold text-gray-400">units</span>
+                          </div>
                         </td>
 
                         {/* 7-Day Sales */}
