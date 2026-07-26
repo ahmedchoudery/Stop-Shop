@@ -31,6 +31,31 @@ export const GET = withRoute({
     const skip = (page - 1) * limit;
 
     if (query.type === 'alerts') {
+      const settings = await Settings.findOne({}).lean();
+      const globalThreshold = settings?.lowStockThreshold ?? 10;
+      
+      // Auto-scan store catalog for low-stock products & register alerts
+      const catalogProducts = await Product.find({
+        featuredSection: { $ne: 'attitude' },
+        bucket: { $ne: 'Outfit' }
+      }).lean();
+
+      const todayStr = new Date().toISOString().split('T')[0];
+
+      for (const p of catalogProducts) {
+        const pThreshold = p.lowStockThreshold ?? globalThreshold;
+        const totalQty = p.quantity ?? p.stock ?? 0;
+        const pSku = p.id || p.sku || p._id?.toString();
+
+        if (pSku && totalQty <= pThreshold) {
+          await LowStockAlert.findOneAndUpdate(
+            { sku: pSku, variantId: 'default', date: todayStr },
+            { $setOnInsert: { sku: pSku, variantId: 'default', date: todayStr, status: 'active' } },
+            { upsert: true }
+          ).catch(() => {});
+        }
+      }
+
       const alerts = await LowStockAlert.find({})
         .sort({ createdAt: -1 })
         .lean();
@@ -56,12 +81,14 @@ export const GET = withRoute({
 
         if (!product) {
           // Delete orphan alert referencing non-existent product
+          await LowStockAlert.deleteMany({ sku: rawSku }).catch(() => {});
+          await LowStockAlert.deleteMany({ sku: cleanSku }).catch(() => {});
           await LowStockAlert.deleteOne({ _id: alert._id }).catch(() => {});
           return null;
         }
 
         let currentStock = 0;
-        let threshold = product.lowStockThreshold ?? 5;
+        let threshold = product.lowStockThreshold ?? globalThreshold;
         const colors = product.colors || [];
         const sizes = product.sizes || [];
         const colorStock = product.colorStock ? (product.colorStock instanceof Map ? Object.fromEntries(product.colorStock) : product.colorStock) : {};

@@ -134,6 +134,21 @@ const AdminInventory = () => {
     }
   };
 
+  const openRestockModal = (alert) => {
+    setRestockModalAlert(alert);
+    const initial = {};
+    if (alert.colors?.length > 0 && alert.sizes?.length > 0) {
+      alert.colors.forEach(c => alert.sizes.forEach(s => { initial[`${c}|${s}`] = 0; }));
+    } else if (alert.colors?.length > 0) {
+      alert.colors.forEach(c => { initial[`${c}|`] = 0; });
+    } else if (alert.sizes?.length > 0) {
+      alert.sizes.forEach(s => { initial[`|${s}`] = 0; });
+    } else {
+      initial['default'] = 50;
+    }
+    setMultiRestockMatrix(initial);
+  };
+
   const handleConfirmMultiRestock = async (alertId) => {
     const items = [];
     Object.entries(multiRestockMatrix).forEach(([key, qtyVal]) => {
@@ -528,12 +543,7 @@ const AdminInventory = () => {
                           <div className="flex items-center space-x-2">
                             {/* Restock Button (opens Restock Modal) */}
                             <button
-                              onClick={() => {
-                                setRestockModalAlert(alert);
-                                setRestockColor(alert.colors?.[0] || '');
-                                setRestockSize(alert.sizes?.[0] || '');
-                                setRestockQty(50);
-                              }}
+                              onClick={() => openRestockModal(alert)}
                               className="px-3 py-1.5 bg-black text-white text-[9px] font-black uppercase tracking-widest rounded hover:bg-gray-800 transition-all cursor-pointer shadow-2xs whitespace-nowrap"
                             >
                               Restock
