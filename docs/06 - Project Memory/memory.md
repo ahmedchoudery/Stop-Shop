@@ -175,6 +175,7 @@ This document tracks the current state of work, what tasks have been completed, 
 - **Order Audit Trail & Invoice Printing**: Integrated order events audit trail, PDF invoice generation (`generateInvoice.js`), status filters, and resend email capabilities into `AdminOrders.jsx` & `OrderDetails.jsx`.
 - **Variant Matrix & SEO Overrides**: Verified multi-variant stock matrix (size × color) and per-product custom SEO fields (title, description, og:image override).
 - **Playwright Admin Workflow Test Suite**: Built [`playwright-tests/admin-workflow.spec.js`](file:///c:/Users/JAPAN%20COMPUTERS/OneDrive/Desktop/Stop-Shop/playwright-tests/admin-workflow.spec.js) testing auth, product management, order processing, inventory adjustments, email outbox, and audit trail verification.
+- **Pipe-Delimited Variant Matrix Fix**: Resolved string parsing bug in `src/app/api/v1/admin/inventory/route.js` where color strings with pipe characters (e.g. `#000000 | Black`) failed to match variant matrix keys on RESTOCK, restoring 100% pass rate in MongoDB integration tests.
 
 ---
 
