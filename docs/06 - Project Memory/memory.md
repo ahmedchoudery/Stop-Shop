@@ -156,10 +156,17 @@ This document tracks the current state of work, what tasks have been completed, 
 - **AI-Lift Summary Blocks**: Embedded 1-sentence definitions + 3 bullet summaries across PDPs, `/shipping`, and `/help` pages.
 - **City Delivery Timetable & FAQ Accordions**: Rendered readable delivery matrices by city (Gujrat/Lahore/Islamabad: 1–2 days; Karachi/Peshawar: 2–3 days) and injected `FAQPage` JSON-LD schemas across PDPs, `/shipping`, `/help`, and `/returns`.
 
+## 17. What Has Been Completed (Prompt 12 - Social-Embed Polish)
+- **1200x630 Cloudinary Social Card Generator**: Created `src/utils/getSocialOgImage.js` to automatically format product hero and category banner image URLs into `c_fill,w_1200,h_630,f_auto,q_auto` Cloudinary transforms.
+- **PDP Social Cards with Price Snippets**: Updated `generateMetadata` in `src/app/product/[id]/page.jsx` to render exact product hero image cards + price tags (e.g., *Cropped Starle Shirt — Rs. 4,500 PKR | Stop & Shop*) in OpenGraph & Twitter tags.
+- **Category Banner OpenGraph Embeds**: Updated `src/app/category/[slug]/page.jsx` to extract category product hero images and format 1200x630 preview cards.
+- **Instant WebView Access via ISR**: Preserved `export const revalidate = 300` on `/product/[id]` to guarantee instant edge cached HTML delivery when users tap link previews in WhatsApp, Instagram DM, Facebook, or X.
+
 ---
 
-## 17. What is Planned Next
+## 18. What is Planned Next
 - **Next User Requirements**: Stand ready to analyze, implement, and verify any additional features, UI refinements, backend APIs, or security enhancements.
+
 
 
 
