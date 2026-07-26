@@ -155,11 +155,16 @@ export const POST = withRoute({
       color: z.string().optional(),
       size: z.string().optional(),
       quantity: z.number().optional(),
+      items: z.array(z.object({
+        color: z.string().optional(),
+        size: z.string().optional(),
+        quantity: z.number()
+      })).optional(),
       threshold: z.number().optional(),
     })
   },
   handler: async ({ body }) => {
-    const { action, sku, variantId, alertId, color, size, quantity, threshold } = body;
+    const { action, sku, variantId, alertId, color, size, quantity, items, threshold } = body;
 
     if (action === 'global-threshold') {
       const settings = await Settings.findOneAndUpdate(
@@ -205,7 +210,6 @@ export const POST = withRoute({
     }
 
     if (action === 'restock') {
-      const restockQty = Math.max(1, quantity ?? 50);
       const rawSku = alert.sku || sku || '';
       const cleanSku = rawSku.replace(/^#/, '').trim();
 
@@ -224,18 +228,44 @@ export const POST = withRoute({
 
       if (!product) throw new ApiError('NOT_FOUND', 'Product not found', 404);
 
-      const selColor = color ?? (alert.variantId?.includes('|') ? alert.variantId.split('|')[0] : (product.colors?.includes(alert.variantId) ? alert.variantId : ''));
-      const selSize = size ?? (alert.variantId?.includes('|') ? alert.variantId.split('|').slice(-1)[0] : (product.sizes?.includes(alert.variantId) ? alert.variantId : ''));
+      let totalRestockQty = 0;
+      const productUpdate = { $inc: {} };
 
-      const productUpdate = { $inc: { quantity: restockQty, stock: restockQty } };
+      if (Array.isArray(items) && items.length > 0) {
+        for (const item of items) {
+          const qty = Math.max(1, parseInt(item.quantity) || 0);
+          if (qty <= 0) continue;
+          totalRestockQty += qty;
 
-      if (selColor && selSize) {
-        productUpdate.$inc[`variantMatrix.${selColor}|${selSize}`] = restockQty;
-      } else if (selColor) {
-        productUpdate.$inc[`colorStock.${selColor}`] = restockQty;
-      } else if (selSize) {
-        productUpdate.$inc[`sizeStock.${selSize}`] = restockQty;
+          const selColor = item.color || '';
+          const selSize = item.size || '';
+
+          if (selColor && selSize) {
+            productUpdate.$inc[`variantMatrix.${selColor}|${selSize}`] = (productUpdate.$inc[`variantMatrix.${selColor}|${selSize}`] || 0) + qty;
+          } else if (selColor) {
+            productUpdate.$inc[`colorStock.${selColor}`] = (productUpdate.$inc[`colorStock.${selColor}`] || 0) + qty;
+          } else if (selSize) {
+            productUpdate.$inc[`sizeStock.${selSize}`] = (productUpdate.$inc[`sizeStock.${selSize}`] || 0) + qty;
+          }
+        }
+      } else {
+        const restockQty = Math.max(1, quantity ?? 50);
+        totalRestockQty = restockQty;
+
+        const selColor = color ?? (alert.variantId?.includes('|') ? alert.variantId.split('|')[0] : (product.colors?.includes(alert.variantId) ? alert.variantId : ''));
+        const selSize = size ?? (alert.variantId?.includes('|') ? alert.variantId.split('|').slice(-1)[0] : (product.sizes?.includes(alert.variantId) ? alert.variantId : ''));
+
+        if (selColor && selSize) {
+          productUpdate.$inc[`variantMatrix.${selColor}|${selSize}`] = restockQty;
+        } else if (selColor) {
+          productUpdate.$inc[`colorStock.${selColor}`] = restockQty;
+        } else if (selSize) {
+          productUpdate.$inc[`sizeStock.${selSize}`] = restockQty;
+        }
       }
+
+      productUpdate.$inc.quantity = totalRestockQty;
+      productUpdate.$inc.stock = totalRestockQty;
 
       const updatedProduct = await Product.findOneAndUpdate(
         { _id: product._id },
@@ -243,12 +273,10 @@ export const POST = withRoute({
         { new: true }
       );
 
-      const variantLabel = [selColor, selSize].filter(Boolean).join(' · ') || 'default';
-
       await syncInventory(
         updatedProduct,
         'RESTOCK',
-        `Restocked +${restockQty} units of ${updatedProduct.name} (Variant: ${variantLabel})`,
+        `Restocked +${totalRestockQty} units of ${updatedProduct.name}`,
         `RESTOCK-${Date.now()}`,
         {}
       );
