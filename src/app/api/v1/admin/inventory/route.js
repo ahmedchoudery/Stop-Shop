@@ -60,7 +60,17 @@ export const GET = withRoute({
         .sort({ createdAt: -1 })
         .lean();
 
-      const enrichedResults = await Promise.all(alerts.map(async (alert) => {
+      // Deduplicate: keep only one alert per SKU (the most recent)
+      const seenSkus = new Set();
+      const dedupedAlerts = [];
+      for (const a of alerts) {
+        const key = a.sku || '';
+        if (seenSkus.has(key)) continue;
+        seenSkus.add(key);
+        dedupedAlerts.push(a);
+      }
+
+      const enrichedResults = await Promise.all(dedupedAlerts.map(async (alert) => {
         const rawSku = alert.sku || '';
         const cleanSku = rawSku.replace(/^#/, '').trim();
 
@@ -75,9 +85,7 @@ export const GET = withRoute({
             ...(rawSku.length === 24 ? [{ _id: rawSku }] : []),
             ...(cleanSku.length === 24 ? [{ _id: cleanSku }] : [])
           ]
-        })
-          .select('name image gallery variantMatrix sizeStock colorStock quantity stock lowStockThreshold sizes colors')
-          .lean();
+        }).lean();
 
         if (!product) {
           // Delete orphan alert referencing non-existent product
@@ -87,14 +95,25 @@ export const GET = withRoute({
           return null;
         }
 
-        let currentStock = 0;
-        let threshold = product.lowStockThreshold ?? globalThreshold;
+        // Safely convert Mongoose Maps → plain objects
+        const toObj = (val) => {
+          if (!val) return {};
+          if (val instanceof Map) return Object.fromEntries(val);
+          if (typeof val === 'object' && val.constructor === Object) return val;
+          // lean() on older Mongoose may return a Map-like with _doc
+          if (val._doc) return Object.fromEntries(Object.entries(val._doc));
+          return {};
+        };
+
+        const threshold = product.lowStockThreshold ?? globalThreshold;
         const colors = product.colors || [];
         const sizes = product.sizes || [];
-        const colorStock = product.colorStock ? (product.colorStock instanceof Map ? Object.fromEntries(product.colorStock) : product.colorStock) : {};
-        const sizeStock = product.sizeStock ? (product.sizeStock instanceof Map ? Object.fromEntries(product.sizeStock) : product.sizeStock) : {};
-        const variantMatrix = product.variantMatrix ? (product.variantMatrix instanceof Map ? Object.fromEntries(product.variantMatrix) : product.variantMatrix) : {};
+        const colorStock = toObj(product.colorStock);
+        const sizeStock = toObj(product.sizeStock);
+        const variantMatrix = toObj(product.variantMatrix);
 
+        // Compute current stock for the alert's variantId
+        let currentStock = 0;
         const colorAndSize = alert.variantId;
         if (colorAndSize === 'default') {
           currentStock = product.quantity ?? product.stock ?? 0;
@@ -111,7 +130,7 @@ export const GET = withRoute({
         return {
           ...alert,
           _id: alert._id?.toString() || null,
-          productName: product.name,
+          productName: product.name || '',
           productImage: product.image || (product.gallery?.[0]) || '',
           colors,
           sizes,

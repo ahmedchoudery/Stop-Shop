@@ -396,116 +396,174 @@ const AdminInventory = () => {
                   {alerts.map(alert => {
                     const isActive = alert.status === 'active';
                     const isSnoozed = alert.status === 'snoozed';
+                    const isRestocked = alert.status === 'restocked';
 
-                    // Format variant nicely (e.g. #85110e | Khaki green|M -> Khaki green · M)
-                    const formatVariant = (rawId) => {
-                      if (!rawId || rawId === 'default') return 'All Variants';
-                      if (rawId.includes('|')) {
-                        const parts = rawId.split('|');
-                        const cleanColor = parts.length > 1 && parts[0].startsWith('#') ? parts[1] : parts[0];
-                        const cleanSize = parts.length > 2 ? parts[2] : (parts.length === 2 && !parts[0].startsWith('#') ? parts[1] : '');
-                        return [cleanColor, cleanSize].filter(Boolean).join(' · ');
-                      }
-                      return rawId;
+                    // Compute total stock across all variants
+                    const computeTotalStock = () => {
+                      const vm = alert.variantMatrix || {};
+                      const vmKeys = Object.keys(vm);
+                      if (vmKeys.length > 0) return vmKeys.reduce((sum, k) => sum + (parseInt(vm[k]) || 0), 0);
+                      const cs = alert.colorStock || {};
+                      const csKeys = Object.keys(cs);
+                      if (csKeys.length > 0) return csKeys.reduce((sum, k) => sum + (parseInt(cs[k]) || 0), 0);
+                      const ss = alert.sizeStock || {};
+                      const ssKeys = Object.keys(ss);
+                      if (ssKeys.length > 0) return ssKeys.reduce((sum, k) => sum + (parseInt(ss[k]) || 0), 0);
+                      return alert.totalProductStock ?? alert.currentStock ?? 0;
                     };
+                    const totalStock = computeTotalStock();
 
                     return (
-                      <tr key={alert._id} className={`hover:bg-gray-50/60 ${isActive ? 'bg-red-50/10' : ''}`}>
-                        {/* Product */}
+                      <tr key={alert._id} className={`hover:bg-gray-50/60 transition-colors ${
+                        isActive && totalStock === 0 ? 'bg-red-50/30' :
+                        isActive ? 'bg-amber-50/20' :
+                        isSnoozed ? 'bg-yellow-50/15' :
+                        ''
+                      }`}>
+                        {/* PRODUCT — Name + Image */}
                         <td className="p-4">
                           <div className="flex items-center space-x-3">
                             {alert.productImage ? (
-                              <img src={alert.productImage} alt={alert.productName} className="w-10 h-10 object-cover rounded border border-gray-200 flex-shrink-0 shadow-2xs" />
+                              <img
+                                src={alert.productImage}
+                                alt={alert.productName || 'Product'}
+                                className="w-11 h-11 object-cover rounded-[4px] border border-gray-200 flex-shrink-0 shadow-sm"
+                                loading="lazy"
+                              />
                             ) : (
-                              <div className="w-10 h-10 bg-gray-100 rounded border border-gray-200 flex items-center justify-center text-gray-400 text-xs font-black">
-                                IMG
+                              <div className="w-11 h-11 bg-gray-100 rounded-[4px] border border-gray-200 flex items-center justify-center flex-shrink-0">
+                                <Package size={16} className="text-gray-300" />
                               </div>
                             )}
-                            <div>
-                              <span className="text-xs font-black uppercase tracking-tight text-gray-900 block line-clamp-1">
-                                {alert.productName || alert.sku}
+                            <div className="min-w-0">
+                              <span className="text-[11px] font-black uppercase tracking-tight text-gray-900 block truncate max-w-[180px]" title={alert.productName}>
+                                {alert.productName || 'Unnamed Product'}
                               </span>
-                              <span className="text-[9px] font-mono font-bold text-gray-400">SKU: #{alert.sku}</span>
                             </div>
                           </div>
                         </td>
 
                         {/* SKU */}
-                        <td className="p-4 font-mono text-xs font-bold text-gray-400">#{alert.sku}</td>
-
-                        {/* Variant Details */}
                         <td className="p-4">
-                          <div className="space-y-1 text-xs">
+                          <span className="font-mono text-[10px] font-bold text-gray-400 bg-gray-50 px-2 py-1 rounded border border-gray-150">#{alert.sku}</span>
+                        </td>
+
+                        {/* VARIANT — Show all colors & sizes this product has */}
+                        <td className="p-4">
+                          <div className="space-y-1.5 min-w-[140px]">
                             {alert.colors?.length > 0 ? (
-                              <div className="font-extrabold text-gray-900 text-[11px]">
-                                {alert.colors.map(c => c.includes('|') ? c.split('|')[1].trim() : c).join(', ')}
+                              <div className="space-y-1">
+                                {alert.colors.map(col => (
+                                  <div key={col} className="flex items-center space-x-1.5">
+                                    <span className="w-2.5 h-2.5 rounded-full border border-gray-300 flex-shrink-0" style={getBackgroundStyle(col)} />
+                                    <span className="text-[10px] font-bold text-gray-800">{getColorName(col)}</span>
+                                  </div>
+                                ))}
                               </div>
                             ) : null}
                             {alert.sizes?.length > 0 ? (
-                              <div className="text-[10px] font-mono font-bold text-gray-500">
-                                Sizes: {alert.sizes.join(', ')}
+                              <div className="flex flex-wrap gap-1 mt-1">
+                                {alert.sizes.map(sz => (
+                                  <span key={sz} className="px-1.5 py-0.5 bg-gray-100 border border-gray-200 rounded text-[9px] font-black font-mono text-gray-600">{sz}</span>
+                                ))}
                               </div>
-                            ) : (
-                              <span className="text-[10px] font-mono text-gray-400 font-bold uppercase">All Variants</span>
+                            ) : null}
+                            {!alert.colors?.length && !alert.sizes?.length && (
+                              <span className="text-[10px] font-mono text-gray-400 font-bold">Single variant</span>
                             )}
                           </div>
                         </td>
 
-                        {/* Real-Time Variant Stock Breakdown */}
-                        <td className="p-4 font-mono">
-                          <div className="space-y-2 min-w-[200px]">
-                            {alert.colors?.length > 0 || alert.sizes?.length > 0 ? (
-                              <div className="text-[10px] bg-gray-50 border border-gray-200 p-2.5 rounded-md space-y-2 shadow-2xs">
-                                {alert.colors?.length > 0 ? (
-                                  alert.colors.map(col => {
-                                    const cleanColName = col.includes('|') ? col.split('|')[1].trim() : col;
-                                    return (
-                                      <div key={col} className="space-y-1">
-                                        <span className="font-extrabold text-gray-900 block text-[10px] uppercase border-b border-gray-200 pb-0.5">{cleanColName}:</span>
-                                        <div className="flex flex-wrap gap-1.5 text-[10px] text-gray-800 pt-0.5">
-                                          {alert.sizes?.length > 0 ? (
-                                            alert.sizes.map(sz => {
-                                              const matVal = alert.variantMatrix?.[`${col}|${sz}`] ?? alert.sizeStock?.[sz] ?? alert.colorStock?.[col] ?? 0;
-                                              return (
-                                                <span key={sz} className={`px-1.5 py-0.5 rounded font-mono ${matVal === 0 ? 'bg-red-100 text-red-700 font-extrabold border border-red-200' : 'bg-white border border-gray-200 text-gray-900 font-bold'}`}>
-                                                  {sz}:{matVal}
-                                                </span>
-                                              );
-                                            })
-                                          ) : (
-                                            <span className="px-1.5 py-0.5 rounded bg-white border border-gray-200 text-gray-900 font-bold">
-                                              {alert.colorStock?.[col] ?? 0} units
+                        {/* STOCK — Real-time per-color/per-size matrix */}
+                        <td className="p-4">
+                          <div className="min-w-[180px]">
+                            {alert.colors?.length > 0 && alert.sizes?.length > 0 ? (
+                              /* Color × Size matrix */
+                              <div className="bg-gray-50 border border-gray-200 rounded-md p-2.5 space-y-2">
+                                {alert.colors.map(col => {
+                                  const colName = getColorName(col);
+                                  return (
+                                    <div key={col}>
+                                      <span className="text-[10px] font-extrabold text-gray-900 uppercase block border-b border-gray-200 pb-0.5 mb-1">{colName}:</span>
+                                      <div className="flex flex-wrap gap-1">
+                                        {alert.sizes.map(sz => {
+                                          const qty = parseInt(alert.variantMatrix?.[`${col}|${sz}`]) || 0;
+                                          return (
+                                            <span key={sz} className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-bold ${
+                                              qty === 0
+                                                ? 'bg-red-100 text-red-700 border border-red-200'
+                                                : qty <= (alert.threshold || 5)
+                                                  ? 'bg-amber-50 text-amber-800 border border-amber-200'
+                                                  : 'bg-white border border-gray-200 text-gray-900'
+                                            }`}>
+                                              {sz}:{qty}
                                             </span>
-                                          )}
-                                        </div>
+                                          );
+                                        })}
                                       </div>
-                                    );
-                                  })
-                                ) : (
-                                  <div className="flex flex-wrap gap-1 text-[10px]">
-                                    {alert.sizes.map(sz => (
-                                      <span key={sz} className="px-1.5 py-0.5 rounded bg-white border border-gray-200 text-gray-900 font-bold">
-                                        {sz}:{alert.sizeStock?.[sz] ?? 0}
+                                    </div>
+                                  );
+                                })}
+                                <div className="border-t border-gray-200 pt-1 mt-1">
+                                  <span className={`text-[10px] font-black font-mono ${
+                                    totalStock === 0 ? 'text-red-600' : totalStock <= (alert.threshold || 5) ? 'text-amber-700' : 'text-gray-700'
+                                  }`}>Total: {totalStock} units</span>
+                                </div>
+                              </div>
+                            ) : alert.colors?.length > 0 ? (
+                              /* Colors only */
+                              <div className="bg-gray-50 border border-gray-200 rounded-md p-2.5 space-y-1.5">
+                                {alert.colors.map(col => {
+                                  const colName = getColorName(col);
+                                  const qty = parseInt(alert.colorStock?.[col]) || 0;
+                                  return (
+                                    <div key={col} className="flex items-center justify-between">
+                                      <span className="text-[10px] font-bold text-gray-800">{colName}</span>
+                                      <span className={`text-[10px] font-black font-mono px-1.5 py-0.5 rounded ${
+                                        qty === 0 ? 'bg-red-100 text-red-700 border border-red-200' : 'bg-white border border-gray-200 text-gray-900'
+                                      }`}>{qty}</span>
+                                    </div>
+                                  );
+                                })}
+                                <div className="border-t border-gray-200 pt-1">
+                                  <span className="text-[10px] font-black font-mono text-gray-700">Total: {totalStock} units</span>
+                                </div>
+                              </div>
+                            ) : alert.sizes?.length > 0 ? (
+                              /* Sizes only */
+                              <div className="bg-gray-50 border border-gray-200 rounded-md p-2.5">
+                                <div className="flex flex-wrap gap-1.5">
+                                  {alert.sizes.map(sz => {
+                                    const qty = parseInt(alert.sizeStock?.[sz]) || 0;
+                                    return (
+                                      <span key={sz} className={`px-1.5 py-0.5 rounded text-[10px] font-mono font-bold ${
+                                        qty === 0 ? 'bg-red-100 text-red-700 border border-red-200' : 'bg-white border border-gray-200 text-gray-900'
+                                      }`}>
+                                        {sz}:{qty}
                                       </span>
-                                    ))}
-                                  </div>
-                                )}
+                                    );
+                                  })}
+                                </div>
+                                <div className="border-t border-gray-200 pt-1 mt-1.5">
+                                  <span className="text-[10px] font-black font-mono text-gray-700">Total: {totalStock} units</span>
+                                </div>
                               </div>
                             ) : (
+                              /* No variants — simple stock badge */
                               <span className={`px-2.5 py-1 rounded text-xs font-black font-mono tracking-wide inline-block ${
-                                (alert.currentStock ?? 0) === 0 
-                                  ? 'bg-red-100 text-red-700 border border-red-200' 
-                                  : (alert.currentStock ?? 0) <= alert.threshold 
-                                    ? 'bg-amber-100 text-amber-800 border border-amber-200' 
+                                totalStock === 0
+                                  ? 'bg-red-100 text-red-700 border border-red-200'
+                                  : totalStock <= (alert.threshold || 5)
+                                    ? 'bg-amber-100 text-amber-800 border border-amber-200'
                                     : 'bg-green-100 text-green-800 border border-green-200'
                               }`}>
-                                {alert.currentStock ?? 0} units
+                                {totalStock} units
                               </span>
                             )}
                           </div>
                         </td>
 
-                        {/* Threshold */}
+                        {/* THRESHOLD */}
                         <td className="p-4">
                           <div className="flex items-center space-x-1">
                             <input
@@ -522,47 +580,47 @@ const AdminInventory = () => {
                           </div>
                         </td>
 
-                        {/* 7-Day Sales */}
-                        <td className="p-4 font-mono text-sm font-bold text-gray-550">
-                          {alert.salesVelocity ?? 0} units
+                        {/* 7-DAY SALES */}
+                        <td className="p-4">
+                          <span className="font-mono text-xs font-bold text-gray-600">{alert.salesVelocity ?? 0}</span>
+                          <span className="text-[9px] text-gray-400 font-bold ml-1">units</span>
                         </td>
 
-                        {/* Status */}
+                        {/* STATUS */}
                         <td className="p-4">
-                          <span className={`px-2 py-0.5 rounded text-[8px] font-black uppercase tracking-widest ${
-                            isActive ? 'bg-red-100 text-red-700' :
-                            isSnoozed ? 'bg-yellow-100 text-yellow-800' :
-                            'bg-green-100 text-green-700'
+                          <span className={`px-2.5 py-1 rounded-[3px] text-[8px] font-black uppercase tracking-widest ${
+                            isActive && totalStock === 0 ? 'bg-red-600 text-white' :
+                            isActive ? 'bg-red-100 text-red-700 border border-red-200' :
+                            isSnoozed ? 'bg-yellow-100 text-yellow-800 border border-yellow-200' :
+                            isRestocked ? 'bg-green-100 text-green-700 border border-green-200' :
+                            'bg-gray-100 text-gray-600 border border-gray-200'
                           }`}>
-                            {alert.status}
+                            {isActive && totalStock === 0 ? 'SOLD OUT' : alert.status}
                           </span>
                         </td>
 
-                        {/* Actions */}
+                        {/* ACTIONS */}
                         <td className="p-4">
                           <div className="flex items-center space-x-2">
-                            {/* Restock Button (opens Restock Modal) */}
                             <button
                               onClick={() => openRestockModal(alert)}
-                              className="px-3 py-1.5 bg-black text-white text-[9px] font-black uppercase tracking-widest rounded hover:bg-gray-800 transition-all cursor-pointer shadow-2xs whitespace-nowrap"
+                              className="px-3 py-1.5 bg-black text-white text-[9px] font-black uppercase tracking-widest rounded-[3px] hover:bg-gray-800 transition-all cursor-pointer shadow-sm whitespace-nowrap"
                             >
                               Restock
                             </button>
-
-                            {/* Snooze 7d / Unsnooze Button */}
                             {isSnoozed ? (
                               <button
                                 onClick={() => handleUnsnooze(alert._id)}
-                                className="px-3 py-1.5 bg-yellow-100 border border-yellow-300 text-yellow-800 text-[9px] font-black uppercase tracking-widest rounded hover:bg-yellow-200 transition-all cursor-pointer shadow-2xs whitespace-nowrap"
-                                title="Click to reactivate alert"
+                                className="px-3 py-1.5 bg-yellow-100 border border-yellow-300 text-yellow-800 text-[9px] font-black uppercase tracking-widest rounded-[3px] hover:bg-yellow-200 transition-all cursor-pointer shadow-sm whitespace-nowrap"
+                                title="Click to reactivate this alert"
                               >
                                 Snoozed
                               </button>
                             ) : (
                               <button
                                 onClick={() => handleSnooze(alert._id)}
-                                className="px-3 py-1.5 bg-white border border-gray-200 text-gray-600 text-[9px] font-black uppercase tracking-widest rounded hover:border-black hover:text-black transition-all cursor-pointer shadow-2xs whitespace-nowrap"
-                                title="Snooze alert for 7 days"
+                                className="px-3 py-1.5 bg-white border border-gray-200 text-gray-600 text-[9px] font-black uppercase tracking-widest rounded-[3px] hover:border-black hover:text-black transition-all cursor-pointer shadow-sm whitespace-nowrap"
+                                title="Snooze this alert for 7 days"
                               >
                                 Snooze 7d
                               </button>
@@ -996,13 +1054,16 @@ const AdminInventory = () => {
                 </button>
               </div>
 
-              {restockModalAlert.colors?.length > 0 && restockModalAlert.sizes?.length > 0 ? (
+                {restockModalAlert.colors?.length > 0 && restockModalAlert.sizes?.length > 0 ? (
                 <div className="space-y-3">
                   {restockModalAlert.colors.map(col => {
-                    const cleanColName = col.includes('|') ? col.split('|')[1].trim() : col;
+                    const colName = getColorName(col);
                     return (
                       <div key={col} className="bg-gray-50 border border-gray-200 rounded-md p-3 space-y-2">
-                        <span className="font-extrabold text-xs text-gray-900 uppercase tracking-wide block border-b border-gray-200 pb-1">{cleanColName}</span>
+                        <div className="flex items-center space-x-2 border-b border-gray-200 pb-1">
+                          <span className="w-3 h-3 rounded-full border border-gray-300 flex-shrink-0" style={getBackgroundStyle(col)} />
+                          <span className="font-extrabold text-xs text-gray-900 uppercase tracking-wide">{colName}</span>
+                        </div>
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                           {restockModalAlert.sizes.map(sz => {
                             const key = `${col}|${sz}`;
@@ -1030,13 +1091,16 @@ const AdminInventory = () => {
                 </div>
               ) : restockModalAlert.colors?.length > 0 ? (
                 <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                  {restockModalAlert.colors.map(col => {
-                    const cleanColName = col.includes('|') ? col.split('|')[1].trim() : col;
+                {restockModalAlert.colors.map(col => {
+                    const colName = getColorName(col);
                     const key = `${col}|`;
                     const currentVal = multiRestockMatrix[key] ?? 0;
                     return (
                       <div key={col} className="bg-gray-50 border border-gray-200 p-3 rounded space-y-1">
-                        <span className="text-[10px] font-black text-gray-700 uppercase tracking-wide block">{cleanColName}</span>
+                        <div className="flex items-center space-x-1.5">
+                          <span className="w-2.5 h-2.5 rounded-full border border-gray-300 flex-shrink-0" style={getBackgroundStyle(col)} />
+                          <span className="text-[10px] font-black text-gray-700 uppercase tracking-wide">{colName}</span>
+                        </div>
                         <input
                           type="number"
                           min="0"
