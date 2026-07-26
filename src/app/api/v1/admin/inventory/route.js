@@ -51,22 +51,34 @@ export const GET = withRoute({
             ...(cleanSku.length === 24 ? [{ _id: cleanSku }] : [])
           ]
         })
-          .select('name image variantMatrix sizeStock colorStock quantity stock lowStockThreshold sizes colors')
+          .select('name image gallery variantMatrix sizeStock colorStock quantity stock lowStockThreshold sizes colors')
           .lean();
         
         let currentStock = 0;
         let threshold = 5;
+        let colorStock = {};
+        let sizeStock = {};
+        let variantMatrix = {};
+        let colors = [];
+        let sizes = [];
+
         if (product) {
           threshold = product.lowStockThreshold ?? 5;
+          colors = product.colors || [];
+          sizes = product.sizes || [];
+          colorStock = product.colorStock ? (product.colorStock instanceof Map ? Object.fromEntries(product.colorStock) : product.colorStock) : {};
+          sizeStock = product.sizeStock ? (product.sizeStock instanceof Map ? Object.fromEntries(product.sizeStock) : product.sizeStock) : {};
+          variantMatrix = product.variantMatrix ? (product.variantMatrix instanceof Map ? Object.fromEntries(product.variantMatrix) : product.variantMatrix) : {};
+
           const colorAndSize = alert.variantId;
           if (colorAndSize === 'default') {
             currentStock = product.quantity ?? product.stock ?? 0;
           } else if (colorAndSize.includes('|')) {
-            currentStock = safeGet(product.variantMatrix, colorAndSize);
-          } else if (product.sizes?.includes(colorAndSize)) {
-            currentStock = safeGet(product.sizeStock, colorAndSize);
-          } else if (product.colors?.includes(colorAndSize)) {
-            currentStock = safeGet(product.colorStock, colorAndSize);
+            currentStock = safeGet(variantMatrix, colorAndSize);
+          } else if (sizes.includes(colorAndSize)) {
+            currentStock = safeGet(sizeStock, colorAndSize);
+          } else if (colors.includes(colorAndSize)) {
+            currentStock = safeGet(colorStock, colorAndSize);
           }
         }
 
@@ -76,7 +88,13 @@ export const GET = withRoute({
           ...alert,
           _id: alert._id?.toString() || null,
           productName: product?.name || (cleanSku !== rawSku ? cleanSku : alert.sku),
-          productImage: product?.image || '',
+          productImage: product?.image || (product?.gallery?.[0]) || '',
+          colors,
+          sizes,
+          colorStock,
+          sizeStock,
+          variantMatrix,
+          totalProductStock: product?.quantity ?? product?.stock ?? 0,
           currentStock: typeof currentStock === 'number' ? currentStock : 0,
           threshold,
           salesVelocity,
@@ -131,16 +149,18 @@ export const POST = withRoute({
   requiredRole: 'admin',
   schema: {
     body: z.object({
-      action: z.enum(['snooze', 'restock', 'threshold', 'global-threshold']),
+      action: z.enum(['snooze', 'unsnooze', 'restock', 'threshold', 'global-threshold']),
       sku: z.string().optional(),
       variantId: z.string().optional(),
       alertId: z.string().optional(),
+      color: z.string().optional(),
+      size: z.string().optional(),
       quantity: z.number().optional(),
       threshold: z.number().optional(),
     })
   },
   handler: async ({ body }) => {
-    const { action, sku, variantId, alertId, quantity, threshold } = body;
+    const { action, sku, variantId, alertId, color, size, quantity, threshold } = body;
 
     if (action === 'global-threshold') {
       const settings = await Settings.findOneAndUpdate(
@@ -178,44 +198,58 @@ export const POST = withRoute({
       return { success: true, alert };
     }
 
+    if (action === 'unsnooze') {
+      alert.snoozedUntil = null;
+      alert.status = 'active';
+      await alert.save();
+      return { success: true, alert };
+    }
+
     if (action === 'restock') {
-      const restockQty = quantity ?? 50;
-      const product = await Product.findOne({ id: alert.sku });
+      const restockQty = Math.max(1, quantity ?? 50);
+      const rawSku = alert.sku || sku || '';
+      const cleanSku = rawSku.replace(/^#/, '').trim();
+
+      const product = await Product.findOne({
+        $or: [
+          { id: rawSku },
+          { id: cleanSku },
+          { sku: rawSku },
+          { sku: cleanSku },
+          { slug: rawSku },
+          { slug: cleanSku },
+          ...(rawSku.length === 24 ? [{ _id: rawSku }] : []),
+          ...(cleanSku.length === 24 ? [{ _id: cleanSku }] : [])
+        ]
+      });
+
       if (!product) throw new ApiError('NOT_FOUND', 'Product not found', 404);
 
-      const colorAndSize = alert.variantId;
-      let color = '';
-      let size = '';
-      let updateKey = 'quantity';
+      const selColor = color ?? (alert.variantId?.includes('|') ? alert.variantId.split('|')[0] : (product.colors?.includes(alert.variantId) ? alert.variantId : ''));
+      const selSize = size ?? (alert.variantId?.includes('|') ? alert.variantId.split('|').slice(-1)[0] : (product.sizes?.includes(alert.variantId) ? alert.variantId : ''));
 
-      if (colorAndSize !== 'default') {
-        if (colorAndSize.includes('|')) {
-          const lastPipeIndex = colorAndSize.lastIndexOf('|');
-          color = colorAndSize.substring(0, lastPipeIndex);
-          size = colorAndSize.substring(lastPipeIndex + 1);
-          updateKey = `variantMatrix.${color}|${size}`;
-        } else {
-          if (product.sizes?.includes(colorAndSize)) {
-            size = colorAndSize;
-            updateKey = `sizeStock.${size}`;
-          } else if (product.colors?.includes(colorAndSize)) {
-            color = colorAndSize;
-            updateKey = `colorStock.${color}`;
-          }
-        }
+      const productUpdate = { $inc: { quantity: restockQty, stock: restockQty } };
+
+      if (selColor && selSize) {
+        productUpdate.$inc[`variantMatrix.${selColor}|${selSize}`] = restockQty;
+      } else if (selColor) {
+        productUpdate.$inc[`colorStock.${selColor}`] = restockQty;
+      } else if (selSize) {
+        productUpdate.$inc[`sizeStock.${selSize}`] = restockQty;
       }
 
-      const productUpdate = { $inc: { [updateKey]: restockQty } };
       const updatedProduct = await Product.findOneAndUpdate(
-        { id: alert.sku },
+        { _id: product._id },
         productUpdate,
         { new: true }
       );
 
+      const variantLabel = [selColor, selSize].filter(Boolean).join(' · ') || 'default';
+
       await syncInventory(
         updatedProduct,
         'RESTOCK',
-        `Restocked ${restockQty}x ${updatedProduct.name} variant "${colorAndSize}"`,
+        `Restocked +${restockQty} units of ${updatedProduct.name} (Variant: ${variantLabel})`,
         `RESTOCK-${Date.now()}`,
         {}
       );
@@ -223,7 +257,7 @@ export const POST = withRoute({
       alert.status = 'restocked';
       await alert.save();
 
-      return { success: true, alert, currentStock: restockQty };
+      return { success: true, alert, updatedProduct };
     }
 
     throw new ApiError('BAD_REQUEST', 'Invalid action', 400);

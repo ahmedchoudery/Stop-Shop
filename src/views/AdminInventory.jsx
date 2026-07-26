@@ -31,6 +31,10 @@ const AdminInventory = () => {
   const [viewMode, setViewMode] = useState('inventory'); // 'inventory' | 'alerts'
   const [globalThreshold, setGlobalThreshold] = useState(5);
   const [restockInput, setRestockInput] = useState({});
+  const [restockModalAlert, setRestockModalAlert] = useState(null);
+  const [restockColor, setRestockColor] = useState('');
+  const [restockSize, setRestockSize] = useState('');
+  const [restockQty, setRestockQty] = useState(50);
   
   const searchTerm = useDebounce(searchRaw, 250);
   const flashTimeout = useTimeout();
@@ -94,6 +98,23 @@ const AdminInventory = () => {
     }
   };
 
+  const handleUnsnooze = async (alertId) => {
+    try {
+      const res = await authFetch(apiUrl('/api/admin/inventory'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'unsnooze', alertId }),
+      });
+      if (res.ok) {
+        alert('Alert unsnoozed successfully!');
+        fetchAlerts();
+        fetchProducts();
+      }
+    } catch (err) {
+      alert('Unsnooze failed: ' + err.message);
+    }
+  };
+
   const handleRestock = async (alertId, customQty = 50) => {
     try {
       const res = await authFetch(apiUrl('/api/admin/inventory'), {
@@ -102,7 +123,25 @@ const AdminInventory = () => {
         body: JSON.stringify({ action: 'restock', alertId, quantity: customQty }),
       });
       if (res.ok) {
-        alert(`Successfully restocked ${customQty} units!`);
+        alert(`Successfully restocked +${customQty} units!`);
+        fetchAlerts();
+        fetchProducts();
+      }
+    } catch (err) {
+      alert('Restock failed: ' + err.message);
+    }
+  };
+
+  const handleRestockDetailed = async ({ alertId, color, size, quantity }) => {
+    try {
+      const res = await authFetch(apiUrl('/api/admin/inventory'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'restock', alertId, color, size, quantity: parseInt(quantity) || 50 }),
+      });
+      if (res.ok) {
+        alert(`Successfully restocked +${quantity} units!`);
+        setRestockModalAlert(null);
         fetchAlerts();
         fetchProducts();
       }
@@ -323,44 +362,95 @@ const AdminInventory = () => {
                         <td className="p-4">
                           <div className="flex items-center space-x-3">
                             {alert.productImage ? (
-                              <img src={alert.productImage} alt={alert.productName} className="w-9 h-9 object-cover rounded-[4px] border border-gray-150 flex-shrink-0" />
+                              <img src={alert.productImage} alt={alert.productName} className="w-10 h-10 object-cover rounded border border-gray-200 flex-shrink-0 shadow-2xs" />
                             ) : (
-                              <div className="w-9 h-9 bg-gray-100 rounded-[4px] border border-gray-200 flex items-center justify-center text-gray-400 text-xs font-bold">
+                              <div className="w-10 h-10 bg-gray-100 rounded border border-gray-200 flex items-center justify-center text-gray-400 text-xs font-black">
                                 IMG
                               </div>
                             )}
-                            <span className="text-xs font-black uppercase tracking-tight text-gray-900 line-clamp-1">
-                              {alert.productName || alert.sku}
-                            </span>
+                            <div>
+                              <span className="text-xs font-black uppercase tracking-tight text-gray-900 block line-clamp-1">
+                                {alert.productName || alert.sku}
+                              </span>
+                              <span className="text-[9px] font-mono font-bold text-gray-400">SKU: #{alert.sku}</span>
+                            </div>
                           </div>
                         </td>
 
                         {/* SKU */}
                         <td className="p-4 font-mono text-xs font-bold text-gray-400">#{alert.sku}</td>
 
-                        {/* Variant */}
+                        {/* Variant Details */}
                         <td className="p-4">
-                          <span className="px-2 py-1 rounded bg-gray-100 border border-gray-200/60 text-[10px] font-black uppercase tracking-wider text-gray-700">
-                            {formatVariant(alert.variantId)}
-                          </span>
+                          <div className="space-y-1">
+                            <span className="px-2 py-0.5 rounded bg-black text-white text-[9px] font-black uppercase tracking-wider inline-block">
+                              Alert: {formatVariant(alert.variantId)}
+                            </span>
+                            {alert.colors?.length > 0 && (
+                              <p className="text-[9px] font-bold uppercase text-gray-400">
+                                Colors: <span className="text-gray-700">{alert.colors.map(c => c.includes('|') ? c.split('|')[1].trim() : c).join(', ')}</span>
+                              </p>
+                            )}
+                            {alert.sizes?.length > 0 && (
+                              <p className="text-[9px] font-bold uppercase text-gray-400">
+                                Sizes: <span className="text-gray-700">{alert.sizes.join(', ')}</span>
+                              </p>
+                            )}
+                          </div>
                         </td>
 
-                        {/* Stock */}
-                        <td className="p-4 font-mono text-xs font-black">
-                          {(() => {
-                            const count = typeof alert.currentStock === 'number' ? alert.currentStock : 0;
-                            return (
-                              <span className={`px-2.5 py-1 rounded font-bold ${
-                                count === 0 
-                                  ? 'text-red-700 bg-red-100 border border-red-200' 
-                                  : count <= alert.threshold 
-                                    ? 'text-amber-700 bg-amber-100 border border-amber-200' 
-                                    : 'text-gray-900 bg-gray-100 border border-gray-200'
-                              }`}>
-                                {count} units
-                              </span>
-                            );
-                          })()}
+                        {/* Organized Real-Time Variant Stock */}
+                        <td className="p-4 font-mono">
+                          <div className="space-y-1.5 min-w-[170px]">
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-black font-mono tracking-wide inline-block ${
+                              (alert.currentStock ?? 0) === 0 
+                                ? 'bg-red-100 text-red-700 border border-red-200' 
+                                : (alert.currentStock ?? 0) <= alert.threshold 
+                                  ? 'bg-amber-100 text-amber-800 border border-amber-200' 
+                                  : 'bg-green-100 text-green-800 border border-green-200'
+                            }`}>
+                              {alert.currentStock ?? 0} units ({alert.variantId === 'default' ? 'Total' : 'Alert Variant'})
+                            </span>
+
+                            {alert.colors?.length > 0 || alert.sizes?.length > 0 ? (
+                              <div className="text-[9px] bg-gray-50 border border-gray-200 p-2 rounded space-y-1.5 shadow-2xs">
+                                {alert.colors?.length > 0 ? (
+                                  alert.colors.map(col => {
+                                    const cleanColName = col.includes('|') ? col.split('|')[1].trim() : col;
+                                    return (
+                                      <div key={col} className="space-y-0.5">
+                                        <span className="font-extrabold text-gray-800 block uppercase text-[9px]">{cleanColName}:</span>
+                                        <div className="flex flex-wrap gap-1 text-[9px] text-gray-700">
+                                          {alert.sizes?.length > 0 ? (
+                                            alert.sizes.map(sz => {
+                                              const matVal = alert.variantMatrix?.[`${col}|${sz}`] ?? alert.sizeStock?.[sz] ?? alert.colorStock?.[col] ?? 0;
+                                              return (
+                                                <span key={sz} className={`px-1 py-0.5 rounded font-mono ${matVal === 0 ? 'bg-red-100 text-red-700 font-bold' : 'bg-white border border-gray-200 text-gray-900 font-semibold'}`}>
+                                                  {sz}:{matVal}
+                                                </span>
+                                              );
+                                            })
+                                          ) : (
+                                            <span className="px-1.5 py-0.5 rounded bg-white border border-gray-200 text-gray-900 font-bold">
+                                              {alert.colorStock?.[col] ?? 0} units
+                                            </span>
+                                          )}
+                                        </div>
+                                      </div>
+                                    );
+                                  })
+                                ) : (
+                                  <div className="flex flex-wrap gap-1 text-[9px]">
+                                    {alert.sizes.map(sz => (
+                                      <span key={sz} className="px-1.5 py-0.5 rounded bg-white border border-gray-200 text-gray-900 font-bold">
+                                        {sz}:{alert.sizeStock?.[sz] ?? 0}
+                                      </span>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            ) : null}
+                          </div>
                         </td>
 
                         {/* Threshold */}
@@ -398,8 +488,8 @@ const AdminInventory = () => {
 
                         {/* Actions */}
                         <td className="p-4">
-                          <div className="flex items-center space-x-2">
-                            {/* Custom Restock Input + Submit Button */}
+                          <div className="flex flex-col gap-1.5">
+                            {/* Quick Restock Input & Button */}
                             <div className="flex items-center space-x-1">
                               <input
                                 type="number"
@@ -421,18 +511,37 @@ const AdminInventory = () => {
                               </button>
                             </div>
 
-                            {/* Snooze 7d Button (Always Available) */}
+                            {/* Detailed Variant Restock Button */}
                             <button
-                              onClick={() => handleSnooze(alert._id)}
-                              className={`px-2.5 py-1 border text-[8px] font-black uppercase tracking-widest rounded-[3px] transition-all cursor-pointer shadow-2xs whitespace-nowrap ${
-                                isSnoozed 
-                                  ? 'bg-yellow-50 border-yellow-300 text-yellow-800 hover:bg-yellow-100'
-                                  : 'bg-white border-gray-200 text-gray-600 hover:border-black hover:text-black'
-                              }`}
-                              title={isSnoozed ? 'Alert is currently snoozed for 7 days. Click to re-snooze.' : 'Snooze alert notifications for 7 days'}
+                              onClick={() => {
+                                setRestockModalAlert(alert);
+                                setRestockColor(alert.colors?.[0] || '');
+                                setRestockSize(alert.sizes?.[0] || '');
+                                setRestockQty(50);
+                              }}
+                              className="px-2.5 py-1 bg-gray-100 border border-gray-200 text-gray-800 text-[8px] font-black uppercase tracking-widest rounded-[3px] hover:bg-black hover:text-white transition-all cursor-pointer shadow-2xs whitespace-nowrap"
                             >
-                              {isSnoozed ? 'Snoozed (7d)' : 'Snooze 7d'}
+                              Configure Variant Restock
                             </button>
+
+                            {/* Snooze 7d / Unsnooze Button */}
+                            {isSnoozed ? (
+                              <button
+                                onClick={() => handleUnsnooze(alert._id)}
+                                className="px-2.5 py-1 bg-yellow-100 border border-yellow-300 text-yellow-800 text-[8px] font-black uppercase tracking-widest rounded-[3px] hover:bg-yellow-200 transition-all cursor-pointer shadow-2xs whitespace-nowrap"
+                                title="Click to reactivate alert"
+                              >
+                                Snoozed (Unsnooze)
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => handleSnooze(alert._id)}
+                                className="px-2.5 py-1 bg-white border border-gray-200 text-gray-600 text-[8px] font-black uppercase tracking-widest rounded-[3px] hover:border-black hover:text-black transition-all cursor-pointer shadow-2xs whitespace-nowrap"
+                                title="Snooze alert for 7 days"
+                              >
+                                Snooze 7d
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -813,8 +922,104 @@ const AdminInventory = () => {
                 Tip: Edit price directly inline. Click "Edit Matrix" on variant products to edit individual size/color stock.
               </p>
             </div>
+      {/* Interactive Variant Restock Modal */}
+      {restockModalAlert && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
+          <div className="bg-white rounded-lg border border-gray-200 shadow-2xl max-w-md w-full p-6 space-y-5">
+            <div className="flex items-center justify-between border-b border-gray-150 pb-3">
+              <div className="flex items-center space-x-3">
+                {restockModalAlert.productImage ? (
+                  <img src={restockModalAlert.productImage} alt="" className="w-10 h-10 object-cover rounded border border-gray-200" />
+                ) : (
+                  <div className="w-10 h-10 bg-gray-100 rounded border border-gray-200 flex items-center justify-center text-xs font-bold text-gray-400">IMG</div>
+                )}
+                <div>
+                  <h4 className="text-xs font-black uppercase tracking-wider text-gray-900">{restockModalAlert.productName}</h4>
+                  <p className="text-[10px] font-mono text-gray-400">SKU: #{restockModalAlert.sku}</p>
+                </div>
+              </div>
+              <button onClick={() => setRestockModalAlert(null)} className="text-gray-400 hover:text-gray-900 text-lg font-bold">✕</button>
+            </div>
+
+            <div className="space-y-4">
+              {/* Color Selection */}
+              {restockModalAlert.colors?.length > 0 && (
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 block mb-1">Select Color Variant</label>
+                  <select
+                    value={restockColor}
+                    onChange={e => setRestockColor(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-xs font-bold font-mono outline-none focus:border-black"
+                  >
+                    <option value="">All Colors / General Stock</option>
+                    {restockModalAlert.colors.map(c => {
+                      const cleanName = c.includes('|') ? c.split('|')[1].trim() : c;
+                      return <option key={c} value={c}>{cleanName}</option>;
+                    })}
+                  </select>
+                </div>
+              )}
+
+              {/* Size Selection */}
+              {restockModalAlert.sizes?.length > 0 && (
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 block mb-1">Select Size Variant</label>
+                  <select
+                    value={restockSize}
+                    onChange={e => setRestockSize(e.target.value)}
+                    className="w-full bg-gray-50 border border-gray-200 rounded px-3 py-2 text-xs font-bold font-mono outline-none focus:border-black"
+                  >
+                    <option value="">All Sizes / General Stock</option>
+                    {restockModalAlert.sizes.map(s => (
+                      <option key={s} value={s}>{s}</option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {/* Quantity Field & Presets */}
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-widest text-gray-500 block mb-1">Restock Quantity</label>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="number"
+                    min="1"
+                    value={restockQty}
+                    onChange={e => setRestockQty(parseInt(e.target.value) || 1)}
+                    className="w-24 bg-white border border-gray-300 rounded px-3 py-2 text-sm font-black font-mono outline-none focus:border-black"
+                  />
+                  <div className="flex items-center space-x-1">
+                    {[10, 25, 50, 100].map(q => (
+                      <button
+                        key={q}
+                        type="button"
+                        onClick={() => setRestockQty(q)}
+                        className={`px-2.5 py-1.5 text-[10px] font-mono font-bold border rounded transition-all cursor-pointer ${restockQty === q ? 'bg-black text-white border-black' : 'bg-gray-50 text-gray-700 border-gray-200 hover:border-black'}`}
+                      >
+                        +{q}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end space-x-2 border-t border-gray-150 pt-4">
+              <button
+                onClick={() => setRestockModalAlert(null)}
+                className="px-4 py-2 border border-gray-200 text-gray-600 text-xs font-black uppercase tracking-widest rounded hover:bg-gray-50 cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => handleRestockDetailed({ alertId: restockModalAlert._id, color: restockColor, size: restockSize, quantity: restockQty })}
+                className="px-4 py-2 bg-black text-white text-xs font-black uppercase tracking-widest rounded hover:bg-gray-800 shadow-md cursor-pointer"
+              >
+                Confirm Restock (+{restockQty})
+              </button>
+            </div>
           </div>
-        </>
+        </div>
       )}
     </div>
   );
