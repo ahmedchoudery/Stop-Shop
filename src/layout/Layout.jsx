@@ -94,9 +94,16 @@ const Layout = ({ children, products = [] }) => {
 
   return (
     <>
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:top-4 focus:left-4 focus:z-[999999] focus:px-4 focus:py-2 focus:bg-black focus:text-white focus:font-extrabold focus:text-xs focus:uppercase focus:tracking-widest focus:rounded focus:shadow-2xl focus:outline-none focus:ring-2 focus:ring-white"
+      >
+        Skip to main content
+      </a>
+
       <div className="min-h-screen flex flex-col bg-white w-full max-w-full overflow-x-clip relative">
       {/* ── Page content ─────────────────────────────── */}
-      <main className={`flex-grow relative ${mainClass}`} style={mainStyle}>
+      <main id="main-content" tabIndex={-1} className={`flex-grow relative ${mainClass}`} style={mainStyle}>
         <AnimatePresence mode="wait">
           <motion.div
             key={location.pathname}

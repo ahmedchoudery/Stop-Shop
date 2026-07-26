@@ -107,15 +107,41 @@
     color: var(--text-primary);
   }
 
-  /* Focus — Cardinal Red ring, WCAG 2.1 AA compliant */
+  /* Focus — Black outline ring, WCAG 2.2 AA compliant */
   :focus-visible {
-    outline: 2px solid var(--color-cardinal);
-    outline-offset: 3px;
+    outline: 2px solid #000000;
+    outline-offset: 2px;
     border-radius: 2px;
   }
 
   :focus:not(:focus-visible) {
     outline: none;
+  }
+
+  /* ── prefers-reduced-motion (WCAG 2.2 AA 2.3.3) ── */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  /* ── Touch Target Sizing (WCAG 2.2 AA 2.5.8 — min 44x44px on mobile) ── */
+  @media (max-width: 768px) {
+    button,
+    a,
+    select,
+    input[type="button"],
+    input[type="submit"],
+    input[type="checkbox"],
+    input[type="radio"] {
+      min-height: 44px;
+      min-width: 44px;
+    }
   }
 
   h1, h2, h3, h4, h5, h6, .font-heading {

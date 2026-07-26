@@ -114,10 +114,11 @@ const SearchPage = () => {
       <div className="bg-white border-b border-gray-100 sticky top-0 z-30 shadow-sm">
         <div className="max-w-7xl mx-auto px-6 sm:px-8 lg:px-12 py-5">
           <form onSubmit={handleSearch} className="flex items-center space-x-3">
-            {/* Back */}
+            {/* Back Button */}
             <button
               type="button"
               onClick={() => navigate(-1)}
+              aria-label="Go back to previous page"
               className="p-2 text-gray-400 hover:text-gray-900 transition-colors flex-shrink-0"
             >
               <ArrowLeft size={18} />
@@ -128,6 +129,8 @@ const SearchPage = () => {
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
               <input
                 type="text"
+                id="search-catalog-input"
+                aria-label="Search catalog by name, category, or color"
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 placeholder="Search products, categories, colors..."

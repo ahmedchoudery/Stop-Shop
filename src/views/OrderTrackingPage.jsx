@@ -192,29 +192,33 @@ const OrderSearchForm = ({ onSearch, loading, initialOrderId = '' }) => {
     <div className="max-w-lg mx-auto bg-white border-2 border-gray-900 p-6 shadow-[0_20px_60px_rgba(0,0,0,0.08)] hover:shadow-[0_25px_70px_rgba(0,0,0,0.12)] transition-shadow duration-500 text-left">
       <form onSubmit={handleSubmit} className="space-y-6">
         <div>
-          <label className="block text-[9px] font-black uppercase tracking-[0.4em] text-gray-500 mb-2">Order ID</label>
+          <label htmlFor="order-id-input" className="block text-[9px] font-black uppercase tracking-[0.4em] text-gray-500 mb-2">Order ID</label>
           <div className="relative border-b-2 border-gray-200 focus-within:border-gray-900 transition-colors">
             <Search className="absolute left-0 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
             <input
+              id="order-id-input"
               type="text"
               value={orderID}
               onChange={e => setOrderID(e.target.value.toUpperCase())}
               placeholder="STOP-YYYY-XXXXXX"
               className="w-full bg-transparent pl-7 py-3.5 text-gray-900 font-black text-sm outline-none placeholder:text-gray-300 placeholder:font-normal tracking-widest uppercase"
               required
+              aria-required="true"
             />
           </div>
         </div>
         <div>
-          <label className="block text-[9px] font-black uppercase tracking-[0.4em] text-gray-500 mb-2">Email Address</label>
+          <label htmlFor="order-email-input" className="block text-[9px] font-black uppercase tracking-[0.4em] text-gray-500 mb-2">Email Address</label>
           <div className="relative border-b-2 border-gray-200 focus-within:border-gray-900 transition-colors">
             <input
+              id="order-email-input"
               type="email"
               value={email}
               onChange={e => setEmail(e.target.value)}
               placeholder="your-email@example.com"
               className="w-full bg-transparent py-3.5 text-gray-900 font-bold text-sm outline-none placeholder:text-gray-300 placeholder:font-normal"
               required
+              aria-required="true"
             />
           </div>
         </div>
@@ -651,7 +655,7 @@ const OrderTrackingPage = () => {
 
         {/* Error state */}
         {error && !loading && (
-          <div className="max-w-lg mx-auto animate-fade-up">
+          <div className="max-w-lg mx-auto animate-fade-up" role="alert" aria-live="polite">
             <div className="bg-white border border-red-100 rounded-[4px] p-8 text-center shadow-[0_8px_30px_rgba(0,0,0,0.03)]">
               <div className="w-14 h-14 bg-red-50 rounded-[4px] flex items-center justify-center mx-auto mb-5">
                 <AlertCircle size={22} className="text-cardinal" />
