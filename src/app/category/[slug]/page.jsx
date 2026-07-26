@@ -23,12 +23,21 @@ const SUBCATEGORIES = {
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://stop-shop-gamma.vercel.app';
 
+import getSocialOgImage from '../../../utils/getSocialOgImage';
+
 export async function generateMetadata({ params }) {
+  await dbConnect();
   const { slug } = params;
   const bucketName = BUCKETS[slug.toLowerCase()] || 'Collection';
   const categoryUrl = `${siteUrl}/category/${slug.toLowerCase()}`;
-  const title = `Luxury ${bucketName} & Apparel | Stop & Shop Pakistan`;
-  const description = `Discover premium ${bucketName.toLowerCase()} at Stop & Shop. High-end fabrics, tailored fits, and nationwide express shipping in Pakistan.`;
+  
+  // Find top product in category for social card banner image
+  const topProduct = await Product.findOne({ bucket: bucketName }).select('image gallery').lean();
+  const categoryBannerRaw = topProduct?.image || topProduct?.gallery?.[0];
+  const ogImageUrl = getSocialOgImage(categoryBannerRaw);
+
+  const title = `Luxury ${bucketName} Collection | Stop & Shop Pakistan`;
+  const description = `Shop luxury ${bucketName.toLowerCase()} apparel at Stop & Shop. High-end fabrics, tailored fits, 1–3 day express shipping & COD nationwide.`;
 
   return {
     title,
@@ -47,13 +56,20 @@ export async function generateMetadata({ params }) {
       siteName: 'Stop & Shop',
       locale: 'en_PK',
       type: 'website',
-      images: [{ url: `${siteUrl}/og-image.jpg` }],
+      images: [
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+          alt: `${bucketName} Collection`,
+        },
+      ],
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
-      images: [`${siteUrl}/og-image.jpg`],
+      images: [ogImageUrl],
     },
   };
 }

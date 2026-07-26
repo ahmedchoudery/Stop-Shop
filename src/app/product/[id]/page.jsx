@@ -5,7 +5,9 @@ import dbConnect from '../../../lib/db';
 import Product from '../../../models/Product';
 import ProductPageClient from './ProductPageClient.jsx';
 
-export const revalidate = 300; // Cache and revalidate pages every 300 seconds
+import getSocialOgImage from '../../../utils/getSocialOgImage';
+
+export const revalidate = 300; // Cache and revalidate pages every 300 seconds (ISR for instant WebView/social DM taps)
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://stop-shop-gamma.vercel.app';
 
@@ -21,7 +23,7 @@ const serialize = (p) => {
   };
 };
 
-// ── Dynamic Metadata Generation (SEO Optimized for Pakistan SERPs) ──
+// ── Dynamic Metadata Generation (Social Sharing & OpenGraph Polish) ──
 export async function generateMetadata({ params }) {
   await dbConnect();
   const id = params.id;
@@ -35,15 +37,17 @@ export async function generateMetadata({ params }) {
   if (!product) {
     return {
       title: 'Product Not Found | Stop & Shop',
-      description: 'The requested product could not be found.',
+      description: 'The requested luxury apparel item could not be found.',
     };
   }
 
   const pId = product.id || product._id?.toString();
   const canonicalUrl = `${siteUrl}/product/${pId}`;
-  const title = `${product.name} — Luxury ${product.bucket || 'Apparel'} | Stop & Shop`;
-  const description = `Buy ${product.name} online in Pakistan. Rs. ${Number(product.price).toLocaleString('en-PK')} | Premium ${product.bucket || 'clothing'} at Stop & Shop, Gujrat. Fast cash on delivery.`;
-  const imageUrl = product.image || `${siteUrl}/og-image.jpg`;
+  const priceFormatted = `Rs. ${Number(product.price || 0).toLocaleString('en-PK')} PKR`;
+  const title = `${product.name} — ${priceFormatted} | Stop & Shop`;
+  const description = `${product.name} (${priceFormatted}) — Premium ${product.bucket || 'luxury clothing'} at Stop & Shop Pakistan. Express 1–3 day delivery & Cash on Delivery.`;
+  const rawImage = product.image || product.gallery?.[0];
+  const ogImageUrl = getSocialOgImage(rawImage);
 
   return {
     title,
@@ -62,13 +66,20 @@ export async function generateMetadata({ params }) {
       siteName: 'Stop & Shop',
       locale: 'en_PK',
       type: 'article',
-      images: [{ url: imageUrl, alt: product.name }],
+      images: [
+        {
+          url: ogImageUrl,
+          width: 1200,
+          height: 630,
+          alt: product.name,
+        },
+      ],
     },
     twitter: {
       card: 'summary_large_image',
       title,
       description,
-      images: [imageUrl],
+      images: [ogImageUrl],
     },
   };
 }
