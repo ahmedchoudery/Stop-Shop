@@ -922,6 +922,10 @@ const AdminInventory = () => {
                 Tip: Edit price directly inline. Click "Edit Matrix" on variant products to edit individual size/color stock.
               </p>
             </div>
+          </div>
+        </>
+      )}
+
       {/* Interactive Variant Restock Modal */}
       {restockModalAlert && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in duration-200">
