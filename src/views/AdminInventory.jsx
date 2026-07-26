@@ -392,19 +392,28 @@ const AdminInventory = () => {
 
                         {/* Actions */}
                         <td className="p-4">
-                          {isActive && (
-                            <div className="flex space-x-2">
+                          {isActive ? (
+                            <div className="flex items-center space-x-2">
                               <button
                                 onClick={() => handleRestock(alert._id, 50)}
-                                className="px-2.5 py-1 bg-black text-white text-[8px] font-black uppercase tracking-widest rounded-[3px] hover:bg-gray-800 transition-all"
+                                className="px-2.5 py-1 bg-black text-white text-[8px] font-black uppercase tracking-widest rounded-[3px] hover:bg-gray-800 transition-all cursor-pointer shadow-2xs"
                               >
                                 Restock 50
                               </button>
                               <button
                                 onClick={() => handleSnooze(alert._id)}
-                                className="px-2.5 py-1 bg-white border border-gray-200 text-gray-600 text-[8px] font-black uppercase tracking-widest rounded-[3px] hover:border-black hover:text-black transition-all"
+                                className="px-2.5 py-1 bg-white border border-gray-200 text-gray-600 text-[8px] font-black uppercase tracking-widest rounded-[3px] hover:border-black hover:text-black transition-all cursor-pointer shadow-2xs"
                               >
                                 Snooze 7d
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center space-x-2">
+                              <button
+                                onClick={() => handleRestock(alert._id, 50)}
+                                className="px-2.5 py-1 bg-gray-100 border border-gray-200 text-gray-700 text-[8px] font-black uppercase tracking-widest rounded-[3px] hover:bg-black hover:text-white transition-all cursor-pointer shadow-2xs"
+                              >
+                                Restock +50
                               </button>
                             </div>
                           )}

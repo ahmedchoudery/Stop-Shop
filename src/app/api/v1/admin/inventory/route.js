@@ -36,8 +36,14 @@ export const GET = withRoute({
         .lean();
 
       const enriched = await Promise.all(alerts.map(async (alert) => {
-        const product = await Product.findOne({ id: alert.sku })
-          .select('name image variantMatrix sizeStock colorStock quantity lowStockThreshold sizes colors')
+        const product = await Product.findOne({
+          $or: [
+            { id: alert.sku },
+            { sku: alert.sku },
+            ...(alert.sku?.length === 24 ? [{ _id: alert.sku }] : [])
+          ]
+        })
+          .select('name image variantMatrix sizeStock colorStock quantity stock lowStockThreshold sizes colors')
           .lean();
         
         let currentStock = 0;
