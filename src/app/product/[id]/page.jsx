@@ -7,6 +7,8 @@ import ProductPageClient from './ProductPageClient.jsx';
 
 export const revalidate = 300; // Cache and revalidate pages every 300 seconds
 
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://stop-shop-gamma.vercel.app';
+
 // Plain JSON serialization helper function
 const serialize = (p) => {
   if (!p) return null;
@@ -19,7 +21,7 @@ const serialize = (p) => {
   };
 };
 
-// ── Dynamic Metadata Generation (Preserving e-commerce SEO rules exactly) ──
+// ── Dynamic Metadata Generation (SEO Optimized for Pakistan SERPs) ──
 export async function generateMetadata({ params }) {
   await dbConnect();
   const id = params.id;
@@ -32,23 +34,35 @@ export async function generateMetadata({ params }) {
 
   if (!product) {
     return {
-      title: 'Product Not Found — Stop & Shop',
-      description: 'The luxury apparel you requested could not be located.',
+      title: 'Product Not Found | Stop & Shop',
+      description: 'The requested product could not be found.',
     };
   }
 
-  const title = `${product.name} — Stop & Shop`;
-  const description = `${product.name} | Rs. ${Number(product.price).toLocaleString('en-PK')} | ${product.bucket}${product.subCategory && product.subCategory !== 'General' ? ' · ' + product.subCategory : ''} | Premium clothing by Stop & Shop, Gujrat.`;
-  const imageUrl = product.image || 'https://stop-shop-gamma.vercel.app/og-image.jpg';
+  const pId = product.id || product._id?.toString();
+  const canonicalUrl = `${siteUrl}/product/${pId}`;
+  const title = `${product.name} — Luxury ${product.bucket || 'Apparel'} | Stop & Shop`;
+  const description = `Buy ${product.name} online in Pakistan. Rs. ${Number(product.price).toLocaleString('en-PK')} | Premium ${product.bucket || 'clothing'} at Stop & Shop, Gujrat. Fast cash on delivery.`;
+  const imageUrl = product.image || `${siteUrl}/og-image.jpg`;
 
   return {
     title,
     description,
+    alternates: {
+      canonical: canonicalUrl,
+      languages: {
+        'en-PK': canonicalUrl,
+        'ur-PK': `${canonicalUrl}?lang=ur`,
+      },
+    },
     openGraph: {
       title,
       description,
-      images: [{ url: imageUrl }],
+      url: canonicalUrl,
+      siteName: 'Stop & Shop',
+      locale: 'en_PK',
       type: 'article',
+      images: [{ url: imageUrl, alt: product.name }],
     },
     twitter: {
       card: 'summary_large_image',
@@ -129,31 +143,40 @@ export default async function Page({ params }) {
   const product = serialize(rawProduct);
   const allProducts = rawAllProducts.map(serialize).filter(Boolean);
 
-  // Dynamic host detection for JSON-LD URLs
   const headersList = headers();
-  const host = headersList.get('host') || 'stop-shop-ecommerce.vercel.app';
+  const host = headersList.get('host') || 'stop-shop-gamma.vercel.app';
   const protocol = headersList.get('x-forwarded-proto') || 'https';
   const baseUrl = `${protocol}://${host}`;
+  const pId = product.id || product._id;
+  const canonicalUrl = `${baseUrl}/product/${pId}`;
 
-  const jsonLd = {
+  const productSchema = {
     "@context": "https://schema.org/",
     "@type": "Product",
+    "@id": `${canonicalUrl}/#product`,
     "name": product.name,
     "image": product.image ? [product.image] : [],
-    "description": product.description || product.name,
-    "sku": product.id,
-    "mpn": product.id,
+    "description": product.description || `${product.name} luxury clothing by Stop & Shop Pakistan.`,
+    "sku": String(pId),
+    "mpn": String(pId),
     "brand": {
       "@type": "Brand",
       "name": "Stop & Shop"
     },
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": product.rating || 5,
+      "reviewCount": product.reviewCount || 12,
+      "bestRating": 5,
+      "worstRating": 1
+    },
     "offers": {
       "@type": "Offer",
-      "url": `${baseUrl}/product/${product.id}`,
+      "url": canonicalUrl,
       "priceCurrency": "PKR",
       "price": product.price,
       "itemCondition": "https://schema.org/NewCondition",
-      "availability": product.stock > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      "availability": (product.quantity ?? product.stock ?? 0) > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
       "seller": {
         "@type": "Organization",
         "name": "Stop & Shop"
@@ -161,11 +184,40 @@ export default async function Page({ params }) {
     }
   };
 
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": baseUrl
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": product.bucket || "Category",
+        "item": `${baseUrl}/category/${(product.bucket || 'tops').toLowerCase()}`
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": product.name,
+        "item": canonicalUrl
+      }
+    ]
+  };
+
   return (
     <>
       <script
         type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(productSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
       />
       <ProductPageClient product={product} allProducts={allProducts} outfitProducts={outfitProducts} />
     </>

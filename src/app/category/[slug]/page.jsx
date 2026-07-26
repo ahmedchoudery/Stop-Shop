@@ -13,12 +13,48 @@ const BUCKETS = {
   outfit: 'Outfit',
 };
 
+const SUBCATEGORIES = {
+  Tops: ['Shirts', 'T-Shirts', 'Polos', 'Sweatshirts', 'Hoodies', 'Jackets', 'Tank-Tops'],
+  Bottoms: ['Jeans', 'Trousers', 'Shorts'],
+  Footwear: ['Shoes', 'Slippers', 'Socks'],
+  Accessories: ['Watches', 'Chains', 'Rings', 'Bracelets', 'Wallets', 'Bags', 'Caps'],
+  Outfit: ['Attitude Lookbooks', 'Bundles'],
+};
+
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://stop-shop-gamma.vercel.app';
+
 export async function generateMetadata({ params }) {
   const { slug } = params;
   const bucketName = BUCKETS[slug.toLowerCase()] || 'Collection';
+  const categoryUrl = `${siteUrl}/category/${slug.toLowerCase()}`;
+  const title = `Luxury ${bucketName} & Apparel | Stop & Shop Pakistan`;
+  const description = `Discover premium ${bucketName.toLowerCase()} at Stop & Shop. High-end fabrics, tailored fits, and nationwide express shipping in Pakistan.`;
+
   return {
-    title: `${bucketName} — Stop & Shop`,
-    description: `Shop our exclusive range of premium ${bucketName.toLowerCase()} apparel. Premium quality garments and accessories.`,
+    title,
+    description,
+    alternates: {
+      canonical: categoryUrl,
+      languages: {
+        'en-PK': categoryUrl,
+        'ur-PK': `${categoryUrl}?lang=ur`,
+      },
+    },
+    openGraph: {
+      title,
+      description,
+      url: categoryUrl,
+      siteName: 'Stop & Shop',
+      locale: 'en_PK',
+      type: 'website',
+      images: [{ url: `${siteUrl}/og-image.jpg` }],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [`${siteUrl}/og-image.jpg`],
+    },
   };
 }
 
@@ -26,6 +62,7 @@ export default async function CategoryPage({ params }) {
   await dbConnect();
   const { slug } = params;
   const bucketName = BUCKETS[slug.toLowerCase()] || 'Tops';
+  const categoryUrl = `${siteUrl}/category/${slug.toLowerCase()}`;
 
   const query = { bucket: bucketName };
   if (bucketName !== 'Outfit') {
@@ -46,17 +83,85 @@ export default async function CategoryPage({ params }) {
 
   const products = rawProducts.map(serialize);
 
+  const subcats = SUBCATEGORIES[bucketName] || [];
+
+  const collectionSchema = {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "@id": `${categoryUrl}/#webpage`,
+    "name": `${bucketName} Collection — Stop & Shop`,
+    "description": `Shop luxury ${bucketName.toLowerCase()} apparel at Stop & Shop Pakistan.`,
+    "url": categoryUrl,
+    "mainEntity": {
+      "@type": "ItemList",
+      "numberOfItems": products.length,
+      "itemListElement": products.slice(0, 10).map((p, index) => ({
+        "@type": "ListItem",
+        "position": index + 1,
+        "url": `${siteUrl}/product/${p.id}`,
+        "name": p.name
+      }))
+    }
+  };
+
+  const breadcrumbSchema = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Home",
+        "item": siteUrl
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": bucketName,
+        "item": categoryUrl
+      }
+    ]
+  };
+
   return (
-    <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 pt-[120px] pb-16">
-      <div className="mb-10 text-center md:text-left">
-        <p className="text-[9px] font-black uppercase tracking-[0.5em] text-gray-500 mb-2">
-          Category
-        </p>
-        <h1 className="text-4xl font-black uppercase tracking-tighter text-black leading-none">
-          {bucketName}
-        </h1>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionSchema) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbSchema) }}
+      />
+      <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 pt-[120px] pb-16">
+        <div className="mb-8 text-center md:text-left">
+          <p className="text-[9px] font-black uppercase tracking-[0.5em] text-gray-500 mb-2">
+            Category Catalog
+          </p>
+          <h1 className="text-4xl font-black uppercase tracking-tighter text-black leading-none mb-4">
+            {bucketName}
+          </h1>
+          
+          {/* Subcategory Internal Linking Pills */}
+          {subcats.length > 0 && (
+            <div className="flex flex-wrap gap-2 pt-2">
+              <span className="text-[9px] font-black uppercase tracking-widest text-gray-400 self-center mr-2">
+                Subcategories:
+              </span>
+              {subcats.map((sub) => (
+                <span
+                  key={sub}
+                  className="px-3 py-1 bg-gray-100 hover:bg-black hover:text-white transition-all rounded-[3px] text-[10px] font-extrabold uppercase tracking-wider text-gray-700 cursor-pointer"
+                >
+                  {sub}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <ProductGrid products={products} activeBucket={bucketName} />
       </div>
-      <ProductGrid products={products} activeBucket={bucketName} />
-    </div>
+    </>
   );
 }
