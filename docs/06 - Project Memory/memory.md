@@ -124,6 +124,26 @@ This document tracks the current state of work, what tasks have been completed, 
 
 ---
 
-## 14. What is Planned Next
-- **Next Prompt / Alignment**: Ready for next requests from the user.
+## 14. What Has Been Completed (Prompt 17 - Low-Stock Alerts Table, Multi-Variant Restock Modal, & Color Resolution)
+- **Automatic Orphan Alert Purging & Deduplication**:
+  - In `src/app/api/v1/admin/inventory/route.js`, implemented automatic deletion of orphaned database alerts for non-existent SKUs/products.
+  - Added alert deduplication per product SKU to prevent duplicate rows for identical items in the low-stock alert dashboard.
+- **Product Name & Thumbnail Resolution**:
+  - Enhanced GET `/api/v1/admin/inventory?type=alerts` to look up products across IDs, SKUs, and clean SKUs, correctly returning `productName`, `productImage`, gallery fallbacks, and complete color/size variant matrices.
+- **Human-Readable Color Name Engine Integration**:
+  - Integrated `getColorName()` and `getBackgroundStyle()` in `AdminInventory.jsx` to parse and render human-readable color display names (e.g., *Copper Rust*, *Forest Green*, *Cement*) alongside color swatch indicators in both the alerts table and restock modal.
+- **Real-Time Variant Stock Matrix Display**:
+  - Formatted the Stock column in the Low-Stock Alerts view to show exact per-color and per-size inventory matrices (e.g., `Copper Rust: S:10 M:10 L:10`).
+  - Added dynamic status badges (`SOLD OUT`, `Low Stock`, `In Stock`) with zero-stock items highlighted in high-visibility red badges.
+- **Portaled Viewport-Centered Multi-Variant Restock Modal**:
+  - Mounted the Restock modal using React `createPortal` onto `document.body` with `z-[9999]`, positioning it directly in the viewport center without requiring back-page scrolling.
+  - Designed an interactive grid form enabling admins to restock multiple variant color/size combinations simultaneously, with a `+50 To All Variants` quick shortcut.
+- **Snooze & Unsnooze 7-Day Actions**:
+  - Updated Snooze actions to toggle alert statuses between `snoozed` and `active`, updating `snoozedUntil` timestamps and instantly refreshing UI state.
+
+---
+
+## 15. What is Planned Next
+- **Next User Requirements**: Stand ready to analyze, implement, and verify any additional features, UI refinements, backend APIs, or security enhancements.
+
 
