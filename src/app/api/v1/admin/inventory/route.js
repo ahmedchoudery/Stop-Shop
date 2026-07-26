@@ -298,8 +298,16 @@ export const POST = withRoute({
         const restockQty = Math.max(1, quantity ?? 50);
         totalRestockQty = restockQty;
 
-        const selColor = color ?? (alert.variantId?.includes('|') ? alert.variantId.split('|')[0] : (product.colors?.includes(alert.variantId) ? alert.variantId : ''));
-        const selSize = size ?? (alert.variantId?.includes('|') ? alert.variantId.split('|').slice(-1)[0] : (product.sizes?.includes(alert.variantId) ? alert.variantId : ''));
+        let selColor = color;
+        let selSize = size;
+        if (!selColor && alert.variantId && alert.variantId.includes('|')) {
+          const lastPipe = alert.variantId.lastIndexOf('|');
+          selColor = alert.variantId.substring(0, lastPipe);
+          selSize = selSize || alert.variantId.substring(lastPipe + 1);
+        } else {
+          selColor = selColor || (product.colors?.includes(alert.variantId) ? alert.variantId : '');
+          selSize = selSize || (product.sizes?.includes(alert.variantId) ? alert.variantId : '');
+        }
 
         if (selColor && selSize) {
           productUpdate.$inc[`variantMatrix.${selColor}|${selSize}`] = restockQty;
