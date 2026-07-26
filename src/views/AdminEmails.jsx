@@ -42,9 +42,10 @@ export default function AdminEmails() {
     try {
       const url = `/api/v1/admin/emails?type=outbox&status=${outboxStatus}&page=${outboxPage}&limit=10${searchKey ? `&idempotencyKey=${searchKey}` : ''}`;
       const res = await authFetch(apiUrl(url));
-      if (res && res.items) {
-        setOutboxItems(res.items);
-        setOutboxTotal(res.pagination.total);
+      if (res && res.ok) {
+        const data = await res.json();
+        setOutboxItems(data.items || []);
+        setOutboxTotal(data.pagination?.total || 0);
       }
     } catch (err) {
       console.error('Failed to fetch outbox:', err.message);
@@ -59,9 +60,10 @@ export default function AdminEmails() {
     try {
       const url = `/api/v1/admin/emails?type=suppression&page=${suppressedPage}&limit=10`;
       const res = await authFetch(apiUrl(url));
-      if (res && res.items) {
-        setSuppressedItems(res.items);
-        setSuppressedTotal(res.pagination.total);
+      if (res && res.ok) {
+        const data = await res.json();
+        setSuppressedItems(data.items || []);
+        setSuppressedTotal(data.pagination?.total || 0);
       }
     } catch (err) {
       console.error('Failed to fetch suppression list:', err.message);
@@ -76,9 +78,10 @@ export default function AdminEmails() {
     try {
       const url = `/api/v1/admin/emails?type=notifications&page=${notificationPage}&limit=10`;
       const res = await authFetch(apiUrl(url));
-      if (res && res.items) {
-        setNotificationItems(res.items);
-        setNotificationTotal(res.pagination.total);
+      if (res && res.ok) {
+        const data = await res.json();
+        setNotificationItems(data.items || []);
+        setNotificationTotal(data.pagination?.total || 0);
       }
     } catch (err) {
       console.error('Failed to fetch notifications:', err.message);
@@ -109,10 +112,12 @@ export default function AdminEmails() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'resend', idempotencyKey }),
       });
-      if (res && res.success) {
-        // antd simple message fallback
-        alert('Email status reset to pending successfully!');
-        fetchOutbox();
+      if (res && res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          alert('Email status reset to pending successfully!');
+          fetchOutbox();
+        }
       }
     } catch (err) {
       alert(`Failed to resend: ${err.message}`);
@@ -126,11 +131,14 @@ export default function AdminEmails() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'suppress', email: values.email, reason: values.reason }),
       });
-      if (res && res.success) {
-        alert(`${values.email} successfully suppressed.`);
-        setAddSuppressionVisible(false);
-        form.resetFields();
-        fetchSuppression();
+      if (res && res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          alert(`${values.email} successfully suppressed.`);
+          setAddSuppressionVisible(false);
+          form.resetFields();
+          fetchSuppression();
+        }
       }
     } catch (err) {
       alert(`Failed to suppress: ${err.message}`);
@@ -144,9 +152,12 @@ export default function AdminEmails() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'unsuppress', email }),
       });
-      if (res && res.success) {
-        alert(`${email} successfully unsuppressed.`);
-        fetchSuppression();
+      if (res && res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          alert(`${email} successfully unsuppressed.`);
+          fetchSuppression();
+        }
       }
     } catch (err) {
       alert(`Failed to unsuppress: ${err.message}`);
