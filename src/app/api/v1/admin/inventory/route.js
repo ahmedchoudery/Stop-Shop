@@ -4,6 +4,7 @@ import Product from '@/models/Product';
 import Settings from '@/models/Settings';
 import LowStockAlert from '@/models/LowStockAlert';
 import { syncInventory } from '@/services/inventoryService';
+import { getSalesVelocity } from '@/services/lowStockService';
 import { z } from 'zod';
 
 const safeGet = (obj, key) => {
@@ -36,7 +37,7 @@ export const GET = withRoute({
 
       const enriched = await Promise.all(alerts.map(async (alert) => {
         const product = await Product.findOne({ id: alert.sku })
-          .select('name image variantMatrix sizeStock colorStock quantity lowStockThreshold')
+          .select('name image variantMatrix sizeStock colorStock quantity lowStockThreshold sizes colors')
           .lean();
         
         let currentStock = 0;
@@ -55,6 +56,8 @@ export const GET = withRoute({
           }
         }
 
+        const salesVelocity = await getSalesVelocity(alert.sku, alert.variantId);
+
         return {
           ...alert,
           _id: alert._id?.toString() || null,
@@ -62,6 +65,7 @@ export const GET = withRoute({
           productImage: product?.image || '',
           currentStock,
           threshold,
+          salesVelocity,
         };
       }));
 

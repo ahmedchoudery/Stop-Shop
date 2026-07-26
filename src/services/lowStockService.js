@@ -115,6 +115,10 @@ export function getVariantStock(product, color, size) {
  */
 export async function checkLowStockAlert(product, size = '', color = '', session = null) {
   try {
+    if (product.featuredSection === 'attitude' || product.bucket === 'Outfit') {
+      return;
+    }
+
     const { variantId, currentStock } = getVariantStock(product, color, size);
 
     // 1. Resolve configurable low-stock threshold
