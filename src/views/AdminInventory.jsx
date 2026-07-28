@@ -366,6 +366,8 @@ const AdminInventory = () => {
               <label className="text-[9px] font-black uppercase tracking-widest text-gray-400">Global Default Threshold:</label>
               <input
                 type="number"
+                id="inventory-global-threshold"
+                name="globalThreshold"
                 value={globalThreshold}
                 onChange={e => setGlobalThreshold(parseInt(e.target.value) || 0)}
                 onBlur={e => handleSaveGlobalThreshold(e.target.value)}
@@ -568,6 +570,8 @@ const AdminInventory = () => {
                           <div className="flex items-center space-x-1">
                             <input
                               type="number"
+                              id={`threshold-${alert._id || alert.sku}`}
+                              name={`threshold-${alert.sku}`}
                               value={alert.threshold}
                               onChange={e => {
                                 const val = parseInt(e.target.value) || 0;
@@ -643,6 +647,8 @@ const AdminInventory = () => {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={16} />
               <input
                 type="text"
+                id="inventory-search"
+                name="inventorySearch"
                 placeholder="Search by name or SKU..."
                 value={searchRaw}
                 onChange={e => setSearchRaw(e.target.value)}
@@ -752,10 +758,11 @@ const AdminInventory = () => {
                               </div>
                             </td>
 
-                            {/* Price */}
-                            <td className="p-4">
+                                                        <td className="p-4">
                               <input
                                 type="number" step="0.01"
+                                id={`price-${product.id}`}
+                                name={`price-${product.id}`}
                                 value={product.price}
                                 onChange={e => handleLocalChange(product.id, 'price', e.target.value)}
                                 onBlur={e => handleUpdate(product.id, 'price', e.target.value)}
@@ -768,6 +775,8 @@ const AdminInventory = () => {
                             <td className="p-4">
                               <input
                                 type="number" min="0" max="100"
+                                id={`discount-${product.id}`}
+                                name={`discount-${product.id}`}
                                 value={product.discount ?? 0}
                                 onChange={e => handleLocalChange(product.id, 'discount', e.target.value)}
                                 onBlur={e => handleUpdate(product.id, 'discount', e.target.value)}
@@ -781,6 +790,8 @@ const AdminInventory = () => {
                               <div className="flex items-center space-x-3">
                                 <input
                                   type="number"
+                                  id={`quantity-${product.id}`}
+                                  name={`quantity-${product.id}`}
                                   value={product.quantity}
                                   disabled={isVariant}
                                   onChange={e => handleLocalChange(product.id, 'quantity', e.target.value)}
@@ -874,6 +885,8 @@ const AdminInventory = () => {
                                                       <input
                                                         type="number"
                                                         min="0"
+                                                        id={`matrix-${product.id}-${key.replace(/[^a-zA-Z0-9-]/g, '_')}`}
+                                                        name={`matrix-${product.id}-${key.replace(/[^a-zA-Z0-9-]/g, '_')}`}
                                                         value={matrixValue}
                                                         onChange={e => handleVariantMatrixChange(product.id, key, e.target.value)}
                                                         onBlur={() => handleVariantMatrixSave(product.id)}
@@ -906,6 +919,8 @@ const AdminInventory = () => {
                                             <input
                                               type="number"
                                               min="0"
+                                              id={`sizeStock-${product.id}-${sz}`}
+                                              name={`sizeStock-${product.id}-${sz}`}
                                               value={sizeVal}
                                               onChange={e => {
                                                 const val = Math.max(0, parseInt(e.target.value) || 0);
@@ -954,6 +969,8 @@ const AdminInventory = () => {
                                             <input
                                               type="number"
                                               min="0"
+                                              id={`colorStock-${product.id}-${col.replace(/[^a-zA-Z0-9-]/g, '_')}`}
+                                              name={`colorStock-${product.id}-${col.replace(/[^a-zA-Z0-9-]/g, '_')}`}
                                               value={colorVal}
                                               onChange={e => {
                                                 const val = Math.max(0, parseInt(e.target.value) || 0);
@@ -1074,6 +1091,8 @@ const AdminInventory = () => {
                                 <input
                                   type="number"
                                   min="0"
+                                  id={`restock-matrix-${sz}`}
+                                  name={`restockMatrix_${sz}`}
                                   value={currentVal}
                                   onChange={e => {
                                     const val = Math.max(0, parseInt(e.target.value) || 0);
@@ -1104,6 +1123,8 @@ const AdminInventory = () => {
                         <input
                           type="number"
                           min="0"
+                          id={`restock-color-${col.replace(/[^a-zA-Z0-9-]/g, '_')}`}
+                          name={`restockColor_${col.replace(/[^a-zA-Z0-9-]/g, '_')}`}
                           value={currentVal}
                           onChange={e => {
                             const val = Math.max(0, parseInt(e.target.value) || 0);
@@ -1126,6 +1147,8 @@ const AdminInventory = () => {
                         <input
                           type="number"
                           min="0"
+                          id={`restock-size-${sz}`}
+                          name={`restockSize_${sz}`}
                           value={currentVal}
                           onChange={e => {
                             const val = Math.max(0, parseInt(e.target.value) || 0);
@@ -1143,6 +1166,8 @@ const AdminInventory = () => {
                   <input
                     type="number"
                     min="1"
+                    id="general-restock-qty"
+                    name="generalRestockQty"
                     value={multiRestockMatrix['default'] ?? 50}
                     onChange={e => {
                       const val = Math.max(1, parseInt(e.target.value) || 1);
