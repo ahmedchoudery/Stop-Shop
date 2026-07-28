@@ -45,6 +45,7 @@ const AdminInventory = () => {
     setAlertsLoading(true);
     try {
       const res = await authFetch(apiUrl('/api/admin/inventory?type=alerts'));
+      if (handleAuthError(res.status)) return;
       if (res.ok) {
         const data = await res.json();
         setAlerts(data);

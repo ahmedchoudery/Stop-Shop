@@ -70,7 +70,7 @@ const InventoryHealthChart = ({ products = [] }) => {
       </div>
 
       <div className="relative h-48 w-full">
-        <ResponsiveContainer minWidth={0} minHeight={180} width="100%" height="100%">
+        <ResponsiveContainer width="100%" height={192} minWidth={0} minHeight={180}>
           <PieChart>
             <Pie
               data={data}

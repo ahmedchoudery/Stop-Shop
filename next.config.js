@@ -97,7 +97,19 @@ const nextConfig = {
           },
           {
             key: 'Content-Security-Policy',
-            value: "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://connect.facebook.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https://res.cloudinary.com https://www.google-analytics.com https://www.facebook.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' https://api.resend.com https://open.er-api.com https://www.google-analytics.com https://www.google.com https://analytics.google.com; object-src 'none'; base-uri 'self'; form-action 'self';",
+            value: [
+              "default-src 'self'",
+              "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://connect.facebook.net",
+              "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+              // img-src: self + data URIs + all image hosts used by the app
+              "img-src 'self' data: blob: https://res.cloudinary.com https://images.unsplash.com https://lh3.googleusercontent.com https://lh4.googleusercontent.com https://1drv.ms https://*.1drv.ms https://onedrive.live.com https://*.onedrive.live.com https://api.onedrive.com https://www.google-analytics.com https://www.facebook.com",
+              "font-src 'self' https://fonts.gstatic.com",
+              "connect-src 'self' https://api.resend.com https://open.er-api.com https://www.google-analytics.com https://www.google.com https://analytics.google.com",
+              "object-src 'none'",
+              "base-uri 'self'",
+              "form-action 'self'",
+              "frame-ancestors 'none'",
+            ].join('; '),
           },
         ],
       },
