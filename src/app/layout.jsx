@@ -23,6 +23,7 @@ const dmSans = DM_Sans({
   subsets: ['latin', 'latin-ext'],
   variable: '--font-dm-sans',
   display: 'swap',
+  preload: false,
 });
 
 const dmSansBold = DM_Sans({

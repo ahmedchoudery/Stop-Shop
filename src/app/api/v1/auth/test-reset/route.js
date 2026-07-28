@@ -27,7 +27,7 @@ export const POST = withRoute({
       (e2eSecret && headerSecret && headerSecret === e2eSecret);
 
     console.info('[TestReset] Endpoint hit.', {
-      ciMode,
+      testMode,
       hasE2ESecret: !!e2eSecret,
       headerMatch: headerSecret === e2eSecret,
       isAuthorised,

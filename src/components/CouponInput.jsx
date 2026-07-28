@@ -79,6 +79,8 @@ const CouponInput = ({ cartTotal, onApply, onRemove, appliedCoupon }) => {
           <Tag size={12} className="absolute left-0 top-1/2 -translate-y-1/2 text-gray-300" />
           <input
             type="text"
+            id="coupon-code-input"
+            name="couponCode"
             value={code}
             onChange={e => { setCode(e.target.value.toUpperCase()); setError(''); }}
             onKeyDown={handleKeyDown}
