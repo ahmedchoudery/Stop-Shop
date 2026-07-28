@@ -5,6 +5,8 @@ import ProductNotification from '@/models/ProductNotification';
 import Product from '@/models/Product';
 import EmailOutbox from '@/models/EmailOutbox';
 import { checkVariantInStock } from '@/services/inventoryService';
+// @ts-ignore
+import logger from '@/utils/logger.js';
 
 export const dynamic = 'force-dynamic';
 
@@ -83,7 +85,7 @@ export async function GET(req) {
       processed,
     });
   } catch (err) {
-    console.error(`❌ [Restock Cron] Unexpected error:`, err.message);
+    logger.error({ err: err.message }, '[Restock Cron] Unexpected error');
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }
 }

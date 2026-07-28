@@ -1,6 +1,7 @@
 import Reservation from '../models/Reservation.js';
 import Product from '../models/Product.js';
 import mongoose from 'mongoose';
+import logger from '../utils/logger.js';
 
 /**
  * Periodically processes expired reservations, releases stock, and deletes reservation documents.
@@ -14,7 +15,7 @@ export async function releaseExpiredReservations() {
       const expired = await Reservation.find({ expiresAt: { $lt: now } }).session(session);
       if (expired.length === 0) return;
 
-      console.log(`[Reservation Cron] Found ${expired.length} expired reservations to release.`);
+      logger.info({ count: expired.length }, `[Reservation Cron] Found ${expired.length} expired reservations to release.`);
 
       for (const res of expired) {
         // Parse variant key info from SKU (format: productId:color:size)
@@ -49,7 +50,7 @@ export async function releaseExpiredReservations() {
           if (colorKey)  Reflect.set(stockUpdate.$inc, colorKey, qty);
 
           await Product.updateOne({ id: productId }, stockUpdate, { session });
-          console.log(`[Reservation Cron] Released ${qty} units for product ${productId} variant ${color}|${size}`);
+          logger.info({ productId, qty, color, size }, `[Reservation Cron] Released ${qty} units for product ${productId} variant ${color}|${size}`);
         }
         
         // Delete reservation
@@ -57,7 +58,7 @@ export async function releaseExpiredReservations() {
       }
     });
   } catch (err) {
-    console.error(`[Reservation Cron] Release failed:`, err.message);
+    logger.error({ err: err.message }, `[Reservation Cron] Release failed: ${err.message}`);
   } finally {
     await session.endSession();
   }

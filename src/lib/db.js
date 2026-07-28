@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import { withRetry } from '../utils/retry.js';
 import { releaseExpiredReservations } from '../services/reservationService.js';
+import logger from '../utils/logger.js';
 
 const MONGODB_URI = process.env.MONGODB_URI || process.env.MONGO_URI;
 
@@ -24,10 +25,10 @@ if (!global.reservationCronStarted) {
   // Expired reservations cron check every 1 minute
   setInterval(() => {
     releaseExpiredReservations().catch(err =>
-      console.error('[Reservation Cron Interval] Error:', err.message)
+      logger.error({ err: err.message }, '[Reservation Cron Interval] Error releasing expired reservations')
     );
   }, 60000);
-  console.log('[Reservation Service] Expired reservation cleanup cron registered.');
+  logger.info('[Reservation Service] Expired reservation cleanup cron registered.');
 }
 
 async function dbConnect() {

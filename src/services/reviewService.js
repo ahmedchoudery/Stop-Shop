@@ -1,5 +1,6 @@
 import Review from '../models/Review.js';
 import Product from '../models/Product.js';
+import logger from '../utils/logger.js';
 
 /**
  * Recalculate the average rating of a product based on its approved reviews.
@@ -24,11 +25,11 @@ export const updateProductAverageRating = async (productId) => {
     if (product) {
       product.rating = averageRating;
       await product.save();
-      console.log(`[ReviewService] Successfully updated product ${productId} rating to ${averageRating}`);
+      logger.info({ productId, averageRating }, `[ReviewService] Successfully updated product ${productId} rating to ${averageRating}`);
     } else {
-      console.warn(`[ReviewService] Product ${productId} not found for rating update`);
+      logger.warn({ productId }, `[ReviewService] Product ${productId} not found for rating update`);
     }
   } catch (err) {
-    console.error(`[ReviewService] Error updating product rating for ${productId}:`, err.message);
+    logger.error({ productId, err: err.message }, `[ReviewService] Error updating product rating for ${productId}`);
   }
 };

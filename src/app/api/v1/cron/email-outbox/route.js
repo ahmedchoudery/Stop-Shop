@@ -1,5 +1,7 @@
 import { NextResponse } from 'next/server';
 import dbConnect from '@/lib/db';
+// @ts-ignore
+import logger from '@/utils/logger.js';
 
 export const dynamic = 'force-dynamic';
 import EmailOutbox from '@/models/EmailOutbox';
@@ -132,7 +134,7 @@ export async function GET(req) {
         await item.save();
         processed.push({ id: item.idempotencyKey, status: 'sent' });
       } catch (err) {
-        console.error(`❌ [Outbox Worker] Failed to process ${item.idempotencyKey}:`, err.message);
+        logger.error({ idempotencyKey: item.idempotencyKey, err: err.message }, `[Outbox Worker] Failed to process ${item.idempotencyKey}`);
         
         item.attempts += 1;
         item.lastError = err.message;
@@ -156,7 +158,7 @@ export async function GET(req) {
       processed,
     });
   } catch (err) {
-    console.error(`❌ [Outbox Worker] Unexpected error:`, err.message);
+    logger.error({ err: err.message }, '[Outbox Worker] Unexpected error');
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }
 }

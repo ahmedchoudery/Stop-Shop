@@ -66,10 +66,9 @@ export const CurrencyProvider = ({ children }) => {
           };
           setRates(newRates);
           sessionStorage.setItem(RATES_CACHE_KEY, JSON.stringify(newRates));
-          console.log('[Currency] Live rates loaded (Base: PKR):', newRates);
         }
-      } catch (err) {
-        console.error('[Currency] Failed to fetch live rates:', err.message);
+      } catch {
+        // silently continue — fallback default rates remain in state
       } finally {
         setLoading(false);
       }
