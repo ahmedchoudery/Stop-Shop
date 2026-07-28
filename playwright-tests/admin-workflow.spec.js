@@ -11,8 +11,8 @@ test.describe('Admin Workflow & Full Lifecycle E2E Suite', () => {
     const passwordInput = page.locator('input[type="password"], input[name="password"]');
 
     if (await emailInput.isVisible()) {
-      await emailInput.fill('admin@stop-shop.com');
-      await passwordInput.fill('Admin123456!');
+      await emailInput.fill('e2e-admin@stop-shop-test.com');
+      await passwordInput.fill('vxSk9mUi0/NX6IvZ!Aa1');
       await page.keyboard.press('Enter');
     }
 

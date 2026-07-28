@@ -38,6 +38,16 @@ test.describe('Checkout and Secure Order Tracking E2E Flow', () => {
     // Verify added to bag status
     await expect(page.getByText(/✓ Added to (bag|cart)/i)).toBeVisible({ timeout: 15000 });
 
+    // Wait for cart state persistence in localStorage
+    await page.waitForFunction(() => {
+      try {
+        const raw = localStorage.getItem('stopshop-cart');
+        return raw && JSON.parse(raw).length > 0;
+      } catch {
+        return false;
+      }
+    }, { timeout: 15000 });
+
     // 3. Go to checkout page
     await page.goto('/checkout');
     await expect(page).toHaveURL(/\/checkout/);

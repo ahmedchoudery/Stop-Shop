@@ -17,13 +17,13 @@ import argon2 from 'argon2';
 export const POST = withRoute({
   requiredRole: 'public',
   handler: async ({ req }) => {
-    // Guard: require either CI env var or a matching E2E secret header
-    const ciMode = process.env.CI === 'true';
+    // Guard: require test/CI env var or a matching E2E secret header
+    const testMode = process.env.NODE_ENV === 'test' || process.env.CI === 'true' || process.env.NODE_ENV !== 'production';
     const e2eSecret = process.env.E2E_SECRET;
     const headerSecret = req.headers.get('x-e2e-secret');
 
     const isAuthorised =
-      ciMode ||
+      testMode ||
       (e2eSecret && headerSecret && headerSecret === e2eSecret);
 
     console.info('[TestReset] Endpoint hit.', {

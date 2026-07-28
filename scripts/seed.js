@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
+import argon2 from 'argon2';
 import { products } from '../src/data/products.js';
 
 dotenv.config();
@@ -106,6 +107,50 @@ async function seed() {
       expiresAt: null
     });
     console.info('Seeding coupon successful!');
+
+    console.info('Seeding admin user e2e-admin@stop-shop-test.com...');
+    const userSchema = new mongoose.Schema({
+      email: { type: String, required: true, unique: true },
+      passwordHash: { type: String, required: true },
+      name: { type: String, default: 'E2E Test Admin' },
+      twoFactorEnabled: { type: Boolean, default: false },
+      emailOtpCode: { type: String, default: null },
+      emailOtpExpiresAt: { type: Date, default: null },
+      failedLoginCount: { type: Number, default: 0 },
+      lockedUntil: { type: Date, default: null }
+    }, { timestamps: true });
+
+    const userRoleSchema = new mongoose.Schema({
+      userId: { type: mongoose.Schema.Types.ObjectId, required: true },
+      role: { type: String, required: true },
+      assignedBy: { type: String, default: 'system' }
+    });
+
+    const User = mongoose.models.User || mongoose.model('User', userSchema);
+    const UserRole = mongoose.models.UserRole || mongoose.model('UserRole', userRoleSchema);
+
+    await User.deleteMany({ email: 'e2e-admin@stop-shop-test.com' });
+    const passwordHash = await argon2.hash('vxSk9mUi0/NX6IvZ!Aa1', {
+      type: argon2.argon2id,
+      memoryCost: 19456,
+      timeCost: 2,
+      parallelism: 1
+    });
+
+    const seededAdmin = await User.create({
+      email: 'e2e-admin@stop-shop-test.com',
+      passwordHash,
+      name: 'E2E Test Admin',
+      twoFactorEnabled: false
+    });
+
+    await UserRole.deleteMany({ userId: seededAdmin._id });
+    await UserRole.create({
+      userId: seededAdmin._id,
+      role: 'admin',
+      assignedBy: 'system'
+    });
+    console.info('Admin user seeding successful!');
 
   } catch (error) {
     console.error('Seeding failed:', error);
