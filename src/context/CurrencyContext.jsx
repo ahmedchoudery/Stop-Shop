@@ -24,6 +24,18 @@ const STORAGE_KEY = 'stopshop-currency';
 const RATES_CACHE_KEY = 'stopshop-rates-cache';
 const DEFAULT_CURRENCY = 'PKR';
 
+/**
+ * Safe object property accessor — prevents generic object injection by
+ * validating the key against an explicit allowlist before lookup.
+ * @template T
+ * @param {Record<string, T>} obj
+ * @param {string} key
+ * @param {T} fallback
+ * @returns {T}
+ */
+const safeGet = (obj, key, fallback) =>
+  VALID_CURRENCIES.includes(key) && Object.hasOwn(obj, key) ? obj[key] : fallback;
+
 const CurrencyContext = createContext(null);
 
 export const CurrencyProvider = ({ children }) => {
@@ -84,8 +96,8 @@ export const CurrencyProvider = ({ children }) => {
   }, [setStored]);
 
   const formatPrice = useCallback((priceInPKR) => {
-    const rate = rates[currency] || 1;
-    const config = CURRENCIES[currency];
+    const rate = safeGet(rates, currency, 1);
+    const config = safeGet(CURRENCIES, currency, CURRENCIES.PKR);
     const converted = (priceInPKR ?? 0) * rate;
 
     return new Intl.NumberFormat(config.locale, {
@@ -97,7 +109,7 @@ export const CurrencyProvider = ({ children }) => {
   }, [currency, rates]);
 
   const convertPrice = useCallback((priceInPKR) => {
-    const rate = rates[currency] || 1;
+    const rate = safeGet(rates, currency, 1);
     return (priceInPKR ?? 0) * rate;
   }, [currency, rates]);
 
@@ -109,7 +121,7 @@ export const CurrencyProvider = ({ children }) => {
     CURRENCIES,
     rates,
     loadingRates: loading,
-    currencyConfig: CURRENCIES[currency],
+    currencyConfig: safeGet(CURRENCIES, currency, CURRENCIES.PKR),
   }), [currency, rates, loading, changeCurrency, formatPrice, convertPrice]);
 
   return (
