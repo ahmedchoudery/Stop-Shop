@@ -176,6 +176,7 @@ This document tracks the current state of work, what tasks have been completed, 
 - **Variant Matrix & SEO Overrides**: Verified multi-variant stock matrix (size × color) and per-product custom SEO fields (title, description, og:image override).
 - **Playwright Admin Workflow Test Suite**: Built [`playwright-tests/admin-workflow.spec.js`](file:///c:/Users/JAPAN%20COMPUTERS/OneDrive/Desktop/Stop-Shop/playwright-tests/admin-workflow.spec.js) testing auth, product management, order processing, inventory adjustments, email outbox, and audit trail verification.
 - **Pipe-Delimited Variant Matrix Fix**: Resolved string parsing bug in `src/app/api/v1/admin/inventory/route.js` where color strings with pipe characters (e.g. `#000000 | Black`) failed to match variant matrix keys on RESTOCK, restoring 100% pass rate in MongoDB integration tests.
+- **Playwright CI Seed & Auth Fix**: Updated `scripts/seed.js` to seed `e2e-admin@stop-shop-test.com` admin account, added `/api/auth/:path*` rewrite in `next.config.js`, allowed dev/test/CI mode in `/api/v1/auth/test-reset`, and added `localStorage` cart persistence wait before checkout navigation.
 
 ---
 
