@@ -111,7 +111,11 @@ export const apiUrl = (path) => {
   if (typeof path !== 'string' || !path.startsWith('/')) {
     throw new TypeError(`apiUrl() expects a path starting with '/'. Got: ${path}`);
   }
-  return `${API_BASE}${path}`;
+  let normalizedPath = path;
+  if (path.startsWith('/api/') && !path.startsWith('/api/v1/') && !path.startsWith('/api/webhooks/')) {
+    normalizedPath = path.replace('/api/', '/api/v1/');
+  }
+  return `${API_BASE}${normalizedPath}`;
 };
 
 export default API_BASE;

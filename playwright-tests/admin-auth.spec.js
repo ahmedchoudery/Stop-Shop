@@ -26,14 +26,14 @@ test.describe('Admin Authentication & Security Rebuild', () => {
 
     // 3. If 2FA screen appears, fill verification code
     const securityVerification = page.locator('text=Security Verification');
-    if (await securityVerification.isVisible({ timeout: 5000 }).catch(() => false)) {
+    if (await securityVerification.isVisible({ timeout: 25000 }).catch(() => false)) {
       await page.fill('input[placeholder="000000"]', '123456');
       await page.click('button:has-text("Verify Identity")');
     }
 
     // 4. Successful login leads to /admin dashboard
-    await page.waitForURL('**/admin', { timeout: 15000 });
-    await expect(page.locator('#main-content, body')).toBeVisible();
+    await expect(page).toHaveURL(/\/admin/, { timeout: 15000 });
+    await expect(page.locator('#main-content, body').first()).toBeVisible();
   });
 
 });

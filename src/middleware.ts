@@ -134,7 +134,12 @@ export async function middleware(request: NextRequest) {
     const origin = request.headers.get('origin');
     const ownOrigin = request.nextUrl.origin;
 
-    if (origin && origin !== ownOrigin) {
+    const isLocal = (url: string | null) => {
+      if (!url) return false;
+      return url.includes('localhost') || url.includes('127.0.0.1');
+    };
+
+    if (origin && origin !== ownOrigin && !(isLocal(origin) && isLocal(ownOrigin))) {
       return new NextResponse(
         JSON.stringify({ error: 'CORS policy violation: Access denied.' }),
         { status: 403, headers: { 'Content-Type': 'application/json', 'x-request-id': requestId } }
@@ -173,7 +178,7 @@ export async function middleware(request: NextRequest) {
     "default-src 'self'",
     scriptSrc,
     styleSrc,
-    "img-src 'self' data: https://res.cloudinary.com https://www.google-analytics.com https://www.facebook.com",
+    "img-src 'self' data: blob: https://res.cloudinary.com https://images.unsplash.com https://lh3.googleusercontent.com https://lh4.googleusercontent.com https://1drv.ms https://*.1drv.ms https://onedrive.live.com https://*.onedrive.live.com https://api.onedrive.com https://www.google-analytics.com https://www.facebook.com",
     "font-src 'self' https://fonts.gstatic.com",
     "connect-src 'self' https://api.resend.com https://open.er-api.com https://www.google-analytics.com https://www.google.com https://analytics.google.com",
     "object-src 'none'",

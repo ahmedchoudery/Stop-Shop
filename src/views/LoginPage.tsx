@@ -122,7 +122,7 @@ const LoginPage = () => {
       }
       payload.code = otpCode.trim();
 
-      const res = await fetch('/api/auth/2fa/verify', {
+      const res = await fetch('/api/v1/auth/2fa/verify', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)

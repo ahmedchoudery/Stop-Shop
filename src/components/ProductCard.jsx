@@ -282,8 +282,11 @@ const ProductCard = ({ product, initialColor = null, onImageLoad }) => {
   );
 
   const handleCardClick = useCallback(
-    () => navigate(`/product/${product.id}`),
-    [navigate, product.id]
+    () => {
+      const targetId = product.id || product._id;
+      if (targetId) navigate(`/product/${targetId}`);
+    },
+    [navigate, product.id, product._id]
   );
 
   return (
