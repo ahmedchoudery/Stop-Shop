@@ -204,7 +204,7 @@ export const reviewSchema = z.object({
 
 export const couponValidationSchema = z.object({
   code:      z.string().trim().min(1, 'Coupon code required').transform(v => v.toUpperCase()),
-  cartTotal: z.number().nonnegative('Total must be positive'),
+  cartTotal: z.union([z.number(), z.string()]).transform(v => typeof v === 'number' ? v : parseFloat(v) || 0),
   activeCouponCode: z.string().nullable().optional().default(''),
 });
 

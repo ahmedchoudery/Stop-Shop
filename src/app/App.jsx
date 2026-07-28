@@ -155,6 +155,11 @@ const PageContent = () => {
             <LoginPage />
           </PageSuspense>
         } />
+        <Route path="/admin/login" element={
+          <PageSuspense>
+            <LoginPage />
+          </PageSuspense>
+        } />
 
         {/* ── Admin panel ─────────────────────────────── */}
         <Route

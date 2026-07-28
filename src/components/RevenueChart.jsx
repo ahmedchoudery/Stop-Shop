@@ -112,7 +112,7 @@ const RevenueChart = ({ chartData = [] }) => {
 
       {/* Chart */}
       <div ref={chartRef} className="h-52" style={{ opacity: 0 }}>
-        <ResponsiveContainer width="100%" height="100%">
+        <ResponsiveContainer minWidth={0} minHeight={180} width="100%" height="100%">
           <AreaChart data={safeData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
             <defs>
               <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">

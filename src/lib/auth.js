@@ -165,7 +165,7 @@ export const extractErrorMessage = (data, fallback = 'An error occurred') => {
  * @throws {Error} with user-friendly message
  */
 export const adminLogin = async (email, password) => {
-const res = await fetch('/api/admin/login', {
+  const res = await fetch('/api/v1/auth/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     credentials: 'include',

@@ -9,7 +9,7 @@ export default defineConfig({
   workers: 1, // Single worker avoids database write collisions
   reporter: 'html',
   use: {
-    baseURL: 'http://localhost:3000',
+    baseURL: 'http://127.0.0.1:3000',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
   },
@@ -21,11 +21,11 @@ export default defineConfig({
   ],
   webServer: {
     command: process.env.CI ? 'npm run start' : 'npm run dev',
-    url: 'http://localhost:3000',
+    url: 'http://127.0.0.1:3000',
     reuseExistingServer: !process.env.CI, // Always start fresh in CI
-    stdout: 'pipe',
+    stdout: 'ignore',
     stderr: 'pipe',
-    timeout: 180000, // 3 min — next start can be slow on CI cold runners
+    timeout: 120000,
   },
 });
 

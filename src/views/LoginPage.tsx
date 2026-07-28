@@ -65,14 +65,15 @@ const LoginPage = () => {
     () => adminLogin(form.email.trim(), form.password),
     {
       onSuccess: (data) => {
-        if (data && data['2faRequired']) {
+        if (data && (data['2faRequired'] || data.requiresTwoFactor || data.twoFactorData?.required)) {
+          const t2fa = data.twoFactorData || {};
           setTwoFactorData({
             required: true,
-            setupRequired: data.setupRequired,
-            tempToken: data.tempToken,
-            qrCode: data.qrCode,
-            secret: data.secret,
-            backupCodes: data.backupCodes
+            setupRequired: data.setupRequired ?? t2fa.setupRequired ?? false,
+            tempToken: data.tempToken ?? t2fa.tempToken ?? '',
+            qrCode: data.qrCode ?? t2fa.qrCode,
+            secret: data.secret ?? t2fa.secret,
+            backupCodes: data.backupCodes ?? t2fa.backupCodes
           });
         } else {
           navigate(from, { replace: true });
