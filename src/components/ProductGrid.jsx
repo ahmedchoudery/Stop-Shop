@@ -88,11 +88,18 @@ const ProductGrid = ({ products, activeBucket = 'All', activeSubCategory = null 
           <div className="flex items-center justify-between sm:justify-end pt-3 sm:pt-0 border-t border-gray-100 sm:border-t-0 w-full sm:w-auto">
             <div className="flex items-center space-x-2 text-gray-400">
               <SlidersHorizontal size={12} className="text-gray-900" />
-              <span className="text-[9px] font-black uppercase tracking-[0.25em] text-gray-400">Sort</span>
+              <span className="text-[9px] font-black uppercase tracking-[0.25em] text-gray-600">Sort</span>
             </div>
 
             <div className="relative inline-flex items-center ml-4">
+            <label
+              htmlFor="sort-select"
+              className="sr-only"
+            >
+              Sort products
+            </label>
               <select
+                id="sort-select"
                 value={sortBy}
                 onChange={e => setSortBy(e.target.value)}
                 className="bg-transparent text-[10px] font-black uppercase tracking-[0.15em] text-gray-900 outline-none cursor-pointer py-1 pl-2 pr-5 border-b border-gray-900 focus:border-cardinal transition-colors duration-200 appearance-none text-right sm:text-left"

@@ -245,6 +245,7 @@ const PiecesCard = ({ product }) => {
         {!outOfStock && (
           <button
             onClick={handleAddToCart}
+            aria-label={cartAdded ? `${product.name} added to bag` : `Add ${product.name} to bag`}
             className={`absolute bottom-3 right-3 w-9 h-9 rounded-none border backdrop-blur-md shadow-sm flex items-center justify-center transition-all duration-300 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 z-20 ${
               cartAdded 
                 ? 'bg-white text-black border-white' 
@@ -259,7 +260,7 @@ const PiecesCard = ({ product }) => {
       {/* Metadata & Rating */}
       <div className="px-3 pb-3 pt-1 relative">
         <div className="flex items-center justify-between gap-2 mb-1">
-          <p className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-400 truncate">
+          <p className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-500 truncate">
             {category}
           </p>
           {renderStars(product.rating)}
@@ -279,7 +280,7 @@ const PiecesCard = ({ product }) => {
                 <span className="text-sm font-black text-cardinal font-mono">
                   {formatPrice(discountedPrice)}
                 </span>
-                <span className="text-xs text-gray-400 line-through font-mono">
+                <span className="text-xs text-gray-500 line-through font-mono">
                   {formatPrice(product.price)}
                 </span>
               </>
@@ -307,6 +308,8 @@ const PiecesCard = ({ product }) => {
                   key={color}
                   type="button"
                   onClick={(e) => { e.stopPropagation(); handleSelectColor(color); }}
+                  aria-label={`Select colour ${getColorName(color)}`}
+                  aria-pressed={isSelected}
                   className={`w-3.5 h-3.5 rounded-[4px] border transition-all duration-200 focus:outline-none ${
                     isSelected
                       ? 'border-black ring-2 ring-black ring-offset-2 ring-offset-white z-10'
@@ -351,7 +354,6 @@ export default function PiecesThatSpeak({ products: initialProducts = [] }) {
         setProducts(data || []);
       })
       .catch(err => {
-        console.error('[PiecesThatSpeak] fetch failed:', err);
         setProducts([]);
       });
   }, [initialProducts]);

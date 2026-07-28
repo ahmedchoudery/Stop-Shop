@@ -175,7 +175,7 @@ const Footer = () => {
 
           {/* ── Shop ────────────────── */}
           <div className="lg:col-span-2">
-            <h4 className="text-[8px] font-black uppercase tracking-[0.55em] text-[#787774] mb-7">
+            <h4 className="text-[8px] font-black uppercase tracking-[0.55em] text-[#595755] mb-7">
               Shop
             </h4>
             <ul className="space-y-4">
@@ -189,7 +189,7 @@ const Footer = () => {
 
           {/* ── Help ────────────────── */}
           <div className="lg:col-span-2">
-            <h4 className="text-[8px] font-black uppercase tracking-[0.55em] text-[#787774] mb-7">
+            <h4 className="text-[8px] font-black uppercase tracking-[0.55em] text-[#595755] mb-7">
               Help
             </h4>
             <ul className="space-y-4">
@@ -203,7 +203,7 @@ const Footer = () => {
 
           {/* ── Contact ─────────────── */}
           <div className="lg:col-span-4">
-            <h4 className="text-[8px] font-black uppercase tracking-[0.55em] text-[#787774] mb-7">
+            <h4 className="text-[8px] font-black uppercase tracking-[0.55em] text-[#595755] mb-7">
               Visit Us
             </h4>
 
@@ -214,7 +214,7 @@ const Footer = () => {
                     <Icon size={11} className="text-gray-500" />
                   </div>
                   <div>
-                    <p className="text-[11px] font-bold text-[#777]">{text}</p>
+                    <p className="text-[11px] font-bold text-[#595757]">{text}</p>
                     {sub && (
                       <p className="text-[9px] text-[#3a3a3a] font-medium mt-0.5">{sub}</p>
                     )}

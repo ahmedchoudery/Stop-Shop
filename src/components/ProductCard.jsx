@@ -351,6 +351,7 @@ const ProductCard = ({ product, initialColor = null, onImageLoad }) => {
           <div className="absolute bottom-4 left-4 right-4">
             <button
               onClick={(e) => { e.stopPropagation(); navigate(`/product/${product.id}`); }}
+              aria-label={`Quick view ${product.name}`}
               className="w-full flex items-center justify-center gap-2.5 bg-white text-black py-3 text-[9px] font-black uppercase tracking-[0.3em] transition-all duration-300 hover:bg-black hover:text-white active-scale"
             >
               <Eye size={11} />
@@ -417,7 +418,7 @@ const ProductCard = ({ product, initialColor = null, onImageLoad }) => {
       {/* ── Product Info ────────────────────────────────────── */}
       <div className="px-3 pb-3 pt-1">
         {/* Category */}
-        <p className="text-[8px] font-black text-gray-400 uppercase tracking-[0.35em] mb-1 truncate">
+        <p className="text-[8px] font-black text-gray-500 uppercase tracking-[0.35em] mb-1 truncate">
           {category}
         </p>
 
@@ -437,7 +438,7 @@ const ProductCard = ({ product, initialColor = null, onImageLoad }) => {
                 <span className="text-xs font-mono font-black text-cardinal">
                   {formatPrice(discountedPrice)}
                 </span>
-                <span className="text-[10px] font-mono text-gray-400 line-through">
+                <span className="text-[10px] font-mono text-gray-500 line-through">
                   {formatPrice(product.price)}
                 </span>
               </>

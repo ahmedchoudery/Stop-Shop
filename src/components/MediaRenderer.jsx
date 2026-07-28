@@ -64,7 +64,17 @@ function parseEmbed(raw) {
   return { type: 'raw', html: raw };
 }
 
-const MediaRenderer = ({ src, embedCode, mediaType, alt, className, onLoad, width = 600, priority = false }) => {
+const MediaRenderer = ({
+  src,
+  embedCode,
+  mediaType,
+  alt,
+  className,
+  onLoad,
+  width = 600,
+  priority = false,
+  sizes = '(max-width: 640px) calc(50vw - 19px), (max-width: 1024px) calc(33vw - 14px), calc(25vw - 14px)',
+}) => {
   const parsed = mediaType === 'embed' && embedCode?.trim() ? parseEmbed(embedCode) : null;
 
   useEffect(() => {
@@ -181,7 +191,7 @@ const MediaRenderer = ({ src, embedCode, mediaType, alt, className, onLoad, widt
             src={optimizedEmbedSrc}
             alt={alt || 'Embedded image'}
             fill
-            sizes="(max-width: 768px) 100vw, 33vw"
+            sizes={sizes}
             className={className}
             onLoad={onLoad}
             loading="lazy"
@@ -227,7 +237,7 @@ const MediaRenderer = ({ src, embedCode, mediaType, alt, className, onLoad, widt
         src={optimizedSrc}
         alt={alt || "Product media"}
         fill
-        sizes="(max-width: 768px) 100vw, 33vw"
+        sizes={sizes}
         className={className}
         onLoad={onLoad}
         priority={priority}
