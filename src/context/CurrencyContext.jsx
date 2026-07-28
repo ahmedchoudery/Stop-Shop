@@ -34,7 +34,7 @@ const DEFAULT_CURRENCY = 'PKR';
  * @returns {T}
  */
 const safeGet = (obj, key, fallback) =>
-  VALID_CURRENCIES.includes(key) && Object.hasOwn(obj, key) ? obj[key] : fallback;
+  VALID_CURRENCIES.includes(key) && Object.hasOwn(obj, key) ? Reflect.get(obj, key) : fallback;
 
 const CurrencyContext = createContext(null);
 
