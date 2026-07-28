@@ -28,19 +28,19 @@ const nextConfig = {
   async rewrites() {
     return [
       // ── Shorthand API aliases → versioned routes ─────────────────
-      // Allows /api/public/* and /api/admin/* to resolve to /api/v1/public/* and /api/v1/admin/*
-      // without needing to update every fetch() call across the codebase.
+      // Bypass versioned or webhook endpoints directly
       {
-        source: '/api/public/:path*',
-        destination: '/api/v1/public/:path*',
+        source: '/api/v1/:path*',
+        destination: '/api/v1/:path*',
       },
       {
-        source: '/api/admin/:path*',
-        destination: '/api/v1/admin/:path*',
+        source: '/api/webhooks/:path*',
+        destination: '/api/webhooks/:path*',
       },
+      // Automatically route all unversioned /api/* shorthand paths to /api/v1/*
       {
-        source: '/api/auth/:path*',
-        destination: '/api/v1/auth/:path*',
+        source: '/api/:path*',
+        destination: '/api/v1/:path*',
       },
     ];
   },
