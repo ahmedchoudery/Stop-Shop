@@ -579,7 +579,8 @@ const AdminProducts = () => {
               </div>
               <button
                 onClick={handleCloseForm}
-                className="p-2 hover:bg-white/10 rounded-[4px] transition-all duration-200"
+                aria-label="Close product form drawer"
+                className="min-w-[44px] min-h-[44px] flex items-center justify-center p-2.5 hover:bg-white/10 rounded-[4px] transition-all duration-200"
               >
                 <X size={20} />
               </button>
