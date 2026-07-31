@@ -50,8 +50,11 @@ function parseEmbed(raw) {
         html: `<blockquote class="tiktok-embed" cite="${safeUrl}" data-video-id="${videoId}" style="max-width:605px;min-width:325px;"><section><a target="_blank" href="${safeUrl}">View on TikTok</a></section></blockquote>`
       };
     }
-    if (/\.(mp4|webm|ogg)(\?.*)?$/i.test(url)) return { type: 'video', src: url };
-    if (/\.(jpg|jpeg|png|gif|webp|svg)(\?.*)?$/i.test(url)) return { type: 'image', src: url };
+    const lowerUrl = url.toLowerCase().split('?')[0];
+    const isVid = lowerUrl.endsWith('.mp4') || lowerUrl.endsWith('.webm') || lowerUrl.endsWith('.ogg');
+    if (isVid) return { type: 'video', src: url };
+    const isImg = lowerUrl.endsWith('.jpg') || lowerUrl.endsWith('.jpeg') || lowerUrl.endsWith('.png') || lowerUrl.endsWith('.gif') || lowerUrl.endsWith('.webp') || lowerUrl.endsWith('.svg');
+    if (isImg) return { type: 'image', src: url };
     return { type: 'iframe', src: url };
   }
   if (/<blockquote[\s>]/i.test(raw) || /<script[\s>]/i.test(raw)) return { type: 'raw', html: raw };
@@ -185,7 +188,7 @@ const MediaRenderer = ({
     if (parsed.type === 'image') {
       const optimizedEmbedSrc = getOptimizedImageUrl(parsed.src, width);
       return (
-        <div className="relative w-full h-full">
+        <div className="relative h-full w-full">
           <Image
             loader={cloudinaryLoader}
             src={optimizedEmbedSrc}
@@ -231,7 +234,7 @@ const MediaRenderer = ({
   const optimizedSrc = getOptimizedImageUrl(src, width);
 
   return (
-    <div className="relative w-full h-full">
+    <div className="relative h-full w-full">
       <Image
         loader={cloudinaryLoader}
         src={optimizedSrc}

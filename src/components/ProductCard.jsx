@@ -200,7 +200,7 @@ const ProductCard = ({ product, initialColor = null, onImageLoad }) => {
     return list;
   }, [product, selectedColor]);
 
-  const displayImage = cardImages[currentImageIndex] || product.image;
+  const displayImage = cardImages.at(currentImageIndex) ?? product.image;
 
   const wishlisted = isWishlisted(product.id);
   const outOfStock = product.stock === 0;
@@ -300,9 +300,9 @@ const ProductCard = ({ product, initialColor = null, onImageLoad }) => {
       onTouchCancel={handleTouchEnd}
     >
       {/* ── Image Container ── */}
-      <div className="relative aspect-[3/4] overflow-hidden mb-3.5">
+      <div className="relative mb-3.5 aspect-[3/4] overflow-hidden">
         {/* Main Image */}
-        <div className="w-full h-full">
+        <div className="h-full w-full">
           <MediaRenderer
             src={product.mediaType === 'embed' ? null : displayImage}
             embedCode={product.mediaType === 'embed' ? product.embedCode : undefined}
@@ -324,7 +324,7 @@ const ProductCard = ({ product, initialColor = null, onImageLoad }) => {
               onClick={handlePrevImage}
               onTouchStart={(e) => e.stopPropagation()}
               onTouchEnd={(e) => e.stopPropagation()}
-              className="absolute left-2.5 top-1/2 -translate-y-1/2 z-20 w-7 h-7 flex items-center justify-center bg-white/95 hover:bg-black hover:text-white border border-gray-200/40 text-black transition-all duration-200 shadow-md active-scale rounded-[2px]"
+              className="active-scale absolute left-2.5 top-1/2 z-20 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-[2px] border border-gray-200/40 bg-white/95 text-black shadow-md transition-all duration-200 hover:bg-black hover:text-white"
               aria-label="Previous image"
             >
               <ChevronLeft size={13} />
@@ -333,7 +333,7 @@ const ProductCard = ({ product, initialColor = null, onImageLoad }) => {
               onClick={handleNextImage}
               onTouchStart={(e) => e.stopPropagation()}
               onTouchEnd={(e) => e.stopPropagation()}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 z-20 w-7 h-7 flex items-center justify-center bg-white/95 hover:bg-black hover:text-white border border-gray-200/40 text-black transition-all duration-200 shadow-md active-scale rounded-[2px]"
+              className="active-scale absolute right-2.5 top-1/2 z-20 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-[2px] border border-gray-200/40 bg-white/95 text-black shadow-md transition-all duration-200 hover:bg-black hover:text-white"
               aria-label="Next image"
             >
               <ChevronRight size={13} />
@@ -352,7 +352,7 @@ const ProductCard = ({ product, initialColor = null, onImageLoad }) => {
             <button
               onClick={(e) => { e.stopPropagation(); navigate(`/product/${product.id}`); }}
               aria-label={`Quick view ${product.name}`}
-              className="w-full flex items-center justify-center gap-2.5 bg-white text-black py-3 text-[9px] font-black uppercase tracking-[0.3em] transition-all duration-300 hover:bg-black hover:text-white active-scale"
+              className="active-scale flex w-full items-center justify-center gap-2.5 bg-white py-3 text-[9px] font-black uppercase tracking-[0.3em] text-black transition-all duration-300 hover:bg-black hover:text-white"
             >
               <Eye size={11} />
               <span>Quick View</span>
@@ -361,7 +361,7 @@ const ProductCard = ({ product, initialColor = null, onImageLoad }) => {
         </div>
 
         {/* Wishlist — top right */}
-        <MagneticElement className="absolute top-3 right-3 z-10">
+        <MagneticElement className="absolute right-3 top-3 z-10">
           <button
             onClick={handleWishlist}
             className={[
@@ -372,13 +372,13 @@ const ProductCard = ({ product, initialColor = null, onImageLoad }) => {
             ].join(' ')}
             aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
           >
-            <Heart size={12} className={wishlisted ? 'fill-white text-white' : 'text-black hover:text-white transition-colors duration-200'} />
+            <Heart size={12} className={wishlisted ? 'fill-white text-white' : 'text-black transition-colors duration-200 hover:text-white'} />
           </button>
         </MagneticElement>
 
         {/* Add to cart — top left */}
         {!outOfStock && (
-          <MagneticElement className="absolute top-3 left-3 z-10">
+          <MagneticElement className="absolute left-3 top-3 z-10">
             <button
               onClick={handleAddToCart}
               className={[
@@ -388,26 +388,26 @@ const ProductCard = ({ product, initialColor = null, onImageLoad }) => {
               ].join(' ')}
               aria-label="Add to cart"
             >
-              <ShoppingBag size={12} className={cartAdded ? 'text-white' : 'text-black hover:text-white transition-colors duration-200'} />
+              <ShoppingBag size={12} className={cartAdded ? 'text-white' : 'text-black transition-colors duration-200 hover:text-white'} />
             </button>
           </MagneticElement>
         )}
 
         {/* Status badges — priority-based (cleanest) */}
         {outOfStock ? (
-          <div className="absolute top-3 left-3 z-10 bg-white/90 px-2.5 py-1 border border-gray-300">
+          <div className="absolute left-3 top-3 z-10 border border-gray-300 bg-white/90 px-2.5 py-1">
             <span className="text-[7px] font-black uppercase tracking-[0.35em] text-gray-500">
               Sold Out
             </span>
           </div>
         ) : hasDiscount ? (
-          <div className="absolute top-3 left-3 z-10 bg-black px-2.5 py-1 border border-white/20">
+          <div className="absolute left-3 top-3 z-10 border border-white/20 bg-black px-2.5 py-1">
             <span className="text-[7px] font-black uppercase tracking-[0.35em] text-white">
               {product.discount}% OFF
             </span>
           </div>
         ) : isNew ? (
-          <div className="absolute top-3 left-3 z-10 bg-cardinal px-2.5 py-1">
+          <div className="absolute left-3 top-3 z-10 bg-cardinal px-2.5 py-1">
             <span className="text-[7px] font-black uppercase tracking-[0.35em] text-white">
               New
             </span>
@@ -418,14 +418,14 @@ const ProductCard = ({ product, initialColor = null, onImageLoad }) => {
       {/* ── Product Info ────────────────────────────────────── */}
       <div className="px-3 pb-3 pt-1">
         {/* Category */}
-        <p className="text-[8px] font-black text-gray-500 uppercase tracking-[0.35em] mb-1 truncate">
+        <p className="mb-1 truncate text-[8px] font-black uppercase tracking-[0.35em] text-gray-500">
           {category}
         </p>
 
         {/* Name */}
         <h3
           title={product.name}
-          className="text-[11px] font-black uppercase tracking-[0.12em] text-gray-900 leading-snug mb-1.5 group-hover:text-cardinal transition-colors duration-300 block w-full truncate"
+          className="mb-1.5 block w-full truncate text-[11px] font-black uppercase leading-snug tracking-[0.12em] text-gray-900 transition-colors duration-300 group-hover:text-cardinal"
         >
           {product.name}
         </h3>
@@ -435,15 +435,15 @@ const ProductCard = ({ product, initialColor = null, onImageLoad }) => {
           <div className="flex items-center gap-2">
             {hasDiscount ? (
               <>
-                <span className="text-xs font-mono font-black text-cardinal">
+                <span className="font-mono text-xs font-black text-cardinal">
                   {formatPrice(discountedPrice)}
                 </span>
-                <span className="text-[10px] font-mono text-gray-500 line-through">
+                <span className="font-mono text-[10px] text-gray-500 line-through">
                   {formatPrice(product.price)}
                 </span>
               </>
             ) : (
-              <span className="text-xs font-bold font-mono text-gray-900">
+              <span className="font-mono text-xs font-bold text-gray-900">
                 {formatPrice(product.price)}
               </span>
             )}
@@ -471,7 +471,7 @@ const ProductCard = ({ product, initialColor = null, onImageLoad }) => {
                 );
               })}
               {product.colors.length > 4 && (
-                <span className="text-[8px] text-gray-500 font-bold ml-0.5">
+                <span className="ml-0.5 text-[8px] font-bold text-gray-500">
                   +{product.colors.length - 4}
                 </span>
               )}
@@ -481,7 +481,7 @@ const ProductCard = ({ product, initialColor = null, onImageLoad }) => {
 
         {/* Cart feedback */}
         {cartAdded && (
-          <p className="text-[8px] font-black text-cardinal uppercase tracking-[0.35em] mt-2 animate-fade-up">
+          <p className="mt-2 animate-fade-up text-[8px] font-black uppercase tracking-[0.35em] text-cardinal">
             ✓ Added to bag
           </p>
         )}

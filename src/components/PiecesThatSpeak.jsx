@@ -97,7 +97,7 @@ const PiecesCard = ({ product }) => {
     return list.length > 0 ? list : [product.image];
   }, [product, selectedColor]);
 
-  const displayImage = cardImages[currentImageIndex] || product.image;
+  const displayImage = cardImages.at(currentImageIndex) ?? product.image;
   const wishlisted = isWishlisted(product.id);
   const outOfStock = product.stock === 0;
 
@@ -178,7 +178,7 @@ const PiecesCard = ({ product }) => {
 
   return (
     <article
-      className="group relative cursor-pointer flex-shrink-0 transition-all duration-500 bg-[#FAF9F6] border border-gray-150/70 p-4 hover:bg-white hover:shadow-[0_16px_40px_rgba(0,0,0,0.03)] hover:-translate-y-1 select-none"
+      className="border-gray-150/70 group relative flex-shrink-0 cursor-pointer select-none border bg-[#FAF9F6] p-4 transition-all duration-500 hover:-translate-y-1 hover:bg-white hover:shadow-[0_16px_40px_rgba(0,0,0,0.03)]"
       style={{ width: 'clamp(230px, 28vw, 300px)' }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -188,15 +188,15 @@ const PiecesCard = ({ product }) => {
       onClick={() => navigate(`/product/${product.id}`)}
     >
       {/* Image Container with Inner Shadow/Border */}
-      <div className="relative aspect-[3/4] overflow-hidden bg-gray-50 mb-4">
+      <div className="relative mb-4 aspect-[3/4] overflow-hidden bg-gray-50">
         <MediaRenderer
           src={product.mediaType === 'embed' ? null : displayImage}
           embedCode={product.mediaType === 'embed' ? product.embedCode : undefined}
           mediaType={product.mediaType}
           alt={product.name}
-          className="w-full h-full object-cover transition-transform duration-1000 ease-out group-hover:scale-[1.03]"
+          className="h-full w-full object-cover transition-transform duration-1000 ease-out group-hover:scale-[1.03]"
         />
-        <div className="absolute inset-0 border border-black/5 pointer-events-none" />
+        <div className="pointer-events-none absolute inset-0 border border-black/5" />
 
         {/* Gallery navigation arrows (Desktop hover & Mobile hold) */}
         {cardImages.length > 1 && (isHovered || isHeld) && (
@@ -206,7 +206,7 @@ const PiecesCard = ({ product }) => {
               onClick={handlePrevImage}
               onTouchStart={(e) => e.stopPropagation()}
               onTouchEnd={(e) => { e.stopPropagation(); handlePrevImage(e); }}
-              className="absolute left-2.5 top-1/2 -translate-y-1/2 z-20 w-7 h-7 flex items-center justify-center bg-white/95 hover:bg-black hover:text-white border border-gray-250/65 text-black transition-all duration-200 shadow-md rounded-[2px]"
+              className="border-gray-250/65 absolute left-2.5 top-1/2 z-20 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-[2px] border bg-white/95 text-black shadow-md transition-all duration-200 hover:bg-black hover:text-white"
               aria-label="Previous image"
             >
               <ChevronLeft size={13} />
@@ -216,7 +216,7 @@ const PiecesCard = ({ product }) => {
               onClick={handleNextImage}
               onTouchStart={(e) => e.stopPropagation()}
               onTouchEnd={(e) => { e.stopPropagation(); handleNextImage(e); }}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 z-20 w-7 h-7 flex items-center justify-center bg-white/95 hover:bg-black hover:text-white border border-gray-250/65 text-black transition-all duration-200 shadow-md rounded-[2px]"
+              className="border-gray-250/65 absolute right-2.5 top-1/2 z-20 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-[2px] border bg-white/95 text-black shadow-md transition-all duration-200 hover:bg-black hover:text-white"
               aria-label="Next image"
             >
               <ChevronRight size={13} />
@@ -228,16 +228,16 @@ const PiecesCard = ({ product }) => {
         <button
           onClick={handleWishlist}
           onTouchStart={(e) => e.stopPropagation()}
-          className={`absolute top-3 right-3 w-8 h-8 rounded-none border backdrop-blur-md flex items-center justify-center transition-all duration-300 z-20 ${
+          className={`absolute right-3 top-3 z-20 flex h-8 w-8 items-center justify-center rounded-none border backdrop-blur-md transition-all duration-300 ${
             wishlisted
-              ? 'bg-black text-white border-black shadow-sm'
-              : 'bg-white/90 text-gray-700 border-gray-200/80 hover:bg-black hover:text-white hover:border-black'
+              ? 'border-black bg-black text-white shadow-sm'
+              : 'border-gray-200/80 bg-white/90 text-gray-700 hover:border-black hover:bg-black hover:text-white'
           }`}
           aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
         >
           <Heart
             size={12}
-            className={wishlisted ? 'fill-white text-white' : 'text-gray-700 hover:text-white transition-colors'}
+            className={wishlisted ? 'fill-white text-white' : 'text-gray-700 transition-colors hover:text-white'}
           />
         </button>
 
@@ -246,10 +246,10 @@ const PiecesCard = ({ product }) => {
           <button
             onClick={handleAddToCart}
             aria-label={cartAdded ? `${product.name} added to bag` : `Add ${product.name} to bag`}
-            className={`absolute bottom-3 right-3 w-9 h-9 rounded-none border backdrop-blur-md shadow-sm flex items-center justify-center transition-all duration-300 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 z-20 ${
+            className={`absolute bottom-3 right-3 z-20 flex h-9 w-9 translate-y-2 transform items-center justify-center rounded-none border opacity-0 shadow-sm backdrop-blur-md transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 ${
               cartAdded 
-                ? 'bg-white text-black border-white' 
-                : 'bg-white/95 text-black border-gray-200 hover:bg-black hover:text-white hover:border-black'
+                ? 'border-white bg-white text-black' 
+                : 'border-gray-200 bg-white/95 text-black hover:border-black hover:bg-black hover:text-white'
             }`}
           >
             <ShoppingBag size={13} />
@@ -258,9 +258,9 @@ const PiecesCard = ({ product }) => {
       </div>
 
       {/* Metadata & Rating */}
-      <div className="px-3 pb-3 pt-1 relative">
-        <div className="flex items-center justify-between gap-2 mb-1">
-          <p className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-500 truncate">
+      <div className="relative px-3 pb-3 pt-1">
+        <div className="mb-1 flex items-center justify-between gap-2">
+          <p className="truncate text-[9px] font-black uppercase tracking-[0.2em] text-gray-500">
             {category}
           </p>
           {renderStars(product.rating)}
@@ -268,7 +268,7 @@ const PiecesCard = ({ product }) => {
 
         <h3
           title={product.name}
-          className="text-[13px] font-bold uppercase tracking-tight text-gray-900 group-hover:text-black transition-colors duration-300 block w-full truncate mb-2"
+          className="mb-2 block w-full truncate text-[13px] font-bold uppercase tracking-tight text-gray-900 transition-colors duration-300 group-hover:text-black"
         >
           {product.name}
         </h3>
@@ -277,22 +277,22 @@ const PiecesCard = ({ product }) => {
           <div className="flex items-center gap-2">
             {hasDiscount ? (
               <>
-                <span className="text-sm font-black text-cardinal font-mono">
+                <span className="font-mono text-sm font-black text-cardinal">
                   {formatPrice(discountedPrice)}
                 </span>
-                <span className="text-xs text-gray-500 line-through font-mono">
+                <span className="font-mono text-xs text-gray-500 line-through">
                   {formatPrice(product.price)}
                 </span>
               </>
             ) : (
-              <span className="text-sm font-bold tracking-wide font-mono text-black">
+              <span className="font-mono text-sm font-bold tracking-wide text-black">
                 {formatPrice(product.price)}
               </span>
             )}
           </div>
           
           {cartAdded && (
-            <span className="text-[9px] font-bold uppercase tracking-wider text-black animate-pulse">
+            <span className="animate-pulse text-[9px] font-bold uppercase tracking-wider text-black">
               Added
             </span>
           )}
@@ -300,7 +300,7 @@ const PiecesCard = ({ product }) => {
 
         {/* Color variants section (Dedicated row with space for 6 colors) */}
         {product.colors?.length > 1 ? (
-          <div className="flex items-center gap-1.5 mt-3.5 pt-2.5 border-t border-gray-150/40">
+          <div className="border-gray-150/40 mt-3.5 flex items-center gap-1.5 border-t pt-2.5">
             {product.colors.slice(0, 6).map((color) => {
               const isSelected = activeColor === color;
               return (
@@ -310,9 +310,9 @@ const PiecesCard = ({ product }) => {
                   onClick={(e) => { e.stopPropagation(); handleSelectColor(color); }}
                   aria-label={`Select colour ${getColorName(color)}`}
                   aria-pressed={isSelected}
-                  className={`w-3.5 h-3.5 rounded-[4px] border transition-all duration-200 focus:outline-none ${
+                  className={`h-3.5 w-3.5 rounded-[4px] border transition-all duration-200 focus:outline-none ${
                     isSelected
-                      ? 'border-black ring-2 ring-black ring-offset-2 ring-offset-white z-10'
+                      ? 'z-10 border-black ring-2 ring-black ring-offset-2 ring-offset-white'
                       : 'border-gray-250 hover:border-black'
                   }`}
                   style={getBackgroundStyle(color)}
@@ -320,13 +320,13 @@ const PiecesCard = ({ product }) => {
               );
             })}
             {product.colors.length > 6 && (
-              <span className="text-[8px] text-gray-500 font-bold font-mono ml-0.5">
+              <span className="ml-0.5 font-mono text-[8px] font-bold text-gray-500">
                 +{product.colors.length - 6}
               </span>
             )}
           </div>
         ) : (
-          <div className="h-[25px] mt-3.5 pt-2.5 border-t border-transparent" />
+          <div className="mt-3.5 h-[25px] border-t border-transparent pt-2.5" />
         )}
       </div>
     </article>
@@ -353,7 +353,7 @@ export default function PiecesThatSpeak({ products: initialProducts = [] }) {
       .then(data => {
         setProducts(data || []);
       })
-      .catch(err => {
+      .catch(_err => {
         setProducts([]);
       });
   }, [initialProducts]);
@@ -387,26 +387,26 @@ export default function PiecesThatSpeak({ products: initialProducts = [] }) {
   }
 
   return (
-    <section id="pieces-speak" className="bg-gradient-to-b from-[#FAF9F6] via-white to-[#FDFCFB] py-20 sm:py-28 border-t border-[var(--border)] overflow-hidden">
-      <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16">
+    <section id="pieces-speak" className="overflow-hidden border-t border-[var(--border)] bg-gradient-to-b from-[#FAF9F6] via-white to-[#FDFCFB] py-20 sm:py-28">
+      <div className="mx-auto max-w-7xl px-6 sm:px-10 lg:px-16">
         
         {/* Editorial Header */}
-        <div className="flex flex-row items-end justify-between mb-8 sm:mb-12 gap-4">
+        <div className="mb-8 flex flex-row items-end justify-between gap-4 sm:mb-12">
           <div>
-            <p className="text-[8px] font-black uppercase tracking-[0.55em] text-gray-400 mb-2.5">
+            <p className="mb-2.5 text-[8px] font-black uppercase tracking-[0.55em] text-gray-400">
               Best Sellers · Fan Favourites
             </p>
-            <h2 className="text-2xl sm:text-4xl font-black uppercase tracking-tighter text-black leading-none">
+            <h2 className="text-2xl font-black uppercase leading-none tracking-tighter text-black sm:text-4xl">
               Pieces That Speak for Themselves.
             </h2>
           </div>
 
           {/* Navigation Arrows */}
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex shrink-0 items-center gap-2">
             <button
               onClick={() => scroll(-1)}
               disabled={scrollProgress <= 2}
-              className="w-10 h-10 border border-gray-200 bg-white flex items-center justify-center text-black hover:text-white hover:bg-black hover:border-black disabled:opacity-20 disabled:cursor-not-allowed transition-all duration-300 shadow-2xs rounded-[2px]"
+              className="shadow-2xs flex h-10 w-10 items-center justify-center rounded-[2px] border border-gray-200 bg-white text-black transition-all duration-300 hover:border-black hover:bg-black hover:text-white disabled:cursor-not-allowed disabled:opacity-20"
               aria-label="Previous items"
             >
               <ArrowLeft size={15} strokeWidth={1.8} />
@@ -414,7 +414,7 @@ export default function PiecesThatSpeak({ products: initialProducts = [] }) {
             <button
               onClick={() => scroll(1)}
               disabled={scrollProgress >= 98}
-              className="w-10 h-10 border border-gray-200 bg-white flex items-center justify-center text-black hover:text-white hover:bg-black hover:border-black disabled:opacity-20 disabled:cursor-not-allowed transition-all duration-300 shadow-2xs rounded-[2px]"
+              className="shadow-2xs flex h-10 w-10 items-center justify-center rounded-[2px] border border-gray-200 bg-white text-black transition-all duration-300 hover:border-black hover:bg-black hover:text-white disabled:cursor-not-allowed disabled:opacity-20"
               aria-label="Next items"
             >
               <ArrowRight size={15} strokeWidth={1.8} />
@@ -448,14 +448,14 @@ export default function PiecesThatSpeak({ products: initialProducts = [] }) {
         </div>
 
         {/* Sleek Luxury Progress Indicator */}
-        <div className="flex items-center justify-between mt-8 pt-4 border-t border-gray-150/70 gap-4">
-          <div className="relative w-32 sm:w-48 h-[2px] bg-gray-200/80 overflow-hidden rounded-full">
+        <div className="border-gray-150/70 mt-8 flex items-center justify-between gap-4 border-t pt-4">
+          <div className="relative h-[2px] w-32 overflow-hidden rounded-full bg-gray-200/80 sm:w-48">
             <div 
-              className="absolute top-0 left-0 h-full bg-black transition-all duration-300 ease-out rounded-full"
+              className="absolute left-0 top-0 h-full rounded-full bg-black transition-all duration-300 ease-out"
               style={{ width: `${Math.max(10, scrollProgress)}%` }}
             />
           </div>
-          <p className="text-[9px] font-mono font-bold uppercase tracking-[0.25em] text-gray-400">
+          <p className="font-mono text-[9px] font-bold uppercase tracking-[0.25em] text-gray-400">
             {Math.round(scrollProgress)}%
           </p>
         </div>
