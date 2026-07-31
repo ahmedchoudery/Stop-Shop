@@ -57,10 +57,10 @@ const ProductGrid = ({ products, activeBucket = 'All', activeSubCategory = null 
 
   return (
     <div id="product-grid" className="bg-white py-16 sm:py-24">
-      <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16">
+      <div className="mx-auto max-w-7xl px-6 sm:px-10 lg:px-16">
 
         {/* ── Section Header ──────────────────────────────── */}
-        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 sm:gap-4 mb-10 sm:mb-14">
+        <div className="mb-10 flex flex-col justify-between gap-6 sm:mb-14 sm:flex-row sm:items-end sm:gap-4">
           <motion.div
             key={activeBucket}
             initial={{ opacity: 0, x: -16 }}
@@ -68,30 +68,30 @@ const ProductGrid = ({ products, activeBucket = 'All', activeSubCategory = null 
             transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
           >
             {activeSubCategory && (
-              <p className="text-[9px] font-black uppercase tracking-[0.4em] text-gray-400 mb-1.5">
+              <p className="mb-1.5 text-[9px] font-black uppercase tracking-[0.4em] text-gray-400">
                 {activeBucket}
               </p>
             )}
-            <h2 className="text-2xl sm:text-4xl font-black uppercase tracking-tighter text-black leading-none">
+            <h2 className="text-2xl font-black uppercase leading-none tracking-tighter text-black sm:text-4xl">
               <SplitText>
                 {activeSubCategory ?? (activeBucket !== 'All' ? activeBucket : 'Collection')}
               </SplitText>
             </h2>
             {sortedProducts.length > 0 && (
-              <p className="text-[10px] text-gray-500 font-bold mt-2 uppercase tracking-widest">
+              <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-gray-500">
                 {sortedProducts.length} {sortedProducts.length === 1 ? 'piece' : 'pieces'}
               </p>
             )}
           </motion.div>
 
           {/* Sort Control */}
-          <div className="flex items-center justify-between sm:justify-end pt-3 sm:pt-0 border-t border-gray-100 sm:border-t-0 w-full sm:w-auto">
+          <div className="flex w-full items-center justify-between border-t border-gray-100 pt-3 sm:w-auto sm:justify-end sm:border-t-0 sm:pt-0">
             <div className="flex items-center space-x-2 text-gray-400">
               <SlidersHorizontal size={12} className="text-gray-900" />
               <span className="text-[9px] font-black uppercase tracking-[0.25em] text-gray-600">Sort</span>
             </div>
 
-            <div className="relative inline-flex items-center ml-4">
+            <div className="relative ml-4 inline-flex items-center">
             <label
               htmlFor="sort-select"
               className="sr-only"
@@ -102,13 +102,13 @@ const ProductGrid = ({ products, activeBucket = 'All', activeSubCategory = null 
                 id="sort-select"
                 value={sortBy}
                 onChange={e => setSortBy(e.target.value)}
-                className="bg-transparent text-[10px] font-black uppercase tracking-[0.15em] text-gray-900 outline-none cursor-pointer py-1 pl-2 pr-5 border-b border-gray-900 focus:border-cardinal transition-colors duration-200 appearance-none text-right sm:text-left"
+                className="cursor-pointer appearance-none border-b border-gray-900 bg-transparent py-1 pl-2 pr-5 text-right text-[10px] font-black uppercase tracking-[0.15em] text-gray-900 outline-none transition-colors duration-200 focus:border-cardinal sm:text-left"
               >
                 {SORT_OPTIONS.map(opt => (
                   <option key={opt.value} value={opt.value} className="bg-white text-gray-900">{opt.label}</option>
                 ))}
               </select>
-              <ChevronDown size={11} className="absolute right-0 pointer-events-none text-gray-900" />
+              <ChevronDown size={11} className="pointer-events-none absolute right-0 text-gray-900" />
             </div>
           </div>
         </div>
@@ -122,7 +122,7 @@ const ProductGrid = ({ products, activeBucket = 'All', activeSubCategory = null 
               initial="hidden"
               animate="visible"
               exit={{ opacity: 0, transition: { duration: 0.2 } }}
-              className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 grid-flow-row-dense gap-x-6 gap-y-12 sm:gap-x-10 sm:gap-y-16"
+              className="grid grid-flow-row-dense grid-cols-2 gap-x-6 gap-y-12 sm:grid-cols-3 sm:gap-x-10 sm:gap-y-16 lg:grid-cols-4"
             >
               {sortedProducts.slice(0, visibleCount).map((product, index) => (
                 <motion.div key={product.id} variants={itemVariants} className={getAsymmetricClass(index)}>
@@ -137,18 +137,18 @@ const ProductGrid = ({ products, activeBucket = 'All', activeSubCategory = null 
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -10 }}
               transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-              className="flex flex-col items-center justify-center py-20 px-6 border border-dashed border-[var(--border-mid)] text-center bg-[var(--bg-base)] rounded-[4px]"
+              className="flex flex-col items-center justify-center rounded-[4px] border border-dashed border-[var(--border-mid)] bg-[var(--bg-base)] px-6 py-20 text-center"
             >
-              <FolderOpen size={36} className="text-gray-400 mb-6 stroke-[1.25]" />
-              <h3 className="text-lg font-black uppercase tracking-[0.2em] text-black mb-3">
+              <FolderOpen size={36} className="mb-6 stroke-[1.25] text-gray-400" />
+              <h3 className="mb-3 text-lg font-black uppercase tracking-[0.2em] text-black">
                 No Pieces Found
               </h3>
-              <p className="text-gray-500 text-xs font-medium max-w-sm leading-relaxed mb-8">
+              <p className="mb-8 max-w-sm text-xs font-medium leading-relaxed text-gray-500">
                 We couldn't find any items in {activeSubCategory ? `"${activeSubCategory}"` : `"${activeBucket}"`}. Check back soon for new additions, or clear the filters to view the full collection.
               </p>
               <button
                 onClick={handleResetFilters}
-                className="btn-primary rounded-[4px] !py-3.5 flex items-center gap-2.5"
+                className="btn-primary flex items-center gap-2.5 rounded-[4px] !py-3.5"
               >
                 <RotateCcw size={11} />
                 <span>Reset Filters</span>
@@ -159,13 +159,13 @@ const ProductGrid = ({ products, activeBucket = 'All', activeSubCategory = null 
 
         {/* ── Load More ────────────────────────────────────── */}
         {sortedProducts.length > visibleCount && (
-          <div className="flex justify-center mt-16">
+          <div className="mt-16 flex justify-center">
             <button
               onClick={() => setVisibleCount(c => c + 20)}
-              className="group inline-flex items-center justify-center space-x-4 border border-[var(--border-mid)] rounded-[4px] px-10 py-4 text-[10px] font-black uppercase tracking-[0.35em] text-gray-700 hover:border-black hover:bg-gray-50 transition-all duration-300 active:scale-[0.98]"
+              className="group inline-flex items-center justify-center space-x-4 rounded-[4px] border border-[var(--border-mid)] px-10 py-4 text-[10px] font-black uppercase tracking-[0.35em] text-gray-700 transition-all duration-300 hover:border-black hover:bg-gray-50 active:scale-[0.98]"
             >
               <span>Load More</span>
-              <span className="text-[8px] text-gray-400 font-bold">
+              <span className="text-[8px] font-bold text-gray-400">
                 ({sortedProducts.length - visibleCount} remaining)
               </span>
             </button>

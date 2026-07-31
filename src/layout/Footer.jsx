@@ -62,9 +62,9 @@ const PAYMENT_METHODS = ['JazzCash', 'Easypaisa', 'ATM Card', 'Bank Transfer', '
 const FooterLink = ({ to, children }) => (
   <Link
     to={to}
-    className="group flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-gray-500 hover:text-black transition-colors duration-250"
+    className="duration-250 group flex items-center gap-2 text-[11px] font-bold uppercase tracking-[0.18em] text-gray-500 transition-colors hover:text-black"
   >
-    <span className="w-0 h-px bg-cardinal group-hover:w-3 transition-all duration-300 flex-shrink-0" />
+    <span className="h-px w-0 flex-shrink-0 bg-cardinal transition-all duration-300 group-hover:w-3" />
     {children}
   </Link>
 );
@@ -102,7 +102,7 @@ const Footer = () => {
       >
         {/* Grain overlay */}
         <div
-          className="absolute inset-0 pointer-events-none"
+          className="pointer-events-none absolute inset-0"
           style={{
             backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='1'/%3E%3C/svg%3E")`,
             backgroundRepeat: 'repeat',
@@ -111,43 +111,43 @@ const Footer = () => {
           }}
           aria-hidden="true"
         />
-        <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 py-16 sm:py-20">
-          <p className="text-[8px] font-black uppercase tracking-[0.55em] text-white/30 mb-6">
+        <div className="mx-auto max-w-7xl px-6 py-16 sm:px-10 sm:py-20 lg:px-16">
+          <p className="mb-6 text-[8px] font-black uppercase tracking-[0.55em] text-white/30">
             Our Philosophy
           </p>
           <h3
-            className="font-black uppercase tracking-tighter text-white leading-[0.9]"
+            className="font-black uppercase leading-[0.9] tracking-tighter text-white"
             style={{ fontSize: 'clamp(2rem, 5vw, 4rem)' }}
           >
             Every piece is a decision.
             <br />
             <span className="text-white/25">Every purchase is a statement.</span>
           </h3>
-          <div className="mt-6 w-16 h-0.5 bg-cardinal" aria-hidden="true" />
+          <div className="mt-6 h-0.5 w-16 bg-cardinal" aria-hidden="true" />
         </div>
       </div>
 
       {/* ── Animated separator ───────────────────────────────────── */}
       <div
         ref={borderRef}
-        className="h-px bg-[var(--border)] origin-left"
+        className="h-px origin-left bg-[var(--border)]"
         style={{ transform: 'scaleX(0)', transition: 'transform 1.4s cubic-bezier(0.16, 1, 0.3, 1)' }}
         aria-hidden="true"
       />
 
       {/* ── Main Grid ────────────────────────────────────────────── */}
-      <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 pt-20 pb-14">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-y-14 gap-x-8">
+      <div className="mx-auto max-w-7xl px-6 pb-14 pt-20 sm:px-10 lg:px-16">
+        <div className="grid grid-cols-1 gap-x-8 gap-y-14 lg:grid-cols-12">
 
           {/* ── Brand Block ─────────── */}
           <div className="lg:col-span-4">
-            <Link to="/" className="inline-block mb-7" aria-label="Stop & Shop home">
-              <span className="text-2xl font-black italic uppercase tracking-tighter text-black">
-                Stop<span className="text-[#a4a4a2] not-italic">&</span>Shop
+            <Link to="/" className="mb-7 inline-block" aria-label="Stop & Shop home">
+              <span className="text-2xl font-black uppercase italic tracking-tighter text-black">
+                Stop<span className="not-italic text-[#a4a4a2]">&</span>Shop
               </span>
             </Link>
 
-            <p className="text-[11px] text-gray-500 leading-relaxed mb-9 max-w-[260px] font-medium">
+            <p className="mb-9 max-w-[260px] text-[11px] font-medium leading-relaxed text-gray-500">
               Premium clothing for those who demand excellence in every thread.
               Gujrat, Pakistan.
             </p>
@@ -161,7 +161,7 @@ const Footer = () => {
                   target="_blank"
                   rel="noopener noreferrer"
                   aria-label={label}
-                  className="group w-9 h-9 border border-[var(--border-mid)] flex items-center justify-center text-gray-500 hover:border-black hover:text-black rounded-[4px] transition-all duration-300"
+                  className="group flex h-9 w-9 items-center justify-center rounded-[4px] border border-[var(--border-mid)] text-gray-500 transition-all duration-300 hover:border-black hover:text-black"
                 >
                   {SvgIcon ? (
                     <SvgIcon size={14} />
@@ -175,7 +175,7 @@ const Footer = () => {
 
           {/* ── Shop ────────────────── */}
           <div className="lg:col-span-2">
-            <h4 className="text-[8px] font-black uppercase tracking-[0.55em] text-[#595755] mb-7">
+            <h4 className="mb-7 text-[8px] font-black uppercase tracking-[0.55em] text-[#595755]">
               Shop
             </h4>
             <ul className="space-y-4">
@@ -189,7 +189,7 @@ const Footer = () => {
 
           {/* ── Help ────────────────── */}
           <div className="lg:col-span-2">
-            <h4 className="text-[8px] font-black uppercase tracking-[0.55em] text-[#595755] mb-7">
+            <h4 className="mb-7 text-[8px] font-black uppercase tracking-[0.55em] text-[#595755]">
               Help
             </h4>
             <ul className="space-y-4">
@@ -203,20 +203,20 @@ const Footer = () => {
 
           {/* ── Contact ─────────────── */}
           <div className="lg:col-span-4">
-            <h4 className="text-[8px] font-black uppercase tracking-[0.55em] text-[#595755] mb-7">
+            <h4 className="mb-7 text-[8px] font-black uppercase tracking-[0.55em] text-[#595755]">
               Visit Us
             </h4>
 
             <div className="space-y-5">
               {CONTACT_INFO.map(({ Icon, text, sub }) => (
                 <div key={text} className="flex items-start gap-3">
-                  <div className="w-7 h-7 border border-[var(--border-mid)] flex items-center justify-center flex-shrink-0 mt-0.5 rounded-[4px]">
+                  <div className="mt-0.5 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-[4px] border border-[var(--border-mid)]">
                     <Icon size={11} className="text-gray-500" />
                   </div>
                   <div>
                     <p className="text-[11px] font-bold text-[#595757]">{text}</p>
                     {sub && (
-                      <p className="text-[9px] text-[#3a3a3a] font-medium mt-0.5">{sub}</p>
+                      <p className="mt-0.5 text-[9px] font-medium text-[#3a3a3a]">{sub}</p>
                     )}
                   </div>
                 </div>
@@ -228,10 +228,10 @@ const Footer = () => {
               href="https://wa.me/923068458655"
               target="_blank"
               rel="noopener noreferrer"
-              className="group mt-9 inline-flex items-center gap-2.5 text-[9px] font-black uppercase tracking-[0.3em] text-[#25D366] border border-[#25D366]/25 px-5 py-3 rounded-[4px] hover:bg-[#25D366] hover:text-black hover:border-[#25D366] transition-all duration-300 active:scale-[0.98]"
+              className="group mt-9 inline-flex items-center gap-2.5 rounded-[4px] border border-[#25D366]/25 px-5 py-3 text-[9px] font-black uppercase tracking-[0.3em] text-[#25D366] transition-all duration-300 hover:border-[#25D366] hover:bg-[#25D366] hover:text-black active:scale-[0.98]"
             >
               <span>Chat on WhatsApp</span>
-              <ArrowUpRight size={10} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform duration-200" />
+              <ArrowUpRight size={10} className="transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
             </a>
           </div>
         </div>
@@ -239,19 +239,19 @@ const Footer = () => {
 
       {/* ── Colophon ─────────────────────────────────────────────── */}
       <div className="border-t border-[var(--border)]">
-        <div className="max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 py-7 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
+        <div className="mx-auto flex max-w-7xl flex-col items-start justify-between gap-5 px-6 py-7 sm:flex-row sm:items-center sm:px-10 lg:px-16">
 
-          <p className="text-[8px] font-bold uppercase tracking-[0.25em] text-[#2a2a2a] max-w-sm leading-relaxed">
+          <p className="max-w-sm text-[8px] font-bold uppercase leading-relaxed tracking-[0.25em] text-[#2a2a2a]">
             {MANIFESTO}
           </p>
 
-          <div className="flex flex-col sm:items-end gap-3 flex-shrink-0">
+          <div className="flex flex-shrink-0 flex-col gap-3 sm:items-end">
             {/* Payment methods */}
-            <div className="flex items-center flex-wrap gap-1.5">
+            <div className="flex flex-wrap items-center gap-1.5">
               {PAYMENT_METHODS.map((m) => (
                 <span
                   key={m}
-                  className="text-[7px] font-black uppercase tracking-widest text-gray-700 border border-[var(--border-mid)] rounded-[4px] px-2.5 py-1"
+                  className="rounded-[4px] border border-[var(--border-mid)] px-2.5 py-1 text-[7px] font-black uppercase tracking-widest text-gray-700"
                 >
                   {m}
                 </span>
