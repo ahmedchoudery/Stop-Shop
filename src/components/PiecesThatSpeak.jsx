@@ -446,19 +446,6 @@ export default function PiecesThatSpeak({ products: initialProducts = [] }) {
             </div>
           ))}
         </div>
-
-        {/* Sleek Luxury Progress Indicator */}
-        <div className="border-gray-150/70 mt-8 flex items-center justify-between gap-4 border-t pt-4">
-          <div className="relative h-[2px] w-32 overflow-hidden rounded-full bg-gray-200/80 sm:w-48">
-            <div 
-              className="absolute left-0 top-0 h-full rounded-full bg-black transition-all duration-300 ease-out"
-              style={{ width: `${Math.max(10, scrollProgress)}%` }}
-            />
-          </div>
-          <p className="font-mono text-[9px] font-bold uppercase tracking-[0.25em] text-gray-400">
-            {Math.round(scrollProgress)}%
-          </p>
-        </div>
       </div>
     </section>
   );
