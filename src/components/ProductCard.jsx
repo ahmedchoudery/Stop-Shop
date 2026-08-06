@@ -365,30 +365,30 @@ const ProductCard = ({ product, initialColor = null, onImageLoad }) => {
           <button
             onClick={handleWishlist}
             className={[
-              'w-8 h-8 flex items-center justify-center rounded-none border border-gray-200/40 transition-all duration-300 shadow-sm active-scale',
+              'w-8 h-8 flex items-center justify-center rounded-none border border-gray-200/40 transition-all duration-300 shadow-sm active-scale min-w-0 min-h-0',
               wishlisted
                 ? 'bg-cardinal opacity-100 text-white'
                 : 'bg-white/95 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 hover:bg-cardinal hover:text-white',
             ].join(' ')}
             aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
           >
-            <Heart size={12} className={wishlisted ? 'fill-white text-white' : 'text-black transition-colors duration-200 hover:text-white'} />
+            <Heart size={12} className={wishlisted ? 'fill-white text-white' : 'text-black hover:text-white transition-colors duration-200'} />
           </button>
         </MagneticElement>
 
         {/* Add to cart — top left */}
         {!outOfStock && (
-          <MagneticElement className="absolute left-3 top-3 z-10">
+          <MagneticElement className={`absolute left-3 z-10 ${hasDiscount || isNew ? 'top-12' : 'top-3'}`}>
             <button
               onClick={handleAddToCart}
               className={[
-                'w-8 h-8 flex items-center justify-center rounded-none border border-gray-200/40 transition-all duration-300 shadow-sm active-scale',
+                'w-8 h-8 flex items-center justify-center rounded-none border border-gray-200/40 transition-all duration-300 shadow-sm active-scale min-w-0 min-h-0',
                 cartAdded ? 'bg-cardinal text-white' : 'bg-white/95 text-black',
                 'opacity-100 lg:opacity-0 lg:group-hover:opacity-100 hover:bg-black hover:text-white',
               ].join(' ')}
               aria-label="Add to cart"
             >
-              <ShoppingBag size={12} className={cartAdded ? 'text-white' : 'text-black transition-colors duration-200 hover:text-white'} />
+              <ShoppingBag size={12} className={cartAdded ? 'text-white' : 'text-black hover:text-white transition-colors duration-200'} />
             </button>
           </MagneticElement>
         )}
@@ -461,7 +461,7 @@ const ProductCard = ({ product, initialColor = null, onImageLoad }) => {
                     onClick={(e) => { e.stopPropagation(); handleSelectColor(color); }}
                     aria-label={`Select colour ${getColorName(color)}`}
                     className={[
-                      'w-3.5 h-3.5 rounded-[4px] border transition-all duration-200 focus:outline-none',
+                      'w-3.5 h-3.5 rounded-[4px] border transition-all duration-200 focus:outline-none min-w-0 min-h-0 flex-shrink-0',
                       isSelected
                         ? 'border-black ring-2 ring-black ring-offset-2 ring-offset-white z-10'
                         : 'border-gray-250 hover:border-black',
