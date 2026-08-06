@@ -482,25 +482,6 @@ export default function FeaturedCarousel({ products = [], headline, subline, the
             </div>
           ))}
         </div>
-
-        {/* Sleek Luxury Progress Bar */}
-        <div className={`flex items-center justify-between mt-8 pt-4 border-t gap-4 ${
-          theme === 'dark' ? 'border-white/10' : 'border-gray-150/70'
-        }`}>
-          <div className={`relative w-32 sm:w-48 h-[2px] overflow-hidden rounded-full ${
-            theme === 'dark' ? 'bg-white/15' : 'bg-gray-200/80'
-          }`}>
-            <div 
-              className={`absolute top-0 left-0 h-full transition-all duration-300 ease-out rounded-full ${
-                theme === 'dark' ? 'bg-white' : 'bg-black'
-              }`}
-              style={{ width: `${Math.max(10, scrollProgress)}%` }}
-            />
-          </div>
-          <p className="text-[9px] font-mono font-bold uppercase tracking-[0.25em] text-gray-400">
-            {Math.round(scrollProgress)}%
-          </p>
-        </div>
       </div>
     </section>
   );
