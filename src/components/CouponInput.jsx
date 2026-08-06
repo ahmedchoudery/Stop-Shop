@@ -44,16 +44,16 @@ const CouponInput = ({ cartTotal, onApply, onRemove, appliedCoupon }) => {
   // ── Applied state ──────────────────────────────────────────────
   if (appliedCoupon) {
     return (
-      <div className="flex items-center justify-between py-3 px-4 bg-cardinal/5 border border-cardinal/20 animate-fade-up">
+      <div className="bg-cardinal/5 border-cardinal/20 flex animate-fade-up items-center justify-between border px-4 py-3">
         <div className="flex items-center space-x-3">
-          <div className="w-5 h-5 bg-cardinal flex items-center justify-center flex-shrink-0">
+          <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center bg-cardinal">
             <Check size={10} className="text-black" />
           </div>
           <div>
             <p className="text-[9px] font-black uppercase tracking-[0.3em] text-gray-900">
               {appliedCoupon.code}
             </p>
-            <p className="text-[9px] font-bold text-cardinal mt-0.5">
+            <p className="mt-0.5 text-[9px] font-bold text-cardinal">
               {appliedCoupon.message}
             </p>
           </div>
@@ -61,7 +61,7 @@ const CouponInput = ({ cartTotal, onApply, onRemove, appliedCoupon }) => {
         <button
           type="button"
           onClick={handleRemove}
-          className="p-1 text-gray-400 hover:text-gray-900 transition-colors"
+          className="p-1 text-gray-400 transition-colors hover:text-gray-900"
           title="Remove coupon"
         >
           <X size={13} />
@@ -86,7 +86,7 @@ const CouponInput = ({ cartTotal, onApply, onRemove, appliedCoupon }) => {
             onKeyDown={handleKeyDown}
             placeholder="PROMO CODE"
             maxLength={30}
-            className="w-full pl-5 pr-2 py-3 bg-transparent border-b-2 border-gray-200 focus:border-gray-900 outline-none text-[11px] font-black uppercase tracking-[0.25em] placeholder:text-gray-300 placeholder:font-normal placeholder:normal-case transition-colors duration-200"
+            className="w-full border-b-2 border-gray-200 bg-transparent py-3 pl-5 pr-2 text-[11px] font-black uppercase tracking-[0.25em] outline-none transition-colors duration-200 placeholder:font-normal placeholder:normal-case placeholder:text-gray-300 focus:border-gray-900"
           />
         </div>
 
@@ -95,7 +95,7 @@ const CouponInput = ({ cartTotal, onApply, onRemove, appliedCoupon }) => {
           type="button"
           onClick={handleApply}
           disabled={!code.trim() || loading}
-          className="px-5 py-3 bg-gray-900 text-white text-[9px] font-black uppercase tracking-[0.25em] hover:bg-cardinal transition-colors duration-300 disabled:opacity-30 disabled:cursor-not-allowed flex items-center space-x-1.5 flex-shrink-0"
+          className="flex flex-shrink-0 items-center space-x-1.5 bg-gray-900 px-5 py-3 text-[9px] font-black uppercase tracking-[0.25em] text-white transition-colors duration-300 hover:bg-cardinal disabled:cursor-not-allowed disabled:opacity-30"
         >
           {loading
             ? <Loader size={11} className="animate-spin" />
@@ -106,7 +106,7 @@ const CouponInput = ({ cartTotal, onApply, onRemove, appliedCoupon }) => {
 
       {/* Error message */}
       {error && (
-        <p className="flex items-center space-x-1.5 text-[9px] font-bold text-cardinal mt-2">
+        <p className="mt-2 flex items-center space-x-1.5 text-[9px] font-bold text-cardinal">
           <X size={9} className="flex-shrink-0" />
           <span>{error}</span>
         </p>

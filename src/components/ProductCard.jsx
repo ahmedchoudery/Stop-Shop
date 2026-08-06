@@ -372,7 +372,7 @@ const ProductCard = ({ product, initialColor = null, onImageLoad }) => {
             ].join(' ')}
             aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
           >
-            <Heart size={12} className={wishlisted ? 'fill-white text-white' : 'text-black hover:text-white transition-colors duration-200'} />
+            <Heart size={12} className={wishlisted ? 'fill-white text-white' : 'text-black transition-colors duration-200 hover:text-white'} />
           </button>
         </MagneticElement>
 
@@ -388,7 +388,7 @@ const ProductCard = ({ product, initialColor = null, onImageLoad }) => {
               ].join(' ')}
               aria-label="Add to cart"
             >
-              <ShoppingBag size={12} className={cartAdded ? 'text-white' : 'text-black hover:text-white transition-colors duration-200'} />
+              <ShoppingBag size={12} className={cartAdded ? 'text-white' : 'text-black transition-colors duration-200 hover:text-white'} />
             </button>
           </MagneticElement>
         )}

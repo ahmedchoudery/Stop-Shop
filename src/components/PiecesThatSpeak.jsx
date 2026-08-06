@@ -228,10 +228,10 @@ const PiecesCard = ({ product }) => {
         <button
           onClick={handleWishlist}
           onTouchStart={(e) => e.stopPropagation()}
-          className={`absolute top-3 right-3 w-8 h-8 rounded-none border backdrop-blur-md flex items-center justify-center transition-all duration-300 z-20 min-w-0 min-h-0 ${
+          className={`absolute right-3 top-3 z-20 flex h-8 min-h-0 w-8 min-w-0 items-center justify-center rounded-none border backdrop-blur-md transition-all duration-300 ${
             wishlisted
-              ? 'bg-black text-white border-black shadow-sm'
-              : 'bg-white/90 text-gray-700 border-gray-200/80 hover:bg-black hover:text-white hover:border-black'
+              ? 'border-black bg-black text-white shadow-sm'
+              : 'border-gray-200/80 bg-white/90 text-gray-700 hover:border-black hover:bg-black hover:text-white'
           }`}
           aria-label={wishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
         >
@@ -246,10 +246,10 @@ const PiecesCard = ({ product }) => {
           <button
             onClick={handleAddToCart}
             aria-label={cartAdded ? `${product.name} added to bag` : `Add ${product.name} to bag`}
-            className={`absolute bottom-3 right-3 w-9 h-9 rounded-none border backdrop-blur-md shadow-sm flex items-center justify-center transition-all duration-300 opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 z-20 min-w-0 min-h-0 ${
+            className={`absolute bottom-3 right-3 z-20 flex h-9 min-h-0 w-9 min-w-0 translate-y-2 transform items-center justify-center rounded-none border opacity-0 shadow-sm backdrop-blur-md transition-all duration-300 group-hover:translate-y-0 group-hover:opacity-100 ${
               cartAdded 
-                ? 'bg-white text-black border-white' 
-                : 'bg-white/95 text-black border-gray-200 hover:bg-black hover:text-white hover:border-black'
+                ? 'border-white bg-white text-black' 
+                : 'border-gray-200 bg-white/95 text-black hover:border-black hover:bg-black hover:text-white'
             }`}
           >
             <ShoppingBag size={13} />
@@ -310,9 +310,9 @@ const PiecesCard = ({ product }) => {
                   onClick={(e) => { e.stopPropagation(); handleSelectColor(color); }}
                   aria-label={`Select colour ${getColorName(color)}`}
                   aria-pressed={isSelected}
-                  className={`w-3.5 h-3.5 rounded-[4px] border transition-all duration-200 focus:outline-none min-w-0 min-h-0 flex-shrink-0 ${
+                  className={`h-3.5 min-h-0 w-3.5 min-w-0 flex-shrink-0 rounded-[4px] border transition-all duration-200 focus:outline-none ${
                     isSelected
-                      ? 'border-black ring-2 ring-black ring-offset-2 ring-offset-white z-10'
+                      ? 'z-10 border-black ring-2 ring-black ring-offset-2 ring-offset-white'
                       : 'border-gray-250 hover:border-black'
                   }`}
                   style={getBackgroundStyle(color)}
